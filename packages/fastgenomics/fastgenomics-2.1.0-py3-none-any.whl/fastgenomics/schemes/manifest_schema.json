@@ -1,0 +1,165 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "required": [
+    "application", "schema"
+  ], 
+  "definitions": {
+    "input_entry": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "FASTGenomics Type of the file",
+          "enum":  [
+            "expression_matrix",
+            "gene_metadata",
+            "cell_metadata",
+            "coordinates",
+            "assignments",
+            "data_quality",
+            "batch_effects",
+            "dense_matrix",
+            "heatmap_info",
+            "dataset_manifest",
+            "output_only"
+            ],
+          "type": "string"
+        },
+        "usage": {
+          "description": "short description of the file usage",
+          "examples": ["gene expression matrix", "classification of cells"],
+          "type": "string"
+        },
+        "optional": {
+          "description": "marks an input file as optional, e.g., it doesn't have to be defined in the input_file_mapping nor be existing",
+          "type": "boolean"
+        }
+      },
+      "required": ["type", "usage"]
+    },
+    "output_entry": {
+      "allOf": [
+        { "$ref": "#/definitions/input_entry"},
+        { "properties": {
+            "file_name": {
+              "description": "plain filename of the output-file without directory",
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_.]+$"
+            }
+          },
+          "required": ["file_name"]
+        }
+      ]
+    },
+    "parameter_entry": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "Type of the value of the parameter",
+          "enum": ["string", "integer", "float", "bool", "list", "dict", "enum"]
+        },
+        "optional": {
+          "description": "Accept null as parameter value in addition to values of the given type?",
+          "type": "boolean"
+        },
+        "description": {
+          "description": "Description of the parameter",
+          "type": "string"
+        },
+        "enum": {
+          "description": "Valid values of an enum type",
+          "type": "array"
+        },
+        "default": {
+          "description": "Default value of the parameter"
+        }
+      },
+      "required": ["type", "description", "default"],
+      "if": {
+        "properties": {
+          "type": { "enum": ["enum"] }
+        }
+      },
+      "then": { "required": ["enum"] }
+    }
+  },
+
+  "type": "object",
+  "properties": {
+    "schema":
+    {
+      "type": "string",
+      "enum": ["1.0.0"],
+      "description": "The version of the schema itself."
+    },
+    "application": {
+      "type": "object",
+      "properties": {
+        "author": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "description": "E-mail address of app developer",
+              "examples": ["john.doe@fastgenomics.org"],
+              "type": "string"
+            },
+            "name": {
+              "description": "Name of the app developer",
+              "examples": ["Jon Doe"],
+              "type": "string"
+            },
+            "organisation": {
+              "description": "Organization of the developer",
+              "examples": ["FASTGenomics"],
+              "type": "string"
+            }
+          }
+        },
+        "name": {
+          "description": "The name of the application",
+          "examples": ["Hello Genomics Sample App"],
+          "type": "string"
+        },
+        "type": {
+          "description": "Type of the application",
+          "enum": ["Calculation", "Visualization"]
+        },
+        "description": {
+          "description": "Description of the application - can be markdown",
+          "type": "string"
+        },
+        "demands": {
+          "type": "array",
+          "items": {
+            "description": "Demands on the runtime environment",
+            "enum": ["GPU"]
+          }
+        },
+        "input": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9_.]+$": {
+              "$ref": "#/definitions/input_entry"
+            }
+          }
+        },
+        "output": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9_.]+$": {
+              "$ref": "#/definitions/output_entry"
+            }
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9_.]+$": {
+              "$ref": "#/definitions/parameter_entry"
+            }
+          }
+        }
+      },
+      "required": ["author", "name", "type",  "description", "demands", "input", "output", "parameters"]
+    }
+  }
+}
