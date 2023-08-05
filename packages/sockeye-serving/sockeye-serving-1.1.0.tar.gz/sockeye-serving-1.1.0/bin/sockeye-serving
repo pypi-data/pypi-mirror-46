@@ -1,0 +1,183 @@
+#!/usr/bin/env bash
+
+# Look for config file in:
+# 1) current directory
+# 2) SOCKEYE_SERVING_CONF environment variable
+config="sockeye-serving.conf"
+
+if [[ -f "${config}" ]]; then
+    source "${config}"
+elif [[ -f ${SOCKEYE_SERVING_CONF} ]]; then
+    source "${SOCKEYE_SERVING_CONF}"
+else
+    echo "${config} not found in current directory or in SOCKEYE_SERVING_CONF"
+    exit 1
+fi
+
+start_docker() {
+    "${docker_exec}" run -itd --name "${container_name}" \
+        -p "${pred_port}:${docker_pred_port}" -p "${mgmt_port}:${docker_mgmt_port}" \
+        -v "${export_path}:/opt/ml/model" "${docker_image}"
+}
+
+stop_docker() {
+    "${docker_exec}" rm -f "${container_name}"
+}
+
+restart_docker() {
+    stop_docker
+    start_docker
+}
+
+deploy_model() {
+    if (( $# != 1 )); then
+        echo "usage: deploy MODEL_NAME"
+        exit 1
+    fi
+
+    local model_name="$1"
+
+    until curl -X POST "${mgmt_url}/models?synchronous=true&initial_workers=1&url=${model_name}"
+    do
+      echo "Waiting for initialization..."
+      sleep 1
+    done
+}
+
+remove_model() {
+    if (( $# != 1 )); then
+        echo "usage: rm MODEL_NAME"
+        exit 1
+    fi
+
+    local model_name="$1"
+
+    curl -X DELETE "${mgmt_url}/models/${model_name}"
+}
+
+list_models() {
+    curl -X GET "${mgmt_url}/models"
+}
+
+get_status() {
+    if (( $# != 1 )); then
+        echo "usage: status MODEL_NAME"
+        exit 1
+    fi
+
+    local model_name="$1"
+
+    curl -X GET "${mgmt_url}/models/${model_name}"
+}
+
+translate() {
+    if (( $# != 2 )); then
+        echo "usage: translate MODEL_NAME INPUT_TEXT"
+        exit 1
+    fi
+
+    local model_name="$1"
+    local input_text="$2"
+
+    curl -X POST "${pred_url}/predictions/${model_name}" -H "Content-Type: application/json" \
+        -d "{ \"text\": \"${input_text}\" }"
+}
+
+translate_file() {
+    if (( $# != 2 )); then
+        echo "usage: translate MODEL_NAME FILE"
+        exit 1
+    fi
+
+    local model_name="$1"
+    local text_file="$2"
+
+    curl -X POST "${pred_url}/predictions/${model_name}" -T "${text_file}"
+}
+
+update_model() {
+    if (( $# != 1 )); then
+        echo "usage: update MODEL_NAME"
+        exit 1
+    fi
+
+    # name of the model
+    local model_name="$1"
+    # where the model files live
+    local model_path="${export_path}/${model_name}"
+
+    # update the scripts and handler files in the export path
+    cp config/sockeye-args.txt "${model_path}"
+    cp -r src/sockeye_serving "${model_path}"
+}
+
+archive_model() {
+    if [[ -z $(command -v model-archiver) ]]; then
+        echo "model-archiver not found - is virtualenv activated?"
+        exit 127
+    fi
+
+    if (( $# != 2 )); then
+        echo "usage: archive MODEL_NAME HANDLER"
+        exit 1
+    fi
+
+    # name of the model
+    local model_name="$1"
+    # filename of Python handler
+    local handler="$2"
+    # where the model files live
+    local model_path="${export_path}/${model_name}"
+
+    # create a new MAR from the updated model files
+    model-archiver -f --runtime python3 --export-path "${export_path}" \
+        --model-name "${model_name}" --model-path "${model_path}" --handler "sockeye_serving.${handler}:handle"
+    # update manifest file in original directory
+    unzip -uo "${model_path}.mar" -d "${model_path}"
+}
+
+show_help() {
+    echo "usage: $0 COMMAND [ARGS]"
+    echo "where COMMAND is one of the following:"
+    echo "start     start the Docker container"
+    echo "stop      stop the Docker container"
+    echo "restart   restart the Docker container"
+    echo "update    update the model directory with source files in the working directory"
+    echo "archive   create a model archive (MAR)"
+    echo "deploy    load a model onto the server"
+    echo "rm        remove a model to free up resources"
+    echo "list      list the registered models"
+    echo "status    check the status of a model"
+    echo "translate translate text"
+    echo "upload    translate a file"
+    echo "help      show this help message"
+}
+
+if [[ "$1" = "start" ]]; then
+    cmd="start_docker"
+elif [[ "$1" = "stop" ]]; then
+    cmd="stop_docker"
+elif [[ "$1" = "restart" ]]; then
+    cmd="restart_docker"
+elif [[ "$1" = "update" ]]; then
+    cmd="update_model"
+elif [[ "$1" = "archive" ]]; then
+    cmd="archive_model"
+elif [[ "$1" = "deploy" ]]; then
+    cmd="deploy_model"
+elif [[ "$1" = "rm" ]]; then
+    cmd="remove_model"
+elif [[ "$1" = "list" ]]; then
+    cmd="list_models"
+elif [[ "$1" = "status" ]]; then
+    cmd="get_status"
+elif [[ "$1" = "translate" ]]; then
+    cmd="translate"
+elif [[ "$1" = "upload" ]]; then
+    cmd="translate_file"
+else
+    cmd="show_help"
+fi
+
+shift 1
+"$cmd" "$@"
