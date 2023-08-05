@@ -1,0 +1,75 @@
+Metadata-Version: 1.0
+Name: pyengine
+Version: 0.0.4
+Summary: 
+    一个运行Python代码的web接口
+    A web interfacerun who can run Python code 
+    
+Home-page: http://www.gitee.com
+Author: liuyancong
+Author-email: 1437255447@qq.com
+License: Apache License V2.0
+Description: #                       使用指南
+        
+        1、pip install pyengine
+        
+        2、运行命令 pyengine run -d 缓存目录 -p 端口号 -n 可同时处理的请求数量
+        
+        3、接口
+            /run/
+            body 体为一个FuncClass的子类
+                         
+        
+        ```python
+        from pyengine import FuncClass
+        import time
+        class My2(FuncClass):
+            def run(self):
+                print('MY is Running')
+                time.sleep(1)
+                return "你好啊！"
+        ```
+        
+        返回结果为
+        
+        ```json
+        {
+            "res": "你好啊!"
+        }
+        ```
+        
+        /add/
+        
+        增加n的个数
+        
+        /reduce/
+        
+        减少n的个数
+        
+        4、新增一个异步装饰器
+        
+        ```python
+        from pyengine import async_work_res,async_work
+        def deal_res(res):
+            print('res')
+        
+        @async_work_res(deal_res)
+        def work():
+            return '大家好！'
+        
+        @async_work
+        def work():
+            return '大家好！'
+        ```
+        
+        可以使被装饰的函数启动一个进程或者线程去执行（在win下启动线程，在linux下启动进程）,该装饰器的参数是一个可以处理被装饰的函数的结果
+        
+        5 、异步方法改进
+        
+        ​	0.0.4
+        
+        ​	进程开启方法改进，进程退出方法改进
+        
+        ​        僵尸进程处理
+Keywords: py,engine,run
+Platform: any
