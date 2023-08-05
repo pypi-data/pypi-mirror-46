@@ -1,0 +1,234 @@
+#:kivy 1.10.0
+#:import BaseLabel kmpc.widgets.BaseLabel
+#:import OutlineLabel kmpc.widgets.OutlineLabel
+#:import ScaledWidthLabel kmpc.widgets.ScaledWidthLabel
+#:import ShadowLabel kmpc.widgets.ShadowLabel
+#:import RatingPopup kmpc.widgets.RatingPopup
+#:import ScreenSwitcher kmpc.widgets.ScreenSwitcher
+#:import normalfont kmpc.widgets.normalfont
+#:import boldfont kmpc.widgets.boldfont
+#:import fontawesomefont kmpc.widgets.fontawesomefont
+#:import buttonnormal kmpc.widgets.buttonnormal
+#:import buttondown kmpc.widgets.buttondown
+#:import clearimage kmpc.widgets.clearimage
+#:import backdrop kmpc.widgets.backdrop
+#:import ratingstars kmpc.widgets.ratingstars
+#:import get_color_from_hex kivy.utils.get_color_from_hex
+
+<ScreenSwitcher>:
+    orientation: 'horizontal'
+    size_hint_y: .1
+    ScreenSwitcherButton:
+        text: 'Now Playing'
+        group: 'ss'
+        id: nowplayingbutton
+        state: 'down'
+        on_press: root.manager.current = 'nowplaying'
+    ScreenSwitcherButton:
+        text: 'Queue'
+        group: 'ss'
+        id: queuebutton
+        on_press: root.manager.current = 'queue'
+    ScreenSwitcherButton:
+        text: 'Library'
+        group: 'ss'
+        id: librarybutton
+        on_press: root.manager.current = 'library'
+    ScreenSwitcherButton:
+        text: 'System'
+        group: 'ss'
+        id: systembutton
+        on_press: root.manager.current = 'system'
+        
+<BaseLabel>:
+    font_name: boldfont
+    font_size: '20sp'
+    color: get_color_from_hex(app.config.get('colors','textcolor'))
+    
+<RVLabel@BaseLabel>:
+    reg_size: '20sp'
+    small_size: '18sp'
+    cutoff: 60
+    font_size: self.reg_size if len(self.text) < self.cutoff else self.small_size
+
+<ScaledWidthLabel>:
+    canvas.before:
+        PushMatrix
+        Scale:
+            origin: self.center
+            x: (self._internalscale*self._scale) if self._internalscale else 1.
+            y: (self._internalscale*self._scale) if self._internalscale else 1.
+    canvas.after:
+        PopMatrix
+
+<StarLabel@BaseLabel>:
+    font_name: fontawesomefont
+    markup: True
+
+<BaseButton@BaseLabel+Button>:
+    font_name: boldfont
+
+<OutlineButton@BaseButton+OutlineLabel>:
+
+<Button>:
+    border: (4,4,4,4)
+    background_color: app.get_color('button')
+    background_normal: buttonnormal
+    background_down: buttondown
+    font_name: normalfont
+    font_size: '20sp'
+
+<ClearButton@OutlineButton>:
+    border: (1,1,1,1)
+    background_normal: clearimage
+    background_down: clearimage
+    background_disabled_normal: clearimage
+
+<TrackSlider@Slider>:
+    BaseLabel:
+        pos: (root.value_pos[0] - sp(16), root.center_y - sp(27)) if root.orientation == 'horizontal' else (root.center_x - sp(27), root.value_pos[1] - sp(16))
+        size_hint: None, None
+        size: sp(32), sp(32)
+        text: "%02d:%02d" % (divmod(int(root.max)-int(root.value),60))
+
+<BaseToggleButton@ToggleButton+BaseLabel>:
+
+<ScreenSwitcherButton@BaseToggleButton>:
+    background_disabled_normal: buttonnormal
+    background_disabled_down: buttondown
+    disabled_color: get_color_from_hex(app.config.get('colors','textcolor'))
+
+<MediaButton@BaseButton,MediaToggleButton@BaseToggleButton>:
+    font_name: fontawesomefont
+    font_size: '24sp'
+
+<BrightnessButton@OutlineButton>:
+    font_name: fontawesomefont
+    font_size: '24sp'
+    border: (1,1,1,1)
+    background_normal: clearimage
+    background_down: clearimage
+    canvas.before:
+        Clear
+        PushMatrix
+        Rotate:
+            angle: 90
+            origin: self.center
+    canvas.after:
+        PopMatrix
+
+<SidewaysLabel@OutlineLabel>:
+    # wanted to inherit from ScaledWidthLabel, but can't get it to look right
+    _internalscale: 1. if self.texture_size[0] < self.width else float(self.width) / self.texture_size[0]
+    _scale: 2. if len(self.text) > 2 else 1.
+    valign: 'middle'
+    padding_x: '5sp'
+    font_size: '40sp'
+    canvas.before:
+        PushMatrix
+        Scale:
+            origin: self.center
+            x: (self._internalscale*self._scale) if self._internalscale else 1.
+            y: (self._internalscale*self._scale) if self._internalscale else 1.
+        Rotate:
+            angle: 90
+            origin: self.center
+    canvas.after:
+        PopMatrix
+
+<SettingsButton@OutlineButton>:
+    font_name: fontawesomefont
+    font_size: '24sp'
+    border: (1,1,1,1)
+    background_normal: clearimage
+    background_down: clearimage
+
+<InfoLargeLabel@OutlineLabel+ShadowLabel+ScaledWidthLabel>:
+    text_size: self.width, None
+    halign: 'center'
+
+<InfoSmallLabel@OutlineLabel>:
+    font_size: '18sp'
+    text_size: self.width, None
+    height: self.texture_size[1]
+    halign: 'center'
+
+<BBLabel1@BaseLabel>:
+    halign: 'left'
+    valign: 'middle'
+    padding_x: '5sp'
+    size_hint_x: 0.25
+    text_size: self.size
+    
+<BBLabel2@BaseLabel>:
+    halign: 'left'
+    valign: 'middle'
+    padding_x: '5sp'
+    text_size: self.size
+
+<StarBoxButton@BoxLayout+BaseButton>:
+    orientation: 'horizontal'
+    pos: self.parent.pos
+    size: self.parent.size
+    rating: None
+    popup: None
+    on_press:
+        if self.popup.song: self.popup.rating_set(self.popup.song,self.rating,self.popup)
+        elif self.popup.index: self.popup.rating_set(self.popup.index,self.rating,self.popup)
+        elif self.popup.robject: self.popup.rating_set(self.popup.robject,self.rating,self.popup)
+    BBLabel1:
+        font_name: fontawesomefont
+        text: ratingstars[int(root.rating)] if root.rating!=None else ''
+    BBLabel2:
+        text: app.config.get('songratings','star'+str(root.rating)) if root.rating!=None else ''
+
+<RatingPopup>:
+    title: 'Rating'
+    size_hint: (0.8,1)
+    BoxLayout:
+        orientation: 'horizontal'
+        BaseButton:
+            on_press:
+                if root.song: root.rating_set(root.song,'',root)
+                elif root.index: root.rating_set(root.index,'',root)
+                elif root.robject: root.rating_set(root.robject,'',root)
+            size_hint_x: 0.07
+            font_name: fontawesomefont
+            text: ratingstars[11]
+        BoxLayout:
+            orientation: 'vertical'
+            StarBoxButton:
+                rating: '0'
+                popup: root
+            StarBoxButton:
+                rating: '1'
+                popup: root
+            StarBoxButton:
+                rating: '2'
+                popup: root
+            StarBoxButton:
+                rating: '3'
+                popup: root
+            StarBoxButton:
+                rating: '4'
+                popup: root
+            StarBoxButton:
+                rating: '5'
+                popup: root
+            StarBoxButton:
+                rating: '6'
+                popup: root
+            StarBoxButton:
+                rating: '7'
+                popup: root
+            StarBoxButton:
+                rating: '8'
+                popup: root
+            StarBoxButton:
+                rating: '9'
+                popup: root
+            StarBoxButton:
+                rating: '10'
+                popup: root
+           
+<ImageButton@ButtonBehavior+AsyncImage>:
