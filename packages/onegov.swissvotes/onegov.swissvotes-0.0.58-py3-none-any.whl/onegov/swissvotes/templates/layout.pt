@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html class="no-js" lang="${request.html_lang}"
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+    xmlns:metal="http://xml.zope.org/namespaces/metal"
+    xmlns:tal="http://xml.zope.org/namespaces/tal"
+    i18n:domain="onegov.swissvotes"
+    metal:define-macro="layout">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="version" content="${layout.app_version}">
+    <title>
+        <tal:block metal:define-slot="title">SWISSVOTES</tal:block>
+    </title>
+    <!-- This site is running on the
+      ___              ____               ____ _                 _
+     / _ \ _ __   ___ / ___| _____   __  / ___| | ___  _   _  __| |
+    | | | | '_ \ / _ \ |  _ / _ \ \ / / | |   | |/ _ \| | | |/ _` |
+    | |_| | | | |  __/ |_| | (_) \ V /  | |___| | (_) | |_| | (_| |
+     \___/|_| |_|\___|\____|\___/ \_/    \____|_|\___/ \__,_|\__,_|
+
+    Have a look at the source code: https://onegov.readthedocs.org
+    -->
+
+    <link rel="stylesheet" type="text/css" href="${layout.static_path}/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="${layout.static_path}/apercu/css/apercu.css">
+    <script tal:condition="layout.app.sentry_dsn" src="https://browser.sentry-cdn.com/5.0.7/bundle.min.js" crossorigin="anonymous"></script>
+    <script tal:condition="layout.app.sentry_dsn">
+        Sentry.init({
+            dsn: '${layout.app.sentry_dsn}',
+            release: '${layout.app.sentry_version}',
+            environment: '${layout.app.sentry_environment}',
+        });
+    </script>
+    <link rel="stylesheet" type="text/css" href="${request.theme_link}">
+</head>
+<body>
+    <header>
+        <div class="languages">
+            <div class="row">
+                <nav role="navigation" class="right">
+                    <ul class="inline-list">
+                        <tal:block tal:repeat="(locale, lang, title, href) layout.locales">
+                            <li tal:condition="request.locale != locale">
+                                <a rel="alternate" href="${href}" lang="${lang}" hreflang="${lang}">${lang}</a>
+                            </li>
+                        </tal:block>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <div class="title">
+            <div class="row">
+                <div class="columns small-12 small-only-text-center">
+                    <a href="${layout.homepage_url}"><img src="${layout.static_path}/images/logo.svg" height="100" alt="Swissvotes"></a>
+                    <a href="http://unibe.ch"><img class="right hide-for-small" src="${layout.static_path}/images/logo_unibe.svg" height="100" alt="Universität Basel"></a>
+                    <a href="https://anneepolitique.swiss"><img class="right hide-for-small" src="${layout.static_path}/images/logo_aps.svg" height="100" alt="année politique suisse"></a>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="columns small-12">
+                <div metal:use-macro="layout.macros['top_navigation']"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="columns small-12">
+                <div metal:use-macro="layout.macros['editbar']"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="columns small-12">
+                <div metal:use-macro="layout.macros['breadcrumbs']"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="row">
+        <div class="columns small-12">
+            <div class="row">
+                <div class="small-12 columns" id="alert-boxes">
+                    <div tal:repeat="message request.consume_messages()" data-alert class="alert-box ${message.type}">
+                        <tal:block tal:content="structure message.text" />
+                        <a href="#" class="close">&times;</a>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="columns small-12">
+                    <div metal:define-slot="content"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="row">
+        <div class="columns small-12">
+            <div class="links">
+                 <div class="row">
+                    <div class="small-12 medium-4 columns small-only-text-center">
+                        <tal:block replace="structure layout.disclaimer_link(layout)" />
+                    </div>
+                    <div class="small-12 medium-4 columns text-center">
+                        <tal:block replace="structure layout.imprint_link(layout)" />
+                    </div>
+                    <div class="small-12 medium-4 columns small-only-text-center medium-text-right manage-links">
+                        <tal:block replace="structure layout.data_protection_link(layout)" />
+                    </div>
+                </div>
+                 <div class="row">
+                    <div class="small-12 columns small-only-text-center medium-text-right manage-links">
+                        <a tal:condition="layout.logout_url" href="${layout.logout_url}" i18n:translate>Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
