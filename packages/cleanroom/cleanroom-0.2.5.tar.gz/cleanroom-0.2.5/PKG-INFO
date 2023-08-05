@@ -1,0 +1,83 @@
+Metadata-Version: 1.1
+Name: cleanroom
+Version: 0.2.5
+Summary: None
+Home-page: https://github.com/huntzhan/cleanroom
+Author: Hunt Zhan
+Author-email: huntzhan.dev@gmail.com
+License: MIT license
+Description: =========
+        cleanroom
+        =========
+        
+        
+        Install::
+        
+            pip install cleanroom
+        
+        
+        Create instance in a new process and proxy all operations:
+        
+        .. code:: python
+        
+            import os
+            from cleanroom import create_instance
+        
+        
+            class Cal:
+        
+                def __init__(self, base):
+                    self.base = base
+        
+                def inc(self):
+                    self.base += 1
+                    return self.base
+        
+                def pid(self):
+                    return os.getpid()
+        
+        
+            cal = create_instance(Cal, 0)
+        
+            print('Parent PID: ', os.getpid())
+            print('Cal PID: ', cal.pid())
+        
+            print('inc: ', cal.inc())
+            print('inc: ', cal.inc())
+        
+        
+        Output::
+        
+            Parent PID:  22239
+            Cal PID:  22272
+            inc:  1
+            inc:  2
+        
+        
+        Credits
+        -------
+        
+        This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+        
+        .. _Cookiecutter: https://github.com/audreyr/cookiecutter
+        .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+        
+        
+        =======
+        History
+        =======
+        
+        0.1.0 (2019-05-10)
+        ------------------
+        
+        * First release on PyPI.
+        
+Keywords: cleanroom
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
