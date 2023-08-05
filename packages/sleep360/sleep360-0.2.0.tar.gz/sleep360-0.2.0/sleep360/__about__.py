@@ -1,0 +1,6 @@
+__author__ = "Albin Kauffmann"
+__email__ = "albin@kauff.org"
+__description__ = "A library and command-line tool to control the Holi SleepCompanion"
+__url__ = "https://gitlab.com/albinou/python-sleep360"
+__license__ = "GPLv3"
+__version__ = "0.2.0"
