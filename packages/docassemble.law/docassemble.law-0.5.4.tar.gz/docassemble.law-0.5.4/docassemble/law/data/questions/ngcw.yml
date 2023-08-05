@@ -1,0 +1,423 @@
+---
+imports:
+  - datetime
+---
+metadata:
+  title: Name/Gender Change
+---
+field: get_started
+question: |
+  This demo helps you fill out the forms to obtain a court order for name and/or gender change!
+subquestion: |
+  [THIS IS CODE, NOT LEGAL ADVICE](https://github.com/AriChivukula/docassemble.law/blob/master/docassemble/law/data/questions/ngcw.yml)
+continue button label: Get Started
+---
+field: help_type
+question: |
+  How can we help you today?
+subquestion: |
+  Please inform us what services you are seeking assistance with.
+choices:
+  - Gender Change (18+ only)
+  - Name Change (trans-identified 18+ only)
+  - Name & Gender Change (18+ only)
+---
+question: |
+  Current Petitioner Information
+subquestion: |
+  Please enter your current legal information.
+fields:
+  - Name: petitioner_full_name
+  - Address: petitioner_number_and_street
+  - City: petitioner_city
+  - Zip: petitioner_zip
+  - Telephone: petitioner_phone_number
+    required: False
+  - Email: petitioner_email
+    required: False
+  - Assigned Gender at Birth: petitioner_agab
+    choices:
+      - Male
+      - Female
+---
+question: |
+  Additional Petitioner Information
+subquestion: |
+  Please enter your additional legal information.
+fields:
+  - AKA 1: petitioner_full_name2
+    required: False
+    js hide if: val("help_type") == "Gender Change (18+ only)"
+  - AKA 2: petitioner_full_name3
+    required: False
+    js hide if: val("help_type") == "Gender Change (18+ only)"
+  - AKA 3: petitioner_full_name4
+    required: False
+    js hide if: val("help_type") == "Gender Change (18+ only)"
+  - Place of Birth: petitioner_pob
+  - Date of Birth: petitioner_dob
+    datatype: date
+---
+question: |
+  Future Petitioner Name
+subquestion: |
+  Please enter the name you wish to go by legally.
+fields:
+  - Name: new_name
+---
+question: |
+  Future Petitioner Gender
+subquestion: |
+  Please enter the gender you wish to go by legally.
+fields:
+  - Gender: new_gender
+    choices:
+      - Female
+      - Male
+      - Non-Binary
+---
+question: |
+  Court Information
+subquestion: |
+  Please select the county you live in.
+fields:
+  - County: court_county
+    choices:
+      - Alameda
+      - Contra Costa
+      - Marin
+      - Napa
+      - San Francisco
+      - San Mateo
+      - Santa Clara
+      - Solano
+      - Sonoma
+      - Other
+  - Other County: court_county_custom
+    js show if: val("court_county") == "Other"
+  - Address: court_address
+    js show if: val("court_county") == "Other"
+  - City: court_city
+    js show if: val("court_county") == "Other"
+  - Zip: court_zip
+    js show if: val("court_county") == "Other"
+  - Branch: court_branch
+    js show if: val("court_county") == "Other"
+---
+mandatory: True
+code: |
+  get_started
+  help_type
+  petitioner_full_name = petitioner_full_name.upper()
+  petitioner_full_name_w_akas = petitioner_full_name
+  if help_type != "Gender Change (18+ only)":
+    petitioner_full_name2 = petitioner_full_name2.upper()
+    petitioner_full_name3 = petitioner_full_name3.upper()
+    petitioner_full_name4 = petitioner_full_name4.upper()
+    if petitioner_full_name2:
+        petitioner_full_name_w_akas += " AKA " + petitioner_full_name2
+    if petitioner_full_name3:
+        petitioner_full_name_w_akas += " AKA " + petitioner_full_name3
+    if petitioner_full_name4:
+        petitioner_full_name_w_akas += " AKA " + petitioner_full_name4
+  petitioner_number_and_street = petitioner_number_and_street.upper()
+  petitioner_city = petitioner_city.upper()
+  petitioner_state = "CA"
+  if help_type != "Gender Change (18+ only)":
+    petitioner_pob = petitioner_pob.upper()
+  check_box5 = False
+  check_box6 = False
+  if petitioner_agab == "Male":
+      check_box5 = True
+  if petitioner_agab == "Female":
+      check_box6 = True
+  if help_type != "Gender Change (18+ only)":
+    new_name = new_name.upper()
+  if help_type != "Name Change (trans-identified 18+ only)":
+    female_check = False
+    male_check = False
+    nonbinary_check = False
+    if new_gender == "Female":
+        female_check = True
+    if new_gender == "Male":
+        male_check = True
+    if new_gender == "Non-Binary":
+        nonbinary_check = True
+  if court_county == "Alameda":
+    court_address = "1225 Fallon St"
+    court_city = "Oakland"
+    court_branch = "Rene C. Davidson Courthouse"
+    court_zip = "94612"
+  elif court_county == "Contra Costa":
+    court_address = "725 Court St"
+    court_city = "Martinez"
+    court_branch = "Wakefield Taylor Courthouse"
+    court_zip = "94553"
+  elif court_county == "Marin":
+    court_address = "3501 Civic Center Drive"
+    court_city = "San Rafael"
+    court_branch = "Civic Center Hall of Justice"
+    court_zip = "94903"
+  elif court_county == "Napa":
+    court_address = "825 Brown St"
+    court_city = "Napa"
+    court_branch = "Historic Courthouse"
+    court_zip = "94559"
+  elif court_county == "San Francisco":
+    court_address = "400 McAllister St"
+    court_city = "San Francisco"
+    court_branch = "Civic Center Courthouse"
+    court_zip = "94102"
+  elif court_county == "San Mateo":
+    court_address = "400 County Center"
+    court_city = "Redwood City"
+    court_branch = "Hall of Justice"
+    court_zip = "94063"
+  elif court_county == "Santa Clara":
+    court_address = "191 North First Street"
+    court_city = "San Jose"
+    court_branch = "Downtown Superior Courthouse"
+    court_zip = "95113"
+  elif court_county == "Solano":
+    court_address = "580 Texas Street"
+    court_city = "Fairfield"
+    court_branch = "Old Solano Courthouse"
+    court_zip = "94533"
+  elif court_county == "Sonoma":
+    court_address = "600 Administration Drive"
+    court_city = "Santa Rosa"
+    court_branch = "Hall of Justice"
+    court_zip = "95403"
+  else:
+    court_county = court_county_custom
+  court_county_final = court_county.upper()
+  court_address = court_address.upper()
+  court_city = court_city.upper()
+  court_city_and_zip = court_city + ", CA " + court_zip
+  court_branch = court_branch.upper()
+  case_name = "In re: " + petitioner_full_name
+  date1 = datetime.date.today().strftime('%m/%d/%Y')
+  documents_to_email = []
+  email_subject = "Documents for "
+  if help_type == "Name Change (trans-identified 18+ only)":
+      documents_to_email.append(unofficial_name_change)
+      email_subject = email_subject + new_name
+  elif help_type == "Gender Change (18+ only)":
+      documents_to_email.append(unofficial_gender_change)
+      email_subject = email_subject + petitioner_full_name
+  else:
+      documents_to_email.append(unofficial_name_and_gender_change)
+      email_subject = email_subject + new_name
+  documents_to_email.append(unofficial_fee_waiver)
+  success_sending_email = False
+  if not success_sending_email:
+      success_sending_email = send_email(to=["ngwberkeley@gmail.com"], subject=email_subject, body="See attached", attachments=documents_to_email)
+  message
+---
+field: name_and_gender_form
+question: |
+  Here are your (nearly) completed forms! Don't forget to sign them.
+attachment:
+  name: Name & Gender Change (18+ only)
+  filename: unofficial_name_and_gender_change
+  description: Click continue to email these forms.
+  variable name: unofficial_name_and_gender_change
+  pdf template file: name_and_gender_change.pdf
+  fields:
+    - Petitioner Full Name: |
+        ${ petitioner_full_name }
+    - Petitioner Full Name2: |
+        ${ petitioner_full_name2 }
+    - Petitioner Full Name3: |
+        ${ petitioner_full_name3 }
+    - Petitioner Full Name4: |
+        ${ petitioner_full_name4 }
+    - Petitioner Full Name w/AKAs: |
+        ${ petitioner_full_name_w_akas }
+    - Petitioner Number and Street: |
+        ${ petitioner_number_and_street }
+    - Petitioner City: |
+        ${ petitioner_city }
+    - STATE: |
+        ${ petitioner_state }
+    - Petitioner Zip: |
+        ${ petitioner_zip }
+    - Petitioner Phone Number: |
+        ${ petitioner_phone_number }
+    - Petitioner E-mail: |
+        ${ petitioner_email }
+    - Petitioner POB: |
+        ${ petitioner_pob }
+    - Petitioner DOB: |
+        ${ petitioner_dob }
+    - Check Box5: |
+        ${ check_box5 }
+    - Check Box6: |
+        ${ check_box6 }
+    - Petitioner New Name: |
+        ${ new_name }
+    - Female Check: |
+        ${ female_check }
+    - Male Check: |
+        ${ male_check }
+    - Nonbinary Check: |
+        ${ nonbinary_check }
+    - County: |
+        ${ court_county_final }
+    - Court Address: |
+        ${ court_address }
+    - Court City and Zip: |
+        ${ court_city_and_zip }
+    - Court Branch Name: |
+        ${ court_branch }
+    - Date1_af_date: |
+        ${ date1 }
+allow emailing: False
+---
+field: name_form
+question: |
+  Here are your (nearly) completed forms! Don't forget to sign them.
+attachment:
+  name: Name Change (trans-identified 18+ only)
+  filename: unofficial_name_change
+  description: Click continue to email these forms.
+  variable name: unofficial_name_change
+  pdf template file: name_change.pdf
+  fields:
+    - Petitioner Full Name: |
+        ${ petitioner_full_name }
+    - Petitioner Full Name2: |
+        ${ petitioner_full_name2 }
+    - Petitioner Full Name3: |
+        ${ petitioner_full_name3 }
+    - Petitioner Full Name4: |
+        ${ petitioner_full_name4 }
+    - Petitioner Full Name w/AKAs: |
+        ${ petitioner_full_name_w_akas }
+    - Petitioner Number and Street: |
+        ${ petitioner_number_and_street }
+    - Petitioner City: |
+        ${ petitioner_city }
+    - STATE: |
+        ${ petitioner_state }
+    - Petitioner Zip: |
+        ${ petitioner_zip }
+    - Petitioner Phone Number: |
+        ${ petitioner_phone_number }
+    - Petitioner E-mail: |
+        ${ petitioner_email }
+    - Petitioner POB: |
+        ${ petitioner_pob }
+    - Petitioner DOB: |
+        ${ petitioner_dob }
+    - Check Box5: |
+        ${ check_box5 }
+    - Check Box6: |
+        ${ check_box6 }
+    - Petitioner New Name: |
+        ${ new_name }
+    - County: |
+        ${ court_county_final }
+    - Court Address: |
+        ${ court_address }
+    - Court City and Zip: |
+        ${ court_city_and_zip }
+    - Court Branch Name: |
+        ${ court_branch }
+    - Date1_af_date: |
+        ${ date1 }
+allow emailing: False
+---
+field: gender_form
+question: |
+  Here are your (nearly) completed forms! Don't forget to sign them.
+attachment:
+  name: Gender Change (18+ only)
+  filename: unofficial_gender_change
+  description: Click continue to email these forms.
+  variable name: unofficial_gender_change
+  pdf template file: gender_change.pdf
+  fields:
+    - Petitioner Full Name: |
+        ${ petitioner_full_name }
+    - Petitioner Number and Street: |
+        ${ petitioner_number_and_street }
+    - Petitioner City: |
+        ${ petitioner_city }
+    - STATE: |
+        ${ petitioner_state }
+    - Petitioner Zip: |
+        ${ petitioner_zip }
+    - Petitioner Phone Number: |
+        ${ petitioner_phone_number }
+    - Petitioner E-mail: |
+        ${ petitioner_email }
+    - Check Box5: |
+        ${ check_box5 }
+    - Check Box6: |
+        ${ check_box6 }
+    - Female Check: |
+        ${ female_check }
+    - Male Check: |
+        ${ male_check }
+    - Nonbinary Check: |
+        ${ nonbinary_check }
+    - County: |
+        ${ court_county_final }
+    - Court Address: |
+        ${ court_address }
+    - Court City and Zip: |
+        ${ court_city_and_zip }
+    - Court Branch Name: |
+        ${ court_branch }
+    - Date1_af_date: |
+        ${ date1 }
+allow emailing: False
+---
+field: fee_form
+question: |
+  Filling this (optional) form out lets you know if you qualify for a fee waiver.
+attachment:
+  name: Fee Waiver
+  filename: unofficial_fee_waiver
+  description: Click continue to email these forms.
+  variable name: unofficial_fee_waiver
+  pdf template file: fee_waiver.pdf
+  fields:
+    - Petitioner Full Name: |
+        ${ petitioner_full_name }
+    - Petitioner Number and Street: |
+        ${ petitioner_number_and_street }
+    - Petitioner City: |
+        ${ petitioner_city }
+    - STATE: |
+        ${ petitioner_state }
+    - Petitioner Zip: |
+        ${ petitioner_zip }
+    - Petitioner Phone Number: |
+        ${ petitioner_phone_number }
+    - Petitioner E-mail: |
+        ${ petitioner_email }
+    - County: |
+        ${ court_county_final }
+    - Court Address: |
+        ${ court_address }
+    - Court City and Zip: |
+        ${ court_city_and_zip }
+    - Court Branch Name: |
+        ${ court_branch }
+    - Date1_af_date: |
+        ${ date1 }
+    - Text59: |
+        ${ case_name }
+allow emailing: False
+---
+code: |
+  message = "Thanks!"
+---
+mandatory: True
+question: |
+  ${message}
+buttons:
+  - Exit: exit
+  - Restart: restart
