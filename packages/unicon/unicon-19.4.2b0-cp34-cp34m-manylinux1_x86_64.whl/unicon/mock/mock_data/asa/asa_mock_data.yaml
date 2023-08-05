@@ -1,0 +1,68 @@
+
+connect_ssh:
+  preface: |
+    The authenticity of host '127.0.0.1 (127.0.0.1)' can't be established.
+    RSA key fingerprint is a1:07:ac:9b:8c:c2:db:c5:4c:dc:70:b5:09:2a:a5:b1.
+  prompt: "Are you sure you want to continue connecting (yes/no)? "
+  commands:
+    "yes":
+      new_state: asa_password
+
+asa_disable:
+  prompt: "ASA>"
+  commands:
+    "enable":
+      new_state: asa_password
+
+asa_password:
+  prompt: "Password: "
+  commands:
+    "cisco":
+      new_state: asa_enable
+
+asa_enable:
+  prompt: "ASA#"
+  commands: &enable_cmds
+    "terminal pager 0": ""
+    "config term":
+      new_state: asa_config
+    "show version": |2
+      Cisco Adaptive Security Appliance Software Version 9.6(4)8 
+      Device Manager Version 7.6(2)
+
+asa_config:
+  prompt: "ASA(config)#"
+  commands:
+    "terminal pager 0": ""
+    "end":
+      new_state: asa_enable
+    "exit":
+      new_state: asa_enable
+
+asa_disable_pri_act:
+  prompt: "ASA/pri/act>"
+  commands:
+    "enable":
+      new_state: asa_password_pri_act
+
+asa_password_pri_act:
+  prompt: "Password: "
+  commands:
+    "cisco":
+      new_state: asa_enable_pri_act
+
+asa_enable_pri_act:
+  prompt: "ASA/pri/act#"
+  commands:
+    "terminal pager 0": ""
+    "config term":
+      new_state: asa_config_pri_act
+
+asa_config_pri_act:
+  prompt: "ASA/pri/act(config)#"
+  commands:
+    "terminal pager 0": ""
+    "end":
+      new_state: asa_enable_pri_act
+    "exit":
+      new_state: asa_enable_pri_act
