@@ -1,0 +1,66 @@
+Metadata-Version: 2.1
+Name: bosch-thermostat-http-client
+Version: 0.4.1
+Summary: Python API for talking to Bosch™ Heating gateway using HTTP 
+Home-page: https://github.com/moustic999/bosch-thermostat-http-client-python.git
+Author: Ludovic Laurent
+Author-email: ludovic.laurent@gmail.com
+Maintainer: Ludovic Laurent
+Maintainer-email: ludovic.laurent@gmail.com
+License: Apache License 2.0
+Download-URL: https://github.com/moustic999/bosch-thermostat-http-client-python/archive/0.4.1.zip
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Environment :: Console
+Classifier: Topic :: Other/Nonlisted Topic
+Classifier: Topic :: Utilities
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Description-Content-Type: text/markdown
+Requires-Dist: pyaes (>=1.6.1)
+Requires-Dist: aiohttp
+
+
+
+# bosch-thermostat-http-client-python
+Python3 asyncio package to talk to Bosch Thermostats via their gateway, especially for Buderus KM200/KM50 and Nefit IP modules used in Enviline heat pumps. These gateways support Http access in local network.
+
+example :
+```python
+import asyncio 
+import aiohttp
+
+from buderus.gateway import Gateway
+async def main():
+    async with aiohttp.ClientSession() as session:
+        gateway =  Gateway(session, '<Local IP of gateway>','<gateway password>','<user password>')
+        await gateway.initialize()
+
+
+        print(gateway.info.uuid)
+
+        for sensor in gateway.sensors.items:
+            print (sensor.name, sensor.value)
+
+asyncio.get_event_loop().run_until_complete(main())
+```
+
+To run this code do the following:
+
+* create file data_file.txt and insert like this:
+```
+ip
+access_key
+password
+```
+replace strings with proper values
+
+* run in dir `python3 -m venv .`
+* run `python3 test.py`
+
+
