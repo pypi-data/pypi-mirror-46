@@ -1,0 +1,92 @@
+Metadata-Version: 2.0
+Name: superhooks
+Version: 0.2
+Summary: superhooks plugin for supervisord
+Home-page: https://github.com/skyrocknroll/superhooks
+Author: Yuvaraj Loganathan
+Author-email: uvaraj6@gmail.com
+Maintainer: Yuvaraj Loganathan
+Maintainer-email: uvaraj6@gmail.com
+License: BSD-derived (http://www.repoze.org/LICENSE.txt)
+Keywords: supervisor web hooks monitoring
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: No Input/Output (Daemon)
+Classifier: Intended Audience :: System Administrators
+Classifier: Natural Language :: English
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.2
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: System :: Boot
+Classifier: Topic :: System :: Monitoring
+Classifier: Topic :: System :: Systems Administration
+Requires-Dist: requests
+Requires-Dist: superlance
+Requires-Dist: supervisor
+
+# Superhooks
+
+Superhooks is a supervisor "event listener" that sends events from processes that run under [supervisor](http://supervisord.org) to predefined web hooks. When `superhooks` receives an event, it sends a message notification to a configured URL.
+
+`superhooks` uses [requests](https://2.python-requests.org/en/master/#) full-featured Python http requests library.
+
+## Installation
+
+```
+pip install superhooks
+```
+
+## Command-Line Syntax
+
+```bash
+$ superhooks  -u http://localhost:8090/ -e STARTING,RUNNING,BACKOFF,STOPPING,FATAL,EXITED,STOPPED,UNKNOWN -d a:b::c:d -H p:q::r:s 
+```
+
+### Options
+
+```-u URL, --url=http://localhost:8090/```
+
+Post the payload to the url with http `POST`
+
+```-d DATA, --data=a:b::c:d``` post body data as key value pair items are separated by `::` and key and values are separated by `:`
+
+```-H HEADERS, --headers=p:q::r:s``` request headers with as key value pair items are separated by `::` and key and values are separated by `:`
+
+```-e EVENTS, --event=EVENTS```
+
+The Supervisor Process State event(s) to listen for. It can be any, one of, or all of
+STARTING, RUNNING, BACKOFF, STOPPING, EXITED, STOPPED, UNKNOWN.
+
+## Configuration
+An `[eventlistener:x]` section must be placed in `supervisord.conf` in order for `superhooks` to do its work. See the “Events” chapter in the Supervisor manual for more information about event listeners.
+
+The following example assume that `superhooks` is on your system `PATH`.
+
+```
+[eventlistener:superhooks]
+command=python /usr/local/bin/superhooks -u http://localhost:8090/ -e BACKOFF,FATAL,EXITED,UNKNOWN -d a:b::c:d -H p:q::r:s
+events=PROCESS_STATE,TICK_60
+
+```
+
+
+### Notes
+* All the events will be buffered for 1 min and pushed to web hooks. 
+
+0.2 (2019-05-11)
+----------------
+- Fixed Readme
+
+0.1 (2019-05-11)
+----------------
+- Initial release
+
+
