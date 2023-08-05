@@ -1,0 +1,68 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+
+group = 'org.pyboof'
+version = '0.33.1'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+
+    maven {
+       url = "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+}
+
+dependencies {
+    compile group: 'org.boofcv', name: 'boofcv-core', version: project.version
+    compile group: 'org.boofcv', name: 'boofcv-swing', version: project.version
+    compile 'net.sf.py4j:py4j:0.10.3'
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+// Create a jar which contains all the application and all dependencies
+task allJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'PyBoof',
+                    'Implementation-Version': version,
+                    'Main-Class': 'pyboof.PyBoofEntryPoint'
+    }
+    archiveName = 'PyBoof-all.jar'
+    destinationDir = file("${projectDir}/pyboof")
+
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+test {
+    ignoreFailures true
+    reports.html.enabled = false
+}
+
+javadoc {
+    configure(options) {
+        failOnError = false
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'java/src'
+        }
+    }
+
+    test {
+        java {
+            srcDir 'java/test'
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    distributionType = Wrapper.DistributionType.BIN
+    gradleVersion = '4.10.2'
+}
