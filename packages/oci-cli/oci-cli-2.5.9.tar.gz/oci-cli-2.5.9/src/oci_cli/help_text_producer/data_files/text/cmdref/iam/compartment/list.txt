@@ -1,0 +1,127 @@
+list
+****
+
+
+Description
+===========
+
+Lists the compartments in a specified compartment. The members of the
+list returned depends on the values set for several parameters.
+
+With the exception of the tenancy (root compartment), the
+ListCompartments operation returns only the first-level child
+compartments in the parent compartment specified in *compartmentId*.
+The list does not include any subcompartments of the child
+compartments (grandchildren).
+
+The parameter *accessLevel* specifies whether to return only those
+compartments for which the requestor has INSPECT permissions on at
+least one resource directly or indirectly (the resource can be in a
+subcompartment).
+
+The parameter *compartmentIdInSubtree* applies only when you perform
+ListCompartments on the tenancy (root compartment). When set to true,
+the entire hierarchy of compartments can be returned. To get a full
+list of all compartments and subcompartments in the tenancy (root
+compartment), set the parameter *compartmentIdInSubtree* to true and
+*accessLevel* to ANY.
+
+See Where to Get the Tenancy's OCID and User's OCID.
+
+
+Usage
+=====
+
+   oci iam compartment list [OPTIONS]
+
+
+Options
+=======
+
+
+--compartment-id, -c [text]
+---------------------------
+
+The OCID of the compartment (remember that the tenancy is simply the
+root compartment). If not provided, this parameter will use the
+tenancy from the config file.
+
+
+--page [text]
+-------------
+
+The value of the *opc-next-page* response header from the previous
+"List" call.
+
+
+--limit [integer]
+-----------------
+
+The maximum number of items to return in a paginated "List" call.
+
+
+--access-level [ANY|ACCESSIBLE]
+-------------------------------
+
+Valid values are *ANY* and *ACCESSIBLE*. Default is *ANY*. Setting
+this to *ACCESSIBLE* returns only those compartments for which the
+user has INSPECT permissions directly or indirectly (permissions can
+be on a resource in a subcompartment). For the compartments on which
+the user indirectly has INSPECT permissions, a restricted set of
+fields is returned.
+
+When set to *ANY* permissions are not checked.
+
+
+--compartment-id-in-subtree [boolean]
+-------------------------------------
+
+Default is false. Can only be set to true when performing
+ListCompartments on the tenancy (root compartment). When set to true,
+the hierarchy of compartments is traversed and all compartments and
+subcompartments in the tenancy are returned depending on the the
+setting of *accessLevel*.
+
+
+--all
+-----
+
+Fetches all pages of results. If you provide this option, then you
+cannot provide the --limit option.
+
+
+--page-size [integer]
+---------------------
+
+When fetching results, the number of results to fetch per call. Only
+valid when used with --all or --limit, and ignored otherwise.
+
+
+--from-json [text]
+------------------
+
+Provide input to this command as a JSON document from a file using the
+file://path-to/file syntax.
+
+The --generate-full-command-json-input option can be used to generate
+a sample json file to be used with this command option. The key names
+are pre-populated and match the command option names (converted to
+camelCase format, e.g. compartment-id --> compartmentId), while the
+values of the keys need to be populated by the user before using the
+sample file as an input to this command. For any command option that
+accepts multiple values, the value of the key can be a JSON array.
+
+Options can still be provided on the command line. If an option exists
+in both the JSON document and the command line then the command line
+specified value will be used.
+
+For examples on usage of this option, please see our "using CLI with
+advanced JSON options" link: https://docs.cloud.oracle.com/iaas/Conte
+nt/API/SDKDocs/cliusing.htm#AdvancedJSONOptions
+
+
+-?, -h, --help
+--------------
+
+For detailed help on any of these individual commands, enter <command>
+--help.
