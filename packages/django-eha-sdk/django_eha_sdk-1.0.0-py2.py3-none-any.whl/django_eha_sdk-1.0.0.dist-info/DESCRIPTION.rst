@@ -1,0 +1,493 @@
+# Django eHealth SDK
+
+This library contains the most common features used by the different eHealth django apps.
+
+## Table of contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Distribution](#distribution)
+- [Tests](#tests)
+- [Usage](#usage)
+
+
+## Requirements
+
+This library requires **Python 3.6** and above.
+
+Python libraries:
+
+- [django](https://www.djangoproject.com/) As web framework. (**Above 2**)
+- [django-cors-headers](https://github.com/ottoyiu/django-cors-headers)
+  for handling the server headers required for Cross-Origin Resource Sharing (CORS).
+- [django-debug-toolbar](https://github.com/jazzband/django-debug-toolbar)
+  A configurable set of panels that display various debug information about the current request/response.
+- [django-prometheus](https://github.com/korfuri/django-prometheus)
+  to monitor the application with Prometheus.io.
+- [django-uwsgi](https://github.com/unbit/django-uwsgi)
+  Django related examples/tricks/modules for uWSGI.
+- [djangorestframework](https://www.django-rest-framework.org/)
+  A powerful and flexible toolkit for building Web APIs. (**Above 3.8**)
+- [drf-dynamic-fields](https://github.com/dbrgn/drf-dynamic-fields)
+  Dynamically select only a subset of fields per DRF resource,
+  either using a whitelist or a blacklist.
+- [psycopg2-binary](http://initd.org/psycopg/)
+  Python-PostgreSQL Database Adapter.
+- [pygments](http://pygments.org/)
+  A syntax highlighting package written in Python.
+- [python-json-logger](https://github.com/madzak/python-json-logger)
+  A python library adding a json log formatter.
+- [requests](https://2.python-requests.org//en/master/)
+  HTTP for Humans.
+- [uwsgi](https://uwsgi-docs.readthedocs.io/en/latest/)
+  The uWSGI server.
+
+Extra dependencies (based on settings):
+
+- **cas**
+  - [django-cas-ng](https://github.com/mingchen/django-cas-ng)
+    Django CAS (Central Authentication Service) client. (**Above 3.6**)
+
+- **scheduler**
+  - [django-rq](https://github.com/rq/django-rq)
+    A simple app that provides django integration for RQ (Redis Queue).
+  - [redis](https://github.com/andymccurdy/redis-py)
+    The Python interface to the Redis key-value store.
+  - [rq](https://github.com/rq/rq)
+    Simple, lightweight, library for creating background jobs, and processing them.
+  - [rq-scheduler](https://github.com/rq/rq-scheduler)
+    Small package that adds job scheduling capabilities to RQ.
+
+- **server**
+  - [sentry-sdk](https://github.com/getsentry/sentry-python)
+    Python client for Sentry.
+
+- **storage**
+  - [django-minio-storage](https://github.com/py-pa/django-minio-storage)
+    A django storage driver for minio.
+  - [django-storages](https://django-storages.readthedocs.io/en/latest/)
+    A collection of custom storage backends for Django.
+    Enabled for [boto3](https://github.com/boto/boto3) and
+    [google-cloud-storage](https://github.com/googleapis/google-cloud-python).
+
+- **test**
+  - [coverage](https://coverage.readthedocs.io/)
+    A tool for measuring code coverage of Python programs.
+  - [flake8](http://flake8.pycqa.org/en/latest/)
+    Tool For Style Guide Enforcement.
+  - [flake8-quotes](https://github.com/zheller/flake8-quotes)
+    Flake8 extension for checking quotes in python.
+  - [tblib](https://github.com/ionelmc/python-tblib)
+    Traceback serialization library.
+
+- **webpack**
+  - [django-webpack-loader](https://github.com/owais/django-webpack-loader)
+    Transparently use webpack with django.
+
+*[Return to TOC](#table-of-contents)*
+
+
+## Installation
+
+```bash
+# standalone
+pip3 install django_eha_sdk
+
+# with extra dependencies
+pip3 install django_eha_sdk[cas,scheduler,server,storage,test,webpack]
+```
+
+*[Return to TOC](#table-of-contents)*
+
+
+## Distribution
+
+How to create the package distribution
+
+Execute the following command:
+
+```bash
+python3 setup.py bdist_wheel
+```
+
+or
+
+```bash
+./scripts/build.sh
+```
+
+*[Return to TOC](#table-of-contents)*
+
+## Tests
+
+How to test the library
+
+First install dependencies (execute it only once):
+
+```bash
+./scripts/install.sh
+```
+
+After that execute the following command:
+
+```bash
+source ./venv/bin/activate
+./scripts/test.sh
+```
+
+The file `scripts/test.ini` contains the environment variables used in the tests.
+
+*[Return to TOC](#table-of-contents)*
+
+
+## Usage
+
+Add this snippet in the `settings.py` file to have the build the django app
+settings based on the environment variables.
+
+```python
+from django_eha_sdk.conf.settings import *  # noqa
+
+# continue with the app specific settings
+# and re-import the settings variables you need to reuse
+# from django_eha_sdk.conf.settings import WHATEVER YOU NEED TO...
+```
+
+Add this snippet in the `urls.py` file to generate default `urlpatterns`
+based on the app settings.
+
+```python
+from django_eha_sdk.conf.urls import generate_urlpatterns
+
+
+urlpatterns = generate_urlpatterns(token=True, app=[
+    # include here the app specific urls
+])
+```
+
+*[Return to TOC](#table-of-contents)*
+
+
+### Environment variables
+
+The following environment variables are used to build the app django settings.
+Take a look at the [django settings](https://docs.djangoproject.com/en/2.2/ref/settings/).
+
+#### Generic
+
+- `ADMIN_USERNAME`: `admin` The setup scripts create an initial admin user for the app.
+- `ADMIN_PASSWORD`: `secresecret`.
+- `ADMIN_TOKEN`: `admin_user_auth_token` Used to connect from other modules.
+
+- `APP_LINK`: `https://www.ehealthafrica.org`. The link that appears in the DRF web pages.
+- `APP_NAME`: `eha`. The app name displayed in the web pages.
+- `APP_URL`, `/`. The app url in the server.
+  If host is `http://my-server.org` and the app url is `/my-module`,
+  the app enpoints will be accessible at `http://my-server.org/my-module/...`.
+
+  ```nginx
+  # one NGINX ini file for all modules
+  server {
+    listen                    80;
+    server_name               localhost;
+
+    location /my-module-1 {
+      proxy_pass              http://localhost:8801/my-module-1;
+    }
+  }
+  ```
+
+- `DB_NAME` Database name.
+- `DEBUG` Enables debug mode. Is `false` if unset or set to empty string,
+  anything else is considered `true`.
+- `LOGGING_FORMATTER`: `json`. The app messages format.
+  Possible values: `verbose` or `json`.
+- `LOGGING_LEVEL`: `info` Logging level for app messages.
+  https://docs.python.org/3.7/library/logging.html#levels
+- `TESTING` Indicates if the app executes under test conditions.
+  Is `false` if unset or set to empty string, anything else is considered `true`.
+- `STATIC_URL` : provides a base url for the static assets to be served from.
+
+*[Return to TOC](#table-of-contents)*
+
+#### File Storage System
+
+- `DJANGO_STORAGE_BACKEND`: Used to specify a [Default file storage system](https://docs.djangoproject.com/en/1.11/ref/settings/#default-file-storage).
+  Available options: `minio`, `s3`, `gcs`.
+  More information [here](https://django-storages.readthedocs.io/en/latest/index.html).
+
+##### Minio (`DJANGO_STORAGE_BACKEND=minio`)
+
+- `BUCKET_NAME`: Name of the bucket that will act as MEDIA folder (**mandatory**).
+- `MINIO_STORAGE_ACCESS_KEY`: Minio Access Key.
+- `MINIO_STORAGE_SECRET_KEY`: Minio Secret Access Key.
+- `MINIO_STORAGE_ENDPOINT`: Minio server url endpoint (without scheme).
+- `MINIO_STORAGE_USE_HTTPS`: Whether to use TLS or not. Determines the scheme.
+- `MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET`: Whether to create the bucket if it does not already exist.
+- `MINIO_STORAGE_MEDIA_USE_PRESIGNED`: Determines if the media file URLs should be pre-signed.
+
+See more in https://django-minio-storage.readthedocs.io/en/latest/usage
+
+##### S3 (`DJANGO_STORAGE_BACKEND=s3`)
+
+- `BUCKET_NAME`: Name of the bucket to use on s3 (**mandatory**). Must be unique on s3.
+- `AWS_ACCESS_KEY_ID`: AWS Access Key to your s3 account.
+- `AWS_SECRET_ACCESS_KEY`: AWS Secret Access Key to your s3 account.
+
+##### Google Cloud Storage (`DJANGO_STORAGE_BACKEND=gcs`)
+
+- `BUCKET_NAME`: Name of the bucket to use on gcs (**mandatory**).
+  Create bucket using [Google Cloud Console](https://console.cloud.google.com/)
+  and set appropriate permissions.
+- `GS_ACCESS_KEY_ID`: Google Cloud Access Key.
+  [How to create Access Keys on Google Cloud Storage](https://cloud.google.com/storage/docs/migrating#keys)
+- `GS_SECRET_ACCESS_KEY`: Google Cloud Secret Access Key.
+  [How to create Access Keys on Google Cloud Storage](https://cloud.google.com/storage/docs/migrating#keys)
+
+*[Return to TOC](#table-of-contents)*
+
+#### Multi-tenancy
+
+- `MULTITENANCY`, Enables or disables the feature, is `false` if unset or set
+  to empty string, anything else is considered `true`.
+- `DEFAULT_REALM`, `aether` The default realm for artefacts created
+  if multi-tenancy is not enabled.
+- `REALM_COOKIE`, `aether-realm` The name of the cookie that keeps the current
+  tenant id in the request headers.
+
+The technical implementation is explained in
+[Multi-tenancy README](/django_eha_sdk/multitenancy/README.md).
+
+*[Return to TOC](#table-of-contents)*
+
+#### uWSGI
+
+The uWSGI server is responsible for loading our Django applications using
+the WSGI interface in production.
+
+Any `UWSGI_A_B_C` Translates into the `a-b-c` uswgi option.
+
+> [
+  *When passed as environment variables, options are capitalized and prefixed
+  with UWSGI_, and dashes are substituted with underscores.*
+](https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html#environment-variables)
+
+https://uwsgi-docs.readthedocs.io/
+
+*[Return to TOC](#table-of-contents)*
+
+#### Users & Authentication
+
+Set the `KEYCLOAK_SERVER_URL` and `KEYCLOAK_CLIENT_ID` environment variables if
+you want to use Keycloak as authentication server.
+`KEYCLOAK_CLIENT_ID` (defaults to `eha`) is the public client that allows
+the aether module to authenticate using the Keycloak REST API.
+This client id must be added to all the realms used by the aether module.
+The `KEYCLOAK_SERVER_URL` must include all the path till the realm is indicated,
+usually until `/auth/realms`.
+
+There are two ways of setting up keycloak:
+
+a) In this case the authentication process happens in the server side without
+any further user interaction.
+```ini
+# .env file
+KEYCLOAK_SERVER_URL=http://aether.local/auth/realms
+KEYCLOAK_BEHIND_SCENES=true
+```
+
+b) In this case the user is redirected to the keycloak server to finish the
+sign in step.
+```ini
+# .env file
+KEYCLOAK_SERVER_URL=http://aether.local/auth/realms
+KEYCLOAK_BEHIND_SCENES=
+```
+
+Execute once the `./scripts/setup_keycloak.sh` script to create the keycloak
+database and the default realm+client along with the first user
+(find credentials in the `.env` file).
+
+Read more in [Keycloak](https://www.keycloak.org).
+
+**Note**: Multi-tenancy is automatically enabled if the authentication server
+is keycloak.
+
+Set the `HOSTNAME` and `CAS_SERVER_URL` environment variables if you want to
+activate the CAS integration in the app.
+See more in [Django CAS client](https://github.com/mingchen/django-cas-ng).
+
+Other options are to log in via token authentication, via basic authentication
+or via the standard django authentication.
+
+The available options depend on each container.
+
+*[Return to TOC](#table-of-contents)*
+
+#### Gateway Authentication
+
+Set `GATEWAY_SERVICE_ID` to enable gateway authentication with keycloak.
+This means that the authentication is handled by a third party system
+(like [Kong](https://konghq.com)) that includes in each request the JSON Web
+Token (JWT) in the `GATEWAY_HEADER_TOKEN` header (defaults to `X-Oauth-Token`).
+The `GATEWAY_SERVICE_ID` indicates the gateway service, usually matches the
+app/module name like `kernel`, `odk`, `ui`, `sync`.
+
+In this case the app urls can be reached in several ways:
+
+Trying to access the health endpoint `/health`:
+
+- http://kernel:8100/health using the internal url
+- http://aether.local/my-realm/kernel/health using the gateway url
+
+For those endpoints that don't depend on the realm and must also be available
+"unprotected" we need one more environment variable:
+
+- `GATEWAY_PUBLIC_REALM`: `-` This represents the fake realm that is not protected
+  by the gateway server. In this case the authentication is handled by the other
+  available options, i.e., basic, token, CAS...
+
+The authorization and admin endpoints don't depend on any realm so the final urls
+use the public realm.
+
+- http://aether.local/-/odk/accounts/
+- http://aether.local/-/kernel/admin/
+
+*[Return to TOC](#table-of-contents)*
+
+
+## Modules
+
+### Auth
+
+Includes the methods that allow:
+
+#### To create "admin" users via command.
+
+```bash
+# arguments: -u=admin -p=secretsecret -e=admin@ehealthafrica.org -t=01234656789abcdefghij
+./manage.py setup_admin -u=$ADMIN_USERNAME -p=$ADMIN_PASSWORD -t=${ADMIN_TOKEN:-}
+```
+
+#### To create "users" with auth token via POST request.
+
+Include the view entry in the `urls.py` file.
+
+```python
+from django.urls import path
+from django_eha_sdk.auth.views import obtain_auth_token
+
+
+urlpatterns = [
+    path('get-token', view=obtain_auth_token, name='token'),
+]
+```
+
+This endpoint is restricted to admin users.
+
+*[Return to TOC](#table-of-contents)*
+
+### Health
+
+Includes the methods that allow:
+
+#### To check if the system is up.
+
+Include the view entry in the `urls.py` file.
+
+```python
+from django.urls import path
+from django_eha_sdk.health.views import health, check_db, check_app
+
+
+urlpatterns = [
+    path('health', view=health, name='health'),           # checks if django responds
+    path('check-db', view=check_db, name='check-db'),     # checks if the db responds
+    path('check-app', view=check_app, name='check-app'),  # returns the app version&co
+]
+```
+
+#### To check connection to another server app.
+
+Include the view entry in the `urls.py` file.
+
+```python
+from django.urls import path
+from django_eha_sdk.health.views import check_external
+
+
+urlpatterns = [
+    path('check-app/<slug:name>', view=check_external, name='check-external'),
+]
+```
+
+Indicates if the app should have an URL that checks if an external app server
+is reachable with the provided environment variables `<<APP_NAME>>_URL`
+and `<<APP_NAME>>_TOKEN`.
+
+Possible responses:
+
+- 500 - `Always Look on the Bright Side of Life!!!` ✘
+- 200 - `Brought to you by eHealth Africa - good tech for hard places` ✔
+
+#### To check if an URL is reachable via command.
+
+```bash
+./manage.py check_url -u=http://my-server/url/to/check [-t=auth_token]
+```
+
+*[Return to TOC](#table-of-contents)*
+
+### Conf
+
+#### Settings
+
+Import this snippet in the `settings.py` file to have the common app settings.
+
+```python
+from django_eha_sdk.conf.settings import *  # noqa
+```
+
+#### URLs
+
+Include this snippet in the `urls.py` file to generate default `urlpatterns`
+based on the app settings.
+
+```python
+from django_eha_sdk.conf.urls import generate_urlpatterns
+
+
+urlpatterns = generate_urlpatterns(token=True, app=[
+    # app specific urls
+])
+```
+
+Default URLs included:
+
+  - the `/health` URL. Always responds with `200` status and an empty content.
+  - the `/check-db` URL. Responds with `500` status if the database is not available.
+  - the `/check-app` URL. Responds with current app version and more.
+  - the `/check-app/{name}` URL. Responds with `500` status if the
+    external app is not reachable with the url and token indicated in the settings.
+  - the `/admin` section URLs.
+  - the `/accounts` URLs, checks if the REST Framework ones, using the templates
+    indicated in `LOGIN_TEMPLATE` and `LOGGED_OUT_TEMPLATE` environment variables,
+    or the CAS ones.
+  - the `debug toolbar` URLs only in `DEBUG` mode.
+
+Based on the arguments:
+
+  - `token`: indicates if the app should be able to create and return
+             user tokens via POST request and activates the URL.
+             The url endpoint is `/token`.
+
+*[Return to TOC](#table-of-contents)*
+
+### Multi-tenancy
+
+The technical implementation is explained in
+[Multi-tenancy README](/django_eha_sdk/multitenancy/README.md).
+
+*[Return to TOC](#table-of-contents)*
+
+
