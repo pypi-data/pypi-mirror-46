@@ -1,0 +1,57 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="jazkarta.abtesttile">
+
+  <i18n:registerTranslations directory="locales" />
+
+  <!--
+    Be careful if you use general includeDependencies, it can have sideffects!
+    Better import explicite packages or configurations ;)
+  -->
+  <!--<includeDependencies package="." />-->
+
+  <include package="plone.tiles" file="meta.zcml" />
+  <include file="permissions.zcml" />
+  <include file="upgrades.zcml" />
+
+  <genericsetup:registerProfile
+      name="default"
+      title="jazkarta.abtesttile"
+      directory="profiles/default"
+      description="Installs the jazkarta.abtesttile add-on."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      post_handler=".setuphandlers.post_install"
+      />
+
+  <genericsetup:registerProfile
+      name="uninstall"
+      title="jazkarta.abtesttile (uninstall)"
+      directory="profiles/uninstall"
+      description="Uninstalls the jazkarta.abtesttile add-on."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      post_handler=".setuphandlers.uninstall"
+      />
+
+  <utility
+      factory=".setuphandlers.HiddenProfiles"
+      name="jazkarta.abtesttile-hiddenprofiles"
+      />
+
+  <plone:tile
+      name="jazkarta.abtesttile.abtesttile"
+      title="AB Test Tile"
+      description="A tile which provides two layouts and the ability to randomly switch between them"
+      class=".tile.ABTestTile"
+      for="*"
+      permission="zope.Public"
+      layer=".interfaces.IJazkartaAbtesttileLayer"
+      add_permission="jazkarta.abtesttile.EditABTestTile"
+      edit_permission="jazkarta.abtesttile.EditABTestTile"
+      template="templates/abtesttile.pt"
+      schema=".tile.IABTestTile"
+      />
+
+</configure>

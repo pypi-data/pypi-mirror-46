@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xml:lang="en"
+      lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      i18n:domain="plone">
+  <body>
+    <div tal:define="id string:ab-tile-${view/id}"
+         tal:attributes="id id">
+        <div id="tile-a-${id}" class="tile-content" tal:content="structure view/text_a|nothing">
+        </div>
+        <div id="tile-b-${id}" class="tile-content" tal:content="structure view/text_b|nothing" style="display:none;">
+        </div>
+        <tal:tag replace="structure string:<script>"/>
+            (function(){
+                var ratio = ${view/data/ratio|string:50} / 100;
+                var rnd = Math.random();
+                if ( ratio <= rnd ) {
+                    var tile_a = document.getElementById('tile-a-${id}');
+                    var tile_b = document.getElementById('tile-b-${id}');
+                    tile_b.setAttribute('style',"");
+                    tile_a.setAttribute('style',"display:none");
+                    ${view/data/script_b|string}
+                } else {
+                    ${view/data/script_a|string}
+                }
+            })();
+        <tal:tag replace="structure string:</script>"/>
+    </div>
+  </body>
+</html>
