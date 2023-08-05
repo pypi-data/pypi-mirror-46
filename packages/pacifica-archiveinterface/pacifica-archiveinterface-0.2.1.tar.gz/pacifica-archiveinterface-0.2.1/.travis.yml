@@ -1,0 +1,62 @@
+language: python
+stages:
+- lint
+- test
+- test-docker
+- deploy
+".script": &1
+- pip install .
+- export ARCHIVEINTERFACE_CPCONFIG=$PWD/server.conf
+- cd tests
+- coverage run --include '*/site-packages/pacifica/archiveinterface/*' --omit '*/site-packages/pacifica/archiveinterface/backends/abstract/*' -m pacifica.archiveinterface --stop-after-a-moment
+- coverage run -a --include '*/site-packages/pacifica/archiveinterface/*' --omit '*/site-packages/pacifica/archiveinterface/backends/abstract/*' -m pytest -xv
+- coverage report -m --fail-under 100
+jobs:
+  include:
+  - stage: lint
+    python: 3.6
+    script: pre-commit run -a
+  - python: 2.7
+    script: pre-commit run -a
+  - stage: test
+    script: *1
+    python: 3.6
+  - script: *1
+    python: 2.7
+  - stage: test-docker
+    sudo: required
+    python: 2.7
+    services:
+    - docker
+    script: >
+      docker-compose build --pull;
+      docker-compose up -d;
+      cd post_deployment_tests;
+      python -m unittest deployment_test.BasicArchiveTests
+  - stage: deploy
+    language: python
+    script: skip
+    python: 3.6
+    deploy:
+      skip_cleanup: true
+      provider: pypi
+      user: dmlb2000
+      distributions: sdist bdist_wheel
+      password:
+        secure: S/O36Q5SiMtYF8Gtovo0hO7tczJc+YB79RGyBylmGjhmXlMfYv0bHAtYTEwGbqSrB1gGZgV0JMTvOKFmfHPIOm0mYxobPBgzNqAK0uqI+zueVf2+KmxwzC45uXRAzsRjcjMr66bPf04WRYP1vT7Lhp/JJ5nwfAT81TGERo1rP2w4gs/8fvZWJPmexFOocyNRYpf8yg+bQrIQzco/neNgjvPtYd7P1tBhJcxngkMRAd0HXc6ehegUbqHVotvTXH8BG+h9ZRZd5szrRlyfl5+u8YcBKx4cm4i2ayJ43/vurIJIs6CULsvFTClHol/4mFW2uyg3mqw1E37fd0HoHsY7FPR81cdPnpgA5ljieJIh6XCVF8rE7rYoPuedAcFlqTHSkqZoCNK/uodY91SQFyyYW2msWWYAGMDrJ4bHQEWYIkkNf+wCFHG6wAIVIhlJiOZa0Y5aopVtlrpRVgKPw5U0XfqNjI82yXU+W8H3WC0bXK3ggrHE+JPFNqEd2bAS4a3NOFNxeVRtql/qYw7QN4EUa6XHTl6IRbeSVSJX43BeREktDdIFKnZ/i3jUutbSX4jwsDUsstobQjmdksi97QkAsNIBTiG67QqJJloSf6Kv4gbpYfDZ3zaPkzVgrjJnViqyLUU/JS2iTimsB/gq3EMUNgPSQWCLtOlOeo4sDNG5Pbg=
+      on:
+        tags: true
+  - language: python
+    python: 2.7
+    script: skip
+    deploy:
+      skip_cleanup: true
+      provider: pypi
+      user: dmlb2000
+      distributions: bdist_wheel
+      password:
+        secure: S/O36Q5SiMtYF8Gtovo0hO7tczJc+YB79RGyBylmGjhmXlMfYv0bHAtYTEwGbqSrB1gGZgV0JMTvOKFmfHPIOm0mYxobPBgzNqAK0uqI+zueVf2+KmxwzC45uXRAzsRjcjMr66bPf04WRYP1vT7Lhp/JJ5nwfAT81TGERo1rP2w4gs/8fvZWJPmexFOocyNRYpf8yg+bQrIQzco/neNgjvPtYd7P1tBhJcxngkMRAd0HXc6ehegUbqHVotvTXH8BG+h9ZRZd5szrRlyfl5+u8YcBKx4cm4i2ayJ43/vurIJIs6CULsvFTClHol/4mFW2uyg3mqw1E37fd0HoHsY7FPR81cdPnpgA5ljieJIh6XCVF8rE7rYoPuedAcFlqTHSkqZoCNK/uodY91SQFyyYW2msWWYAGMDrJ4bHQEWYIkkNf+wCFHG6wAIVIhlJiOZa0Y5aopVtlrpRVgKPw5U0XfqNjI82yXU+W8H3WC0bXK3ggrHE+JPFNqEd2bAS4a3NOFNxeVRtql/qYw7QN4EUa6XHTl6IRbeSVSJX43BeREktDdIFKnZ/i3jUutbSX4jwsDUsstobQjmdksi97QkAsNIBTiG67QqJJloSf6Kv4gbpYfDZ3zaPkzVgrjJnViqyLUU/JS2iTimsB/gq3EMUNgPSQWCLtOlOeo4sDNG5Pbg=
+      on:
+        tags: true
+install:
+- pip install -r requirements-dev.txt
