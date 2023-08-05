@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+USAGE="Converts pmovies into a trajectory.
+
+Usage:
+    ./pmov2traj [options] <pmovie-dir>
+
+For <pmovie-dir>, it accepts a valid directory within reach of rcp and rsh.
+For example, for /tmp/foo node02 on ramses, specify the path as
+\"node02:/tmp/foo\".
+
+Options:
+    -h                   Print help
+    -t TYPE              Specify server type. Current valid ones are \"ramses\",\"osc\",
+                         and \"hpcmp\". \"ramses\" is default.
+    -n RAMSESNODE        Run only on the node RAMSESNODE. Usually, the generating
+                         pbs script will run on a node specified in the <pmovie-dir>
+                         argument.
+    -s SCRIPT            Select a scan script by setting in the path. Please,
+                         let it be accessible to python when running this script.
+    -c CONDAFILE         Set a file to source in order to have access to python.
+    -l RDDIR             Set the path to lspreader. You pretty much want this to be
+                         set if it isn't set by environment variable.
+    -N                   Use the new trajectory file format for quicker(?) access.
+    -o OUTNAME           Set the output name of the trajectories file. Please don't
+                         use names starting with underscores.[default: trajectories.npz]
+
+For many more options, see this script with environment variables.
+"
+NODES=1
+SYSTYPE="ramses"
+RDDIR=${RDDIR:-"/home/ngirmang.1/lspreader"}
+CONDAFILE=${CONDAFILE:-"/home/ngirmang.1/conda"}
+RAMSESNODE=
+MYSCANSCRIPT=Escan.py
+NEWTRAJNPZ=
+TRAJOUT=${TRAJOUT:-"trajectories.npz"}
+while getopts ':hs:t:n:c:l:o:N' opt; do
+      case $opt in
+          h)
+              echo "$USAGE"
+              exit 0
+              ;;
+          n)  RAMSESNODE=$OPTARG;;
+          t)  SYSTYPE=$OPTARG;;
+          s)
+              case $OPTARG in
+                  Escan.py)
+                      MYSCANSCRIPT=Escan.py
+                      ;;
+                  Escan-with-region.py)
+                      MYSCANSCRIPT=Escan-with-region.py
+                      ;;
+                  *)
+                      MYSCANSCRIPT=
+                      export SCANNER=$OPTARG
+                      ;;
+              esac
+              ;;
+          l)  RDDIR=$OPTARG;;
+          o)  TRAJOUT=$OPTARG;;
+          c)  CONDAFILE=$OPTARG;;
+          N)  NEWTRAJNPZ=1;;
+          \?)
+              echo "Invalid option: $OPTARG">&2
+              exit 1
+              ;;
+          :)
+              echo "Option -$OPTARG requires an argument.">&2
+              exit 1
+              ;;
+      esac
+done
+shift "$((OPTIND-1))"
+[ -e $CONDAFILE ] && source $CONDAFILE
+[ ! -n "$1" ] && echo "$USAGE" && exit 1;
+if [ -n "$MYSCANSCRIPT" ]; then
+    export SCANNER=$RDDIR/pmovie/scan/$MYSCANSCRIPT
+fi
+
+export PMOVDIR="$1"
+LOGFILE=$PMOVDIR/pmov2traj.log;
+export PATH="$RDDIR/pmovie/:$PATH"
+if [ -n "$(echo  $PMOVDIR | grep \: )" ] && [ "$SYSTYPE" == "ramses" ]; then
+    RAMSESNODE=${RAMSESNODE:-"$(echo $PMOVDIR | sed 's/@\{0,1\}\([A-Z,a-z,0-9]\+\):.*/\1/')"}
+    DEST=$(echo $PMOVDIR | sed s/"^.*:"//)
+    rsh $RAMSESNODE "export RDDIR=$RDDIR && export $CONDA && export PATH=$PATH && \
+        pmov2traj $DEST"
+fi
+if [ ! -n "$NPROCS" ]; then
+    case $SYSTYPE in
+        "ramses")
+            export NPROCS=30;;
+        "hpcmp")
+            export NPROCS=20;;
+        "osc")
+            export NPROCS=8;;
+    esac
+fi
+fail(){
+    [ -n "$1" ] && echo "failed in $1, check $LOGFILE"
+    exit -1;
+}
+export NEWTRAJNPZ=$NEWTRAJNPZ
+export TRAJOUT=$TRAJOUT
+#executing
+>$LOGFILE
+firsthash >> $LOGFILE 2>&1 || fail "firsthash"
+scanp4    >> $LOGFILE 2>&1 || fail "scanp4"
+search    >> $LOGFILE 2>&1 || fail "search"
