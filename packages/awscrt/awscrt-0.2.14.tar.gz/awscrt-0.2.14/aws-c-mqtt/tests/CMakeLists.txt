@@ -1,0 +1,47 @@
+include(CTest)
+include(AwsTestHarness)
+include(AwsLibFuzzer)
+enable_testing()
+
+set(TEST_SRC packet_encoding_test.c topic_tree_test.c)
+file(GLOB TESTS ${TEST_SRC})
+
+add_test_case(mqtt_packet_puback)
+add_test_case(mqtt_packet_pubrec)
+add_test_case(mqtt_packet_pubrel)
+add_test_case(mqtt_packet_pubcomp)
+add_test_case(mqtt_packet_suback)
+add_test_case(mqtt_packet_unsuback)
+add_test_case(mqtt_packet_connect)
+add_test_case(mqtt_packet_connack)
+add_test_case(mqtt_packet_publish)
+add_test_case(mqtt_packet_subscribe)
+add_test_case(mqtt_packet_unsubscribe)
+add_test_case(mqtt_packet_pingreq)
+add_test_case(mqtt_packet_pingresp)
+add_test_case(mqtt_packet_disconnect)
+
+add_test_case(mqtt_topic_tree_match)
+add_test_case(mqtt_topic_tree_unsubscribe)
+add_test_case(mqtt_topic_tree_transactions)
+add_test_case(mqtt_topic_validation)
+
+generate_test_driver(${CMAKE_PROJECT_NAME}-tests)
+
+set(TEST_PAHO_CLIENT_BINARY_NAME ${CMAKE_PROJECT_NAME}-paho-client)
+
+add_executable(${TEST_PAHO_CLIENT_BINARY_NAME} "paho_client_test.c")
+target_link_libraries(${TEST_PAHO_CLIENT_BINARY_NAME} PRIVATE ${CMAKE_PROJECT_NAME})
+aws_set_common_properties(${TEST_PAHO_CLIENT_BINARY_NAME})
+aws_add_sanitizers(${TEST_PAHO_CLIENT_BINARY_NAME} ${${CMAKE_PROJECT_NAME}_SANITIZERS})
+target_compile_definitions(${TEST_PAHO_CLIENT_BINARY_NAME} PRIVATE AWS_UNSTABLE_TESTING_API=1)
+target_include_directories(${TEST_PAHO_CLIENT_BINARY_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+
+set(TEST_IOT_CLIENT_BINARY_NAME ${CMAKE_PROJECT_NAME}-iot-client)
+
+add_executable(${TEST_IOT_CLIENT_BINARY_NAME} "aws_iot_client_test.c")
+target_link_libraries(${TEST_IOT_CLIENT_BINARY_NAME} PRIVATE ${CMAKE_PROJECT_NAME})
+aws_set_common_properties(${TEST_IOT_CLIENT_BINARY_NAME})
+aws_add_sanitizers(${TEST_IOT_CLIENT_BINARY_NAME} ${${CMAKE_PROJECT_NAME}_SANITIZERS})
+target_compile_definitions(${TEST_IOT_CLIENT_BINARY_NAME} PRIVATE AWS_UNSTABLE_TESTING_API=1)
+target_include_directories(${TEST_IOT_CLIENT_BINARY_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR})
