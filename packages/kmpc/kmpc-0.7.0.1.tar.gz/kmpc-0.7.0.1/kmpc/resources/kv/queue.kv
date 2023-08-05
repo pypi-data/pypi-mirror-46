@@ -1,0 +1,104 @@
+#:kivy 1.10.0
+#:import QueueRow kmpc.queue.QueueRow
+#:import QueueRecycleBoxLayout kmpc.queue.QueueRecycleBoxLayout
+#:import listbackdrop kmpc.widgets.listbackdrop
+
+<QueueRow>:
+    canvas.before:
+        Color:
+            rgba: app.get_color('listitemselected') if self.selected else (app.get_color('listitemcurrent') if self.iscurrent else app.get_color('listitem'))
+        Rectangle:
+            source: listbackdrop
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: (1,1,0,0.7) if self.iscurrent else (1,1,1,0.3)
+        Rectangle:
+            size: (self.width,sp(3)) if self.iscurrent else (self.width,sp(1))
+            pos: self.pos
+        Rectangle:
+            size: (self.width,sp(3)) if self.iscurrent else (self.width,sp(1))
+            pos: (self.x,self.top)
+    plpos: ''
+    rownum: ''
+    artist: ''
+    title: ''
+    iscurrent: False
+    BoxLayout:
+        orientation: 'horizontal'
+        spacing: '10sp'
+        BaseLabel:
+            size_hint_x: None
+            text: root.rownum
+        RVLabel:
+            size_hint_x: 1
+            halign: 'left'
+            valign: 'center'
+            text_size: self.size
+            text: root.artist+' - '+root.title
+
+<QueueScreen>:
+    name: 'queue'
+    rv: rv
+    rbl: rbl
+    BoxLayout:
+        orientation: 'vertical'
+        ScreenSwitcher:
+            manager: root.manager
+            id: ss
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            BaseButton:
+                text: 'Clear'
+                on_press: root.queue_clear_pressed()
+            BaseButton:
+                text: 'Delete'
+                on_press: root.queue_delete_pressed()
+            BaseButton:
+                text: 'Move'
+                on_press: root.queue_move_pressed()
+            BaseButton:
+                text: 'Shuffle'
+                on_press: root.queue_shuffle_pressed()
+            BaseButton:
+                text: 'Swap'
+                on_press: root.queue_swap_pressed()
+            BaseButton:
+                text: 'Save'
+                on_press: root.queue_save_pressed()
+        RecycleView:
+            id: rv
+            scroll_type: ['bars','content']
+            bar_width: sp(40)
+            viewclass: 'QueueRow'
+            QueueRecycleBoxLayout:
+                id: rbl
+                default_size: None, sp(56)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+                spacing: sp(1)
+                multiselect: True
+                touch_multiselect: True
+
+<PlaylistSavePopup@Popup>:
+    title: 'Playlist Name'
+    size_hint_y: 0.5
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            size_hint_y: 0.1
+            TextInput:
+                id: playlist_name
+                text: ''
+        BoxLayout:
+            size_hint_y: 0.1
+            orientation: 'horizontal'
+            Button:
+                text: 'OK'
+                id: ok_button
+            Button:
+                text: 'Cancel'
+                on_press: root.dismiss()
