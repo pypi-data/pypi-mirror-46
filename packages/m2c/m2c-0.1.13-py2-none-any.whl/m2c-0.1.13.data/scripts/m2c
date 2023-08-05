@@ -1,0 +1,60 @@
+#!python
+#coding: utf-8
+#by yangbin at 2018.11.28
+
+import os
+import sys
+
+need_help = len(sys.argv) == 2 and sys.argv[1] == '-h'
+init_cmd = len(sys.argv) >= 2 and sys.argv[1] == 'init'
+pub_cmd = len(sys.argv) >= 2 and sys.argv[1] == 'pubm2czip'
+
+from m2c.m2c import is_m2c
+
+if need_help or is_m2c():
+    del is_m2c # hide this
+
+    from m2c.m2c import openapi, goswagger, apicode, objcode, init
+    from m2c.build import build, build_linux, pack, unittest, supervisor_conf, apidoc, run, debug
+elif not init_cmd:
+    from m2c.m2c import check_m2c
+    check_m2c()
+
+if init_cmd:
+    from m2c.m2c import init
+
+if pub_cmd:
+    from m2c.m2c import pubm2czip
+
+if __name__ == "__main__":
+    import sys, inspect
+    if len(sys.argv) < 2 or need_help:
+        print "Usage:"
+        for k, v in sorted(globals().items(), key=lambda item: item[0]):
+            if inspect.isfunction(v) and k[0] != "_":
+                args, __, __, defaults = inspect.getargspec(v)
+                if defaults:
+                    print sys.argv[0], k, str(args[:-len(defaults)])[1:-1].replace(",", ""), \
+                          str(["%s=%s" % (a, b) for a, b in zip(args[-len(defaults):], defaults)])[1:-1].replace(",", "")
+                else:
+                    print sys.argv[0], k, str(v.func_code.co_varnames[:v.func_code.co_argcount])[1:-1].replace(",", "")
+        if len(sys.argv) == 1:
+            from m2c.version import check_version
+            check_version()
+        sys.exit(-1)
+    else:
+        func = eval(sys.argv[1])
+        args = sys.argv[2:]
+        try:
+            r = func(*args)
+        except Exception, e:
+            print "Usage:"
+            print "\t", "python %s" % sys.argv[1], str(func.func_code.co_varnames[:func.func_code.co_argcount])[1:-1].replace(",", "")
+            if func.func_doc:
+                print "\n".join(["\t\t" + line.strip() for line in func.func_doc.strip().split("\n")])
+            print e
+            r = -1
+            import traceback
+            traceback.print_exc()
+        if isinstance(r, int):
+            sys.exit(r)
