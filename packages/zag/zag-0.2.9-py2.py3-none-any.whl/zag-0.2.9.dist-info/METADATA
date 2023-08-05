@@ -1,0 +1,160 @@
+Metadata-Version: 2.1
+Name: zag
+Version: 0.2.9
+Summary: Distributed workflow processing.
+Home-page: https://zag.readthedocs.io
+Author: Greg Hill
+Author-email: jimbobhickville@gmail.com
+License: UNKNOWN
+Keywords: reliable,tasks,execution,parallel,dataflow,workflows,distributed
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Information Technology
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: System :: Distributed Computing
+Requires-Dist: pbr (!=2.1.0,>=2.0.0)
+Requires-Dist: six (>=1.10.0)
+Requires-Dist: futurist (>=1.2.0)
+Requires-Dist: fasteners (>=0.7.0)
+Requires-Dist: networkx (>=1.10)
+Requires-Dist: stevedore (>=1.20.0)
+Requires-Dist: jsonschema (<3.0.0,>=2.6.0)
+Requires-Dist: automaton (>=1.9.0)
+Requires-Dist: oslo.utils (>=3.33.0)
+Requires-Dist: oslo.serialization (!=2.19.1,>=2.18.0)
+Requires-Dist: tenacity (>=4.4.0)
+Requires-Dist: cachetools (>=2.0.0)
+Requires-Dist: debtcollector (>=1.2.0)
+Requires-Dist: stestr (>=2.0.0)
+Requires-Dist: pydot (>=1.2.4)
+Requires-Dist: tooz (>=1.19.0)
+Requires-Dist: crontab (>=0.22.3)
+Requires-Dist: contextlib2 (>=0.4.0) ; (python_version<'3.0')
+Requires-Dist: enum34 (>=1.0.4) ; (python_version=='2.7' or python_version=='2.6' or python_version=='3.3')
+Requires-Dist: futures (>=3.0.0) ; (python_version=='2.7' or python_version=='2.6')
+Provides-Extra: database
+Requires-Dist: SQLAlchemy (!=1.1.5,!=1.1.6,!=1.1.7,!=1.1.8,>=1.0.10) ; extra == 'database'
+Requires-Dist: alembic (>=0.8.10) ; extra == 'database'
+Requires-Dist: SQLAlchemy-Utils (>=0.30.11) ; extra == 'database'
+Requires-Dist: PyMySQL (>=0.7.6) ; extra == 'database'
+Requires-Dist: psycopg2 (>=2.6.2) ; extra == 'database'
+Provides-Extra: eventlet
+Requires-Dist: eventlet (!=0.18.3,!=0.20.1,!=0.21.0,>=0.18.2) ; extra == 'eventlet'
+Provides-Extra: redis
+Requires-Dist: redis (>=2.10.0) ; extra == 'redis'
+Provides-Extra: test
+Requires-Dist: pydotplus (>=2.0.2) ; extra == 'test'
+Requires-Dist: hacking (<0.11,>=0.10.0) ; extra == 'test'
+Requires-Dist: oslotest (>=3.2.0) ; extra == 'test'
+Requires-Dist: mock (>=2.0.0) ; extra == 'test'
+Requires-Dist: testtools (>=2.2.0) ; extra == 'test'
+Requires-Dist: testscenarios (>=0.4) ; extra == 'test'
+Requires-Dist: doc8 (>=0.6.0) ; extra == 'test'
+Requires-Dist: sphinx (!=1.6.6,!=1.6.7,>=1.6.2) ; extra == 'test'
+Provides-Extra: workers
+Requires-Dist: kombu (!=4.0.2,>=4.0.0) ; extra == 'workers'
+Provides-Extra: zookeeper
+Requires-Dist: kazoo (>=2.2) ; extra == 'zookeeper'
+Requires-Dist: zake (>=0.1.6) ; extra == 'zookeeper'
+
+Zag (formerly TaskFlow)
+=======================
+
+.. image:: https://img.shields.io/pypi/v/zag.svg
+    :target: https://pypi.org/project/zag/
+    :alt: Latest Version
+
+A library to do [jobs, tasks, flows] in a highly available, easy to understand
+and declarative manner (and more!) to be used with OpenStack and other
+projects.
+
+* Free software: Apache license
+* Documentation: https://docs.openstack.org/zag/latest/
+* Source: https://git.openstack.org/cgit/openstack/zag
+* Bugs: https://bugs.launchpad.net/zag/
+* Release notes: https://docs.openstack.org/releasenotes/zag/
+
+Why Fork?
+---------
+
+Zag is a fork of OpenStack TaskFlow. Josh Harlow and others did an amazing
+job creating and maintaining TaskfFlow for many years, but it has languished
+for years with few updates. The worker-based engine and job board pieces of
+TaskFlow never got wide usage, so they remained stuck in a rather buggy,
+somewhat difficult-to-use state. The goals of Zag will be to focus on those
+pieces. Also, rather than trying to support a myriad of technologies that
+sort of fit the bill, it will focus on optimizing with the right technologies.
+So, to that end, the aims of Zag will be to do the following:
+
+* Focus on Zookeeper for distributed coordination. Support for others will
+  be provided by the tooz library, but Zookeeper is really the best technology
+  available for this purpose, so some features might not work with others.
+* Focus on RabbitMQ or other AMQP providers for worker communication. Support
+  for others will be available via kombu, but some features will likely not
+  work without the ability to use dead-letter queues to delay task execution
+  or retries.
+* Reduce the cognitive load required to get Zag up and running. Simply posting
+  a job in the job board in TaskFlow requires something like 50 lines of code
+  and a rather in-depth understanding of how TaskFlow works under the covers.
+* Make writing flows simpler and more enjoyable. Adding a declarative syntax
+  for building flows and simplifying how arguments are passed to tasks.
+
+To accomplish those goals, some of the TaskFlow APIs will need to be refactored,
+and that would require breaking upstream users. So in the end, I opted to fork
+and change the name so we can push forward at a more rapid pace. This will be a
+work in progress for some time, so the initial releases will mostly keep things
+as-is. Over time, we'll morph a few key pieces.
+
+Testing and requirements
+------------------------
+
+Requirements
+~~~~~~~~~~~~
+
+Because this project has many optional (pluggable) parts like persistence
+backends and engines, we decided to split our requirements into two
+parts: - things that are absolutely required (you can't use the project
+without them) are put into ``requirements.txt``. The requirements
+that are required by some optional part of this project (you can use the
+project without them) are put into our ``test-requirements.txt`` file (so
+that we can still test the optional functionality works as expected). If
+you want to use the feature in question (`eventlet`_ or the worker based engine
+that uses `kombu`_ or the `sqlalchemy`_ persistence backend or jobboards which
+have an implementation built using `kazoo`_ ...), you should add
+that requirement(s) to your project or environment.
+
+Tox.ini
+~~~~~~~
+
+Our ``tox.ini`` file describes several test environments that allow to test
+Zag with different python versions and sets of requirements installed.
+Please refer to the `tox`_ documentation to understand how to make these test
+environments work for you.
+
+Developer documentation
+-----------------------
+
+We also have sphinx documentation in ``docs/source``.
+
+*To build it, run:*
+
+::
+
+    $ python setup.py build_sphinx
+
+.. _kazoo: https://kazoo.readthedocs.io/en/latest/
+.. _sqlalchemy: https://www.sqlalchemy.org/
+.. _kombu: https://kombu.readthedocs.io/en/latest/
+.. _eventlet: http://eventlet.net/
+.. _tox: https://tox.testrun.org/
+
+
+
