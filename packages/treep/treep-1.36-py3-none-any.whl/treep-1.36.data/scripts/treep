@@ -1,0 +1,290 @@
+#!python
+
+# PYTHON_ARGCOMPLETE_OK 
+
+import sys
+import lightargs
+import treep
+import traceback
+import os
+
+from treep import files
+from treep import display_doc
+from treep import exceptions
+from treep import coloring
+
+global _PROJECTS
+
+
+def _repos():
+
+    print('')
+    for repo in _PROJECTS.get_repos(None):
+        _PROJECTS.pretty_print_repo(repo.name)
+    print('')
+
+
+def _projects():
+
+    print('')
+    for project in _PROJECTS.get_projects():
+        print("\t\t"+treep.coloring.b_green(project.name))
+    print('')
+
+    
+def _repo(repo_name):
+
+    print('')
+    _PROJECTS.pretty_print_repo(repo_name)
+    print('')
+
+    
+def _project(project_name):
+
+    print('')
+    _PROJECTS.pretty_print_project(project_name)
+    print('')
+
+
+def _clone(repo_or_project_name):
+
+    print('')
+    _PROJECTS.clone(repo_or_project_name)
+    print('')
+
+
+def _status():
+
+    print('')
+    _PROJECTS.pretty_print_workspace()
+    print('')
+
+    
+def _status():
+
+    print('')
+    _PROJECTS.pretty_print_workspace()
+    print('')
+
+
+def _pull(repo):
+
+    print('')
+    _PROJECTS.pull(repo)
+    print('')
+
+
+def _add_and_commit(repo,commit_message):
+
+    print('')
+    _PROJECTS.add_and_commit(repo,commit_message)
+    print('')
+
+
+def _push(repo,commit_message=None):
+
+    if commit_message is not None:
+        _add_and_commit(repo,commit_message)
+    print('')
+    _PROJECTS.push(None)
+    print('')
+    
+
+def _create_branch(project_name,branch_name):
+
+    global _PROJECTS
+    print('')
+    _PROJECTS.checkout_branch(branch_name,
+                              project_name,
+                              create=True)
+    print('')
+
+
+def _checkout_branch(branch_name):
+
+    global _PROJECTS
+    print('')
+    _PROJECTS.checkout_branch(branch_name,
+                              None,
+                              create=False)
+    print('')
+
+def _list_all_branches():
+
+    global _PROJECTS
+    print('')
+    _PROJECTS.list_all_branches(fetch_first=True,
+                              console=True)
+    print('')
+
+
+def _conflicts():
+
+    global _PROJECTS
+    print('')
+    _PROJECTS.display_conflicts()
+    print('')
+
+    
+def _display_documentation():
+
+    treep.display_doc.display_documentation(__file__)
+
+    
+def _compilation_script(repo_or_project_name,
+                        kwargs):
+
+    # kwargs in a string passed
+    # by the user for configuring the compilation
+    # this string is expected to be a python dictionary
+    try:
+        kwargs = eval(kwargs)
+        if not isinstance(kwargs,dict):
+            raise Exception()
+    except :
+        raise Exception(red("failed to evaluate "+kwargs+"as a python dictionary"))
+        
+    global _PROJECTS
+    print('')
+    _PROJECTS.generate_compilation_script(repo_or_project_name)
+    print('')
+
+    
+def _print_trace_and_error(trace,message):
+
+    trace = "\t"+str(trace).replace("\n","\n\t")
+    message = "\t"+message.replace("\n","\n\t")
+    
+    print(treep.coloring.red("\t[ERROR]\n")+treep.coloring.dim(message))
+    print('\n')
+    print(treep.coloring.dim(trace))
+    print('\n')
+
+    
+def _add_arguments():
+
+    global _PROJECTS
+
+    lightargs.add("--create-branch",_create_branch,nb_args=2,
+                  args_labels=["<project name>","<branch name>"],
+                  man="for all repos of the project, checkout the specified branch, creating it if necessary",
+                  category='git',
+                  autocompletion=_PROJECTS.get_projects_names())
+
+    lightargs.add("--checkout-branch",_checkout_branch,nb_args=1,
+                 args_labels=["<branch name>"],
+                 man="for all cloned repo, attempt to checkout the specified branch",
+                 category='git',
+                 autocompletion=_PROJECTS.get_all_existing_branches())
+
+    lightargs.add("--list-branches",_list_all_branches,nb_args=0,
+                  man="for all cloned repos, list known branches",
+                  category='git')
+    
+    lightargs.add("--repos",_repos,nb_args=0,
+                  man="list known repositories",category='git')
+
+    lightargs.add("--projects",_projects,nb_args=0,
+                  man="list known projects",category='git')
+
+    lightargs.add("--project",_project,nb_args=1,
+                  args_labels=["<project name>"],
+                  man="provide information about the specified project",category='git',
+                  autocompletion=_PROJECTS.get_projects_names())
+
+    lightargs.add("--repo",_repo,nb_args=1,
+                  args_labels=["<repository name>"],
+                  man="provide information about the specified repository",category='git',
+                  autocompletion=_PROJECTS.get_repos_names())
+
+    lightargs.add("--clone",_clone,nb_args=1,
+                  args_labels=["<project or repostory name>"],
+                  man="clone the specified repository or project (do nothing for repositories already in the workspace)",
+                  category='git',
+                  autocompletion=_PROJECTS.get_names())
+
+    lightargs.add("--status",_status,nb_args=0,
+                  man="fetch all repositories, then print status of the workspace",category='git')
+
+    lightargs.add("--pull",_pull,nb_args=1,defaults=[None],
+                  man="attempt to pull the specified repo (or all cloned repositories if omitted)",
+                  autocompletion=_PROJECTS.get_names(),
+                  category='git')
+
+    lightargs.add("--add-and-commit",_add_and_commit,nb_args=2,defaults=[None],
+                  args_labels=["<commit message>"],
+                  man="for the specified repo (all cloned repo if omitted), attemps to add all files and to commit",
+                  autocompletion=_PROJECTS.get_names(),
+                  category='git')
+
+    lightargs.add("--push",_push,nb_args=1,defaults=[None],
+                  man="for all the specified repo (or all cloned repos if omitted), attempt to push. You may want to add and commit first",
+                  autocompletion=_PROJECTS.get_names(),
+                  category='git')
+
+    lightargs.add("--see-treep-conflicts",_conflicts,nb_args=0,
+                  man="display possible conflicts between configuration folders",category='treep')
+    
+    lightargs.add("--documentation",_display_documentation,nb_args=0,defaults=None,
+                  man="display treep documentation",category='treep')
+ 
+    lightargs.add("--compilation-script",_compilation_script,nb_args=2,defaults=[None,"{}"],
+                  man="generate compilation script for specified repo or projects (all cloned repos if omitted). Pass a string which can be evaluated as a python dictionary as argument to configure.",
+                  autocompletion=_PROJECTS.get_names(),
+                  category='compilation')
+   
+    
+
+if __name__ == "__main__":
+
+
+    if any( [ arg in sys.argv[1:]
+              for arg in ["--documentation","-h","-documentation","--h"] ]  ) :
+        _display_documentation()
+        exit()
+
+    try :
+
+        global _PROJECTS
+        _PROJECTS = treep.files.read_configuration_files()
+
+    except exceptions.TreepConfigFolderNotFound :
+        print (treep.coloring.red('\n\tFailed to find a configuration folder (treep_xxx) in the current folder'
+                                  + ' or one of its parent folders\n'))
+        exit()
+
+    except Exception as e:
+
+        print('\n')
+        trace  = traceback.format_exc()
+        _print_trace_and_error(trace,str(e))
+        exit()
+
+
+    # this has to be called before _add_arguments,
+    # as _add_arguments will fill autocompletion lists
+    lightargs.enable_autocompletion()
+
+    _add_arguments()
+
+    lightargs.autocomplete()
+
+    print(treep.coloring.dim("\n\ttreep, copyright 2019 Max Planck Gesellschaft"))
+    print(treep.coloring.dim("\t\tworkspace: "+_PROJECTS.get_workspace_path()))
+    print(treep.coloring.dim("\t\tprojects: "+str(_PROJECTS.get_nb_projects())))
+    print(treep.coloring.dim("\t\trepositories: "+str(_PROJECTS.get_nb_repos())))
+    if _PROJECTS.has_conflicts():
+        repos,projects = _PROJECTS.get_conflicts()
+        conflicts = ""
+        if len(repos)>0: conflicts += str(len(repos))+" repos "
+        if len(projects)>0: conflicts += str(len(projects))+" repos "
+        print(treep.coloring.dim("\t\tconflicts: "+conflicts))
+
+    try:
+        print('')
+        lightargs.execute(sys.argv[1:])
+    except Exception as e:
+        trace  = traceback.format_exc()
+        _print_trace_and_error(trace,str(e))
+        exit()
+
