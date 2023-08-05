@@ -1,0 +1,64 @@
+image: python:3.5
+
+stages:
+    - test
+    - deploy
+
+before_script:
+    - pip3 install tox
+
+.test: &test
+    stage: test
+    script:
+      - tox -e $CI_JOB_NAME
+
+py35:
+    <<: *test
+    image: python:3.5
+
+py36:
+    <<: *test
+    image: python:3.6
+
+py37:
+    <<: *test
+    image: python:3.7
+
+pylint:
+    <<: *test
+
+flake8:
+    <<: *test
+
+coverage:
+    <<: *test
+    artifacts:
+        name: coverage
+        expire_in: 14 days
+        paths:
+            - coverage.xml
+            - htmlcov/
+    allow_failure: true
+
+twine-check:
+    stage: test
+    before_script:
+        - pip3 install -rreqs/requirements-deploy.txt
+    script:
+        - python3 setup.py sdist bdist_wheel
+        - twine check dist/*
+
+dist:
+    stage: deploy
+    before_script:
+        - pip3 install -rreqs/requirements-deploy.txt
+    only:
+        - tags
+        - triggers
+    script:
+        - python3 setup.py sdist bdist_wheel
+        - twine upload dist/* -u "$PYPI_USER" -p "$PYPI_PASS"
+    artifacts:
+        name: "${CI_PROJECT_NAME}-{$CI_BUILD_REF_NAME}"
+        paths:
+            - dist/
