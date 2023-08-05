@@ -1,0 +1,84 @@
+_dephell()
+{
+  local first second current double commands
+  COMPREPLY=()
+  first="${words[2]}"
+  second="${words[3]}"
+  double="${words[2]} ${words[3]}"
+  current="${words[CURRENT]}"
+
+  # autocomplete command first word
+  if [[ $CURRENT == 2 ]] ; then
+    commands=(
+      {% for command in first_words %}
+        '{{ command }}'
+      {% endfor %}
+    )
+    _describe 'command' commands
+    return 0
+  fi
+
+  # autocomplete command second word
+  if [[ $CURRENT == 3 ]] ; then
+    case "${first}" in
+      {% for command, subcommands in tree.items() %}
+        {{ command }})
+          commands=(
+            {% for subcommand, descr in subcommands %}
+              '{{ subcommand }}:{{ descr }}'
+            {% endfor %}
+          )
+          _describe 'command' commands
+          return 0
+          ;;
+      {% endfor %}
+      *)
+      ;;
+    esac
+  fi
+
+  _autocomplete_command () {
+    case "$1" in
+      {% for command, args in arguments.items() %}
+        "{{ command }}")
+          _arguments -s -S ':cmd1:' ':cmd2:' \
+            {% for arg in args %}
+              {% if not arg["opts"] %}
+                {# positional arguments #}
+                {% if arg["files"] %}
+                  ':{{ arg["dest"] }}:_files' \
+                {% elif arg["choices"] %}
+                  ':{{ arg["dest"] }}:({{ arg["choices"] }})' \
+                {% else %}
+                  ':{{ arg["dest"] }}:' \
+                {% endif %}
+
+              {% else %}
+                {# flags #}
+                {% if arg["files"] %}
+                  '{{ arg["opts"][-1] }}=[{{ arg["help"] }}]:{{ arg["dest"] }}:_files' \
+                {% elif arg["choices"] %}
+                  '{{ arg["opts"][-1] }}=[{{ arg["help"] }}]:{{ arg["dest"] }}:({{ arg["choices"] }})' \
+                {% else %}
+                  '{{ arg["opts"][-1] }}[{{ arg["help"] }}]' \
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+                ;
+          return 0
+          ;;
+      {% endfor %}
+      *)
+      ;;
+    esac
+  }
+
+
+  # autocomplete one-word command arguments
+  _autocomplete_command "$first"
+  # autocomplete two-words command arguments
+  _autocomplete_command "$double"
+
+}
+
+compdef _dephell dephell
