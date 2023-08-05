@@ -1,0 +1,173 @@
+#!/bin/bash
+# Script to checkout and install branch of Neuron
+# Branches have names such as "Release 7.4"
+# By default, the working version is installed.
+
+NCPU=4
+version=
+DATE=
+PREFIX=${HOME}/nrn
+REPO=https://www.github.com/neuronsimulator
+WITHOUTIV=false
+SCRIPTDIR=`dirname $0`
+
+OPTIND=1
+
+OPTS=`getopt  --long version:,commitid:,date:,without-iv -n 'parse-options' -- "$@"`
+
+echo "$OPTS"
+eval set -- "$OPTS"
+
+while true; do
+  case "$1" in
+    -v | --version) version=$2; shift; shift ;;
+    -c | --commitid) commitid=$2; shift; shift ;;
+    -d | --date) DATE=$2; shift; shift ;;
+    --without-iv) WITHOUTIV=true; shift ;;
+    esac
+done
+
+if [ "x${commitid}" != "x" ]; then
+    NRNPREFIX=${PREFIX}/${commitid}
+    echo "Commit \"$commitid\" will be checked out.."
+else
+    ## Defaults. Set version to version known to work.
+    if [ "x$version" == "x" ] && [ "x$DATE" == "x" ]; then
+        version="7.4"
+    fi
+
+    if [ "x$version" == "x" ] || [ "x$version" == "xmaster"]; then 
+        branch=master
+        if [ "x${DATE}" == "x" ]; then
+            NRNPREFIX=${PREFIX}/${branch}
+        else
+            NRNPREFIX=${PREFIX}/${branch}-${DATE}
+        fi
+    else
+        branch="${version}"
+        if [ "x${DATE}" == "x" ]; then
+            NRNPREFIX=${PREFIX}/${version}
+        else
+            NRNPREFIX=${PREFIX}/${version}-${DATE}
+        fi
+    fi
+    echo "Branch \"$branch\" will be checked out.."
+fi
+echo "...and installed in ${NRNPREFIX}"
+
+function installpkg {
+    echo -n "checking for $1 ... "
+    if [ -e $1 ]; then
+        echo "present"
+    else
+        if [ -x "/usr/bin/apt-get" ]; then
+            echo
+            sudo apt-get install $2
+        else
+            echo "perhaps not present - check package equivalent to Debian $2 is installed"
+        fi
+    fi
+}
+installpkg /usr/bin/bison bison
+installpkg /usr/bin/flex flex
+installpkg /usr/bin/git git
+installpkg /usr/bin/gcc-5 gcc-5 build-essential
+installpkg /usr/bin/g++-5 g++-5 
+installpkg /usr/bin/aclocal automake
+installpkg /usr/bin/libtoolize libtool
+installpkg /usr/include/X11/Xlib.h libx11-dev
+installpkg /usr/include/X11/extensions/Xext.h libxext-dev
+installpkg /usr/include/python2.7/Python.h libpython2.7-dev
+installpkg /usr/include/ncurses.h ncurses-dev
+installpkg /usr/lib/python2.7/dist-packages/scipy/version.py python-scipy
+installpkg /usr/lib/python2.7/dist-packages/matplotlib/__init__.py python-matplotlib
+
+mkdir neuron-build
+cd neuron-build
+# Get IV code
+if [ $WITHOUTIV == false ]; then
+   if [ -d iv ] ; then
+        cd iv
+        git pull
+        cd ..
+   else
+       git clone ${REPO}/iv # skip this if you don't want the GUI
+   fi
+fi
+
+## Get NEURON code
+if [ -d nrn ] ; then
+   cd nrn
+   git pull
+   cd ..
+else 
+   git clone ${REPO}/nrn
+fi
+
+if 
+
+## Build IV
+if [ $WITHOUTIV == false ]; then
+    cd iv/
+    ./build.sh 
+    ./configure --prefix=$NRNPREFIX/iv
+    make -j ${NCPU}
+    make install
+fi
+
+## Build NEURON
+cd ../nrn
+if [ "x${commitid}" != "x" ]; then
+    git checkout "${commitid}"
+else
+    if [ "x${DATE}" != "x" ]; then
+        git checkout \'${branch}@{${DATE} 00:00:00}\'
+    else
+        git checkout "${branch}"
+    fi
+fi
+if [ x"$version" == "x7.4" ]; then
+    patch -p1 < ${SCRIPTDIR}/neuron7-4-cython.patch
+fi
+if [ -x hg2nrnversion_h.sh ]; then
+    wget https://raw.githubusercontent.com/neuronsimulator/nrn/fc3ff7d10d62e537ab2e286066891e74dcfe51a8/git2nrnversion_h.sh
+    head -10 hg2nrnversion_h.sh > git-hg2nrnversion_h.sh
+    tail -21 git2nrnversion_h.sh >> git-hg2nrnversion_h.sh
+    perl -i -p -e 's/GIT_/HG_/;' git-hg2nrnversion_h.sh
+    perl -i -p -e 's/git describe --tags/git describe --tags --always/;' git-hg2nrnversion_h.sh
+    chmod u+x git-hg2nrnversion_h.sh
+    ./git-hg2nrnversion_h.sh > src/nrnoc/nrnversion.h
+    echo "#define HG_LOCAL \"?\"" >> src/nrnoc/nrnversion.h
+    echo "#define HG_TAG \"\"" >> src/nrnoc/nrnversion.h
+fi
+./build.sh
+# CFLAGS="-DNPY_NO_DEPRECATED_API=1 -DNPY_1_7_API_VERSION=1" CXXFLAGS="-DNPY_NO_DEPRECATED_API=1 -DNPY_1_7_API_VERSION=1" 
+./configure --prefix=$NRNPREFIX/nrn --without-iv  --with-nrnpython=/usr/bin/python2.7
+make clean
+make -j ${NCPU}
+make install
+
+cd ..
+# Python packages are installed in ${NRNPREFIX}/lib/python
+
+echo "Branch \"$branch\" (Date: ${DATE}) has been installed in ${NRNPREFIX}"
+
+## Test
+${NRNPREFIX}/nrn/x86_64/bin/nrngui 
+
+echo "To test python"
+echo "--------------"
+echo
+echo "1. Add the neuron package to your PYTHONPATH:"
+echo "   export PYTHONPATH=${NRNPREFIX}/nrn/lib/python/:\$PYTHONPATH"
+echo
+echo "2. Try the following:"
+echo
+echo "   python2.7"
+echo "   import neuron"
+echo "   import neuron.rxd.rxd"
+echo
+
+
+echo "   export PYTHONPATH=${NRNPREFIX}/nrn/lib/python/:\$PYTHONPATH"
+
