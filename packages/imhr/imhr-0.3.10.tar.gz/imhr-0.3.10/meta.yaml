@@ -1,0 +1,71 @@
+{% set name = "imhr" %}
+{% set version = "0.3.6" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+
+build:
+  number: 0
+  noarch: python
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
+  ignore_run_exports:
+    - matplotlib
+    - scikit-learn
+    - psd-tools
+    - opencv-python
+    - pillow
+    - pandas
+    - psutil
+    - opencv
+    - dso
+    - rpy2
+    - bokeh
+
+requirements:
+  host:
+    - python
+    - pip
+    - setuptools
+  build:
+    - python
+    - pip
+    - setuptools
+  run:
+    - python
+    - pip
+    - setuptools
+    - pillow
+    - numpy
+    - scipy
+    - certifi
+    - docopt
+    - requests
+    - openpyxl
+    - paramiko
+    - seaborn
+
+test:
+  imports:
+    - mdl
+    - mdl.eyetracking
+    - mdl.r33
+    - mdl.download
+    - mdl.plot
+    - mdl.settings
+
+about:
+  home: http://mdl.psy.utexas.edu/a/mdl
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: mdl - Psychology Data Science Suite
+  doc_url: https://risoms.github.io/mdl/docs/build
+  dev_url: https://github.com/risoms/mdl
+
+extra:
+  recipe-maintainers:
+    - risoms
