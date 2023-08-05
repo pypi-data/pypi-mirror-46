@@ -1,0 +1,60 @@
+#!/usr/bin/env sos-runner
+#fileformat=SOS1.0
+
+# This script releases SoS to different destinations, including
+#
+# 1. source distribution to pip
+# 2. docker images to docker hub
+# 3. website to github.io
+
+[patch: shared='version']
+parameter: version = str
+sh:
+	perl -pi.bak -e "s/^__version__ = .*/__version__ = '${version}'/" ../src/sos/_version.py
+
+
+[pip]
+parameter: version = str
+# check the version of the latest version
+cur_ver = get_output("pip show sos | grep Version | cut -d' ' -f2").strip()
+
+# do not upload if the version on pip is the current one
+stop_if(cur_ver == version)
+
+sh:	workdir='..'
+	python setup.py sdist && \
+	rm -rf /tmp/test_sos && \
+	mkdir /tmp/test_sos && \
+	cp dist/sos-${version}.tar.gz /tmp/test_sos && \
+	cd /tmp/test_sos && \
+	tar zxf sos-${version}.tar.gz && \
+	cd sos-${version} && \
+	python setup.py install
+
+sh: workdir='..'
+	python setup.py sdist bdist_wheel upload && \
+	pip install sos --upgrade
+  
+[update-docker]
+# add documentation to Docker container
+depends: executable('docker')
+
+# update docker and push
+run:
+	docker build --no-cache -t mdabioinfo/sos docker-base
+	docker push mdabioinfo/sos
+
+	docker build --no-cache -t mdabioinfo/sos-notebook docker-notebook
+	docker push mdabioinfo/sos-notebook
+
+	docker build --no-cache -t mdabioinfo/sos-demo docker-demo
+	docker push mdabioinfo/sos-demo
+
+# update docker on ec2
+
+[update-ec2]
+run:
+   ssh 128.135.144.117 'bash -s '< update_ec2_docker.sh
+
+[default]
+sos_run('patch + pip + update-docker')
