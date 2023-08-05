@@ -1,0 +1,183 @@
+Metadata-Version: 1.1
+Name: fc-meshtools
+Version: 0.1.0
+Summary: The fc_meshtools package contains some simplicial meshes given by their vertices array and connectivity array
+Home-page: http://www.math.univ-paris13.fr/~cuvelier/software
+Author: Francois Cuvelier
+Author-email: cuvelier@math.univ-paris13.fr
+License: BSD
+Description: .. |gmsh_link| raw:: html
+        
+           <a href="http://gmsh.info" target="_blank">gmsh</a>
+           
+        .. |fc-meshtools_link| raw:: html
+        
+           <a href="http://www.math.univ-paris13.fr/~cuvelier/software/fc-meshtools-Python.html" target="_blank">fc_meshtools</a> 
+           
+        .. |fc-oogmsh_link| raw:: html
+        
+           <a href="http://www.math.univ-paris13.fr/~cuvelier/software/fc-oogmsh-Python.html" target="_blank">fc_oogmsh</a>  
+           
+        .. |matplotlib_link| raw:: html
+        
+           <a href="https://matplotlib.org/" target="_blank">fc_meshtools</a> 
+           
+        .. |python_link| raw:: html
+        
+           <a href="http://www.python.org" target="_blank">www.python.org</a>
+           
+        .. |canopy_link| raw:: html
+        
+           <a href="https://www.enthought.com/product/canopy/" target="_blank">Canopy</a>
+           
+        .. |anaconda_link| raw:: html
+        
+           <a href=https://www.anaconda.com" target="_blank">Anaconda</a>
+           
+        .. |mayavi_link| raw:: html
+        
+           <a href=http://docs.enthought.com/mayavi/mayavi/" target="_blank">Mayavi</a>
+           
+        .. raw:: html
+        
+           <div class="clearfix">
+        
+        .. image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-meshtools/pyfc-meshtools_400.png
+          :width: 200px
+          :align: left
+        
+        The **fc\_meshtools** Python package  contains some simplicial meshes
+        given by their vertices array **q** and connectivity array **me**. Theses meshes can be easily used in 
+        other Python codes for debugging or testing purpose. 
+        
+        .. raw:: html
+        
+           </div>
+           
+        |
+           
+        Introduction:
+        -------------   
+        
+        A simplicial mesh is given by its vertices array **q** and its connectivity array **me**.
+        For demonstration purpose, some simplicial meshes are given in this package and stored in the fc_meshtools/data directory.  
+        They can be load by using the functions ``getMesh2D``, ``getMesh3D`` or ``getMesh3Ds``
+        of the ``fc_meshtools.simplicial`` module.
+        Here are the kind of simplicial meshes present in this package: 
+        
+          - a triangular mesh in dimension 2, made with 2-simplices (ie. triangles),
+          - a tetrahedral mesh in dimension 3, made with 3-simplices (ie. tetrahedron),
+          - a triangular mesh in dimension 3 (surface mesh), made with 2-simplices,
+          - a line mesh in dimension 2 or 3 made with 1-simplices (ie. lines).
+        
+        One can go to the dedicated web page |fc-meshtools_link| for more informations.
+        
+        Installation:
+        -------------
+        
+        The **fc\_meshtools** Python package is available from the Python Package Index, so to install/upgrade simply type
+        
+        .. code:: 
+        
+            pip install fc_meshtools -U
+            
+        
+        Thereafter, it's possible to run one of the demo functions 
+        
+        .. code:: python
+        
+              import fc_meshtools
+              fc_meshtools.demos.plot3D()
+              
+              
+        .. |plot3D_fig1| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-meshtools/snapshots/meshtools_plot3D_fig1_Python360.png      
+           :width: 300
+           :align: middle
+           
+        .. |plot3D_fig2| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-meshtools/snapshots/meshtools_plot3D_fig2_Python360.png      
+           :width: 300
+           :align: middle
+          
+        .. |plot3D_fig3| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-meshtools/snapshots/meshtools_plot3D_fig3_Python360.png      [
+           :width: 300
+           :align: middle
+           
+        +---------------+---------------+---------------+
+        | |plot3D_fig1| | |plot3D_fig2| | |plot3D_fig3| |
+        +---------------+---------------+---------------+
+        
+        .. code:: python
+        
+              import fc_meshtools
+              fc_meshtools.demos.plot2D()
+              
+              
+        .. |plot2D_fig1| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-meshtools/snapshots/meshtools_plot2D_fig1_Python360.png      
+           :width: 300
+           :align: middle
+           
+        .. |plot2D_fig2| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-meshtools/snapshots/meshtools_plot2D_fig2_Python360.png      
+           :width: 300
+           :align: middle
+          
+        .. |plot2D_fig3| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-meshtools/snapshots/meshtools_plot2D_fig3_Python360.png      
+           :width: 300
+           :align: middle
+           
+        +---------------+---------------+---------------+
+        | |plot2D_fig1| | |plot2D_fig2| | |plot2D_fig3| |
+        +---------------+---------------+---------------+
+        
+        Example:
+        --------
+        
+        There is a complete source code used to represent the function 
+        
+        .. math::
+        
+              (x,y,z)\mapsto \cos(3x-1)\sin(2y-2)\sin(3z)
+        
+        on the upper half of a sphere.
+              
+        .. code:: python
+        
+              import matplotlib.pyplot as plt
+              from fc_tools.Matplotlib import set_axes_equal
+              import fc_meshtools as plt4sim
+              from fc_meshtools.demos import getMesh3Ds
+              import numpy as np
+              q2,me2=getMesh3Ds(2)
+              q1,me1=getMesh3Ds(1)
+              f=lambda x,y,z: np.cos(3*x-1)*np.sin(2*y-2)*np.sin(3*z)
+              u2=f(q2[:,0],q2[:,1],q2[:,2])
+              u1=f(q1[:,0],q1[:,1],q1[:,2])
+              plt.ion()
+              plt.figure(1)
+              pp=plt4sim.plot(q2,me2,u2)
+              plt4sim.plotmesh(q1,me1,color='Black',linewidths=2)
+              plt.colorbar(pp)
+              plt.axis('off')
+              set_axes_equal()
+              plt.figure(2)
+              pp=plt4sim.plot(q1,me1,u1,linewidths=2,vmin=min(u2),vmax=max(u2))
+              plt4sim.plotmesh(q2,me2,color='LightGray',alpha=0.1)
+              plt.colorbar(pp)
+              plt.axis('off')
+              set_axes_equal()
+        
+        .. |plot3Ds_fig1| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-meshtools/snapshots/meshtools_plot3Ds_fig1_Python360.png      
+           :width: 300
+           :align: middle
+           
+        .. |plot3Ds_fig2| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-meshtools/snapshots/meshtools_plot3Ds_fig2_Python360.png      
+           :width: 300
+           :align: middle
+        
+        +----------------+----------------+
+        | |plot3Ds_fig1| | |plot3Ds_fig2| |
+        +----------------+----------------+
+        
+Platform: Linux
+Platform: Mac OS-X
+Platform: Windows
+Classifier: Topic :: Scientific/Engineering
