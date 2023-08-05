@@ -1,0 +1,136 @@
+#!/usr/bin/env python
+
+# *****************************************************************************
+# Copyright (c) 2014, 2018 IBM Corporation and other Contributors.
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html 
+#
+# *****************************************************************************
+
+import argparse
+import os
+import sys
+import yaml
+from pprint import pprint
+import wiotp.sdk.application
+
+
+def unicode_representer(dumper, uni):
+    node = yaml.ScalarNode(tag=u'tag:yaml.org,2002:str', value=uni)
+    return node
+
+yaml.add_representer(unicode, unicode_representer)
+
+class cli():
+	def __init__(self):
+		config = wiotp.sdk.application.parseEnvVars()
+
+		self.appClient = wiotp.sdk.application.ApplicationClient(config)
+	
+	def parseCommandLineArguments(self):
+		"""
+		wiotp ls type|device --limit 100
+		wiotp add device --typeId TYPE_ID --deviceId DEVICE_ID 
+		wiotp get device --typeId TYPE_ID --deviceId DEVICE_ID
+		wiotp get lastevent|lec --typeId TYPE_ID --deviceId DEVICE_ID --eventId EVENT_ID
+		wiotp rm device --typeId TYPE_ID --deviceId DEVICE_ID
+		wiotp rm device --typeId TYPE_ID --deviceId DEVICE_ID --metadata "{}"
+		wiotp log connection --typeId TYPE_ID --deviceId DEVICE_ID
+		"""
+		parser = argparse.ArgumentParser(prog='wiotp')
+		
+		# Required Device ID parser
+		deviceId = argparse.ArgumentParser(add_help=False)
+		deviceId.add_argument('-d', '--deviceId', help='Device ID', required=True)
+		
+		# Required type ID parser
+		typeId = argparse.ArgumentParser(add_help=False)
+		typeId.add_argument('-t', '--typeId', help='Type ID', required=True)
+		
+		# Optional Type ID parser
+		optionalTypeId = argparse.ArgumentParser(add_help=False)
+		optionalTypeId.add_argument('-t', '--typeId', help='Type ID', required=False, default=None)
+		
+		# Optional list limit parser
+		limit = argparse.ArgumentParser(add_help=False)
+		limit.add_argument('-l', '--limit', help='Maximum number of results to return (defaults to 10)', required=False, type=int, default=100)
+
+		outputFormat = argparse.ArgumentParser(add_help=False)
+		outputFormat.add_argument('-o', '--output', help='Output format', required=False, choices=["json", "yaml", "text"], type=str, default="text")
+
+		sp = parser.add_subparsers()
+		sp_list = sp.add_parser('ls', help='List resources')
+		sp_get = sp.add_parser('get', help='Get resources')
+		
+		sp_list_sp = sp_list.add_subparsers()
+		sp_list_devices = sp_list_sp.add_parser('devices', parents=[outputFormat, limit, optionalTypeId])
+		sp_list_types = sp_list_sp.add_parser('devicetypes', parents=[outputFormat, limit])
+		
+		sp_get_sp = sp_get.add_subparsers()
+		sp_get_device = sp_get_sp.add_parser('device', parents=[outputFormat, deviceId, typeId])
+		sp_get_devicetype = sp_get_sp.add_parser('devicetype', parents=[outputFormat, typeId])
+		
+		# Set handler functions
+		sp_list_devices.set_defaults(func=self.listDevices)
+		sp_list_types.set_defaults(func=self.listTypes)
+		sp_get_device.set_defaults(func=self.getDevice)
+		sp_get_devicetype.set_defaults(func=self.getDeviceType)
+		
+		self.args = parser.parse_args()
+		return self.args.func()
+	
+	def listDevices(self):
+		i = 0
+		if self.args.typeId is not None:
+			source = self.appClient.registry.devicetypes[self.args.typeId].devices
+		else:
+			source = self.appClient.registry.devices
+		
+		for device in source:
+			i += 1
+			if i > self.args.limit:
+				break
+			self._displayListSeperator()
+			self._displayEntity(device)
+		return 0
+	
+	def listTypes(self):
+		i = 0
+		for deviceType in self.appClient.registry.devicetypes:
+			i += 1
+			if i > self.args.limit:
+				break
+			self._displayListSeperator()
+			self._displayEntity(deviceType)
+		return 0
+	
+	def getDevice(self):
+		device = self.appClient.registry.devicetypes[self.args.typeId].devices[self.args.deviceId]
+		self._displayEntity(device)
+		return 0
+	
+	def getDeviceType(self):
+		deviceType = self.appClient.registry.devicetypes[self.args.typeId]
+		self._displayEntity(deviceType)
+		return 0
+
+	def _displayEntity(self, entity):
+		if self.args.output == "json": 
+			pprint(entity)
+		elif self.args.output == "yaml":
+			print(yaml.dump(entity.json(), default_flow_style=False))
+		elif self.args.output == "text":
+			print(entity)
+	
+	def _displayListSeperator(self):
+		if self.args.output in ["json", "yaml"]:
+			print("---") 
+
+
+if __name__ == "__main__":
+	myCli = cli()
+	rc = myCli.parseCommandLineArguments()
+	sys.exit(rc)
