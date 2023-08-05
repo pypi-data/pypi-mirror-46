@@ -1,0 +1,77 @@
+{% extends "bee_django_course_simple/base.html" %}
+{% load static %}
+{% load bootstrap3 %}
+{% block content %}
+    <h4>
+
+
+        <a href="{% url 'bee_django_course_simple:course_detail'  pk=question.part.section.course.id %}">{{ question.part.section.course.title }}</a>
+        ->
+        <a href="{% url 'bee_django_course_simple:section_detail'  pk=question.part.section.id %}">课件【{{ question.part.section.title }}】详情 </a>
+        ->
+        <a href="{% url 'bee_django_course_simple:part_detail'  pk=question.part.id %}">小节【{{ question.part.title }}】详情 </a>
+        ->
+        {% if type == 'add' %}添加{% elif type == 'update' %}修改{% endif %}选择题【{{ question.title }}】的选项
+
+    </h4>
+    <form method="post">
+        {% csrf_token %}
+
+        {% bootstrap_form form %}
+        {% if type == 'add' %}
+            <input type="text" id="next" hidden>
+            {% bootstrap_button '保存并继续添加选项' name='next' %}
+            {% bootstrap_button '保存' name='ok' %}
+        {% elif type == 'update' %}
+            {% bootstrap_button '提交' name='ok' %}
+        {% endif %}
+
+    </form>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+{#            var E = window.wangEditor;#}
+{#            var editor = new E('id_info');#}
+{#            editor.config.menus = [#}
+{#                'source',#}
+{#                '|',#}
+{#                'bold',#}
+{#                'underline',#}
+{#                'italic',#}
+{#                'strikethrough',#}
+{#                'eraser',#}
+{#                'forecolor',#}
+{#                'bgcolor',#}
+{#                '|',#}
+{#                'quote',#}
+{#                'fontfamily',#}
+{#                'fontsize',#}
+{#                'head',#}
+{#                'unorderlist',#}
+{#                'orderlist',#}
+{#                'alignleft',#}
+{#                'aligncenter',#}
+{#                'alignright',#}
+{#                '|',#}
+{#                'link',#}
+{#                'unlink',#}
+{#                'table',#}
+{#                'emotion',#}
+{#                '|',#}
+{#                'img',#}
+{#                'video',#}
+{#                'location',#}
+{#                'insertcode',#}
+{#            ];#}
+{##}
+{#            editor.config.uploadImgFileName = 'image';#}
+{#            editor.config.uploadImgUrl = "{% url 'bee_django_course_simple:upload_image' %}";#}
+{#            editor.create();#}
+{##}
+{#            window.editor = editor;#}
+        });
+    </script>
+{% endblock %}

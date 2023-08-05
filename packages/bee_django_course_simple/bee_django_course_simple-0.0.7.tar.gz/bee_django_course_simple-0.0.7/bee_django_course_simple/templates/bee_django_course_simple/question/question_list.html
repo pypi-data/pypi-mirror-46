@@ -1,0 +1,50 @@
+{% extends "bee_django_course_simple/base.html" %}
+{% load bee_django_course_simple_filter %}
+{% block styles %}
+    <style>
+        .select2 {
+            min-width: 150px;
+        }
+    </style>
+
+
+{% endblock %}
+{% block content %}
+    <div class="text-center"><h3>
+        问题列表
+    </h3>
+    </div>
+    {% include 'bee_django_course_simple/question/question_search.html' %}
+    <div>共{{ paginator.count }}个</div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>问题</th>
+            <th>课件</th>
+            <th></th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for question in question_list %}
+            <tr>
+                <td>{{ question.title }}</td>
+                <td>{{ question.part.section.title|default:"" }}</td>
+                <td>
+                    <a href="{% url 'bee_django_course_simple:question_detail' question.id %}">答题情况</a>
+
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'bee_django_course_simple/paginator.html' %}
+{% endblock %}
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            $('#id_course').select2();
+            $('#id_section').select2();
+        });
+    </script>
+{% endblock %}

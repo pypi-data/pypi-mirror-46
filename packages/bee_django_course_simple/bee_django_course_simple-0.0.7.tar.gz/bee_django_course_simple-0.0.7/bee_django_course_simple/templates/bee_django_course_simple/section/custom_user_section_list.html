@@ -1,0 +1,78 @@
+{% extends "bee_django_course_simple/user_base.html" %}
+
+{% block content %}
+
+    {#课程列表#}
+    <div style="margin: 10px 0;">
+        <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                课程列表
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                {% for u_c in user_course_list %}
+                    <li>
+                        <a href="{% url 'bee_django_course_simple:custom_user_section_list' user_id=user.id  user_course_id=u_c.id %}">{{ u_c.course.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+
+        </div>
+
+    </div>
+
+    <div class="text-center"><h4>{{ user_course.course.title }}</h4></div>
+
+    <table class="table">
+        <thead>
+        <tr>
+            {#            <th>顺序</th>#}
+            <th>课件</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for e in user_section_list %}
+            <tr>
+                <td>
+                    {% if e.is_open or e.is_pass %}
+                        <a href="{% url 'bee_django_course_simple:custom_user_section_detail' e.id %}">{{ e.section.title }}</a>
+                        {% if e.is_pass %}
+                            （已通过）
+                        {% elif e.is_open %}
+                            （学习中）
+                        {% endif %}
+                    {% else %}
+                        {{ e.section.title }}
+                    {% endif %}
+                </td>
+
+
+                <td>
+                    {% if e.is_open %}
+                        {{ e.started_at }} 开始
+                    {% endif %}
+                    {% if e.is_pass %}
+                        {{ e.started_at }} - {{ e.passed_at }}
+
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% include 'bee_django_course_simple/paginator.html' %}
+
+
+{% endblock content %}
+{% block scripts %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+
+        });
+
+    </script>
+{% endblock scripts %}
