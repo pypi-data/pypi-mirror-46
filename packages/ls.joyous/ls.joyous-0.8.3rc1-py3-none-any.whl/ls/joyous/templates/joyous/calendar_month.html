@@ -1,0 +1,45 @@
+{% extends "joyous/calendar_base.html" %}
+{% load wagtailcore_tags i18n %}
+
+{% block events_view %}
+{% include "joyous/includes/events_view_choices.html" with monthlyUrl=thisMonthUrl monthlyLink=_("This Month") %}
+{% endblock events_view %}
+
+{% block cal_heading %}
+<tr class="heading">
+  <th colspan="7" class="month">
+    <span class="month-heading">
+      {% if prevMonthUrl %}
+      <a title="{% trans 'Previous month' %}" rel="nofollow" href="{{ prevMonthUrl }}">&lt;</a>
+      {% endif %}
+      <div class="month-name">{{ monthName }}</div>
+      {% if nextMonthUrl %}
+      <a title="{% trans 'Next month' %}" rel="nofollow" href="{{ nextMonthUrl }}">&gt;</a>
+      {% endif %}
+    </span>
+    <span class="year-heading">
+      {% if prevYearUrl %}
+      <a title="{% trans 'Previous year' %}" rel="nofollow" href="{{ prevYearUrl }}">&lt;</a>
+      {% endif %}
+      <div class="year-number">{{ year }}</div>
+      {% if nextYearUrl %}
+      <a title="{% trans 'Next year' %}" rel="nofollow" href="{{ nextYearUrl }}">&gt;</a>
+      {% endif %}
+    </span>
+  </th>
+</tr>
+{% endblock cal_heading %}
+
+{% block cal_body %}
+<tbody class="monthly-view">
+  {% for week in events %}
+  {% block cal_week %}
+  <tr>
+    {% for evod in week %}
+      {% include "joyous/includes/calendar_month_day.html" %}
+    {% endfor %}
+  </tr>
+  {% endblock cal_week %}
+  {% endfor %}
+</tbody>
+{% endblock cal_body %}
