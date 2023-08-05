@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [[ ! "${DIR}" ]] || [[ ! "${MIN_REQ_SPACE}" ]]; then
+    echo "Missing one of parameters: DIR, MIN_REQ_SPACE"
+    exit 1
+fi
+
+df_output=$(df -h ${DIR} --output=size)
+
+if [[ "${MOCK_DF_OUTPUT}" ]]; then
+    df_output="${MOCK_DF_OUTPUT}"
+fi
+
+space=$(echo ${df_output} | tail -n 1 | tr -d "[:space:]" | tr -dc '0-9\.')
+space=${space//,/.}
+
+if [[ $(python -c "print(${space}<${MIN_REQ_SPACE})") == "False" ]]; then
+    echo "Failed asserting that ${space}GB is at least ${MIN_REQ_SPACE}GB at '${DIR}' mountpoint"
+    exit 1
+fi
+
+echo "There is ${space}GB disk space at '${DIR}', nothing to worry about, defined minimum is ${MIN_REQ_SPACE}GB"
+
+exit 0
