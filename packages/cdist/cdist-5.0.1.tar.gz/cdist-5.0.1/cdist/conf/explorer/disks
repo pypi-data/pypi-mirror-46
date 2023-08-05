@@ -1,0 +1,27 @@
+#!/bin/sh
+
+uname_s="$(uname -s)"
+
+case "${uname_s}" in
+    FreeBSD)
+        sysctl -n kern.disks
+    ;;
+    OpenBSD|NetBSD)
+        sysctl -n hw.disknames | grep -Eo '[lsw]d[0-9]+' | xargs
+    ;;
+    Linux)
+        if command -v lsblk > /dev/null
+        then
+            # exclude ram disks, floppies and cdroms
+            # https://www.kernel.org/doc/Documentation/admin-guide/devices.txt
+            lsblk -e 1,2,11 -dno name | xargs
+        else
+            printf "Don't know how to list disks for %s operating system without lsblk, if you can please submit a patch\n" "${uname_s}" >&2
+        fi
+    ;;
+    *)
+        printf "Don't know how to list disks for %s operating system, if you can please submit a patch\n" "${uname_s}" >&2
+    ;;
+esac
+
+exit 0
