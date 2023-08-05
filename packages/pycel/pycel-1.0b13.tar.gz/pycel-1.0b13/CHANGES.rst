@@ -1,0 +1,230 @@
+1.0b13 (2019-05-10)
+===================
+
+Changes
+-------
+* Implement VALUE()
+* Improve compile performance reversion from CSE work
+
+Bug Fixes
+---------
+* #54, In normalize_year(), month % 12 can be 0 -> IllegalMonthError
+
+1.0b12 (2019-04-22)
+===================
+
+Changes
+-------
+* Add library plugin support
+* Improve evaluate of unbounded row/col (ie: A:B)
+* Fix some regressions from 1.0b11
+
+
+1.0b11 (2019-04-21)
+===================
+
+Major Changes
+-------------
+
+* Refactored ExcelWrapper, ExcelFormula & ExcelCompiler to allow...
+* Added considerable extensions to CSE Array Formula Support
+* Refactored function_helpers to add decorators for excelizing library functions
+* Added a dozen new functions
+* Improved various messages and exceptions in validate_calcs() and trim_graph()
+
+Changes
+-------
+
+* Implement LEFT()
+* Implement ISERROR()
+* Implement FIND()
+* Implement ISNUMBER()
+* Implement SUMPRODUCT()
+* Implement CEILING()
+* Implement TRUNC() and FLOOR()
+* Add support for LOG()
+* Improve ABS(), INT() and ROUND()
+
+* Add quoted_address() method to AddressRange and AddressCell
+* Add public interface to get list of formula_cells()
+* Improve Some NotImplementedError() messages
+* Add NotImplementedError for "linked" sheet names
+* Fix function info for paired functions from same line
+* Add reference URL to function info
+* Only build compiler eval context once
+* Address Range Union and Intersection need sheet_name
+
+CSE Array Changes
+-----------------
+
+* Add CSE Array handling to excelformula and excelcompiler
+* Change Row, Column & Index to rectangular arrays only
+* Add in_array_formula_context
+* Add cse_array_wrapper() to allow calling functions in array context
+* Add error_string_wrapper() to check for excel errors
+* Move math_wrap() to function_helpers.
+* Handle Direct CSE Array in cell
+* Reorganize CSE Array Formula handling in excelwrapper
+* For CSE Arrays that are smaller than target fill w/ None
+* Trim oversize array results to fit target range
+* Improve needed addresses parser from python code
+* Improve _coerce_to_number() and _numerics() for CSE arrays
+* Remove formulas from excelwrapper._OpxRange()
+
+Bug Fixes
+---------
+
+* Fix Range Intersection
+* Fix Unary Minus on Empty cell
+* Fix ISNA()
+* Fix AddressCell create from tuple
+* Power(0,-1) now returns DIV0
+* Cleanup index()
+
+
+1.0b8 (2019-03-20)
+==================
+
+Changes
+-------
+
+* Implement operators for Array Formulas
+* Implement concatenate and concat
+* Implement subtotal
+* Add support for expanding array formulas
+* Fix column and row for array formulas
+* Add support for table relative references
+* Add function information methods
+* Improve messages for validate_calcs and not implemented functions
+
+
+1.0b7 (2019-03-10)
+==================
+
+Changes
+-------
+
+* Implement Array (CSE) Formulas
+
+Bug Fixes
+---------
+
+* Fix #45 - Unbounded Range Addresses (ie: A:B or 1:2) broken
+
+
+1.0b6 (2019-03-03)
+==================
+
+Bug Fixes
+---------
+
+* Fix #42 - 'ReadOnlyWorksheet' object has no attribute 'iter_cols'
+* Fix #43 - Fix error with leading/trailing whitespace
+
+
+1.0b5 (2019-02-24)
+==================
+
+Changes
+-------
+
+* Implement XOR(), NOT(), TRUE(), FALSE()
+* Improve error handling for AND(), OR()
+* Implement POWER() function
+
+
+1.0b4 (2019-02-17)
+==================
+
+Changes
+-------
+
+* Move to openpyxl 2.6+
+* Remove support for Python 3.4
+
+
+1.0b3 (2019-02-02)
+==================
+
+Changes
+-------
+
+* Work around openpyxl returning datetimes
+* Pin to openpyxl 2.5.12 to avoid bug in 2.5.14 (fixed in PR #315)
+
+
+1.0b2 (2019-01-05)
+==================
+
+Changes
+-------
+
+* Much work to better match Excel error processing
+* Extend validate_calcs() to allow testing entire workbook
+* Improvements to match(), including wildcard support
+* Finished implementing match(), lookup(), vlookup() and hlookup()
+* Implement COLUMN() and ROW()
+* Implement % operator
+* Implement len()
+* Implement binary base number Excel functions (hex2dec, etc.)
+* Fix PI()
+
+
+1.0b0 (2018-12-25)
+===================
+
+Major changes
+-------------
+
+* Converted to Python 3.4+
+* Removed Windows Excel COM driver (openpyxl is used for all xlsx reading)
+* Add support for defined names
+* Add support for structured references
+* Fix support for relative formulas
+* set_value() and evaluate() support ranges and lists
+* Add several more library functions
+* Add AddressRange and AddressCell classes to encapsulate address calcs
+* Add validate_calcs() to aid debugging excellib functions
+* Add `build` feature which can limit recompile to only when excel file changes
+* Improved handling for #DIV0! and #VALUE!
+
+
+Compatibility
+-------------
+
+* Tests run on Python 3.4, 3.5, 3.6, 3.7 (via tox)
+* Python 2 no longer supported
+
+
+Other Changes
+-------------
+
+* Heavily refactored ExcelCompiler
+* Moved all formula evaluation, parsing, etc, code to ExcelFormula class
+* Convert to using openpyxl tokenizer
+* Converted prints to logging calls
+* Convert to using pytest
+* Add support for travis and codecov.io
+* 100% unit test coverage (mostly)
+* Add debuggable formula evaluation
+* Cleanup generated Python code to make easier to read
+* Add a text format (yaml or json) serialization format
+* flake8 (pep8) checks added
+* pip now handles which Python versions can be used
+* Release to PyPI
+* Docs updated
+
+
+Bugfixes
+--------
+
+* Numerous
+
+
+0.0.1 (unreleased)
+===================
+
+* Original version available from `Dirk Ggorissen's Pycel Github Page`_.
+* Supports Python 2
+
+.. _Dirk Ggorissen's Pycel Github Page: https://github.com/dgorissen/pycel/tree/33c1370d499c629476c5506c7da308713b5842dc

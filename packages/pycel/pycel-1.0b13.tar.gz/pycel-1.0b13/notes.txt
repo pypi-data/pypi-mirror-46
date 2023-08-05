@@ -1,0 +1,125 @@
+Test Strategy:
+
+Build a template worksheet that uses the various geometry type
+relationships.  Populate that worksheet with the function under test.
+IMport the worksheet to Excel, then eval and save.
+Use validate_calcs to compare results
+
+1. How does this work for multi-param functions?
+2. What are the various arg types?
+  a. CSE Functions
+  b. Param Types: Bool, Float, Int, String, Errors
+3.
+
+
+Add ability to add/remove application of decorated function
+  using attributes passed to the context.
+  (IE, throw exceptions instead of handling error strings (speed up?))
+
+
+
+--- Array Formulas ---
+
+Need to test CSE from yaml
+
+Look at adding loop detection in tree during eval or graph build
+ - graph build already aborts by presence in cell_map
+ - would eval loop then be possible?
+
+What functions take arrays?
+Do a census....
+
+
+--- To Release ---
+    
+How do you do a "release" on github
+
+Get docs onto readthedocs
+
+
+--- Cell Relative Addresses ---
+
+When doing operator (operations to a range) in a non-array environment,
+the value used from the range is the one vertically or horizontally aligned
+with the cell the formula is in.
+
+An array environment is:
+ 1. CSE
+ 2. Function which takes an array param.
+
+  Can we use _REF_ for this?
+  How to know approri which are Array Param Function Args?
+
+  So a vector range in a non-range position, evals to the aligned value
+
+  So we need to know if the value expects a range or not.
+
+  Find some way to mark functions that can take arrays....
+
+
+--- Table for Now -- 
+
+Document contributing (tox and pytest)
+https://github.com/dgorissen/pycel/community
+
+It would be good to have some benchmarks
+It would be good to have someway to auto generate worksheets for testing
+  functions
+
+
+--- Cleanup Items for version 1.1 ---
+
+Look at formatting the code with: https://pypi.org/project/autopep8/#use-as-a-module
+
+
+--- End 2 End Testing ---
+
+Mimic test cases from Formulas Library
+
+
+--- Notes around setup.py, requirements.txt -> pyproject.toml ---
+setuptools and setup.py are really by convention (pip defaults to setuptools/setup.py)
+
+pipenv - Newer tool for APP requirements management (not libraires)
+poetry - 1 year old, works with apps/libs and does good dependency resolution
+flit - Roughly same age as pipenv (setup tools?)
+hatch - Looks nice but also does not look super actively developed, also library only
+
+flit vs poetry?
+pipenv vs poetry? 
+
+Output to pypi should be a wheel file.  Is poetry better at wheels?
+
+pep518 - pyproject.toml (specify build dependencies, plus other vendor stuff)
+pep517 - pyproject.toml (build tool api needed)
+
+pipfile.lock?  poetry??
+
+  
+--- Can we just inherit from openpyxl spreadsheet?
+
+How to deal with values vs formulas?
+Don't need values if we can recalc. But would require supporting all formulas
+Amend the reader to get the values if we don;t understand a specific formula
+Declare error if a value set and we try to eval through an unknown formula
+
+
+--- Answers ---
+Could we do common subexpression elimination in the trim, and replace cell_eval
+  to a constant with the constant?
+Yes but, this remove a level of visibilty that is proving useful for debug.
+  Maybe the trim is a optimization?
+
+How does the recursion through the cells work?
+(Ans. build_eval_context)
+
+Can we have generated python leave off the sheet when it matches refering cell
+  containing formula?
+No, this would make it harder to cut search by hand the next address?
+
+Can we just generate a python program?  No benefit since we need to compile
+  the code after AST manipulation so that we can insert operand massaging.
+No, just marshal the lambdas.
+
+Leave the /src directory for better tox testing:
+https://docs.pytest.org/en/latest/goodpractices.html?highlight=src#tests-outside-application-code
