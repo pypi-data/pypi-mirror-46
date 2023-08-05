@@ -1,0 +1,34 @@
+language: python
+
+dist: trusty
+sudo: required
+
+services:
+  - docker
+
+matrix:
+  include:
+    - python: '3.4'
+      env:
+        - TOX_ENV=py34,flake8
+    - python: '3.5'
+      env:
+        - TOX_ENV=py35,flake8
+    - env:
+        - TOX_ENV=integration
+
+install:
+  - pip install "tox>=3.4"
+  - pip install -r test-requirements.txt
+
+script:
+  - tox -e $TOX_ENV
+
+deploy:
+  provider: pypi
+  user: internaphosting
+  password:
+    secure: YG5Ew2Eh9+YBFPmcU0Btuko8nqkgThrdB5QrNYqmD1YlyNHprpX8uuoZi83l6O7SHOL423qd1L0cklrmujHh0W76SLOUTvLxdqgia8/J0Tec2sNRaWxFryhMTQ2+1fA6qdphXP+lGr5adE6HsmmzhFRp4QG/03XXt7V3X+gxr4QUiv+nwRHgEF9qcU+Mo40plfP+232GIn2/El8lOjbMSp6+uF6mCNN30uPhNJPX+gCQG7hcOQGjbKtby/gnisi9xzTAuZrsN9NzTR9G9tvr2vUFtivzcp8ISP9E7M92PjIxGC//Z+3JbjWfZPp/Tjf4GnpmD9LvGd3x+XDICCWpegNK4LCNQABmrCmj8PxWS3oMVF3BS8iqnBdhGc8YcYXuTYUhAkHsKHOspRkapTXCqWCZ0LUJGiLE+3oMWY6YwlBm+/TbL9aPl5gYFSetwWuzz5fcUhp7D+iHhACE80+48GxSW/LvcHP152kCIxThXzYpqUcnozSCgREMnE41zU6JPA8ZSCoxk5+x0arfdaD1v2+9rWC95co9G+9xyZEirGL5RRFEfreGflMzgN84o09xWL1ZcFvF15jw7llUUPgO2CpcaqCIX5vshERJL2FXAacI4/+wBgLk7YoAcCKWRyRAGE9vk0IRMbYm7FbL2bkc+VKSsLaTR3Sg63kE5tTn57g=
+  on:
+    tags: true
+    repo: internap/fake-ubersmith
