@@ -1,0 +1,37 @@
+#!python
+from __future__ import absolute_import
+import click
+import pkg_resources
+
+import dzee_helper as dzee
+
+VERSION = pkg_resources.require("autodzee")[0].version
+
+@click.group()
+@click.version_option(version=VERSION, prog_name='autodzee')
+def autodzee():  # pragma: no cover
+    pass
+
+@click.command()
+@click.option('--id', help='find dz id')
+def download(id):
+    if id != None :
+        dzee.download_audio(id)
+    else:
+        print("{}")
+
+@click.command()
+@click.option('--gmail', help='gmail')
+@click.option('--passw', help='password')
+@click.option('--arl', help='arl')
+@click.option('--sv', help='sv')
+def crawl(gmail, passw, arl, sv):
+    if gmail != None :
+        dzee.crawl_auto(gmail,passw,arl,sv)
+    else:
+        print("Error , input gmail pass arl")
+
+autodzee.add_command(download)
+autodzee.add_command(crawl)
+if __name__ == '__main__':  # pragma: no cover
+    autodzee()
