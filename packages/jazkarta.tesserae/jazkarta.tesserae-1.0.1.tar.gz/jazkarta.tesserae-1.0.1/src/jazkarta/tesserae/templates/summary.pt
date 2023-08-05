@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xml:lang="en"
+      lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      i18n:domain="plone">
+  <body tal:define="content nocall:view/content;">
+    <metal:macro define-macro="summary"
+                 tal:define="url content/absolute_url|nothing;
+                             title content/Title|nothing;
+                             image_url python:view.image_url(content);
+                             toLocalizedTime nocall:context/@@plone/toLocalizedTime;">
+    <div class="card" tal:condition="nocall:content">
+        <div tal:condition="image_url"
+             tal:attributes="class python:view.orientation == 'portrait' and 'cardLeft' or 'cardTop'">
+            <a href="${url}" title="${title}">
+                <img alt="${title}" src="${image_url}" />
+            </a>
+        </div>
+        <div tal:define="start content/start|nothing;end content/end|nothing"
+             tal:attributes="class python:view.orientation == 'portrait' and 'cardRight' or 'cardBottom'">
+            <div class="cardDate" tal:condition="start">
+                ${python:toLocalizedTime(start)}
+                <span tal:condition="python:end and end != start">
+                    - ${python:toLocalizedTime(end)}
+                </span>
+            </div>
+            <div class="cardDate" tal:condition="python:view.show_date and effective and not start" tal:define="effective content/EffectiveDate|nothing">
+                ${python:toLocalizedTime(effective)}
+            </div>
+            <h4 class="cardTitle"><a href="${url}" title="${title}">${title}</a></h4>
+            <div class="cardDescription" tal:condition="view/show_description">
+                ${content/Description}
+            </div>
+        </div>
+    </div>
+    </metal:macro>
+  </body>
+</html>

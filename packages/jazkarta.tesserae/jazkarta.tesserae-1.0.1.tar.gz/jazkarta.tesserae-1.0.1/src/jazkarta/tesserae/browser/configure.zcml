@@ -1,0 +1,51 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
+    i18n_domain="jazkarta.tesserae">
+
+  <!-- Set overrides folder for Just-a-Bunch-Of-Templates product -->
+  <include package="z3c.jbot" file="meta.zcml" />
+  <browser:jbot
+      directory="overrides"
+      layer="jazkarta.tesserae.interfaces.IJazkartaTesseraeLayer"
+      />
+
+  <!-- Publish static files -->
+  <plone:static
+      zcml:condition="have plone-5"
+      name="jazkarta.tesserae"
+      type="plone"
+      directory="static"
+      />
+  <browser:resourceDirectory
+      zcml:condition="not-have plone-5"
+      name="jazkarta.tesserae"
+      directory="static"
+      />
+
+  <browser:page
+      name="tesserae-slider-config"
+      for="Products.CMFCore.interfaces.IFolderish"
+      class=".slider.SliderConfig"
+      permission="cmf.ModifyPortalContent"
+      />
+
+  <browser:page
+      name="tesserae-slider-view"
+      for="Products.CMFCore.interfaces.IFolderish"
+      class=".slider.SliderView"
+      template="slider.pt"
+      permission="zope2.View"
+      />
+
+  <browser:menuItem
+      for="*"
+      menu="plone_displayviews"
+      title="Slider View"
+      action="@@tesserae-slider-view"
+      description="Tesserae slider listing view."
+      />
+
+</configure>

@@ -1,0 +1,71 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master">
+
+<body>
+
+    <metal:block fill-slot="content-core">
+      <metal:slider define-macro="content-core">
+        <div class="carousel slide"
+             tal:define="c_id view/carousel_id;
+                         items view/listing;"
+             tal:attributes="id c_id">
+          <ol class="carousel-indicators hidden-xs">
+            <li data-target="#${c_id}" data-slide-to="0"
+                tal:repeat="num python:range(len(items))"
+                tal:attributes="class python:num == 0 and 'active' or None;
+                                data-slide-to num">
+            </li>
+          </ol>
+          <div class="carousel-inner">
+            <div class="carousel-item item"
+                 tal:repeat="item items"
+                 tal:attributes="class python:'item' + (repeat['item'].index == 0 and ' active' or '')">
+              <a href="${item/url}" title="${item/title}" tal:omit-tag="not:item/url">
+                <img src="${item/image_url}" alt="${item/title}" title="${item/title}"
+                     class="img-responsive img-full banner-img"
+                     tal:condition="not:view/height" />
+                <span class="img-full banner-img" style="background-image: url('${item/image_url}'); height: ${view/height}px;" tal:condition="view/height"></span>
+              </a>
+              <div class="carousel-caption">
+                <div class="row">
+                  <div class="col-md-10 col-md-offset-1">
+                    <div class="text-wrap">
+                      <div class="slide-text text-center to-animate">
+                        <h3 class="slide-lead">${item/title}</h3>
+                        <h4 class="slide-sub-lead">${item/description}</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a class="left carousel-control" href="#${c_id}" data-slide="prev">
+            <span class="icon-prev"></span>
+          </a>
+          <a class="right carousel-control" href="#${c_id}" data-slide="next">
+            <span class="icon-next"></span>
+          </a>
+          <script>
+            try {
+              require(['jazkarta-tesserae'], function () {
+                $(function () {
+                  $('#${c_id}').carousel(${view/slider_config});
+                });
+              });
+            } catch(error) {
+              if (window.console !== undefined) {
+                console.log('Error instantiating carousel');
+                console.error(error);
+              }
+            }
+          </script>
+        </div>
+      </metal:slider>
+    </metal:block>
+
+</body>
+</html>

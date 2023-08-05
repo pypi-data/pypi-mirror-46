@@ -1,0 +1,123 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
+    i18n_domain="jazkarta.tesserae">
+
+  <i18n:registerTranslations directory="locales" />
+
+  <includeDependencies package="." />
+
+  <include package=".browser" />
+
+  <genericsetup:registerProfile
+      zcml:condition="not-have plone-5"
+      name="default"
+      title="jazkarta.tesserae (Plone 4.3)"
+      directory="profiles/plone-4.3"
+      description="Installs jazkarta.tesserae mosaic tiles and styles for Plone 4.3."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      post_handler=".setuphandlers.post_install"
+      />
+
+  <genericsetup:registerProfile
+      zcml:condition="have plone-5"
+      name="default"
+      title="jazkarta.tesserae (Plone 5)"
+      directory="profiles/plone-5.x"
+      description="Installs jazkarta.tesserae mosaic tiles and styles for Plone 5.x."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      post_handler=".setuphandlers.post_install"
+      />
+
+  <genericsetup:registerProfile
+      name="common"
+      title="jazkarta.tesserae (Common)"
+      directory="profiles/common"
+      description="Installs common jazkarta.tesserae mosaic tiles and styles."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      post_handler=".setuphandlers.post_install"
+      />
+
+  <genericsetup:registerProfile
+      name="uninstall"
+      title="jazkarta.tesserae (uninstall)"
+      directory="profiles/uninstall"
+      description="Installs jazkarta.tesserae mosaic tiles and styles."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      post_handler=".setuphandlers.uninstall"
+      />
+
+  <genericsetup:upgradeDepends
+      title="Add new tile to registry"
+      sortkey="1"
+      source="1000"
+      destination="1001"
+      profile="jazkarta.tesserae:default"
+      import_steps="plone.app.registry"
+      />
+
+  <genericsetup:upgradeDepends
+      title="Update tile settings"
+      sortkey="1"
+      source="1001"
+      destination="1002"
+      profile="jazkarta.tesserae:common"
+      import_steps="plone.app.registry"
+      />
+
+  <genericsetup:upgradeDepends
+      zcml:condition="not-have plone-5"
+      title="Update js permissions"
+      sortkey="2"
+      source="1001"
+      destination="1002"
+      profile="jazkarta.tesserae:default"
+      import_steps="jsregistry"
+      />
+
+  <utility
+      factory=".setuphandlers.HiddenProfiles"
+      name="jazkarta.tesserae-hiddenprofiles" />
+
+  <adapter factory=".slider.SliderConfigAdapter" />
+
+  <plone:tile
+      name="jazkarta.tesserae.content_summary"
+      title="Summary Card"
+      description="A tile which displays content with an image"
+      add_permission="cmf.ModifyPortalContent"
+      class=".summary.ContentSummaryTile"
+      for="*"
+      permission="zope.Public"
+      schema=".summary.IContentSummaryTile"
+      template="templates/summary.pt"
+      />
+
+  <plone:tile
+      name="jazkarta.tesserae.collection_summary"
+      title="Collection Summary"
+      description="A tile which displays collection content with images"
+      add_permission="cmf.ModifyPortalContent"
+      class=".collection.CollectionSummaryTile"
+      for="*"
+      permission="zope.Public"
+      schema=".collection.ICollectionSummaryTile"
+      template="templates/collection.pt"
+      />
+
+  <plone:tile
+      name="jazkarta.tesserae.background_image"
+      title="Background Image"
+      description="A tile which displays html on top of a background image"
+      add_permission="cmf.ModifyPortalContent"
+      class=".background.BackgroundImageTile"
+      for="*"
+      permission="zope.Public"
+      schema=".background.IBackgroundImageTile"
+      template="templates/background.pt"
+      />
+
+</configure>
