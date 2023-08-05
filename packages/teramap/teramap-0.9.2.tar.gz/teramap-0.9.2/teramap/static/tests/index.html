@@ -1,0 +1,68 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Teramap JavaScript Tests</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.4.2/mocha.css" />
+    <style>
+        #teramap-container {
+            width: 400px;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div id="mocha"></div>
+    <div class="wrapper">
+        <div id="teramap-container"></div>
+
+        <!-- modal for pinpoint renderer -->
+        <div class="modal fade" id="pinpoint_form" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Observations at point: <span class="pinpoint-name"></span></h2>
+                    </div>
+                    <form>
+                    </form>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-save="observation">save</button>
+                        <button type="button" class="btn btn-warning" data-dismiss="modal">cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.4.2/mocha.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chai/4.0.2/chai.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet-src.js"></script>
+    <script src="https://unpkg.com/select2@4.0.6-rc.0/dist/js/select2.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <!-- include the teramap.js bundles which contains both the maps and the fieldwork stuff -->
+    <link rel="stylesheet" href="../teramap/teramap.css" />
+    <script src="../teramap/teramap.js"></script>
+
+    <script>
+        if ('initMochaPhantomJS' in window) {
+            window.initMochaPhantomJS();
+        }
+        mocha.setup('bdd');
+    </script>
+
+    <script src="test_maps.js"></script>
+    <script src="test_fieldwork_pinpoint.js"></script>
+    <script>
+
+        mocha.checkLeaks();
+        mocha.globals(['teramap', '_leaflet_events']);
+        (window.mochaPhantomJS || mocha).run();
+    </script>
+
+</body>
+</html>
