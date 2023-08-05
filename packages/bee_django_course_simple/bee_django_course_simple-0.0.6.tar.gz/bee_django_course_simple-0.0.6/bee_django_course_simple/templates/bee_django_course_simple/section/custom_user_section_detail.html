@@ -1,0 +1,153 @@
+{% extends "bee_django_course_simple/user_base.html" %}
+{% load bee_django_course_simple_filter %}
+{% load bootstrap3 %}
+{% block content %}
+
+    <h4>{{ user_section.section.title }}
+        {% if user_section.is_pass %}
+            （已通过）
+        {% elif user_section.is_open %}
+            （学习中）
+        {% endif %}
+    </h4>
+    <div class=" text-right"><a
+            href="{% url 'bee_django_course_simple:custom_user_section_list' user_id=user_section.user_course.user.id user_course_id=user_section.user_course.id %}"
+            class="btn btn-default">全部课程</a></div>
+
+    {% for user_part in user_section.userpart_set.all %}
+        <div style="border-bottom:1px solid #ccc;">
+            {% include 'bee_django_course_simple/section/_custom_user_part_detail.html' %}
+        </div>
+    {% endfor %}
+    <br/>
+    {% if next_user_section %}
+        <a id="next_section_button" class="btn btn-success"
+           href="{% url 'bee_django_course_simple:custom_user_section_detail' pk=next_user_section.id %}">继续</a>
+    {% else %}
+        <a id="next_section_button" style="display: none;" class="btn btn-success"
+           href="">继续</a>
+    {% endif %}
+
+{% endblock content %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        function get_detail_part(t) {
+            return t.parent().parent().children(".part_detail");
+        }
+
+        function show_part_detail(t) {
+            var detail_div = get_detail_part(t);
+            if (detail_div.is(":visible")) {
+                detail_div.hide();
+            } else {
+                detail_div.show();
+            }
+        }
+
+        function update_part(t, data) {
+            var part_can_pass = data['user_part_can_pass'];
+            var section_can_pass = data['user_section_can_pass'];
+
+            if (section_can_pass) {
+                var next_user_section_link = $('#next_section_button');
+                var next_user_section_url = data['next_user_section_url'];
+                next_user_section_link.attr('href', next_user_section_url);
+                next_user_section_link.show();
+            }
+
+            if (part_can_pass) {
+                var next_user_part_id = data['next_user_part_id'];
+                var detail_div = null;
+                var watch_status = "";
+                if (t.is('input')) {
+                    detail_div = t.parent();
+                    watch_status = "(已通过)"
+                } else {
+                    detail_div = t.parent().parent();
+                    watch_status = "(已观看)"
+                }
+                if (detail_div) {
+                    detail_div.hide();
+                    detail_div.parent().children('h4').children('a').children('.user_part_status').html(watch_status);
+                }
+
+
+                var next_user_part_div = $('#user_part_' + next_user_part_id);
+                next_user_part_div.attr('data-status', '1');
+                var next_user_part_icon = next_user_part_div.children("h4").children();
+                if (next_user_part_icon) {
+                    next_user_part_icon.wrap("<a href='#' onclick='show_part_detail($this)'></a>");
+
+                    var next_user_part_div_detail = next_user_part_div.children(".part_detail");
+                    if (next_user_part_div_detail) {
+                        next_user_part_div_detail.show();
+                        var submit_button = next_user_part_div_detail.children("input[type=button]");
+                        if (submit_button) {
+                            submit_button.prop('disabled', false);
+                        }
+
+                        var submit_options = next_user_part_div_detail.children(".user_question").children().children("input[type=radio]");
+                        if (submit_options) {
+                            submit_options.prop('disabled', false);
+                        }
+                    }
+
+                }
+
+                if (t.is('input')) {
+                    t.prop("disabled", true);
+                    var options = t.parent().children('.user_question').children().children('input');
+                    if (options) {
+                        options.prop('disabled', true);
+                    }
+                }
+
+                alert('你已通过这一小节的学习');
+            } else {
+                if (t.is('input')) {
+                    alert('答案提交错误');
+                }
+            }
+        }
+
+        function video_done(t) {
+            var url = t.attr('data-url');
+            var video_id = t.attr('data-id');
+
+            var part_status = t.parent().parent().parent().attr('data-status');
+            if (part_status !== '1') {
+                return;
+            }
+
+            $.post(url, {'video_id': video_id}).done(function (data) {
+                update_part(t, data);
+            });
+
+        }
+
+        function submit_user_answer(t) {
+            var question_list = t.parent().children('.user_question');
+
+            var data = [];
+            for (var i = 0; i < question_list.length; i++) {
+                var question = $(question_list[i]);
+                var question_id = question.data('question-id');
+                var selected_option = question.children()
+                        .children('input[name=question_' + question_id + ']:checked');
+                var selected_option_value = selected_option.val();
+
+                data.push({'question_id': question_id, 'option_id': selected_option_value});
+            }
+
+            var url = t.data('url');
+            $.post(url, {'question_data': JSON.stringify(data)}).done(function (data) {
+                update_part(t, data);
+            });
+        }
+
+        $(document).ready(function () {
+
+        });
+    </script>
+{% endblock scripts %}
