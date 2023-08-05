@@ -1,0 +1,5 @@
+__all__ = (
+    'JAMMER_ATTR_NAME',
+)
+
+JAMMER_ATTR_NAME = 'IMPORT_JAMMER'
