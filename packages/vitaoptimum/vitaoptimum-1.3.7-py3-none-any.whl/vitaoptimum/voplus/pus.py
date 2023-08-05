@@ -1,0 +1,58 @@
+import ctypes
+import numpy
+
+from vitaoptimum.voplus.unconstrained import VitaOptimumPlusUnconstrained
+from vitaoptimum.base import StrategyPlus
+
+
+class Pus(VitaOptimumPlusUnconstrained):
+    """Permutation Unconstrained Global Optimization Method"""
+
+    def __init__(self, fobj, dim, np=20,
+                 strategy=StrategyPlus.curr2pbest,
+                 stagnation=1000,
+                 qmeasures=numpy.zeros(4, dtype=ctypes.c_double)):
+        VitaOptimumPlusUnconstrained.__init__(self, fobj, dim, np, strategy, stagnation, qmeasures)
+
+    def run(self, restarts=1, verbose=False):
+        """Runs the algorithm"""
+
+        converged = numpy.zeros(1, dtype=ctypes.c_bool)
+        xopt = numpy.zeros(self._dim, dtype=ctypes.c_int32)
+
+        callback_type = ctypes.PYFUNCTYPE(ctypes.c_double,  # return
+                                          ctypes.POINTER(ctypes.c_int32),
+                                          ctypes.c_int32)
+
+        self._lib_plus.vitaOptimumPlus_Pus.restype = ctypes.c_double
+        self._lib_plus.vitaOptimumPlus_Pus.argtypes = [
+            callback_type,          # fobj
+            self._array_1d_int,     # xopt
+            ctypes.c_int32,         # dim
+            ctypes.c_int32,         # np
+            ctypes.c_int32,         # strategy
+            ctypes.c_int32,         # stagnation
+            self._array_1d_bool,    # converged
+            self._array_1d_double,  # qmeasures
+            ctypes.c_bool           # verbose
+        ]
+
+        best = self._lib_plus.vitaOptimumPlus_Pus(
+            callback_type(self._fobj),
+            xopt,
+            self._dim,
+            self._np,
+            self._strategy.value,
+            self._stagnation,
+            converged,
+            self._qmeasures,
+            verbose
+        )
+
+        return best, xopt, converged, self._qmeasures
+
+    def info(self):
+        self._lib_plus.vitaOptimumPlus_Pus_info()
+
+    def _validate(self):
+        pass
