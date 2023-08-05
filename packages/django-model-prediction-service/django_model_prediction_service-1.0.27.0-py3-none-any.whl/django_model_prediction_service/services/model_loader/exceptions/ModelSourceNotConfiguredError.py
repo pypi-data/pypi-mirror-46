@@ -1,0 +1,2 @@
+class ModelSourceNotConfigured(Exception):
+    pass
