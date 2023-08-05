@@ -1,0 +1,165 @@
+Metadata-Version: 2.1
+Name: r53-ptr-vpc-associator
+Version: 0.1.2
+Summary: Associates route53 PTR records to particular vpc.
+Home-page: https://github.com/rubelw/r53_ptr_vpc_associator
+Author: Will Rubel
+Author-email: willrubel@gmail.com
+License: UNKNOWN
+Keywords: aws,route53,vpc
+Platform: any
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Description-Content-Type: text/markdown
+Requires-Dist: boto3 (>=1.4.3)
+Requires-Dist: requests (>=2.18)
+Requires-Dist: Click (>=6.7)
+Requires-Dist: configparser (>=3.5.0)
+Requires-Dist: future (>=0.16.0)
+Requires-Dist: six (>=1.11.0)
+Requires-Dist: coverage (==4.0.3)
+Requires-Dist: pip
+
+# r53_ptr_vpc_associator
+
+This is a program to association reverse zones to vpcs.  It is associated with https://github.com/aws-samples/aws-lambda-ddns-function
+
+Prerequisites
+=============
+
+It is highly recommended you run this package within a python virtual environment, so
+you do not affect your desktop/laptop.  To setup a python virtual environment, you should make 
+sure you have python3 installed, and do the following.
+
+NOTE:  Why am I doing this.  With a python virtual environment, you can create as
+many virtual environmentsa as you would like, and with different python versions.  These
+virtual environments are isolated in a directory, and will not affect anything else on
+your computer.  This way, you can test and ensure things will work.
+
+First, figure out the path to the python version installed on your machine.
+
+    which python3
+    /usr/local/bin/python3
+
+Next, you should pip install the virtualenv package
+
+    pip install virtualenv
+
+Next, you should create a directory, where you are going to keep the virtual environments,
+and create a new virtualenv by using the path to the python version you found above.
+
+    mkdir ~/virtual_environments
+    cd virtual_environments
+    virtualenv -p /usr/local/bin/python3 my_python3_virtualenv
+
+To activate the virtual environment
+
+    source ~/virtual_environments/my_python3_virutalenv/bin/activate
+
+NOTE:  To deactivate the virtual environment
+
+    deactivate
+
+Installation
+============
+
+For general usage:
+
+    pip install r53_ptr_vpc_associator
+
+For local development:
+
+    git clone https://github.com/rubelw/r53_ptr_vpc_associator
+    cd r53_ptr_vpc_associator
+    pip install --editable .  # Install the local dir as a package, including the 'dev' extras
+
+Example
+=======
+
+Getting help
+
+    $ associator --help
+    Usage: associator [OPTIONS] COMMAND [ARGS]...
+
+    Options:
+      --version  Show the version and exit.
+      --help     Show this message and exit.
+
+    Commands:
+      associate  Associated hosted zones to vpc
+      zone-list  List vpcs for hosted zones
+
+Listing current zone/vpc associations
+
+    $ associator zone-list --profile-name default
+    {
+            '/hostedzone/Z1H1CDD4PZKKPB': [
+            {
+                'VPCRegion': 'us-east-1',
+                'VPCId': 'vpc-99999999'
+            },
+            {
+                'VPCRegion': 'us-east-2',
+                'VPCId': 'vpc-99999999'
+            }
+        ]
+	}
+
+Associating zones
+
+    $ associator associate --profile-name default --vpc-id vpc-99999999  --vpc-region us-east-2
+    [
+        'Successfully associated zone: /hostedzone/A3G1CDD4PZKKPB with vpc: vpc-99999999',
+        'Successfully associated zone: /hostedzone/HR2F2BVHDW5UD with vpc: vpc-99999999',
+        'Successfully associated zone: /hostedzone/V6B06KVZ0ZL9U5 with vpc: vpc-99999999',
+        'Successfully associated zone: /hostedzone/D7JTQ7EDFFYOWN with vpc: vpc-99999999'
+    ]
+
+
+### To run as a lambda
+
+Run the make_lambda-zip command.  This will utilize the /tmp directory to
+create the package.
+
+    associator make-lambda-zip
+
+    ################################################################################
+    Zip package located at: /tmp/r53_ptr_vpc_associator/LambdaDeploymentPackage.zip
+    ################################################################################
+
+Deploy the lambda and you would any other lambda package, but ensure the following
+environmental variables are set.
+
+    PROFILE_NAME = lambda
+    VPC_ID       = vpc-xxxxxxx
+    VPC_REGION   = us-east-1
+
+
+Once deployed, you can test the lambda by creating any test in the console.
+The lambda does not use the event message, so any event message will work to
+trigger the lambda.
+
+
+### Testing
+
+Before commiting changes, be sure to run the test suite:
+
+    tox
+
+### Python 3 Compatibility
+
+This tool is compatible with **python 3.5+**.
+
+The [tox](http://tox.readthedocs.io/en/latest/index.html) library is used to run tests with multiple python versions. To run these tests, first ensure that all supported python versions are installed locally. Then, simply run:
+
+    tox
+
