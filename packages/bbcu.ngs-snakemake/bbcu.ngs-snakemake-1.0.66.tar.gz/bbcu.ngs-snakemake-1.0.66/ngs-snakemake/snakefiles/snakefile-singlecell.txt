@@ -1,0 +1,93 @@
+import time
+
+if not config:
+    configfile: os.path.join(os.getcwd(), 'config-singlecell.yaml')
+
+RUN_ID = str(config['run_id'])
+TEMPLATES = config['templates']
+
+
+orig_base = os.path.join(TEMPLATES, 'snakefile_base', 'snakefile_base_singlecell.py')
+orig_func = os.path.join(TEMPLATES, 'snakefile_base', 'functions.py')
+
+target_base_dir = os.path.join(os.getcwd(), 'snakefile_base_' + RUN_ID)
+target_base = os.path.join(target_base_dir, 'snakefile_base_singlecell.py')
+if not os.path.isdir(target_base_dir):
+    os.system(
+        "mkdir -p {target_base_dir}; cp {orig_func} {orig_base} {target_base_dir}; touch __init__.py".format(
+            target_base_dir=target_base_dir, orig_base=orig_base, orig_func=orig_func))
+    time.sleep(10)
+
+include: target_base
+
+shell.executable("/bin/bash")
+
+"""
+Rules:
+=======
+"""
+
+rule rule_all:
+    input:
+        os.path.join(ROOT_OUT_DIR, 'Done.txt')
+
+
+rule rule_1_count:
+    input:
+        os.path.join(FASTQ_DIR, 'outs', 'fastq_path', '{sample}') # folder name of the fastq files
+    output:
+        os.path.join(ROOT_OUT_DIR, '1_count', '{sample}', 'outs', 'molecule_info.h5')
+    params:
+        output_dir = os.path.join(ROOT_OUT_DIR, '1_count'),
+        report_file_target = os.path.join(ROOT_OUT_DIR, REPORT_STEP, '{sample}_report.html'),
+        report_file_src = os.path.join('..', '1_count', '{sample}', 'outs', 'web_summary.html'),
+        report_file = os.path.join(ROOT_OUT_DIR, REPORT_STEP, 'report.html')
+    threads: threads_num(48, MAX_THREADS_NUM)
+    resources:
+        mem_mb_per_thread = mem_per_thread(144000, 48, MAX_THREADS_NUM),
+        mem_total_gb=int((3000*48)/1024),
+        mem_mb_total=144000
+    log:
+        os.path.join(ROOT_OUT_DIR, LOG_DIR_NAME, '1_count.{sample}.txt')
+    shell:
+        '''
+        #The output will be in ROOT_OUT_DIR. There is no parameter to specify output directory and "cd" command don't work. The folders of samples are created in 1_count folder (maybe by snakemake ?), so need to delete them.
+        {CELLRANGER_EXE} count --fastqs={input} --id={wildcards.sample} --transcriptome={CELLRANGER_TRANSCRIPTOME} --localmem={resources.mem_total_gb} &> {log}
+        # For debuging, run toy-example-singlecell with "--chemistry threeprime" parameter
+        #{CELLRANGER_EXE} count --chemistry threeprime --fastqs={input} --id={wildcards.sample} --transcriptome={CELLRANGER_TRANSCRIPTOME} --localmem=140 &> {log}
+        ln -s {params.report_file_src} {params.report_file_target}
+        rm -rf {params.output_dir}/{wildcards.sample}
+        echo "<a href='{wildcards.sample}_report.html' target='_blank'>{wildcards.sample}_report</a><br>" >> {params.report_file}
+        mv {wildcards.sample} {params.output_dir}
+        '''
+
+rule rule_2_aggregation:
+    input:
+        expand(os.path.join(ROOT_OUT_DIR, '1_count', '{sample}', 'outs', 'molecule_info.h5'), sample=SAMPLES)
+    output:
+        os.path.join(ROOT_OUT_DIR, 'Done.txt')
+    params:
+        #agg_id = 'agg_' + '_'.join(SAMPLES),
+        agg_id = 'aggregation',
+        output_dir = os.path.join(ROOT_OUT_DIR, '2_aggregation'),
+        report_file_target = os.path.join(ROOT_OUT_DIR, REPORT_STEP, 'aggregation_report.html'),
+        report_file_src = os.path.join('..', '2_aggregation', 'aggregation', 'outs', 'web_summary.html'),
+        #report_file_src = os.path.join('..', '2_aggregation', 'agg_' + '_'.join(SAMPLES), 'outs', 'web_summary.html'),
+        report_file = os.path.join(ROOT_OUT_DIR, REPORT_STEP, 'report.html')
+    threads: threads_num(48, MAX_THREADS_NUM)
+    resources:
+        mem_mb_per_thread = mem_per_thread(144000, 48, MAX_THREADS_NUM),
+        mem_mb_total=144000
+    log:
+        csvfile = os.path.join(ROOT_OUT_DIR, LOG_DIR_NAME, '2_aggregation_csvfile.txt'),
+        aggr = os.path.join(ROOT_OUT_DIR, LOG_DIR_NAME, '2_aggregation_aggregation.txt')
+    shell:'''
+        #Create list.csv file
+        cd {params.output_dir}
+        {PYTHON} {SCRIPTS}/SinglecellUtils.py --pipeline-dir {ROOT_OUT_DIR} --samples {SAMPLES} --step 2_aggregation --logFile {log.csvfile}
+        {CELLRANGER_EXE} aggr --id={params.agg_id} --csv=list.csv  &> {log.aggr}
+        cd {ROOT_OUT_DIR}
+        ln -s {params.report_file_src} {params.report_file_target}
+        echo "<a href='aggregation_report.html' target='_blank'>aggregation_report</a><br>" >> {params.report_file}
+        touch {ROOT_OUT_DIR}/Done.txt
+    '''
