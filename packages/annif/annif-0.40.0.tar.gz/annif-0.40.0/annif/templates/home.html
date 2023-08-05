@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if title %}
+  <title>{{ title }}</title>
+  {% else %}
+  <title>Annif</title>
+  {% endif %}
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<header class="mb-4 mt-0">
+  <div class="container">
+    <h1 class="py-3">Annif</h1>
+  </div>
+</header>
+
+<div class="container">
+
+  <p>Welcome!</p>
+
+  <h2>REST API</h2>
+
+  <p>See the <a href="v1/ui/">Swagger documentation</a> for API specification.</p>
+
+  <div id="app">
+    <template v-if="problems.length">
+      <b>Please correct the following error(s):</b>
+      <div :class="['alert', (problem.isError ? 'alert-danger' : 'alert-warning')]"  role="alert" v-for="problem in problems">
+        <h2 v-if="problem.hasTitle()"><% problem.title %></h2>
+        <span v-if="problem.hasDetail()"><% problem.detail %></span>
+      </div>
+    </template>
+    <div class="row mb-5">
+      <div class="col-md-8">
+        <annif-textarea @text-changed="onTextChanged"></annif-textarea>
+      </div>
+      <div class="col-md-4">
+        <annif-projects :projects="projects" @project-selected="onProjectSelected"></annif-projects>
+        <button type="button" class="btn btn-primary" @click="suggest" :disabled="loading">
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" v-if="loading"></span>
+          <span v-if="!loading">Analyze</span>
+          <span v-else>Loading...</span>
+        </button>
+        <annif-results :results="results"></annif-results>
+      </div>
+    </div>
+  </div>
+
+</div> <!-- container -->
+
+<script src="/static/js/vue.min.js"></script>
+<!-- bootstrap dependencies -->
+<script src="/static/js/jquery-3.3.1.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+// NB: using delimiters <% %> due to Jinja's syntax taking precedence
+
+class Problem {
+  constructor(title, detail, isError) {
+    if (title !== undefined) {
+      this.title = title;
+    }
+    if (detail !== undefined) {
+      this.detail = detail;
+    }
+
+    this.isError = !!isError;
+  }
+
+  hasTitle() {
+    return this.title.trim() !== '';
+  }
+
+  hasDetail() {
+    return this.detail.trim() !== '';
+  }
+}
+
+Vue.config.devtools = true;
+
+// Component with text area for input
+Vue.component('annif-textarea', {
+  delimiters: ["<%","%>"],
+  methods: {
+    handleTextInput: function(event) {
+      this.$emit('text-changed', event.target.value);
+    }
+  },
+  template: '<div class="form-group">\
+  <label for="text">Text to analyze:</label><br>\
+  <textarea class="form-control" rows="15" name="text" id="text" @input="handleTextInput"></textarea>\
+</div>'
+});
+
+// Component with list of projects
+Vue.component('annif-projects', {
+  delimiters: ["<%","%>"],
+  props: ['projects'],
+  methods: {
+    handleProjectSelected: function(event) {
+      // User selected a project, so we use the bus to emit the value. This will be picked up by the parent component
+      this.$emit('project-selected', event.target.value);
+    }
+  },
+  template: '<div>\
+  <div class="form-group">\
+    <label for="project">Project (vocabulary and language):</label>\
+    <select class="form-control" id="project" @input="handleProjectSelected">\
+      <option></option>\
+      <option v-for="project in projects" v-bind:value="project.project_id"><% project.name %></option>\
+    </select>\
+  </div>\
+</div>'
+});
+
+// Component with the list of results
+Vue.component('annif-results', {
+  delimiters: ["<%","%>"],
+  props: ['results'],
+  template: '<div>\
+  <h2 class="mt-4">Results</h2>\
+  <ul class="list-group list-group-flush" id="results">\
+    <li class="list-group-item p-0" v-for="result in results">\
+      <meter class="mr-2" v-bind:value="result.score"></meter>\
+      <a v-bind:href="result.uri"><% result.label %></a>\
+    </li>\
+  </ul>\
+</div>'
+});
+
+// Application, which uses the components above
+new Vue({
+  delimiters: ["<%","%>"],
+  el: '#app',
+  data: {
+    text: '',
+    project: '',
+    projects: [],
+    results: [],
+    problems: [],
+    loading: false
+  },
+  mounted: function() {
+    // TBD: we can add a button to reload the list of projects later
+    this.loadProjects();
+  },
+  methods: {
+    clearResults: function() {
+      while (this.results.length > 0) {
+        this.results.pop();
+      }
+    },
+    onProjectSelected(project) {
+      this.project = project;
+    },
+    onTextChanged(text) {
+      this.text = text;
+    },
+    loadProjects: function() {
+      var this_ = this;
+      $.ajax({
+        url: "/v1/projects",
+        method: 'GET',
+        success: function(data) {
+          this_.projects = data.projects;
+        },
+        error: function(data) {
+          if (data.responseJSON == null) {
+            this_.problems.push(new Problem('No response from server', '', true));
+          } else {
+            var title = data.responseJSON.title || '';
+            var detail = data.responseJSON.detail || '';
+            this_.problems.push(new Problem(title, detail, true));
+          }
+        }
+      });
+    },
+    suggest: function(event) {
+      this.problems = [];
+      if (this.text.trim() === "") {
+        this.problems.push(new Problem('', 'You need to enter the text to analyze', false));
+      }
+      if (this.project.trim() === "") {
+        this.problems.push(new Problem('', 'You need to select one project', false));
+      }
+      this.clearResults();
+      if (this.problems.length) {
+        event.preventDefault();
+        return;
+      }
+      var this_ = this;
+      $.ajax({
+        url: "/v1/projects/" + this_.project + "/suggest",
+        method: 'POST',
+        data: {
+          text: this_.text,
+        },
+        beforeSend: function() {
+          this_.loading = true;
+        },
+        success: function(data) {
+          if (data.results.length === 0) {
+            this_.problems.push(new Problem('No results returned', '', false));
+          } else {
+            for (var i = 0; i < data.results.length; i++) {
+              var result = data.results[i];
+              this_.results.push(result);
+            }
+          }
+        },
+        error: function(data) {
+          if (data.responseJSON == null) {
+            this_.problems.push(new Problem('No response from server', '', true));
+          } else {
+            var title = data.responseJSON.title || '';
+            var detail = data.responseJSON.detail || '';
+            this_.problems.push(new Problem(title, detail, true));
+          }
+        },
+        complete: function() {
+          this_.loading = false;
+        }
+    });
+    }
+  }
+});
+</script>
+</body>
+</html>
