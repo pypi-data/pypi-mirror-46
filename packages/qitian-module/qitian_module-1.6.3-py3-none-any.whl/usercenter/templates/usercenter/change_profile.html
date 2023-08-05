@@ -1,0 +1,138 @@
+{% extends 'usercenter/base.html' %}
+{% load staticfiles %}
+{% block extra_css %}
+    <link href="{% static 'pages/css/profile.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'global/plugins/bootstrap-fileinput/bootstrap-fileinput.css' %}" rel="stylesheet"
+          type="text/css"/>
+{% endblock %}
+{% block extra_js_plugins %}
+    <script src="{% static 'global/plugins/bootstrap-fileinput/bootstrap-fileinput.js' %}"
+            type="text/javascript"></script>
+    <script src="{% static 'global/plugins/jquery-validation/js/jquery.validate.min.js' %}"
+            type="text/javascript"></script>
+    <script src="{% static 'global/plugins/jquery.sparkline.min.js' %}" type="text/javascript"></script>
+{% endblock %}
+{% block extra_js_page %}
+    <script src="{% static 'pages/scripts/profile.js' %}?v={{ version }}" type="text/javascript"></script>
+{% endblock %}
+{% block main_content %}
+    <div class="profile-content">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="portlet light ">
+                    <div class="portlet-title tabbable-line">
+                        <div class="caption caption-md">
+                            <i class="icon-globe theme-font hide"></i>
+                            <span class="caption-subject font-blue-madison bold uppercase">帐户信息修改</span>
+                        </div>
+                        <ul class="nav nav-tabs">
+                            <li class="active">
+                                <a href="#tab_1_1" data-toggle="tab">基础信息</a>
+                            </li>
+                            <li>
+                                <a href="#tab_1_2" data-toggle="tab">头像管理</a>
+                            </li>
+                            <li>
+                                <a href="#tab_1_3" data-toggle="tab">密码修改</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="portlet-body">
+                        <div class="tab-content">
+                            <!-- PERSONAL INFO TAB -->
+                            <div class="tab-pane active" id="tab_1_1">
+                                <form role="form" method="post" action="{% url 'uc:change_profile' %}" name="basic_info"
+                                      id="basic_info">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="form_name" value="basic_info"/>
+                                    <div class="form-group">
+                                        <label class="control-label">登陆名称</label>
+                                        <input type="text" value="{{ qt_user.phone }}" disabled="disabled"
+                                               class="form-control"/>
+                                        <div class="form-group">
+                                            <label class="control-label">昵称</label>
+                                            <input type="text" class="form-control" name="nickname"
+                                                   value="{{ qt_user.nickname }}"/>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="control-label">真实姓名</label>
+                                            <input type="text" class="form-control" name="real_name"
+                                                   value="{{ qt_user.real_name }}"/></div>
+                                        <div class="form-group">
+                                            <label class="control-label">Email</label>
+                                            <input type="email" class="form-control" name="email"
+                                                   value="{{ qt_user.email }}"/></div>
+                                        <div class="form-group">
+                                            <label class="control-label">支付宝</label>
+                                            <input type="text" class="form-control" name="alipay"
+                                                   value="{{ qt_user.alipay }}"/></div>
+                                        <div class="margiv-top-10">
+                                            <button type="submit" class="btn green"> 保存</button>
+                                            <a href="javascript:reset_from('basic_info');" class="btn default"> 重置 </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- END PERSONAL INFO TAB -->
+                            <!-- CHANGE AVATAR TAB -->
+                            <div class="tab-pane" id="tab_1_2">
+                                <p> 请上传您的头像，文件大小不超过2M。 </p>
+                                <form action="{% url 'uc:change_profile' %}" role="form" method="post"
+                                      enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="form_name" value="photo_mgr"/>
+                                    <div class="form-group">
+                                        <div class="fileinput fileinput-new" data-provides="fileinput">
+                                            <div class="fileinput-new thumbnail" style="width: 200px; height: 150px;">
+                                                <img src="{{ MEDIA_URL }}{{ qt_user.avatar }}" alt=""/>
+                                            </div>
+                                            <div class="fileinput-preview fileinput-exists thumbnail"
+                                                 style="max-width: 200px; max-height: 150px;">
+                                            </div>
+                                            <div>
+                                                <span class="btn default btn-file">
+                                                <span class="fileinput-new"> 选择头像 </span>
+                                                <span class="fileinput-exists"> 更新 </span>
+                                                <input type="file" name="avatar"> </span>
+                                                <a href="javascript:;" class="btn default fileinput-exists"
+                                                   data-dismiss="fileinput"> 移除 </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="margin-top-10">
+                                        <button type="submit" class="btn green"> 提交</button>
+                                        <button type="reset" class="btn default"> 重置</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- END CHANGE AVATAR TAB -->
+                            <!-- CHANGE PASSWORD TAB -->
+                            <div class="tab-pane" id="tab_1_3">
+                                <form action="{% url 'uc:change_profile' %}" method="post" id="passwd_form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="form_name" value="change_password"/>
+                                    <div class="form-group">
+                                        <label class="control-label">请输入当前密码</label>
+                                        <input type="password" class="form-control" name="old_password"/></div>
+                                    <div class="form-group">
+                                        <label class="control-label">请设置新密码</label>
+                                        <input type="password" class="form-control" name="password" id="password"/>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label">请确认新密码</label>
+                                        <input type="password" class="form-control" name="re_password"
+                                               id="re_password"/></div>
+                                    <div class="margin-top-10">
+                                        <button type="submit" class="btn green"> 修改密码</button>
+                                        <button type="reset" class="btn default"> 重置</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- END CHANGE PASSWORD TAB -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
