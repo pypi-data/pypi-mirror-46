@@ -1,0 +1,204 @@
+// this file is used to instantiate symbols for LLDB so e.g.
+// std::vector and std::unique_ptr can be accessed from the debugger
+
+#ifdef DEBUG
+
+#include "catalog/catalog.hpp"
+#include "common/types/chunk_collection.hpp"
+#include "execution/aggregate_hashtable.hpp"
+#include "execution/column_binding_resolver.hpp"
+#include "execution/join_hashtable.hpp"
+#include "execution/physical_operator.hpp"
+#include "main/materialized_query_result.hpp"
+#include "main/query_profiler.hpp"
+#include "main/query_result.hpp"
+#include "main/stream_query_result.hpp"
+#include "optimizer/join_order_optimizer.hpp"
+#include "optimizer/rule.hpp"
+#include "parser/constraint.hpp"
+#include "parser/constraints/list.hpp"
+#include "parser/expression/list.hpp"
+#include "parser/query_node.hpp"
+#include "parser/query_node/select_node.hpp"
+#include "parser/query_node/set_operation_node.hpp"
+#include "parser/statement/list.hpp"
+#include "parser/tableref/list.hpp"
+#include "planner/expression/list.hpp"
+#include "planner/logical_operator.hpp"
+#include "planner/operator/list.hpp"
+#include "planner/operator/logical_join.hpp"
+#include "planner/query_node/bound_select_node.hpp"
+#include "planner/query_node/bound_set_operation_node.hpp"
+#include "planner/statement/list.hpp"
+#include "planner/tableref/list.hpp"
+#include "storage/data_table.hpp"
+#include "storage/write_ahead_log.hpp"
+
+using namespace duckdb;
+using namespace std;
+template class std::unique_ptr<SQLStatement>;
+template class std::unique_ptr<AlterTableStatement>;
+template class std::unique_ptr<CopyStatement>;
+template class std::unique_ptr<CreateIndexStatement>;
+template class std::unique_ptr<CreateSchemaStatement>;
+template class std::unique_ptr<CreateTableStatement>;
+template class std::unique_ptr<CreateViewStatement>;
+template class std::unique_ptr<DeleteStatement>;
+template class std::unique_ptr<DropStatement>;
+template class std::unique_ptr<InsertStatement>;
+template class std::unique_ptr<SelectStatement>;
+template class std::unique_ptr<TransactionStatement>;
+template class std::unique_ptr<UpdateStatement>;
+template class std::unique_ptr<PrepareStatement>;
+template class std::unique_ptr<ExecuteStatement>;
+template class std::unique_ptr<DeallocateStatement>;
+template class std::unique_ptr<QueryNode>;
+template class std::unique_ptr<SelectNode>;
+template class std::unique_ptr<SetOperationNode>;
+template class std::unique_ptr<ParsedExpression>;
+template class std::unique_ptr<AggregateExpression>;
+template class std::unique_ptr<CaseExpression>;
+template class std::unique_ptr<CastExpression>;
+template class std::unique_ptr<ColumnRefExpression>;
+template class std::unique_ptr<ComparisonExpression>;
+template class std::unique_ptr<ConjunctionExpression>;
+template class std::unique_ptr<ConstantExpression>;
+template class std::unique_ptr<DefaultExpression>;
+template class std::unique_ptr<FunctionExpression>;
+template class std::unique_ptr<OperatorExpression>;
+template class std::unique_ptr<ParameterExpression>;
+template class std::unique_ptr<StarExpression>;
+template class std::unique_ptr<SubqueryExpression>;
+template class std::unique_ptr<WindowExpression>;
+template class std::unique_ptr<Constraint>;
+template class std::unique_ptr<NotNullConstraint>;
+template class std::unique_ptr<CheckConstraint>;
+template class std::unique_ptr<ParsedConstraint>;
+// template class std::unique_ptr<TableRef>;
+template class std::unique_ptr<BaseTableRef>;
+template class std::unique_ptr<CrossProductRef>;
+template class std::unique_ptr<JoinRef>;
+template class std::unique_ptr<SubqueryRef>;
+template class std::unique_ptr<TableFunction>;
+
+template class std::unique_ptr<Expression>;
+template class std::unique_ptr<BoundSQLStatement>;
+template class std::unique_ptr<BoundCopyStatement>;
+template class std::unique_ptr<BoundCreateIndexStatement>;
+template class std::unique_ptr<BoundCreateTableStatement>;
+template class std::unique_ptr<BoundDeleteStatement>;
+template class std::unique_ptr<BoundExecuteStatement>;
+template class std::unique_ptr<BoundInsertStatement>;
+template class std::unique_ptr<BoundSelectStatement>;
+template class std::unique_ptr<BoundUpdateStatement>;
+template class std::unique_ptr<BoundQueryNode>;
+template class std::unique_ptr<BoundSelectNode>;
+template class std::unique_ptr<BoundSetOperationNode>;
+template class std::unique_ptr<BoundAggregateExpression>;
+template class std::unique_ptr<BoundCaseExpression>;
+template class std::unique_ptr<BoundCastExpression>;
+template class std::unique_ptr<BoundColumnRefExpression>;
+template class std::unique_ptr<BoundComparisonExpression>;
+template class std::unique_ptr<BoundConjunctionExpression>;
+template class std::unique_ptr<BoundConstantExpression>;
+template class std::unique_ptr<BoundDefaultExpression>;
+template class std::unique_ptr<BoundFunctionExpression>;
+template class std::unique_ptr<BoundOperatorExpression>;
+template class std::unique_ptr<BoundParameterExpression>;
+template class std::unique_ptr<BoundReferenceExpression>;
+template class std::unique_ptr<BoundSubqueryExpression>;
+template class std::unique_ptr<BoundWindowExpression>;
+template class std::unique_ptr<CommonSubExpression>;
+template class std::unique_ptr<BoundTableRef>;
+template class std::unique_ptr<BoundBaseTableRef>;
+template class std::unique_ptr<BoundCrossProductRef>;
+template class std::unique_ptr<BoundJoinRef>;
+template class std::unique_ptr<BoundSubqueryRef>;
+template class std::unique_ptr<BoundTableFunction>;
+
+template class std::unique_ptr<CatalogEntry>;
+template class std::unique_ptr<BindContext>;
+template class std::unique_ptr<char[]>;
+template class std::unique_ptr<QueryResult>;
+template class std::unique_ptr<MaterializedQueryResult>;
+template class std::unique_ptr<StreamQueryResult>;
+template class std::unique_ptr<LogicalOperator>;
+template class std::unique_ptr<PhysicalOperator>;
+template class std::unique_ptr<PhysicalOperatorState>;
+template class std::unique_ptr<sel_t[]>;
+template class std::unique_ptr<StorageChunk>;
+template class std::unique_ptr<StringHeap>;
+template class std::unique_ptr<SuperLargeHashTable>;
+template class std::unique_ptr<TableRef>;
+template class std::unique_ptr<Transaction>;
+template class std::unique_ptr<uint64_t[]>;
+template class std::unique_ptr<uint8_t[]>;
+template class std::unique_ptr<Vector[]>;
+template class std::unique_ptr<DataChunk>;
+template class std::unique_ptr<ExpressionStatistics[]>;
+template class std::unique_ptr<JoinHashTable>;
+template class std::unique_ptr<JoinHashTable::ScanStructure>;
+template class std::unique_ptr<JoinHashTable::Node>;
+template class std::unique_ptr<uint8_t *[]>;
+template class std::unique_ptr<Rule>;
+template class std::unique_ptr<LogicalFilter>;
+template class std::unique_ptr<LogicalJoin>;
+template class std::unique_ptr<LogicalComparisonJoin>;
+template class std::unique_ptr<CreateViewInfo>;
+template class std::unique_ptr<FilterInfo>;
+template class std::unique_ptr<JoinOrderOptimizer::JoinNode>;
+template class std::unique_ptr<Relation>;
+template class std::unique_ptr<CatalogSet>;
+template class std::unique_ptr<PreparedStatementCatalogEntry>;
+template class std::unique_ptr<Binder>;
+
+#define INSTANTIATE_VECTOR(VECTOR_DEFINITION)                                                                          \
+	template VECTOR_DEFINITION::size_type VECTOR_DEFINITION::size() const;                                             \
+	template VECTOR_DEFINITION::const_reference VECTOR_DEFINITION::operator[](VECTOR_DEFINITION::size_type n) const;   \
+	template VECTOR_DEFINITION::reference VECTOR_DEFINITION::operator[](VECTOR_DEFINITION::size_type n);               \
+	template VECTOR_DEFINITION::const_reference VECTOR_DEFINITION::back() const;                                       \
+	template VECTOR_DEFINITION::reference VECTOR_DEFINITION::back();                                                   \
+	template VECTOR_DEFINITION::const_reference VECTOR_DEFINITION::front() const;                                      \
+	template VECTOR_DEFINITION::reference VECTOR_DEFINITION::front();
+
+template class std::vector<AggregateExpression *>;
+template class std::vector<BoundTable>;
+INSTANTIATE_VECTOR(std::vector<ColumnDefinition>);
+template class std::vector<ExpressionType>;
+INSTANTIATE_VECTOR(std::vector<JoinCondition>);
+INSTANTIATE_VECTOR(std::vector<OrderByNode>);
+template class std::vector<uint64_t>;
+INSTANTIATE_VECTOR(std::vector<ExpressionStatistics>);
+template class std::vector<string>;
+INSTANTIATE_VECTOR(std::vector<Expression *>)
+INSTANTIATE_VECTOR(std::vector<std::unique_ptr<Expression>>)
+INSTANTIATE_VECTOR(std::vector<std::unique_ptr<DataChunk>>);
+INSTANTIATE_VECTOR(std::vector<std::unique_ptr<SQLStatement>>);
+INSTANTIATE_VECTOR(std::vector<std::unique_ptr<PhysicalOperator>>);
+INSTANTIATE_VECTOR(std::vector<std::unique_ptr<LogicalOperator>>);
+INSTANTIATE_VECTOR(std::vector<std::unique_ptr<Transaction>>);
+INSTANTIATE_VECTOR(std::vector<std::unique_ptr<JoinOrderOptimizer::JoinNode>>);
+template class std::vector<TypeId>;
+template class std::vector<Value>;
+template class std::vector<int>;
+INSTANTIATE_VECTOR(std::vector<WALEntryData>);
+INSTANTIATE_VECTOR(std::vector<std::unique_ptr<Rule>>);
+template class std::vector<std::vector<Expression *>>;
+template class std::vector<SQLType>;
+
+template struct std::atomic<uint64_t>;
+template class std::bitset<STANDARD_VECTOR_SIZE>;
+template class std::bitset<STORAGE_CHUNK_SIZE>;
+template class std::unordered_map<PhysicalOperator *, QueryProfiler::TreeNode *>;
+template class std::stack<PhysicalOperator *>;
+
+// template class std::unordered_map<string,
+// std::unique_ptr<CatalogEntry>>;
+template class std::unordered_map<string, uint64_t>;
+template class std::unordered_map<string, std::vector<string>>;
+template class std::unordered_map<string, std::pair<uint64_t, Expression *>>;
+// template class std::unordered_map<string, TableBinding>;
+template class std::unordered_map<string, SelectStatement *>;
+template class std::unordered_map<uint64_t, uint64_t>;
+
+#endif
