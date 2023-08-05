@@ -1,0 +1,5 @@
+====================
+collective.embeddedpage
+====================
+
+User documentation
