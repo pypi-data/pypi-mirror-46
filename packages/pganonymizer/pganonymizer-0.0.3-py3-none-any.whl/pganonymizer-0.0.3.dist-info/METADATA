@@ -1,0 +1,86 @@
+Metadata-Version: 2.1
+Name: pganonymizer
+Version: 0.0.3
+Summary: Database anonymizer package
+Home-page: https://github.com/pypa/sampleproject
+Author: Pattarawut Imamnuaysup
+Author-email: pattarawut@hot-now.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.5
+Description-Content-Type: text/markdown
+Requires-Dist: asyncpg
+Requires-Dist: csj-parser
+Requires-Dist: click
+Requires-Dist: asyncio
+Requires-Dist: pytest-asyncio
+
+# PGAnonymizer
+
+PGAnonymizer is a tool for anonymizing database for testing purposes.
+
+## Installation
+PGAnonymizer required Python 3.5 and above to run. PGAnonymizer can be installed using pip.
+```sh
+$ pip install pganonymizer
+```
+
+## Background
+PGAnonymizer will hash columns in table depending on the rules inside CSJ file.
+### CSJ file format:
+```
+"table", "column", "rule"
+"schema.table_to_be_hased", "columned_to_be_hased", "hash"
+"schema.table_to_be_hased", "columned_to_be_hased", "date"
+"schema.table_to_be_hased", "columned_to_be_hased", "phone"
+```
+#### Example for rules for hashing
+`Hash` is for text type field such as name or address. The return value will be in base32 with length of atmost 16.  
+Example input:
+```
+Customer1
+```
+Example output:
+```
+EC35FEOXDMVR7Y5C
+```
+`Date` is for date type field. The return value will keep the original year but hash the month and date field.   
+Example input:
+```
+2000-12-15
+```
+Example output:
+```
+2000-01-10
+```
+`Phone` is for phone number. The return value will be of same length as the original number.   
+Example input:
+```
++66932019385
+```
+Example output:
+```
++66254818000
+```
+## Instruction
+Format:
+```sh
+$ pganonymizer [database environment] [option]
+```
+To use PGAnonymizer, you can call:
+```sh
+$ pganonymizer --schema path_to_schema_file.csj
+```
+By default, PGAnonymizer will connect to database using user's username as database and role.  
+Otherwise, please specify as follow:
+```sh
+$ pganonymizer -d postgres -U postgres --schema path_to_schema_file.csj
+```
+For more information on the usage, please use the following command:
+```sh
+$ pganonymizer --help
+```
+
