@@ -1,0 +1,25 @@
+## Django middleware for cassette.dev
+
+Install with `pip install cassette-django`
+
+Add `cassette-django` to your installed apps.
+
+```
+INSTALLED_APPS = [
+    ...
+    'cassette_django',
+    ...
+]
+```
+
+Add the middleware as at the end of the middleware list
+
+```
+MIDDLEWARE = [
+    ...
+    'cassette_django.middleware.CassetteMiddleware,
+]
+```
+
+Now you're good to go! To import your API just install cassette's cli (`npm install -g @cassette.dev/cli`)
+and follow the instructions.
