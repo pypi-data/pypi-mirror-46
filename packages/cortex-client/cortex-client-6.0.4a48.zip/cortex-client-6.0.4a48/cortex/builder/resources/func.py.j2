@@ -1,0 +1,66 @@
+import codecs
+import json
+import os
+import time
+import sys
+import traceback
+
+import fdk
+
+{{action_globals}}
+
+
+def _run(params):
+    from cortex import Message
+{{action_code}}
+
+    return {{func_name}}(params)
+
+
+class iocontext:
+
+    def __init__(self):
+        self.stdout = sys.stdout
+
+    def __enter__(self):
+        sys.stdout = sys.stderr
+        return self
+
+    def __exit__(self, *args):
+        sys.stdout = self.stdout
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, flush=True, **kwargs)
+
+
+def pre_log(args):
+    act = args.get('activationId', "0")
+    eprint("activationId:"+act)
+    eprint("Input recieved: {}".format(json.dumps(args.get("payload"))))
+    return time.time()
+
+
+def post_log(result, start):
+    eprint("Output generated: "+str(result))
+    eprint("Duration of execution: "+str(round((time.time() - start), 4))+" ms")
+
+
+def run(context):
+    with iocontext():
+        result = _run(context['param'])
+    return result
+
+
+def wrapper(ctx, data):
+    data = json.loads(data) if len(data) > 0 else {}
+    context = {"param": data}
+
+    start = pre_log(data)
+    result = run(context)
+    post_log(result, start)
+    return result
+
+
+if __name__ == "__main__":
+    fdk.handle(wrapper)

@@ -1,0 +1,37 @@
+import numpy as np
+import pandas as pd
+import dill
+from cortex import Cortex, Message
+from cortex_client import ConnectionClient
+
+
+def predict(params):
+    msg = Message(params)
+    client = Cortex.client(api_endpoint=msg.apiEndpoint, token=msg.token)
+    content_client = ConnectionClient(msg.apiEndpoint, 2, msg.token)
+
+    global _model
+    global _model_key
+
+    if not _model:
+        _model = dill.load(content_client.download(_model_key))
+
+    clf = _model.get('model')
+    if clf is None:
+        raise ValueError('Invalid model, missing model attribute: %s' % model_key)
+
+    target = _model.get('target', 'y')
+    x_pipe = _model.get('x_pipe')
+    y_pipe = _model.get('y_pipe')
+
+    x = msg.as_pandas(client)
+    if x_pipe:
+        x = x_pipe.run(x)
+
+    y = clf.predict(x)
+    if y_pipe:
+        y = pd.DataFrame(data=y, columns=[target])
+        y = y_pipe.run(y)
+        y = y[target].values
+
+    return client.message({"columns": [target], "values": y.tolist()}).to_params()
