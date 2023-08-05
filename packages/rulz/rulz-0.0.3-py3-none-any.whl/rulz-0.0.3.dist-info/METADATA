@@ -1,0 +1,63 @@
+Metadata-Version: 2.1
+Name: rulz
+Version: 0.0.3
+Summary: rulz is a decorator based IoC framework.
+Home-page: https://github.com/csams/rulz
+Author: Christopher W. Sams
+License: Apache 2.0
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Description-Content-Type: text/markdown
+Provides-Extra: develop
+Requires-Dist: setuptools ; extra == 'develop'
+Requires-Dist: flake8 ; extra == 'develop'
+Requires-Dist: ipython ; extra == 'develop'
+Requires-Dist: twine ; extra == 'develop'
+Requires-Dist: pytest ; extra == 'develop'
+Requires-Dist: wheel ; extra == 'develop'
+
+# rulz
+A decorator based IoC framework for python3.6+. There are no runtime
+dependencies outside of what's in the standard library.
+
+A demo module is in `rulz/plugins/demo.py`.
+```python
+#!/usr/bin/env python
+from rulz import plugin, run_graph
+
+
+@plugin()
+def one():
+    return 1
+
+
+@plugin()
+def two():
+    return 2
+
+
+@plugin(one, two)
+def add(a, b):
+    return a + b
+
+
+if __name__ == "__main__":
+    print(run_graph())
+```
+
+Invoke it directly or create a driver script like this:
+```python
+#!/usr/bin/env python
+from rulz import load, run_graph
+
+
+load("rulz.plugins")
+print(run_graph())
+```
+
+
