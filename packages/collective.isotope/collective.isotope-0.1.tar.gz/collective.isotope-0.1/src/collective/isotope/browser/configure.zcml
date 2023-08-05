@@ -1,0 +1,68 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="collective.isotope">
+
+  <!-- Control Panel -->
+  <browser:page
+      name="collective-isotope-settings"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".controlpanel.IsotopeSettingsControlPanel"
+      permission="cmf.ManagePortal"
+      />
+
+  <!-- Publish static files -->
+  <browser:resourceDirectory
+      name="collective-isotope"
+      directory="static"
+      />
+
+  <!-- Isotope View -->
+  <browser:page
+      name="isotope-view"
+      for="plone.app.contenttypes.interfaces.ICollection"
+      class=".views.IsotopeCollectionView"
+      template="templates/isotope.pt"
+      permission="zope2.View"
+      />
+  <browser:page
+      name="isotope-view"
+      for="plone.app.contenttypes.interfaces.IFolder"
+      class=".views.IsotopeFolderView"
+      template="templates/isotope.pt"
+      permission="zope2.View"
+      />
+
+  <!-- Display Menu Item -->
+  <browser:menuItem
+      for="plone.app.contenttypes.interfaces.ICollection"
+      menu="plone_displayviews"
+      title="Isotope View"
+      action="@@isotope-view"
+      description="Display all items in a filterable tile-based view"
+      />
+
+  <browser:menuItem
+      for="plone.app.contenttypes.interfaces.IFolder"
+      menu="plone_displayviews"
+      title="Isotope View"
+      action="@@isotope-view"
+      description="Display all contents in a filterable tile-based view"
+      />
+
+  <!-- View Configuration Form -->
+  <browser:page
+      for="plone.app.contenttypes.interfaces.ICollection"
+      name="isotope-config"
+      class=".views.IsotopeConfigurationView"
+      permission="cmf.ModifyPortalContent"
+      />
+  <browser:page
+      for="plone.app.contenttypes.interfaces.IFolder"
+      name="isotope-config"
+      class=".views.IsotopeConfigurationView"
+      permission="cmf.ModifyPortalContent"
+      />
+
+</configure>
