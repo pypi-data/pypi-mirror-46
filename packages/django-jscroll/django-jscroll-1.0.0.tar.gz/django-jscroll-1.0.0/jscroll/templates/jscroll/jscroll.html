@@ -1,0 +1,45 @@
+<div id="{{viewport}}">
+{% include template %}
+</div>
+
+<script>
+var count = 1;
+
+function autoScroll() {
+    n = $(this).scrollTop() + $(this).innerHeight();
+    m = $(this)[0].scrollHeight * 60/100.0;
+
+    if ( n >= m) {
+        count = count + 1;
+    
+        $('#{{viewport}}').closest('.pre-scrollable').off('scroll');
+    
+        $.ajax({ 
+        type: 'GET',
+        url: "{% url 'jscroll:jscroll-view' %}",
+        async: false,
+
+        data: {
+        page : count,
+        'jscroll-template': '{{template}}',
+        token: {{token}},
+        },
+
+        success: function(data) {
+        $('#{{viewport}}').append(data);
+        $('#{{viewport}}').closest('.pre-scrollable').on('scroll', autoScroll);
+        console.log('Page ', count);
+        },
+
+        error: function(data) {
+        $('#{{viewport}}').closest('.pre-scrollable').off('scroll');
+        console.log('Page error', count);
+        }});
+    }
+}
+
+$('#{{viewport}}').closest('.pre-scrollable').on('scroll', autoScroll);
+
+</script>
+
+

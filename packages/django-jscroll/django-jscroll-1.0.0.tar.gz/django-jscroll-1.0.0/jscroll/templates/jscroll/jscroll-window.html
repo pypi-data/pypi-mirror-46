@@ -1,0 +1,67 @@
+<div id="{{viewport}}">
+{% include template %}
+</div>
+
+<script>
+var count = 1;
+
+function autoScroll() {
+    var scrollHeight = $(document).height();
+    var scrollPosition = $(window).height() + $(window).scrollTop();
+    console.log('Value', (scrollHeight - scrollPosition) / scrollHeight);
+
+    if ((scrollHeight - scrollPosition) / scrollHeight < 0.3) {
+        console.log('Scroll', count);
+        count = count + 1;
+    
+        $(window).off('scroll');
+    
+        $.ajax({ 
+        type: 'GET',
+        url: "{% url 'jscroll:jscroll-view' %}",
+        async: false,
+
+        data: {
+        page : count,
+        token: {{token}},
+        'jscroll-template': '{{template}}',
+        },
+
+        success: function(data) {
+        $('#{{viewport}}').append(data);
+        $(window).on('scroll', autoScroll);
+        console.log('Page ', count);
+        },
+
+        error: function(data) {
+        $(window).off('scroll');
+
+        console.log('Page error', count);
+        }});
+
+    }
+}
+
+// $.get({ 
+// url: "{% url 'jscroll:jscroll-view' %}",
+// data: {
+// page : 1,
+// token: {{token}},
+// 'jscroll-template': '{{template}}',
+// }},
+
+// function(data) {
+// $('#{{viewport}}').html('');
+// $('#{{viewport}}').append(data);
+// $(window).on('scroll', autoScroll);
+// 
+// });
+
+$(window).on('scroll', autoScroll);
+
+</script>
+
+
+
+
+
