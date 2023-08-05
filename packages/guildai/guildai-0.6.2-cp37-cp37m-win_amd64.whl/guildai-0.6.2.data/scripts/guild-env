@@ -1,0 +1,43 @@
+# -*-shell-script-*-
+
+_guild_env="$1"
+if [ -z "$_guild_env" ]; then
+    if [ -e "bin/activate" ]; then
+        _guild_env=.
+    else
+        _guild_env=./env
+    fi
+fi
+
+if [ ! -e "$_guild_env" ]; then
+    echo "Guild environment $_guild_env does not exist"
+    return 1
+fi
+
+if [ ! -e "$_guild_env/bin/activate" -a -e "$_guild_env/env" ]; then
+    _guild_env="$_guild_env/env"
+fi
+
+if [ -e "$_guild_env/bin/activate" ]; then
+    . "$_guild_env/bin/activate"
+    if [ -z "$QUIET" ]; then
+        clear
+        echo "$VIRTUAL_ENV is active."
+        echo
+        echo "To deactivate the environment, run:"
+        echo
+        echo "  deactivate    Deactivate the environment"
+        echo
+        echo "Common commands:"
+        echo
+        echo "  guild check   Check the environment"
+        echo "  guild ops     List available operations"
+        echo "  guild runs    List runs"
+        echo "  guild run     Run an operation"
+        echo "  guild --help  Show Guild help"
+        echo
+    fi
+else
+    "Could not find a Guild environment in $_guild_env"
+    return 1
+fi
