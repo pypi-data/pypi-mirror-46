@@ -1,0 +1,307 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>teramap demo/debug page</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+    <link rel="stylesheet" href="../teramap/maps.css" />
+    <script src="../teramap/maps.js"></script>
+
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        .teramap {
+            clear: both;
+            width: 50%;
+            height: 250px;
+            float: left;
+        }
+        .code {
+            float: left;
+            padding: 5px 10px;
+            box-sizing: border-box;
+            width: 50%;
+        }
+        h2 {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+    </style>
+    <script>
+        var geojson = {
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[
+                        [5.732215, 50.756532], [5.730717, 50.757363], [5.739092, 50.757057], [5.740581, 50.761565],
+                        [5.740483, 50.763081], [5.74491, 50.76807], [5.748636, 50.771272], [5.754546, 50.775129],
+                        [5.761392, 50.77848], [5.76411, 50.781441], [5.768505, 50.782587], [5.777299, 50.783016],
+                        [5.778705, 50.777645], [5.779964, 50.77402], [5.78225, 50.771328], [5.783868, 50.768483],
+                        [5.788319, 50.768137], [5.795089, 50.768305], [5.798177, 50.765351], [5.800741, 50.762929],
+                        [5.803566, 50.760038], [5.809027, 50.755949], [5.80686, 50.752655], [5.804934, 50.749414],
+                        [5.802094, 50.745743], [5.799606, 50.74238], [5.793583, 50.738986], [5.790843, 50.742621],
+                        [5.784802, 50.74577], [5.780787, 50.747194], [5.775951, 50.748725], [5.767877, 50.750611],
+                        [5.763133, 50.749091], [5.759087, 50.747562], [5.754589, 50.746301], [5.749427, 50.74523],
+                        [5.746412, 50.746555], [5.746976, 50.75206], [5.741136, 50.755088], [5.736939, 50.754589],
+                        [5.732948, 50.754967], [5.732215, 50.756532]
+                    ]]
+                },
+                "properties": {
+                    "location_id": 23478, "title": "’S Gravenvoeren",
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [5, 50], [5.1, 50.1], [5.1, 50], [5.2, 50.1]
+                    ]
+                },
+                "properties": {
+                    "stroke": "black",
+                    "stroke-width": 1,
+                    "stroke-style": '5, 5'
+                }
+            }
+        ]};
+
+        var geojson_points = {
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [5.732215, 50.756532]
+                },
+                "properties": {
+                    "id": 1, "title": "Point 1 (black)", "marker-color": "black"
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [5.788319, 50.768137]
+                },
+                "properties": {
+                    "popup-content": "<h2>Point 2</h2>Rode marker",
+                    "id": 2, "title": "Point 2 (red)", "marker-color": "red"
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [5.755317, 50.778135]
+                },
+                "properties": {
+                    "id": 3, "title": "Point 3", "marker-color": "wrongcolor"
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [5.8, 50.76]
+                },
+                "properties": {
+                    "id": 4, "title": "Circle with radius 25m", "radius": 25
+                }
+            },
+        ],
+        "properties": {
+            "legend-title": "Legenda",
+            "legend": [
+                {"label": "inactive", "color": "red"},
+                {"label": "active", "color": "blue"}
+            ]
+        }};
+
+    </script>
+</head>
+<body>
+
+<div id="map" class="teramap"></div>
+<div class="code">
+    <h2>Default <code>map_with_geojson()</code> map</h2>
+    <p>
+        <code>leaflet-scroll-intent.js</code> and
+        <a href="https://github.com/Leaflet/Leaflet.fullscreen">Leaflet.fullscreen</a>
+        on by default.
+    </p>
+<script>
+var map = teramap.map_with_geojson('map');
+</script>
+</div>
+
+<div id="map_centerzoom" class="teramap"></div>
+<div class="code">
+    <h2>Different center/zoom</h2>
+    <p>
+        And a <code>L.contro.scale</code> as a bonus.
+    </p>
+
+<script>
+var map = teramap.map_with_geojson('map_centerzoom', {
+    center: [-20, 20],
+    zoom: 1,
+    scaleControl: true
+});
+</script>
+</div>
+
+<div id="map_layers" class="teramap"></div>
+<div class="code">
+    <h2>Different layers</h2>
+    <p>
+        Adding two baselayers or 1 or more overlays will add a layers control.
+        <br />
+        <a href="http://leaflet-extras.github.io/leaflet-providers/preview/">leaflet-providers</a>
+        for a list of free tile layers.
+    </p>
+
+<script>
+var map = teramap.map_with_geojson('map_layers', {
+    layersControlOptions: {
+        collapsed: true
+    },
+    baselayers: {
+        'HOT': L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, Tiles courtesy of <a href="http://hot.openstreetmap.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
+        }),
+        'TopoMap': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17,
+            attribution: 'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+        })
+    },
+    overlays: {
+        'TerraBands': L.tileLayer('https://map1.vis.earthdata.nasa.gov/wmts-webmerc/MODIS_Terra_CorrectedReflectance_Bands367/default/{time}/{tilematrixset}{maxZoom}/{z}/{y}/{x}.{format}', {
+            attribution: 'Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (<a href="https://earthdata.nasa.gov">ESDIS</a>) with funding provided by NASA/HQ.',
+            bounds: [[-85.0511287776, -179.999999975], [85.0511287776, 179.999999975]],
+            minZoom: 1,
+            maxZoom: 9,
+            format: 'jpg',
+            time: '',
+            tilematrixset: 'GoogleMapsCompatible_Level'
+        })
+    }
+});
+</script>
+</div>
+
+<div id="map_plugins" class="teramap"></div>
+<div class="code">
+    <h2>Adding leaflet-search and disabling Leaflet-fullscreen</h2>
+    <p>
+        <a href="https://github.com/stefanocudini/leaflet-search">leaflet-search</a>
+        can be anabled by adding a property.
+    </p>
+<script>
+var map = teramap.map_with_geojson('map_plugins', {
+    fullscreenControl: false,
+    searchControl: true
+});
+</script>
+</div>
+
+<div id="map_minimap" class="teramap"></div>
+<div class="code">
+    <h2>Adding leaflet-minimap</h2>
+    <p>
+        <a href="https://github.com/stefanocudini/leaflet-search">leaflet-search</a>
+        can be anabled by adding a property.
+    </p>
+<script>
+var map = teramap.map_with_geojson('map_minimap', {
+    minimap: {toggleDisplay: true, minimized: true}
+});
+</script>
+</div>
+
+<div id="map_geojson" class="teramap"></div>
+<div class="code">
+    <h2>Adding geojson</h2>
+    <p>
+        Pass the geojson object as the third argument. <br />
+
+        Make sure to properly escape the geojson when using Django templates:
+        <code>{{ geojson | safe }}</code>.<br />
+
+        If a feature contains <code>name</code> property, a popup will be opened
+        containing that name when a user clicks on the map.
+    </p>
+    <script>
+var map = teramap.map_with_geojson('map_geojson', {
+    geojson: geojson
+});
+    </script>
+</div>
+
+<div id="map_geojson_markers" class="teramap"></div>
+<div class="code">
+    <h2>Colored markers</h2>
+    <p>
+        If a <code>Point</code> feature contains a <code>marker-color</code> property,
+        a colored icon from leaflet-color-markers is selected
+        (shown here are <code>black</code> and <code>red</code>, default is <code>blue</code>)
+    </p>
+    <script>
+var map = teramap.map_with_geojson('map_geojson_markers', {
+    geojson: geojson_points
+});
+    </script>
+</div>
+
+<div id="map_geojson_points" class="teramap"></div>
+<div class="code">
+    <h2>Adding json asynchronously, with circle markers</h2>
+    <p>
+        Adding default leaflet markers is quite expensive and clutters the display.
+        Use <code>circle-marker</code> property to display
+        <a href="http://leafletjs.com/reference-1.2.0.html#circlemarker">L.CircleMarker</a> instead.
+    </p>
+    <p>
+        Example also shows how to load geojson asynchonously using jquery and
+        how to add geojson to an already existing map.
+    </p>
+    <script>
+var map = teramap.map_with_geojson('map_geojson_points', {
+    center: [52, 2],
+    zoom: 5,
+    geojson: '../tests/fixtures/random.geojson'
+});
+    </script>
+</div>
+
+</div>
+
+<script>
+    // copy all example javascript into a <pre><code>-block besides the map.
+    document.querySelectorAll('.code').forEach(function (code) {
+        var node = document.createElement('code');
+        var pre = document.createElement('pre');
+        pre.appendChild(node);
+        code.appendChild(pre);
+        var script_tags = code.querySelectorAll('script');
+        if (script_tags.length > 0) {
+            script_tags.forEach(function (js) {
+                node.innerHTML += js.innerHTML;
+            });
+        }
+    });
+</script>
+</body>
+</html>
