@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+'''
+    Generate a bash tab completion config for from merget CLI commands.
+'''
+from mergetb.utils import cmd_dict
+
+if __name__ == '__main__':
+    cmds = cmd_dict()
+    print('_mergetb() {')
+    print('    MTBCMDS="{}"'.format(' '.join(list(cmds.keys()))))
+    print('    local cur=${COMP_WORDS[COMP_CWORD]}')
+    print('    local prev="${COMP_WORDS[COMP_CWORD-1]}"')
+    print('    #local script_args="-l --login -p --password -P --token-path -L --log-level"')
+    print()
+    print('    case "$prev" in')
+    print('        -L|--log-level)')
+    print('            COMPREPLY=($(compgen -W "none all debug info warning error critical" -- "$cur"))')
+    print('            return 0')
+    print('            ;;')
+    print('        -P|--password|-l|--login)')
+    print('            # figure out how to do file completion and password input here.')
+    print('            return 0')
+    print('            ;;')
+    for subject, verbs in cmds.items():
+        print('        {})'.format(subject))
+        print('            COMPREPLY=($(compgen -W "{}" -- "$cur"))'.format(' '.join(verbs)))
+        print('            return 0')
+        print('            ;;')
+    print('     esac')
+    print()
+    print('     # all')
+    print('     COMPREPLY=($(compgen -W "${script_args} ${MTBCMDS}" -- "$cur"))')
+    print('}')
+    print()
+    print('complete -F _mergetb mergetb')
