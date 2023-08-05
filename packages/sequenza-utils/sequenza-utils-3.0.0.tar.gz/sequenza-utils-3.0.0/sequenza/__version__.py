@@ -1,0 +1,5 @@
+VERSION = "3.0.0"
+DATE = "9 May 2019"
+AUTHOR = "Favero Francesco"
+EMAIL = "francesco.favero@bric.ku.dk"
+WEBSITE = "http://sequenza-utils.readthedocs.org"
