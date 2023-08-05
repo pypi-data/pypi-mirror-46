@@ -1,0 +1,52 @@
+<div id="card-use">
+<fieldset>
+    <legend>Credit Card Information{% if last4 and not force_update %}<a id="card-update" href="{{urls.organization.update_card}}"
+    @click="clearCardData()" v-show="!updateCard">Update</a>{% endif %}</legend>
+    {% if last4 or force_update %}
+    <div v-show="haveCardData" v-cloak>
+            <dl>
+                  <dt>card</dt>
+                  <dd data-last4="{{last4}}" v-text="savedCard.last4">{{last4}}</dd>
+            </dl>
+            <dl>
+                  <dt>expires</dt>
+                  <dd data-exp-date="{{exp_date}}" v-text="savedCard.exp_date">{{exp_date}}</dd>
+            </dl>
+    </div>
+    {% endif %}
+    {% if not last4 or force_update %}
+    <div v-show="!haveCardData || updateCard" v-cloak>
+      <!-- BE CAREFULL: Do not add name="" to these <input> nodes, else
+           values will hit the server and break PCI compliance. -->
+      <div v-bind:class="inputClass('cardNumber')">
+            <label for="card-number">Card Number</label>
+            <input id="card-number" v-model="cardNumber"
+                   type="text" size="16" placeholder="Card number"
+                   autocomplete="off" />
+      </div>
+      <div v-bind:class="inputClass('cardExp')">
+            <label>Expiration</label>
+            <input id="card-exp-month" v-model="cardExpMonth"
+                   type="text" maxlength="2" size="2" placeholder="MM" />
+            <input id="card-exp-year" v-model="cardExpYear"
+                   type="text" maxlength="4" size="4" placeholder="YYYY" />
+      </div>
+      <div :class="inputClass('cardCvc')">
+            <label>Security Code</label>
+            <input id="card-cvc" v-model="cardCvc"
+                   type="text" maxlength="3" size="3" placeholder="CVC"
+                   autocomplete="off" />
+      </div>
+      <div>
+          <legend>Billing Address</legend>
+          {{form.card_name}}
+          {{form.card_address_line1}}
+          {{form.card_city}}
+          {{form.card_address_zip}}
+          {{form.country}}
+          {{form.region}}
+      </div>
+    </div>
+    {% endif %}
+</fieldset>
+</div> <!-- #card-use -->
