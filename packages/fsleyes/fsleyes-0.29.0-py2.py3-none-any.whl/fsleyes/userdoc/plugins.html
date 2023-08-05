@@ -1,0 +1,406 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>FSLeyes plugins &mdash; FSLeyes 0.29.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Troubleshooting" href="troubleshooting.html" />
+    <link rel="prev" title="Customising FSLeyes" href="customising.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> FSLeyes
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.29.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overlays.html">Overlays</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ortho_lightbox_views.html">Orthographic/lightbox views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_views.html">Plotting views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3d_view.html">3D view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atlases.html">Atlases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="editing_images.html">Editing NIFTI images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feat_mode.html">Viewing FEAT analyses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ic_classification.html">IC classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fsleyes_notebook.html">FSLeyes and Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="display_space.html">The display space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising.html">Customising FSLeyes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">FSLeyes plugins</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#for-users">For users</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#py-plugin-files"><code class="docutils literal notranslate"><span class="pre">.py</span></code> plugin files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plugin-libraries">Plugin libraries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#finding-plugins">Finding plugins</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#for-developers">For developers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#things-plugins-can-provide">Things plugins can provide</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#loading-installing-fsleyes-plugins">Loading/installing FSLeyes plugins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing-a-fsleyes-plugin">Writing a FSLeyes plugin</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html"><code class="docutils literal notranslate"><span class="pre">fsleyes</span></code> release history</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FSLeyes</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>FSLeyes plugins</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/plugins.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fsleyes-plugins">
+<span id="id1"></span><h1>FSLeyes plugins<a class="headerlink" href="#fsleyes-plugins" title="Permalink to this headline">¶</a></h1>
+<p>FSLeyes 0.29.0 has a simple plugin architecture, allowing you to write and
+install custom views, controls, and tools.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The FSLeyes plugin architecture is new to FSLeyes 0.26.0 - as of the
+release of this version there are no FSLeyes plugins in existence,
+so don’t bother searching for any just yet.</p>
+</div>
+<div class="section" id="for-users">
+<h2>For users<a class="headerlink" href="#for-users" title="Permalink to this headline">¶</a></h2>
+<p>FSLeyes plugins come in two forms:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Python libraries (e.g. as hosted on <a class="reference external" href="https://pypi.org/">PyPi - the Python Package Index</a>)</p></li>
+<li><p>Standalone Python <code class="docutils literal notranslate"><span class="pre">.py</span></code> files</p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="py-plugin-files">
+<h3><code class="docutils literal notranslate"><span class="pre">.py</span></code> plugin files<a class="headerlink" href="#py-plugin-files" title="Permalink to this headline">¶</a></h3>
+<p>If you wish to use a FSLeyes plugin which comes as a <code class="docutils literal notranslate"><span class="pre">.py</span></code> file, you can
+simply use the <em>File</em> ⇒ <em>Load plugin</em> menu item. The panels and
+tools that the plugin provides will then be available in the <em>View</em>,
+<em>Settings</em> and <em>Tools</em> menus.</p>
+</div>
+<div class="section" id="plugin-libraries">
+<h3>Plugin libraries<a class="headerlink" href="#plugin-libraries" title="Permalink to this headline">¶</a></h3>
+<p>If you wish to use FSLeyes plugin which has been published on PyPi, you will
+need to install the plugin into the Python environment that FSLeyes is running
+in. You may wish to ask your local system adminsistrator or Python expert to
+help you with this.</p>
+</div>
+<div class="section" id="finding-plugins">
+<h3>Finding plugins<a class="headerlink" href="#finding-plugins" title="Permalink to this headline">¶</a></h3>
+<p>Head to the <a class="reference external" href="https://pypi.org/">PyPi</a>, and search for <code class="docutils literal notranslate"><span class="pre">'fsleyes-plugin'</span></code>.</p>
+</div>
+</div>
+<div class="section" id="for-developers">
+<h2>For developers<a class="headerlink" href="#for-developers" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The FSLeyes API documentation can be found at <a class="reference external" href="http://users.fmrib.ox.ac.uk/~paulmc/fsleyes/apidoc/latest">http://users.fmrib.ox.ac.uk/~paulmc/fsleyes/apidoc/latest</a></p>
+</div>
+<p>For both types of plugin (Python libraries and <code class="docutils literal notranslate"><span class="pre">.py</span></code> files),, FSLeyes uses
+<code class="docutils literal notranslate"><span class="pre">setuptools</span></code> <a class="reference external" href="https://setuptools.readthedocs.io/en/latest/pkg_resources.html#entry-points">entry points</a>
+to locate the items provided by plugin library/files.</p>
+<div class="section" id="things-plugins-can-provide">
+<h3>Things plugins can provide<a class="headerlink" href="#things-plugins-can-provide" title="Permalink to this headline">¶</a></h3>
+<p>FSLeyes plugins can provide custom <em>views</em>, <em>controls</em> and <em>tools</em>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>A <em>view</em> is a top level panel, such as an <code class="xref py py-class docutils literal notranslate"><span class="pre">OrthoPanel</span></code>,
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Scene3DPanel</span></code>, or <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeSeriesPanel</span></code>. Views provided
+by plugins are added to the top level <em>Views</em> menu.</p></li>
+<li><p>A <em>control</em> is a secondary panel, or toolbar, which is embedded within a
+view, such as an <code class="xref py py-class docutils literal notranslate"><span class="pre">OverlayListPanel</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">OrthoToolBar</span></code>, or
+<code class="xref py py-class docutils literal notranslate"><span class="pre">MelodicClassificationPanel</span></code>. Controls provided by plugins are
+added to the <em>Settings</em> menu for each active view.</p></li>
+<li><p>A <em>tool</em> is an <code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code> which is associated with a menu item
+under the top-level <em>Tools</em> menu, such as the <code class="xref py py-class docutils literal notranslate"><span class="pre">ApplyFlirtXfmAction</span></code>
+and the <code class="xref py py-class docutils literal notranslate"><span class="pre">ResampleAction</span></code>.</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="loading-installing-fsleyes-plugins">
+<h3>Loading/installing FSLeyes plugins<a class="headerlink" href="#loading-installing-fsleyes-plugins" title="Permalink to this headline">¶</a></h3>
+<p>FSLeyes plugins are loaded into a running FSLeyes as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Any Python libraries (e.g. installed from <code class="docutils literal notranslate"><span class="pre">PyPi</span></code>) which are present the
+environment that FSLeyes is running in, and which have a name beginning
+with <code class="docutils literal notranslate"><span class="pre">fsleyes-plugin-</span></code> will automatically be detected by FSLeyes.</p></li>
+<li><p>Plugin <code class="docutils literal notranslate"><span class="pre">.py</span></code> files, which contain view, control, and/or tool definitions,
+can be passed directly to the <code class="xref py py-func docutils literal notranslate"><span class="pre">loadPlugin()</span></code> function.</p></li>
+<li><p>Plugin <code class="docutils literal notranslate"><span class="pre">.py</span></code> files which are present in the FSLeyes settings directory,
+or which are found in the <code class="docutils literal notranslate"><span class="pre">FSLEYES_PLUGIN_PATH</span></code> environment variable, will
+be loaded by the <code class="xref py py-func docutils literal notranslate"><span class="pre">initialise()</span></code> function.</p></li>
+</ul>
+</div></blockquote>
+<p>A plugin can be installed permanently into FSLeyes as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Any Python libraries (e.g. installed from <code class="docutils literal notranslate"><span class="pre">PyPi</span></code>) which are present the
+environment that FSLeyes is running in, and which have a name beginning
+with <code class="docutils literal notranslate"><span class="pre">fsleyes-plugin-</span></code> will automatically be detected by FSLeyes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.py</span></code> plugin files can be passed to the <code class="xref py py-func docutils literal notranslate"><span class="pre">installPlugin()</span></code>
+function. This file will be saved into the FSLeyes settings directory
+(e.g. <code class="docutils literal notranslate"><span class="pre">~/.fsleyes/plugins/</span></code>).</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="writing-a-fsleyes-plugin">
+<h3>Writing a FSLeyes plugin<a class="headerlink" href="#writing-a-fsleyes-plugin" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A minimal example of a FSLeyes plugin library can be found in
+<code class="docutils literal notranslate"><span class="pre">tests/testdata/fsleyes_plugin_example/</span></code>.</p>
+</div>
+<p>A FSLeyes plugin is a Python library, or a <code class="docutils literal notranslate"><span class="pre">.py</span></code> file, which contains
+definitions for custom views, controls, and tools.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Views must be sub-classes of the <code class="xref py py-class docutils literal notranslate"><span class="pre">ViewPanel</span></code> class.</p></li>
+<li><p>Controls must be sub-classes of the <code class="xref py py-class docutils literal notranslate"><span class="pre">ControlPanel</span></code> class.</p></li>
+<li><p>Tools must be sub-classes of the <code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code> class.</p></li>
+</ul>
+</div></blockquote>
+<div class="sidebar">
+<p class="sidebar-title">Customising control panels</p>
+<p>If you are writing a custom control panel which is designed to
+only work with a specific view (e.g. an ortho view), you can
+override the <code class="xref py py-mod docutils literal notranslate"><span class="pre">ControlMixin.supportedViews</span></code> static method to
+limit the views that your control supports.</p>
+<p>Furthermore, if you want to customise how your custom control is
+displayed (e.g. on the bottom, left, right, or top, or as a
+separate floating panel), you can override the
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">ControlMixin.defaultLayout</span></code> static method to return
+default layout options that will be passed to the
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">ViewPanel.togglePanel()</span></code> method when your control panel
+is opened.</p>
+</div>
+<p>To write a <code class="docutils literal notranslate"><span class="pre">.py</span></code> file which can be loaded as a FSLeyes plugin, simply
+define your views, controls, and tools in the file. The file path can then
+be passed to the <code class="xref py py-func docutils literal notranslate"><span class="pre">loadPlugin()</span></code> or <code class="xref py py-func docutils literal notranslate"><span class="pre">installPlugin()</span></code> function.</p>
+<p>To release a FSLeyes plugin as a library, you need to organise your code
+as a Python library. Minimally, this requires the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Arrange your <code class="docutils literal notranslate"><span class="pre">.py</span></code> file(s) into a Python package.</p></li>
+<li><p>Write a <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> file.</p></li>
+<li><p>Give your library a name (the <code class="docutils literal notranslate"><span class="pre">name</span></code> argument to the <code class="docutils literal notranslate"><span class="pre">setup</span></code>
+function) which begins with <code class="docutils literal notranslate"><span class="pre">'fsleyes-plugin-</span></code>.</p></li>
+<li><p>Expose your custom views, controls, and tools as <a class="reference external" href="https://packaging.python.org/specifications/entry-points/">entry points</a> (the
+<code class="docutils literal notranslate"><span class="pre">entry_points</span></code> argument to the <code class="docutils literal notranslate"><span class="pre">setup</span></code> function).</p></li>
+</ul>
+</div></blockquote>
+<p>A minimal <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> file for a FSLeyes plugin might look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">setuptools</span>
+
+<span class="n">setup</span><span class="p">(</span>
+    <span class="c1"># the name must begin with &quot;fsleyes-plugin-&quot;</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fsleyes-plugin-my-cool-plugin&#39;</span><span class="p">,</span>
+
+    <span class="c1"># Views, controls, and tools must be exposed</span>
+    <span class="c1"># as entry points within groups called</span>
+    <span class="c1"># &quot;fsleyes_views&quot;, &quot;fsleyes_controls&quot; and</span>
+    <span class="c1"># &quot;fsleyes_tools&quot; respectively.</span>
+    <span class="n">entry_points</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;fsleyes_views&#39;</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="s1">&#39;My cool view = myplugin:MyView&#39;</span>
+        <span class="p">]</span>
+        <span class="s1">&#39;fsleyes_controls&#39;</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="s1">&#39;My cool control = myplugin:MyControl&#39;</span>
+        <span class="p">]</span>
+        <span class="s1">&#39;fsleyes_tools&#39;</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="s1">&#39;My cool tool = myplugin:MyTool&#39;</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>See the <a class="reference external" href="https://packaging.python.org/tutorials/packaging-projects/">Python Packaging guide</a> for more
+details on writing a <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> file.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="troubleshooting.html" class="btn btn-neutral float-right" title="Troubleshooting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="customising.html" class="btn btn-neutral float-left" title="Customising FSLeyes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Paul McCarthy, University of Oxford, Oxford, UK
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

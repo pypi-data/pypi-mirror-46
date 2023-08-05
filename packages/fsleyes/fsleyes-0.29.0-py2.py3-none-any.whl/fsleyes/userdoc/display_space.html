@@ -1,0 +1,593 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>The display space &mdash; FSLeyes 0.29.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Customising FSLeyes" href="customising.html" />
+    <link rel="prev" title="FSLeyes and Jupyter Notebook" href="fsleyes_notebook.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> FSLeyes
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.29.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overlays.html">Overlays</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ortho_lightbox_views.html">Orthographic/lightbox views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_views.html">Plotting views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3d_view.html">3D view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atlases.html">Atlases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="editing_images.html">Editing NIFTI images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feat_mode.html">Viewing FEAT analyses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ic_classification.html">IC classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fsleyes_notebook.html">FSLeyes and Jupyter Notebook</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The display space</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-fsleyes-display-coordinate-system">The FSLeyes display coordinate system</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#reference-image-space">Reference image space</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world-space">World space</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#nifti-image-orientation">NIFTI image orientation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#voxel-coordinate-system">Voxel coordinate system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world-coordinate-system">World coordinate system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#radiological-vs-neurological">Radiological vs neurological</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-storage-order">Data storage order</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#analyze-images">ANALYZE images</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="customising.html">Customising FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">FSLeyes plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html"><code class="docutils literal notranslate"><span class="pre">fsleyes</span></code> release history</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FSLeyes</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>The display space</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/display_space.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="the-display-space">
+<span id="display-space"></span><h1>The display space<a class="headerlink" href="#the-display-space" title="Permalink to this headline">¶</a></h1>
+<p>This page contains an overview of the coordinate systems used in <a class="reference external" href="https://nifti.nimh.nih.gov/nifti-1">NIFTI</a>
+images and in FSLeyes, and aims to clarify <a class="footnote-reference brackets" href="#id2" id="id1">*</a> some terms which you may have
+come across in the FSLeyes documentation and source code.  This is an advanced
+topic and can safely be skipped over, unless you are having problems with
+images not being overlaid on top of each other, or if you are particularly
+curious.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are reading this page simply to learn how to make a specific
+image orthogonal to the display, all you need to do is select that
+image as the <strong>Display space</strong>, in the <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-view-settings"><span class="std std-ref">view settings panel</span></a>.</p>
+</div>
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">*</a></span></dt>
+<dd><p>While I am genuinely trying to clarify things on this page, there is a
+very good chance that I will just cause more confusion. Sorry about
+that.</p>
+</dd>
+</dl>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>FSLeyes assumes that all of the overlays you load are defined in the same
+space. If this assumption holds, FSLeyes will align all of your overlays in
+the display, even if they have different resolution or orientation.</p>
+<p>For NIFTI images, FSLeyes accomplishes this by using the transformation
+matrices (the <code class="docutils literal notranslate"><span class="pre">sform</span></code> and/or <code class="docutils literal notranslate"><span class="pre">qform</span></code> fields) defined in the NIFTI file
+header. These transformation matrices are used to convert voxel, or data,
+coordinates into display, or “world”, coordinates.  For other overlay types
+(e.g. GIFTI and VTK meshes), FSLeyes uses the the transformation matrix of
+that model’s reference image to position the mesh in the display coordinate
+system.</p>
+<p>FSLeyes allows you to choose between displaying your overlays in terms of one
+<a class="reference internal" href="#display-space-reference-image-space"><span class="std std-ref">reference image</span></a>, or displaying
+all overlays in <a class="reference internal" href="#display-space-world-space"><span class="std std-ref">world space</span></a>. This setting
+is called the <em>display space</em>, and you can change it independently for each
+open view via the <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-view-settings"><span class="std std-ref">view settings panel</span></a>.</p>
+</div>
+<div class="section" id="the-fsleyes-display-coordinate-system">
+<span id="display-space-display-coordinate-system"></span><h2>The FSLeyes display coordinate system<a class="headerlink" href="#the-fsleyes-display-coordinate-system" title="Permalink to this headline">¶</a></h2>
+<p>Regardless of whether you are displaying your images in <em>reference image
+space</em> or in <em>world space</em>, FSLeyes refers to the space in which all of your
+overlays are displayed as the <em>display coordinate system</em>. The display
+coordinate system is the space in which images are shown on your computer
+screen - in an <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-ortho"><span class="std std-ref">ortho view</span></a>, the three
+canvases respectively display a slice through the X, Y, and Z planes of the
+display coordinate system.</p>
+<p>There is no explicit anatomical orientation in the display coordinate system -
+this will depend on the value of the display space setting, and on the images
+that you are viewing.</p>
+<div class="section" id="reference-image-space">
+<span id="display-space-reference-image-space"></span><h3>Reference image space<a class="headerlink" href="#reference-image-space" title="Permalink to this headline">¶</a></h3>
+<p>By default, FSLeyes displays all overlays in terms of a single image, which is
+typically the first one that you load; this image is referred to as the
+<em>reference image</em>.</p>
+<p>The reference image is displayed in <em>scaled voxels</em>.  <em>Scaled voxels</em> refers
+to a coordinate system whereby the image voxel coordinate system is made
+orthogonal to the display coordinate system, and the the X, Y,
+and Z voxel coordinates are respectively scaled by the voxel size
+along each dimension.  The size of one voxel along each voxel dimension is
+stored in the NIFTI header; these sizes are often referred to as the image
+<em>pixdims</em> and, for brain images, are typically specified in millimetres.</p>
+<p>When FSLeyes displays your overlays in terms of a reference image, the display
+coordinate system is changed so that it corresponds to the scaled voxel
+coordinate system of that reference image; i.e. the image voxel coordinate
+system is made orthogonal to the display coordinate system, and made to share
+the same origin.  All other overlays are transformed into the scaled voxel
+coordinate system of the reference overlay <a class="footnote-reference brackets" href="#id4" id="id3">†</a>.</p>
+<p>In FSLeyes, the scaled voxel coordinate system for an image also includes an
+implicit flip along the X voxel dimension (which generally corresponds to the
+left-right axis), <strong>if</strong> the image <a class="reference internal" href="#display-space-data-storage-order"><span class="std std-ref">data storage order</span></a> appears to be neurological (see
+<a class="reference internal" href="#display-space-radiological-vs-neurological"><span class="std std-ref">below</span></a> for more
+details). This X axis flip is very important, because many <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/">FSL</a> tools use
+this scaled voxel coordinate system. For instance, this is the coordinate
+system used by <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslview/">FSLView</a>, by <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FLIRT/">FLIRT</a>, and in the VTK sub-cortical
+segmentation model files output by <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FIRST/">FIRST</a>.</p>
+<p>Furthermore, the vectors in eigenvector images images output by the <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FDT/">FDT</a>
+<code class="docutils literal notranslate"><span class="pre">dtifit</span></code> tool are oriented according to this space, so if the input data is
+in neurological orientation, these vectors need to be inverted along the X
+axis (see the section on <a class="reference internal" href="troubleshooting.html#troubleshooting-vector-orientation"><span class="std std-ref">line vector orientation</span></a> in the troubleshooting page for more
+information).</p>
+<dl class="footnote brackets">
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id3">†</a></span></dt>
+<dd><p>If your reference image is stored in the same manner as the MNI152
+standard space image (e.g. if you have run the <cite>fslreorient2std</cite> tool
+on it), the three axes of the display coordinate system will correpond
+to the sagittal, coronal, and axial axes, respectively.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="world-space">
+<span id="display-space-world-space"></span><h3>World space<a class="headerlink" href="#world-space" title="Permalink to this headline">¶</a></h3>
+<p>As an alternate to displaying all of your overlays in terms of a
+<a class="reference internal" href="#display-space-reference-image-space"><span class="std std-ref">reference image</span></a>, you may choose
+to display all of your images in the <em>world coordinate system</em>.  In this
+scenario, the <a class="reference internal" href="#display-space-display-coordinate-system"><span class="std std-ref">display coordinate system</span></a> is set to the <a class="reference internal" href="#display-space-world-coordinate-system"><span class="std std-ref">world
+coordinate system</span></a> of the images you
+are viewing.</p>
+</div>
+</div>
+<div class="section" id="nifti-image-orientation">
+<span id="display-space-nifti-image-orientation"></span><h2>NIFTI image orientation<a class="headerlink" href="#nifti-image-orientation" title="Permalink to this headline">¶</a></h2>
+<p>Every NIFTI image is associated with two coordinate systems - the <a class="reference internal" href="#display-space-voxel-coordinate-system"><span class="std std-ref">voxel
+coordinate system</span></a>, and the
+<a class="reference internal" href="#display-space-voxel-coordinate-system"><span class="std std-ref">world coordinate system</span></a>.</p>
+<div class="section" id="voxel-coordinate-system">
+<span id="display-space-voxel-coordinate-system"></span><h3>Voxel coordinate system<a class="headerlink" href="#voxel-coordinate-system" title="Permalink to this headline">¶</a></h3>
+<p>The voxel coordinate system of a NIFTI image defines how the voxel intensities
+of that image were acquired, and how they are stored and accessed in the image
+data.  For example, if you load the MNI152 2mm template (which has dimensions
+<span class="math notranslate nohighlight">\([d_x=91, d_y=109, d_z=91]\ \)</span>):</p>
+<blockquote>
+<div><ul>
+<li><p>Coordinates <span class="math notranslate nohighlight">\([x=0, y=0, z=0]\ \)</span> would refer to the first voxel stored
+in the file.</p></li>
+<li><p>Coordinates <span class="math notranslate nohighlight">\([x=16, y=20, z=8]\ \)</span> would refer to the 81189th voxel
+(see the section on <a class="reference internal" href="#display-space-data-storage-order"><span class="std std-ref">data storage order</span></a>):</p>
+<div class="math notranslate nohighlight">
+\[16 + (20\times 91) + (8\times 91\times 109) = 81188\]</div>
+</li>
+<li><p>Coordinates <span class="math notranslate nohighlight">\([x=90, y=108, z=90]\ \)</span> would refer to the 902629th voxel
+(the last voxel in the file):</p>
+<div class="math notranslate nohighlight">
+\[90 + (108\times 91) + (90\times 91\times 109) = 902628\]</div>
+</li>
+</ul>
+</div></blockquote>
+<p>The <a class="reference external" href="https://nifti.nimh.nih.gov/nifti-1">NIFTI</a> specification does not impose any requirements upon the
+anatomical orientation of the voxel coordinate system. However, in a research
+environment, it is relatively common to see NIFTI images for which:</p>
+<ul class="simple">
+<li><p>The voxel X axis corresponds to the left-right axis</p></li>
+<li><p>The voxel Y axis corresponds to the posterior-anterior axis</p></li>
+<li><p>The voxel Z axis corresponds to the inferior-superior axis</p></li>
+</ul>
+</div>
+<div class="section" id="world-coordinate-system">
+<span id="display-space-world-coordinate-system"></span><h3>World coordinate system<a class="headerlink" href="#world-coordinate-system" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference external" href="https://nifti.nimh.nih.gov/nifti-1">NIFTI</a> specification allows you to store two affine transformation
+matrices in the header of a NIFTI image. These matrices, referred to as the
+<code class="docutils literal notranslate"><span class="pre">qform</span></code> and <code class="docutils literal notranslate"><span class="pre">sform</span></code>, are intended to be used for encoding a transformation
+from voxel coordinates into some other coordinate system <a class="footnote-reference brackets" href="#id6" id="id5">‡</a>. The <code class="docutils literal notranslate"><span class="pre">sform</span></code>
+and <code class="docutils literal notranslate"><span class="pre">qform</span></code> are respectively intended to be used for encoding a
+transformation from voxel coordinates into:</p>
+<ul class="simple">
+<li><p>The coordinate system of a standard template such as MNI152 or Talairach
+space.</p></li>
+<li><p>The coordinate system of the MRI scanner in which the image was acquired.</p></li>
+</ul>
+<p>The <a class="reference external" href="https://nifti.nimh.nih.gov/nifti-1">NIFTI</a> header also stores a code for both the <code class="docutils literal notranslate"><span class="pre">sform</span></code> and <code class="docutils literal notranslate"><span class="pre">qform</span></code>
+which specifies the target space of the transformation.</p>
+<p>In FSLeyes, the target space of this transformation (i.e. the space into
+which voxel coordinates are transformed) is referred to as the <em>world
+coordinate system</em> of that image.  FSLeyes follows the same process as
+<code class="docutils literal notranslate"><span class="pre">nibabel</span></code> in choosing which voxel to world transformation matrix should be
+used for an image (see
+<a class="reference external" href="http://nipy.org/nibabel/nifti_images.html#the-nifti-affines">http://nipy.org/nibabel/nifti_images.html#the-nifti-affines</a>):</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>If the <code class="docutils literal notranslate"><span class="pre">sform</span></code> code is not <code class="docutils literal notranslate"><span class="pre">NIFTI_XFORM_UNKNOWN</span></code>, use the
+sform matrix; else</p></li>
+<li><p>If the <code class="docutils literal notranslate"><span class="pre">qform</span></code> code is not <code class="docutils literal notranslate"><span class="pre">NIFTI_XFORM_UNKNOWN</span></code>, use the qform
+matrix; else</p></li>
+<li><p>Use the <em>fall-back</em> matrix.</p></li>
+</ol>
+</div></blockquote>
+<p>The <em>fall-back</em> matrix is a simple scaling matrix in which the size of a voxel
+along each dimension is scaled by the <code class="docutils literal notranslate"><span class="pre">pixdim</span></code> fields in the <a class="reference external" href="https://nifti.nimh.nih.gov/nifti-1">NIFTI</a>
+header.  The fall-back matrix used by FSLeyes differs to that used by
+<code class="docutils literal notranslate"><span class="pre">nibabel</span></code>. In <code class="docutils literal notranslate"><span class="pre">nibabel</span></code>, the origin (world coordinates (0, 0, 0)) is set
+to the centre of the image. In FSLeyes, we set the world coordinate orign to
+be the corner of the image, i.e. the corner of voxel (0, 0, 0).</p>
+<p>The <a class="reference external" href="https://nifti.nimh.nih.gov/nifti-1">NIFTI</a> specification requires that the world coordiate system of all
+images are (approximately) oriented such that:</p>
+<ul class="simple">
+<li><p>The X axis increases from left ro right</p></li>
+<li><p>The Y axis increases from posterior to anterior</p></li>
+<li><p>The Z axis increases from inferior to superior</p></li>
+</ul>
+<p>This is referred to as a RAS coordinate system (i.e. with the X, Y, and Z
+coordinates increasing in the <strong>R</strong>ight, <strong>A</strong>nterior, <strong>S</strong>uperior
+directions respectively)</p>
+<blockquote>
+<div><dl class="footnote brackets">
+<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id5">‡</a></span></dt>
+<dd><p>For the purposes of these voxel to world coordinate transformations,
+voxel coordinates refer to the <strong>centre</strong> of the voxel.</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="radiological-vs-neurological">
+<span id="display-space-radiological-vs-neurological"></span><h3>Radiological vs neurological<a class="headerlink" href="#radiological-vs-neurological" title="Permalink to this headline">¶</a></h3>
+<p>These terms are an endless source of confusion in neuro-image analysis. They
+refer to the left-right orientation of an image, and are used in at least
+three scenarios:</p>
+<ul class="simple">
+<li><p><strong>Voxel storage order</strong>: The image <a class="reference internal" href="#display-space-voxel-coordinate-system"><span class="std std-ref">voxel coordinate system</span></a> - how the image voxel intensities
+are stored on disk, e.g.. does the voxel X axis increase from left to right
+(neurological), or right to left (radioological)? <a class="footnote-reference brackets" href="#id9" id="id7">§</a></p></li>
+<li><p><strong>Image world coordinate system</strong> The image <a class="reference internal" href="#display-space-world-coordinate-system"><span class="std std-ref">world coordinate system</span></a> - how the image is oriented in
+world coordinates (i.e. the image voxel coordinates, transformed via the
+image <code class="docutils literal notranslate"><span class="pre">qform</span></code>/ <code class="docutils literal notranslate"><span class="pre">sform</span></code> transformation matrix). For all NIFTI images,
+this coordinate system is required to be neurological (RAS, as described
+<a class="reference internal" href="#display-space-world-coordinate-system"><span class="std std-ref">above</span></a>) <a class="footnote-reference brackets" href="#id10" id="id8">¶</a>.</p></li>
+<li><p><strong>Display orientation</strong> How the image is displayed, i.e. is the subject’s
+left shown to the left of the display (neurological), or to the right of the
+display (radiological)?  FSLeyes defaults to displaying images
+radiologically, but this can be changed via the <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-view-settings"><span class="std std-ref">view settings panel</span></a>.</p></li>
+</ul>
+<dl class="footnote brackets">
+<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id7">§</a></span></dt>
+<dd><p>The voxel X axis may not even correspond to the anatomical left-right
+axis - recall the section on the <a class="reference internal" href="#display-space-voxel-coordinate-system"><span class="std std-ref">NIFTI voxel coordinate system</span></a>.</p>
+</dd>
+<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id8">¶</a></span></dt>
+<dd><p>But what makes things really confusing is the fact that the MNI152
+standard brain image (and thus all images stored with the same voxel
+orientation) has a <em>radiological</em> (LAS) voxel storage order!</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="data-storage-order">
+<span id="display-space-data-storage-order"></span><h3>Data storage order<a class="headerlink" href="#data-storage-order" title="Permalink to this headline">¶</a></h3>
+<p>The voxel intensities in a 3D NIFTI image are stored as a big one-dimensional
+list of numbers. Without the dimension and orientation information in the
+NIFTI file header, we would not be able to determine where those numbers
+should be located in the brain.</p>
+<p>All 3D NIFTI images are stored such that the X dimension is the <em>fastest
+changing</em>, and the Z dimension the <em>slowest changing</em>. For example, if we have
+an image with dimensions <span class="math notranslate nohighlight">\([d_x=3, d_y=2, d_z=2]\ \)</span>, the image data, as
+stored on disk, would correspond to voxel coordinates like so (the index
+<span class="math notranslate nohighlight">\(i\)</span> refers to the location, in the file, of the intensity for each
+voxel) <a class="footnote-reference brackets" href="#id12" id="id11">#</a>:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><span class="math notranslate nohighlight">\(i\)</span></p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(x\)</span></p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(y\)</span></p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(z\)</span></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>5</p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>6</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>7</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>9</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>10</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>11</p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+</tbody>
+</table>
+<p>It is easy to calculate the index <span class="math notranslate nohighlight">\(i\)</span> of a voxel from its coordinates:</p>
+<div class="math notranslate nohighlight">
+\[i = x + (y\times d_x) + (z\times d_x\times d_y)\]</div>
+<p>And for completeness, the inverse calculation is also straightforward:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}x &amp;=               \big(i \mod (d_x \times d_y)\big) \mod d_x      \\
+y &amp;= \Bigl\lfloor \frac{i \mod (d_x \times d_y)}{d_x} \Bigr\rfloor \\
+z &amp;= \Bigl\lfloor \frac{i}     {d_x \times d_y}       \Bigr\rfloor \\\end{split}\]</div>
+<dl class="footnote brackets">
+<dt class="label" id="id12"><span class="brackets"><a class="fn-backref" href="#id11">#</a></span></dt>
+<dd><p>In <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/">FSL</a>, C, Python, and <a class="reference external" href="http://nipy.org/nibabel/"><code class="docutils literal notranslate"><span class="pre">nibabel</span></code></a>, voxel coordinates and indices
+begin from 0.  However, if you were to load a NIFTI image into MATLAB,
+the voxel coordinates and indices would begin from 1.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="analyze-images">
+<h2>ANALYZE images<a class="headerlink" href="#analyze-images" title="Permalink to this headline">¶</a></h2>
+<p>FSLeyes can load and display ANALYZE images (see the <a class="reference external" href="http://www.fil.ion.ucl.ac.uk/spm/software/spm99/#AzeFmt">SPM99 ANALYZE format
+specification</a>). For these
+images, FSLeyes uses a scaling matrix using the <code class="docutils literal notranslate"><span class="pre">pixdim</span></code> fields, with an
+additional translation defined by the contents of the <code class="docutils literal notranslate"><span class="pre">origin</span></code> field . The
+creation of this matrix is handled by <code class="docutils literal notranslate"><span class="pre">nibabel</span></code> (see
+<a class="reference external" href="http://nipy.org/nibabel/reference/nibabel.analyze.html">http://nipy.org/nibabel/reference/nibabel.analyze.html</a>).</p>
+<p>FSLeyes (and <code class="docutils literal notranslate"><span class="pre">nibabel</span></code>) requires that all ANALYZE images have a voxel
+coordinate system where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The X axis increases from right to left</p></li>
+<li><p>The Y axis increases from posterior to anterior</p></li>
+<li><p>The Z axis increases from inferior to superior</p></li>
+</ul>
+</div></blockquote>
+<p>In order to force the world coordinate system of ANALYZE images to be in RAS
+orientation (and thus compliant with the <a class="reference external" href="display_space_world_coordinate_system">NIFTI specification</a>), negative <code class="docutils literal notranslate"><span class="pre">pixdim</span></code> values are
+ignored by FSLeyes, and a left-right flip (on the X axis) is encoded into the
+transformation.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="customising.html" class="btn btn-neutral float-right" title="Customising FSLeyes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="fsleyes_notebook.html" class="btn btn-neutral float-left" title="FSLeyes and Jupyter Notebook" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Paul McCarthy, University of Oxford, Oxford, UK
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

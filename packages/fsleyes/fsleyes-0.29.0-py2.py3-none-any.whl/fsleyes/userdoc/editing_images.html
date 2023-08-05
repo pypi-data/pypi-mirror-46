@@ -1,0 +1,616 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Editing NIFTI images &mdash; FSLeyes 0.29.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Viewing FEAT analyses" href="feat_mode.html" />
+    <link rel="prev" title="Atlases" href="atlases.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> FSLeyes
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.29.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overlays.html">Overlays</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ortho_lightbox_views.html">Orthographic/lightbox views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_views.html">Plotting views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3d_view.html">3D view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atlases.html">Atlases</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Editing NIFTI images</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#create-a-mask-copy">Create a mask/copy!</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#save-your-changes">Save your changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#editing-modes">Editing modes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#editing-tools">Editing tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#draw-mode">Draw mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#select-mode">Select mode</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#manual-selection">Manual selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#select-by-intensity">Select by intensity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changing-voxel-values">Changing voxel values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#copying-and-pasting">Copying and pasting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#edit-mode-toolbars-and-panels">Edit mode toolbars and panels</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-edit-toolbar">The edit toolbar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-action-toolbar">The action toolbar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-edit-menu">The edit menu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-edit-settings-panel">The edit settings panel</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="feat_mode.html">Viewing FEAT analyses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ic_classification.html">IC classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fsleyes_notebook.html">FSLeyes and Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="display_space.html">The display space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising.html">Customising FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">FSLeyes plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html"><code class="docutils literal notranslate"><span class="pre">fsleyes</span></code> release history</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FSLeyes</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Editing NIFTI images</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/editing_images.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="editing-nifti-images">
+<span id="editing-images"></span><h1>Editing NIFTI images<a class="headerlink" href="#editing-nifti-images" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-ortho"><span class="std std-ref">orthographic view</span></a> has an <em>edit mode</em>
+which allows you to edit the values contained in NIFTI images.  You can enter
+edit mode in any orthographic view via the <em>Tools</em> ⇒ <em>Edit mode</em>
+menu option.</p>
+<a class="reference internal image-reference" href="_images/editing_images_edit_mode_menu.png"><img alt="_images/editing_images_edit_mode_menu.png" class="align-center" src="_images/editing_images_edit_mode_menu.png" style="width: 30%;" /></a>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>When you are in edit mode, the <a class="reference internal" href="overview.html#overview-overlays"><span class="std std-ref">currently selected overlay</span></a> (assuming that it is a NIFTI image) is the
+default target for all editing operations. Whenever you draw,
+erase, fill, select, copy, or paste voxels, you will be doing
+so with respect to the <em>currently selected image</em>.</p>
+<p>There is one exception to this rule - in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>, you may use the <em>Target image</em>
+setting to specify an alternate target for fill and paste
+operations.</p>
+</div>
+<div class="section" id="create-a-mask-copy">
+<h3>Create a mask/copy!<a class="headerlink" href="#create-a-mask-copy" title="Permalink to this headline">¶</a></h3>
+<p>If you are worried about destroying your data, you may wish to create a copy
+of your image, and edit that copy:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><img alt="copy_button" src="_images/editing_images_copy_button.png" /> Create an empty 3D copy of the currently selected image
+(useful for creating mask images) through the <a class="reference internal" href="#editing-images-action-toolbar"><span class="std std-ref">action toolbar</span></a>.</p></li>
+<li><p>Create a full copy of the currently selected image via the <em>Overlay</em>
+⇒ <em>Copy</em> menu option.</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="save-your-changes">
+<h3>Save your changes<a class="headerlink" href="#save-your-changes" title="Permalink to this headline">¶</a></h3>
+<p>When you have made changes to an image, or created a mask/ROI image, don’t
+forget to save them via the <em>Overlay</em> ⇒ <em>Save</em> menu item, or the
+floppy disk button <img alt="floppy_disk_button" src="_images/floppy_icon.png" /> on the <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-overlay-list"><span class="std std-ref">overlay list</span></a>.</p>
+</div>
+<div class="section" id="editing-modes">
+<h3>Editing modes<a class="headerlink" href="#editing-modes" title="Permalink to this headline">¶</a></h3>
+<p>You can choose to work in one of two primary editing modes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><img alt="draw_mode_button" src="_images/editing_images_draw_mode_button.png" /> <strong>Draw mode</strong> In <a class="reference internal" href="#editing-images-draw-mode"><span class="std std-ref">this mode</span></a>,
+clicking, or clicking and dragging on an image, will immediately change the
+voxel values in the image. This mode will be familiar to you if you are
+used to editing images in <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslview/">FSLView</a>.</p></li>
+<li><p><img alt="select_mode_button" src="_images/editing_images_select_mode_button.png" /> <strong>Select mode</strong> In <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">this mode</span></a>, editing images is a two-step process:</p>
+<ol class="arabic simple">
+<li><p>Select the voxels you wish to change.</p></li>
+<li><p>Change the value of the selected voxels.</p></li>
+</ol>
+</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="editing-tools">
+<h3>Editing tools<a class="headerlink" href="#editing-tools" title="Permalink to this headline">¶</a></h3>
+<p>When you are editing an image, you can choose from one of four main
+interaction tools which control what the mouse does when you click, or click
+and drag on the image:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><img alt="navigate_button" src="_images/editing_images_navigate_button.png" /> <strong>Navigate</strong> This tool is identical to using the
+<a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-ortho"><span class="std std-ref">ortho view</span></a> outside of edit mode - it
+simply allows you to view the image, and change the displayed location.</p></li>
+<li><p><img alt="pencil_button" src="_images/editing_images_pencil_button.png" /> <strong>Pencil</strong> In <a class="reference internal" href="#editing-images-draw-mode"><span class="std std-ref">draw mode</span></a>,
+this tool allows you to change voxel values to the current fill value. In
+<a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>, this tool allows you to
+add voxels to the current selection.</p></li>
+<li><p><img alt="eraser_button" src="_images/editing_images_eraser_button.png" /> <strong>Eraser</strong> In <a class="reference internal" href="#editing-images-draw-mode"><span class="std std-ref">draw mode</span></a>,
+this tool allows you to erase voxels (set their value to zero). In
+<a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a> this tool allows you to
+remove voxels from the current selection.</p></li>
+<li><p><img alt="bucket_button" src="_images/editing_images_bucket_button.png" /> <strong>Bucket</strong> This tool allows you to fill closed regions - in
+draw mode, regions in the image can be filled, and in select mode, regions
+in the selection can be filled.</p></li>
+<li><p><img alt="selint_button" src="_images/editing_images_selint_button.png" /> <strong>Select by intensity</strong> This tool (only available in
+<a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) allows you to
+automatically select voxels based on their intensity.</p></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="draw-mode">
+<span id="editing-images-draw-mode"></span><h2>Draw mode<a class="headerlink" href="#draw-mode" title="Permalink to this headline">¶</a></h2>
+<p><img alt="draw_mode_button" src="_images/editing_images_draw_mode_button.png" /> When you first enter edit mode, you will be in <em>Draw
+mode</em>. In draw mode, you can:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><img alt="navigate_button" src="_images/editing_images_navigate_button.png" /> Use the <em>navigate</em> tool to change the display location.</p></li>
+<li><p><img alt="pencil_button" src="_images/editing_images_pencil_button.png" /> Use the <em>pencil</em> tool to change voxel values.</p></li>
+<li><p><img alt="eraser_button" src="_images/editing_images_eraser_button.png" /> Use the <em>eraser</em> tool to erase voxels.</p></li>
+<li><p><img alt="bucket_button" src="_images/editing_images_bucket_button.png" /> Use the <em>bucket</em> tool to fill in regions.</p></li>
+<li><p><img alt="undo_button" src="_images/editing_images_undo_button.png" /> <img alt="redo_button" src="_images/editing_images_redo_button.png" /> Use the <em>undo</em> and <em>redo</em> buttons to undo/redo
+changes that you have made to the currently selected image.</p></li>
+</ul>
+</div></blockquote>
+<p>Draw mode will be familiar to you if you are used to editing images in
+FSLView. Select the <em>pencil</em> tool, then click, or click and drag, on the
+image. When you release the mouse, the values of all of the highlighted voxels
+will be replaced with the current fill value (which can be changed on the
+<a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a>).</p>
+<p>You can use the <em>eraser</em> tool in a similar manner - click, or click and drag
+on the image. When you release the mouse, the values of the highlighted voxels
+will be replaced with zero (or with the current erase value - see the
+<a class="reference internal" href="#editing-images-edit-settings-panel"><span class="std std-ref">edit settings panel</span></a>).</p>
+<p>The pencil/eraser size can be adjusted with the <em>Selection size</em> control on
+the <a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a>. You can also hold down
+the ⌘ and ⇧ keys and spin the mouse wheel to
+increase/decrease the pencil size.</p>
+<p>The <em>bucket</em> tool can be used to fill in holes. Use the pencil tool to draw a
+loop around the region you wish to fill, making sure that the loop is closed.
+Then select the bucket tool, and click inside the region - all of the voxels
+within the loop will be filled.</p>
+<p>The <img alt="2D_3D_buttons" src="_images/editing_images_2D_3D_buttons.png" /> buttons allow you to switch between using a 2D selection
+region in slice, and using a 3D selection which extends across multiple
+slices. The bucket tool only works in 2D mode.</p>
+</div>
+<div class="section" id="select-mode">
+<span id="editing-images-select-mode"></span><h2>Select mode<a class="headerlink" href="#select-mode" title="Permalink to this headline">¶</a></h2>
+<p><img alt="select_mode_button" src="_images/editing_images_select_mode_button.png" /> Select mode offers more flexibility than <a class="reference internal" href="#editing-images-draw-mode"><span class="std std-ref">draw mode</span></a>, but is slightly more involved. In select mode,
+editing an image is a two-step process:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Select the voxels you wish to change. You can do this in one of two ways:</p>
+<ul class="simple">
+<li><p>By <a class="reference internal" href="#editing-images-manual-selection"><span class="std std-ref">manually drawing</span></a> your
+selection with the pencil <img alt="pencil_button" src="_images/editing_images_pencil_button.png" />, eraser <img alt="eraser_button" src="_images/editing_images_eraser_button.png" />,
+and <img alt="bucket_button" src="_images/editing_images_bucket_button.png" /> tools.</p></li>
+<li><p>By using the <a class="reference internal" href="#editing-images-select-by-intensity"><span class="std std-ref">select by intensity</span></a> tool <img alt="selint_button" src="_images/editing_images_selint_button.png" /> to
+automatically select voxels based on their intensity.</p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#editing-images-changing-voxel-values"><span class="std std-ref">Change</span></a> the value of the
+selected voxels by filling or erasing.</p></li>
+</ol>
+</div></blockquote>
+<p>In select mode, you can select voxels in one image, and then apply that
+selection to another image <a class="footnote-reference brackets" href="#id2" id="id1">*</a> - you can do this simply by selecting, in the
+<a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-overlay-list"><span class="std std-ref">overlay list</span></a>, the image you wish to
+apply the selection to, or by using the <em>Target image</em> setting, on the
+<a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a>.</p>
+<p>This means that you can, for example, select a lesion in a T<sub>1</sub> image,
+and then fill in the voxels for that lesion in a corresponding mask image.
+You can also copy the values of all voxels in a selection, and paste them into
+another image - see the section on <a class="reference internal" href="#editing-images-copying-and-pasting"><span class="std std-ref">copying and pasting</span></a> for details.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">*</a></span></dt>
+<dd><p><strong>As long as</strong> the newly selected image has the same dimensions,
+resolution and orientation as the previous one.</p>
+</dd>
+</dl>
+<div class="section" id="manual-selection">
+<span id="editing-images-manual-selection"></span><h3>Manual selection<a class="headerlink" href="#manual-selection" title="Permalink to this headline">¶</a></h3>
+<p>In select mode, the pencil <img alt="pencil_button" src="_images/editing_images_pencil_button.png" />, eraser <img alt="eraser_button" src="_images/editing_images_eraser_button.png" />, and bucket
+<img alt="bucket_button" src="_images/editing_images_bucket_button.png" /> tools are respectively used to select and deselect voxels.</p>
+<p>Using the pencil tool, left-clicking will select voxels under the selection
+cursor. Selected voxels are highlighted in pink (you can change the selection
+colour in the <a class="reference internal" href="#editing-images-edit-settings-panel"><span class="std std-ref">edit settings panel</span></a>).  Left clicking with the eraser tool
+will remove voxels from the selection <a class="footnote-reference brackets" href="#id4" id="id3">†</a>.</p>
+<p>In the same manner as with draw mode, you can fill regions in the selection
+using the bucket tool. Draw a loop with the pencil tool, then switch to the
+bucket tool and click inside the loop - all voxels within the loop will be
+added to the selection.</p>
+<p>You can adjust the selection cursor size via the <em>Selection size</em> control in
+the <a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a>, or by holding down the
+⌘/⌃ and ⇧ keys and spinning the mouse wheel.</p>
+<p>By default, the selection cursor is a 2-dimensional rectangle in the current
+slice, but it can be made into a 3-dimensional cuboid by changing to a 3D
+selection, via the <img alt="2D_3D_buttons" src="_images/editing_images_2D_3D_buttons.png" /> buttons on the <a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a>.</p>
+<p>At any point, you can discard your current selection with the <em>Clear
+selection</em> button <img alt="clear_selection_button" src="_images/editing_images_clear_selection_button.png" /> on the <a class="reference internal" href="#editing-images-action-toolbar"><span class="std std-ref">action toolbar</span></a> - clicking this will deselect all voxels.</p>
+<p>Once you are happy with your selection, you can fill, erase, or copy it with
+the buttons on the <a class="reference internal" href="#editing-images-action-toolbar"><span class="std std-ref">action toolbar</span></a>.  See
+the sections on <a class="reference internal" href="#editing-images-changing-voxel-values"><span class="std std-ref">changing voxel values</span></a>, and <a class="reference internal" href="#editing-images-copying-and-pasting"><span class="std std-ref">copying and pasting</span></a> for details.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id3">†</a></span></dt>
+<dd><p>In fact, when you are using the pencil tool, right-clicking will
+deselect voxels. Similarly, with the eraser tool, right-clicking will
+select voxels. So you do not need to continually switch between the
+pencil and eraser tools - simply use both mouse buttons.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="select-by-intensity">
+<span id="editing-images-select-by-intensity"></span><h3>Select by intensity<a class="headerlink" href="#select-by-intensity" title="Permalink to this headline">¶</a></h3>
+<p>As an alternate to manually drawing the selection, voxels can be selected
+automatically based on their intensity/value. You can do this with the <em>select
+by intensity</em> tool <img alt="selint_button" src="_images/editing_images_selint_button.png" />, accessed through the <a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a>.</p>
+<p>With the select by intensity tool, left-clicking on a voxel (the <em>seed</em>) will
+result in all voxels that have a value similar to that voxel being selected
+<a class="footnote-reference brackets" href="#id8" id="id5">‡</a>.  The threshold by which voxels are considered to be similar can be
+changed via the <em>Intensity threshold</em> on the <a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a> <a class="footnote-reference brackets" href="#id9" id="id6">§</a>.</p>
+<p>Various settings, accessed via the <a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a>, are available to constrain the voxels which
+will be selected when you use the select by intensity tool:</p>
+<ul class="simple">
+<li><p><img alt="2D_3D_buttons" src="_images/editing_images_2D_3D_buttons.png" /> The region can be limited to the current slice, or the
+entire image, via the 2D/3D buttons.</p></li>
+<li><p><img alt="select_radius_button" src="_images/editing_images_select_radius_button.png" /> The region be limited to a radius by clicking the
+<em>Limit to radius</em> button.  You can adjust the search radius via the
+<em>Search radius</em> control on the
+<a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a> <a class="footnote-reference brackets" href="#id10" id="id7">¶</a>.</p></li>
+<li><p><img alt="local_search_button" src="_images/editing_images_local_search_button.png" /> The search can be restricted to adjacent voxels by
+pushing the <em>Local search</em> button.  When local search is enabled, voxels
+which are not adjacent to an already-selected voxel (using a 6-neighbour
+connectivity scheme) are excluded from the search.</p></li>
+</ul>
+<dl class="footnote brackets">
+<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id5">‡</a></span></dt>
+<dd><p>In a similar manner to <a class="reference internal" href="#editing-images-manual-selection"><span class="std std-ref">manual selection</span></a>, you can remove voxels from the
+selection with the right mouse button.</p>
+</dd>
+<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id6">§</a></span></dt>
+<dd><p>You can also change the intensity threshold by holding down the
+⌘/⌃ and ⇧ keys and spinning the mouse
+wheel.</p>
+</dd>
+<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id7">¶</a></span></dt>
+<dd><p>The search radius can be also be changed by holding down the ⌥
+and ⇧ keys, and spinning the mouse wheel.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="changing-voxel-values">
+<span id="editing-images-changing-voxel-values"></span><h3>Changing voxel values<a class="headerlink" href="#changing-voxel-values" title="Permalink to this headline">¶</a></h3>
+<p>Once you are happy with your selection you can change the value of the
+selected voxels in one of the following ways:</p>
+<ul class="simple">
+<li><p><img alt="fill_selection_button" src="_images/editing_images_fill_selection_button.png" /> The values of all selected voxels can be replaced
+with the current fill value, by clicking the <em>Fill selection</em> button.
+The current fill value can be modified via the <em>Fill value</em> control on the
+<a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a>.</p></li>
+<li><p><img alt="erase_selection_button" src="_images/editing_images_erase_selection_button.png" /> The values of all selected voxels can be erased
+(set to zero) by clicking the <em>Erase selection</em> button.</p></li>
+</ul>
+<p>Remember that, once you have made a selection on the currently selected image,
+you can apply that selection to a different image (with the same
+dimensions/resolution/orientation), either via the <strong>Target image</strong> setting on
+the <a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a>, or simply by selecting
+the other image in the <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-overlay-list"><span class="std std-ref">overlay list</span></a>. This feature is most useful with the
+<a class="reference internal" href="#editing-images-select-by-intensity"><span class="std std-ref">select by intensity</span></a> tool - you can
+make a selection based on the intensities in one image, but then change the
+values of voxels within that selection in another image.</p>
+</div>
+<div class="section" id="copying-and-pasting">
+<span id="editing-images-copying-and-pasting"></span><h3>Copying and pasting<a class="headerlink" href="#copying-and-pasting" title="Permalink to this headline">¶</a></h3>
+<p>The copy <img alt="copy_selection_button" src="_images/editing_images_copy_selection_button.png" /> and paste <img alt="paste_selection_button" src="_images/editing_images_paste_selection_button.png" /> buttons on
+the <a class="reference internal" href="#editing-images-action-toolbar"><span class="std std-ref">action toolbar</span></a> allow you to copy
+voxel values from one image, and paste them into another image:</p>
+<ol class="arabic simple">
+<li><p>Once you have selected some voxels in an image, either <a class="reference internal" href="#editing-images-manual-selection"><span class="std std-ref">manually</span></a> or with the <a class="reference internal" href="#editing-images-select-by-intensity"><span class="std std-ref">select by intensity
+tool</span></a>, click the copy button
+<img alt="copy_selection_button" src="_images/editing_images_copy_selection_button.png" />. The values of all voxels in the selection are
+copied to an internal clipboard.</p></li>
+<li><p>Select a different image, which has the same dimensions, resolution, and
+orientation as the previously selected image.</p></li>
+<li><p>Click the paste button <img alt="paste_selection_button" src="_images/editing_images_paste_selection_button.png" />. The voxel values from the
+first image will be pasted into the newly selected image.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="edit-mode-toolbars-and-panels">
+<h2>Edit mode toolbars and panels<a class="headerlink" href="#edit-mode-toolbars-and-panels" title="Permalink to this headline">¶</a></h2>
+<p>When you enter edit mode, two toolbars are added the ortho view you are
+working in:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The <a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a>, along the top,
+allows you to control how editing/selections are performed.</p></li>
+<li><p>The <a class="reference internal" href="#editing-images-action-toolbar"><span class="std std-ref">action toolbar</span></a>, down the left
+hand side, allows you to perform various actions related to editing.</p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="the-edit-toolbar">
+<span id="editing-images-edit-toolbar"></span><h3>The edit toolbar<a class="headerlink" href="#the-edit-toolbar" title="Permalink to this headline">¶</a></h3>
+<p>The edit toolbar allows you to change the editing mode, to choose the editing
+tool, and to configure some options and settings:</p>
+<a class="reference internal image-reference" href="_images/editing_images_edit_toolbar.png"><img alt="_images/editing_images_edit_toolbar.png" class="align-center" src="_images/editing_images_edit_toolbar.png" style="width: 95%;" /></a>
+<ol class="arabic simple">
+<li><p><strong>Editing mode</strong> These buttons allow you to switch between <a class="reference internal" href="#editing-images-draw-mode"><span class="std std-ref">draw mode</span></a> and <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>.</p></li>
+<li><p><strong>Edit tool</strong> These buttons allow you to choose the current tool -
+<em>navigate</em>, <em>pencil</em>, <em>eraser</em>, <em>bucket</em>, or <em>select by intensity</em>.</p></li>
+<li><p><strong>2D/3D mode</strong> You can toggle between selecting voxels in the current
+slice (2D), or selecting voxels across multiple slices (3D).</p></li>
+<li><p><strong>Limit to radius</strong> (only available in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) This button allows you to limit the <em>select
+by intensity</em> search to a specific radius (specified via the <em>Search
+radius</em>).</p></li>
+<li><p><strong>Local search</strong> (only available in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) This button allows you to limit the <em>select
+by intensity</em> search to adjacent voxels only.</p></li>
+<li><p><strong>Selection size</strong> This setting controls the selection cursor size, when
+<a class="reference internal" href="#editing-images-draw-mode"><span class="std std-ref">drawing</span></a>, or <a class="reference internal" href="#editing-images-manual-selection"><span class="std std-ref">manually selecting
+voxels</span></a>.</p></li>
+<li><p><strong>Fill value</strong> This setting controls the fill value used when editing
+voxel values.</p></li>
+<li><p><strong>Intensity threshold</strong> (only available in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) This setting controls the threshold used
+when using the <a class="reference internal" href="#editing-images-select-by-intensity"><span class="std std-ref">select by intensity</span></a> tool.</p></li>
+<li><p><strong>Search radius size</strong> (only available in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) This setting controls the size of the search
+radius, when the <em>Limit to radius</em> setting is enabled.</p></li>
+<li><p><strong>Target image</strong> (only available in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) This setting allows you to choose a
+<em>target</em>, or <em>destination</em> image for fill/paste operations. Voxels will be
+selected according to the <a class="reference internal" href="overview.html#overview-overlays"><span class="std std-ref">currently selected overlay</span></a>, but the selection will be applied to the current
+target image.</p></li>
+</ol>
+</div>
+<div class="section" id="the-action-toolbar">
+<span id="editing-images-action-toolbar"></span><h3>The action toolbar<a class="headerlink" href="#the-action-toolbar" title="Permalink to this headline">¶</a></h3>
+<p>The action toolbar contains buttons allowing you to perform various editing
+actions.</p>
+<a class="reference internal image-reference" href="_images/editing_images_action_toolbar.png"><img alt="_images/editing_images_action_toolbar.png" class="align-left" src="_images/editing_images_action_toolbar.png" style="width: 30%;" /></a>
+<ol class="arabic simple">
+<li><p><strong>Edit settings panel</strong> This button opens the <a class="reference internal" href="#editing-images-edit-settings-panel"><span class="std std-ref">edit settings panel</span></a>, which contains all options related
+to editing.</p></li>
+<li><p><strong>Copy image</strong> This button creates an empty 3D copy of the currently
+selected image, and adds it to the overlay list.</p></li>
+<li><p><strong>Cursor follows mouse</strong> By default, when you draw/select or erase/deselect
+voxels using the pencil or eraser tools, the currently displayed location
+will update as you move the mouse. This button allows you to disable this
+behaviour.</p></li>
+<li><p><strong>Undo</strong> This button undoes the most recent change to the currently selected
+image.</p></li>
+<li><p><strong>Redo</strong> This button re-does the most recently undone change to the
+currently selected image.</p></li>
+<li><p><strong>Show/hide selection</strong> (only available in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) This button allows you to turn on and off
+the selection overlay.</p></li>
+<li><p><strong>Clear selection</strong> (only available in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) This button clears the current selection,
+i.e. all voxels are deselected.</p></li>
+<li><p><strong>Fill selection</strong> (only available in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) This button fills the current selection -
+the value of all selected voxels is set to the current fill value.</p></li>
+<li><p><strong>Erase selection</strong> (only available in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) This button erases the current selection -
+the value of all selected voxels is set to zero.</p></li>
+<li><p><strong>Copy selection</strong> (only available in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) This button <a class="reference internal" href="#editing-images-copying-and-pasting"><span class="std std-ref">copies</span></a> the current selection - the values
+of all selected voxels are copied to an internal clipboard.</p></li>
+<li><p><strong>Paste selection</strong> (only available in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>) This button <a class="reference internal" href="#editing-images-copying-and-pasting"><span class="std std-ref">pastes</span></a> the selection on the clipboard into
+the currently selected image (if it has compatible dimensionality).</p></li>
+</ol>
+</div>
+<div class="section" id="the-edit-menu">
+<span id="editing-images-edit-menu"></span><h3>The edit menu<a class="headerlink" href="#the-edit-menu" title="Permalink to this headline">¶</a></h3>
+<p>Several of the options in the <a class="reference internal" href="#editing-images-action-toolbar"><span class="std std-ref">action toolbar</span></a> are also available in the edit menu, which
+appears when you enter edit mode:</p>
+<a class="reference internal image-reference" href="_images/editing_images_edit_menu.png"><img alt="_images/editing_images_edit_menu.png" class="align-center" src="_images/editing_images_edit_menu.png" style="width: 30%;" /></a>
+</div>
+<div class="section" id="the-edit-settings-panel">
+<span id="editing-images-edit-settings-panel"></span><h3>The edit settings panel<a class="headerlink" href="#the-edit-settings-panel" title="Permalink to this headline">¶</a></h3>
+<p>The edit settings panel can be opened via the spanner button
+<img alt="edit_spanner_button" src="_images/editing_images_edit_spanner_button.png" /> on the <a class="reference internal" href="#editing-images-action-toolbar"><span class="std std-ref">action toolbar</span></a>.</p>
+<a class="reference internal image-reference" href="_images/editing_images_edit_settings_panel.png"><img alt="_images/editing_images_edit_settings_panel.png" class="align-center" src="_images/editing_images_edit_settings_panel.png" style="width: 50%;" /></a>
+<p>In FSLeyes 0.29.0, the edit settings panel only contains a few settings in
+addition to those that can be accessed via the <a class="reference internal" href="#editing-images-edit-toolbar"><span class="std std-ref">edit toolbar</span></a>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>Erase value</strong> This setting allows you to change the value to use when
+erasing voxels.</p></li>
+<li><p><strong>Selection cursor colour</strong> This setting allows you to change the colour
+of the selection cursor.</p></li>
+<li><p><strong>Selection overlay colour</strong> This setting allows you to change the colour
+of the selection overlay (only visible in <a class="reference internal" href="#editing-images-select-mode"><span class="std std-ref">select mode</span></a>).</p></li>
+<li><p><strong>Intensity threshold limit</strong> By default, the maximum value that the
+intensity threshold can be set to is determined from the image data range.
+If your image has an unusual data range or distribution, you may wish to
+use this setting to manually set the maximum intensity threshold.</p></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="feat_mode.html" class="btn btn-neutral float-right" title="Viewing FEAT analyses" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="atlases.html" class="btn btn-neutral float-left" title="Atlases" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Paul McCarthy, University of Oxford, Oxford, UK
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

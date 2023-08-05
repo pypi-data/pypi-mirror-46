@@ -1,0 +1,467 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>IC classification &mdash; FSLeyes 0.29.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tools" href="tools.html" />
+    <link rel="prev" title="Viewing FEAT analyses" href="feat_mode.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> FSLeyes
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.29.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overlays.html">Overlays</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ortho_lightbox_views.html">Orthographic/lightbox views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_views.html">Plotting views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3d_view.html">3D view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atlases.html">Atlases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="editing_images.html">Editing NIFTI images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feat_mode.html">Viewing FEAT analyses</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">IC classification</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#loading-a-melodic-analysis">Loading a MELODIC analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-melodic-layout">The MELODIC layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#component-time-series-and-power-spectra">Component time series and power spectra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#classifying-components-with-the-classification-panel">Classifying components with the classification panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ic-classification-file-format">IC Classification file format</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fsleyes_notebook.html">FSLeyes and Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="display_space.html">The display space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising.html">Customising FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">FSLeyes plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html"><code class="docutils literal notranslate"><span class="pre">fsleyes</span></code> release history</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FSLeyes</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>IC classification</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ic_classification.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ic-classification">
+<span id="id1"></span><h1>IC classification<a class="headerlink" href="#ic-classification" title="Permalink to this headline">¶</a></h1>
+<p>FSLeyes has some features to assist you in viewing and classifying the results
+of a <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/MELODIC">MELODIC</a> analysis.  In
+particular, FSLeyes offers similar capability to the <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Melview">Melview</a> tool, for manual component
+classification. Manual classification of MELODIC components is a necessary
+step in training the <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FIX">FIX</a>
+classifier.</p>
+<div class="section" id="loading-a-melodic-analysis">
+<span id="ic-classification-loading-a-melodic-analysis"></span><h2>Loading a MELODIC analysis<a class="headerlink" href="#loading-a-melodic-analysis" title="Permalink to this headline">¶</a></h2>
+<div class="sidebar">
+<p class="sidebar-title">What does a MELODIC analysis directory look like?</p>
+<p>FSLeyes requires a MELODIC directory to meet the following
+rules. If any of these rules are not met, FSLeyes will not
+recognise your directory as a MELODIC analysis:</p>
+<ul class="simple">
+<li><p>The directory name must end in <code class="docutils literal notranslate"><span class="pre">.ica</span></code>.</p></li>
+<li><p>The directory must contain the following files:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code>: A 4D NIFTI image containing one spatial
+component map in each 3D volume.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">melodic_mix</span></code>: The component time courses</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">melodic_FTmix</span></code>: The component power spectra</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>You can load a MELODIC analysis in a few different ways:</p>
+<ul>
+<li><p>From the <a class="reference internal" href="command_line.html#command-line"><span class="std std-ref">command line</span></a> - you can specify either an
+<code class="docutils literal notranslate"><span class="pre">.ica</span></code> directory <a class="footnote-reference brackets" href="#id3" id="id2">*</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">my_analysis</span><span class="o">.</span><span class="n">ica</span>
+</pre></div>
+</div>
+<p>Or the <code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code> image:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">my_analysis</span><span class="o">.</span><span class="n">ica</span><span class="o">/</span><span class="n">melodic_IC</span>
+</pre></div>
+</div>
+</li>
+<li><p>Via <em>File</em> ⇒ <em>Add from directory</em> - select your
+<code class="docutils literal notranslate"><span class="pre">.ica</span></code> analysis directory.</p></li>
+<li><p>Via <em>File</em> ⇒ <em>Add from file</em> - select the
+<code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code> image located in your <code class="docutils literal notranslate"><span class="pre">.ica</span></code> analysis directory.</p></li>
+</ul>
+<dl class="footnote brackets">
+<dt class="label" id="id3"><span class="brackets"><a class="fn-backref" href="#id2">*</a></span></dt>
+<dd><p>If you are working with a single-subject analysis generated via the
+MELODIC GUI, there will be two levels of directories ending in
+<code class="docutils literal notranslate"><span class="pre">.ica</span></code>. You need to pass the path to the inner directory to FSLeyes -
+this is typically called <code class="docutils literal notranslate"><span class="pre">filtered_func_data.ica</span></code>.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="the-melodic-layout">
+<span id="ic-classification-the-melodic-layout"></span><h2>The MELODIC layout<a class="headerlink" href="#the-melodic-layout" title="Permalink to this headline">¶</a></h2>
+<p>The MELODIC layout arranges the FSLeyes interface in a layout inspired by
+Melview, to assist in manual component classification.</p>
+<a class="reference internal image-reference" href="_images/ic_classification_melodic_perspective.png"><img alt="_images/ic_classification_melodic_perspective.png" class="align-center" src="_images/ic_classification_melodic_perspective.png" style="width: 75%;" /></a>
+<p>The MELODIC layout comprises a <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-lightbox"><span class="std std-ref">lightbox view</span></a>, a <a class="reference internal" href="plot_views.html#plot-views-time-series-view"><span class="std std-ref">time series</span></a> and <a class="reference internal" href="plot_views.html#plot-views-power-spectrum-view"><span class="std std-ref">power spectrum</span></a> view, and an IC classification panel
+(described <a class="reference internal" href="#ic-classification-classifying-components-with-the-classification-panel"><span class="std std-ref">below</span></a>).</p>
+<p>You can activate the MELODIC layout via the <em>View</em> ⇒
+<em>Layouts</em> ⇒ <em>MELODIC mode</em> menu item. Or you can tell FSLeyes
+to start up with the MELODIC layout via the <a class="reference internal" href="command_line.html#command-line"><span class="std std-ref">command line</span></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">-</span><span class="n">s</span> <span class="n">melodic</span> <span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">my_analysis</span><span class="o">.</span><span class="n">ica</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="component-time-series-and-power-spectra">
+<span id="id4"></span><h2>Component time series and power spectra<a class="headerlink" href="#component-time-series-and-power-spectra" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="plot_views.html#plot-views-time-series-view"><span class="std std-ref">time series</span></a> and <a class="reference internal" href="plot_views.html#plot-views-power-spectrum-view"><span class="std std-ref">power
+spectrum</span></a> views both recognise when you are
+viewing a <code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code> image from a MELODIC analysis. Instead of plotting
+the intensities at the current <em>voxel</em>, the time series and power spectrum for
+the current <em>component</em> is plotted - the current component is determined by
+the 3D volume that you are currently viewing.</p>
+<p>If, instead of viewing the time series and power spectrum for the current
+component, you actually want to view the voxel intensities or voxel power
+spectrum from a <code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code> file, both plotting views have an option,
+accessed through the <a class="reference internal" href="plot_views.html#plot-views-customising-the-plot-the-plot-control-panel"><span class="std std-ref">plot control panel</span></a>:</p>
+<a class="reference internal image-reference" href="_images/ic_classification_time_series_settings.png"><img alt="_images/ic_classification_time_series_settings.png" class="align-center" src="_images/ic_classification_time_series_settings.png" style="width: 65%;" /></a>
+<a class="reference internal image-reference" href="_images/ic_classification_power_spectrum_settings.png"><img alt="_images/ic_classification_power_spectrum_settings.png" class="align-center" src="_images/ic_classification_power_spectrum_settings.png" style="width: 40%;" /></a>
+<p>The <em>Plot component time series for Melodic images</em> and <em>Plot component power
+spectra for Melodic images</em>, both enabled by default, allow you to choose
+between plotting data for the current component, or plotting data for the
+current voxel.</p>
+</div>
+<div class="section" id="classifying-components-with-the-classification-panel">
+<span id="ic-classification-classifying-components-with-the-classification-panel"></span><h2>Classifying components with the classification panel<a class="headerlink" href="#classifying-components-with-the-classification-panel" title="Permalink to this headline">¶</a></h2>
+<p>The IC classification panel allows you to view and modify classification
+labels for each component in a <code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code> file <a class="footnote-reference brackets" href="#id8" id="id5">†</a>. The IC classification
+panel displays a list of components, and one or more classification labels for
+each component:</p>
+<a class="reference internal image-reference" href="_images/ic_classification_classification_panel_components.png"><img alt="_images/ic_classification_classification_panel_components.png" class="align-center" src="_images/ic_classification_classification_panel_components.png" style="width: 60%;" /></a>
+<p>The <em>Components</em> and <em>Labels</em> tabs along the top allow you to switch between
+organising the list by component, or organising the list by label. The
+<em>Labels</em> tab displays the same information, but organised by label, instead
+of by component:</p>
+<a class="reference internal image-reference" href="_images/ic_classification_classification_panel_labels.png"><img alt="_images/ic_classification_classification_panel_labels.png" class="align-center" src="_images/ic_classification_classification_panel_labels.png" style="width: 60%;" /></a>
+<p>The buttons along the bottom of the panel allow you to:</p>
+<ul class="simple">
+<li><p><strong>Load labels</strong> Load a set of classifications from a file (see the section
+on the <a class="reference internal" href="#ic-classification-file-format"><span class="std std-ref">label file format</span></a> below).</p></li>
+<li><p><strong>Save labels</strong> Save your labels to a file. These files can be used as
+inputs to <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FIX">FIX</a>.</p></li>
+<li><p><strong>Clear labels</strong> Clear all of the existing labels - each component will be
+given a label of <em>Unknown</em>.</p></li>
+</ul>
+<p>When working in the <em>Components</em> list, each row contains the labels for one
+component, corresponding to one volume in the <code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code> file <a class="footnote-reference brackets" href="#id9" id="id7">‡</a>. If you
+are using the <a class="reference internal" href="#ic-classification-the-melodic-layout"><span class="std std-ref">MELODIC layout</span></a>, when you select a row in the
+component list, the lightbox, time series, and power spectrum views will
+update to display the volume, time course, and power spectrum corresponding to
+the selected component.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id5">†</a></span></dt>
+<dd><p>The classification panel can actually be used to label the volumes of
+any 4D NIFTI image, not just <code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code> images.</p>
+</dd>
+<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id7">‡</a></span></dt>
+<dd><p><strong>Important</strong>: In FSLeyes 0.29.0, component indices start at 1, but
+volume indices start at 0! This means that, for example, <cite>IC #1</cite> in the
+classification panel corresponds to volume 0 in the <code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code> file
+(as reported in the <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-location-panel"><span class="std std-ref">location panel</span></a>).</p>
+</dd>
+</dl>
+<div class="sidebar">
+<p class="sidebar-title">Available labels</p>
+<p>The following classification labels are built into FSLeyes, but
+you are free to type in your own. You may also customise this
+list by modifying the <code class="docutils literal notranslate"><span class="pre">melodic-classes</span></code> lookup table - see the
+page on <a class="reference internal" href="customising.html#customising"><span class="std std-ref">customising FSLeyes</span></a> for more
+details:</p>
+<ul class="simple">
+<li><p>Signal</p></li>
+<li><p>Unknown</p></li>
+<li><p>Unclassified noise</p></li>
+<li><p>Movement</p></li>
+<li><p>Cardiac</p></li>
+<li><p>White matter</p></li>
+<li><p>Non-brain</p></li>
+<li><p>MRI</p></li>
+<li><p>Susceptibility-motion</p></li>
+<li><p>Sagittal sinus</p></li>
+<li><p>Respiratory</p></li>
+</ul>
+</div>
+<p>The classification panel is designed to be used entirely with the keyboard
+<a class="footnote-reference brackets" href="#id11" id="id10">§</a>:</p>
+<ol class="arabic simple">
+<li><p>Move up and down the list with the ↑ and ↓ keys.</p></li>
+<li><p>When you select a row, simply start typing the label you wish to apply to
+the component. A drop-down box will appear containing a list of known
+labels. You can use the ↑ and ↓ keys to select an
+entry from this list, or continue typing the label manually. Press
+<strong>Enter</strong> when you have finished typing, and the label will be added to the
+component.</p></li>
+<li><p>When you select a row, you can also press <em>Enter</em> to display the drop down
+box immediately, instead of typing a label.</p></li>
+<li><p>You can use the ← and → keys to move between
+labels for the current component. When a label is selected (the label box
+will be outlined with a faint pink border) you can push the <strong>Delete</strong> key
+to remove that label from the component.</p></li>
+</ol>
+<p>While the above description pertains to the <em>Components</em> list, the <em>Labels</em>
+list can be used in the same manner.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id10">§</a></span></dt>
+<dd><p>Keyboard navigation may not work correctly on some platforms - refer to
+the <a class="reference internal" href="troubleshooting.html#troubleshooting-keyboard-navigation-doesnt-work-in-the-ic-classification-panel"><span class="std std-ref">troubleshooting page</span></a>
+for more details.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="ic-classification-file-format">
+<span id="id12"></span><h2>IC Classification file format<a class="headerlink" href="#ic-classification-file-format" title="Permalink to this headline">¶</a></h2>
+<p>The file format used by FSLeyes for storing IC classification labels is
+compatible <a class="footnote-reference brackets" href="#id17" id="id13">¶</a> to that used by <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Melview">Melview</a> and <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FIX">FIX</a>. FSLeyes is also able to load
+label files generated by <a class="reference external" href="https://github.com/rhr-pruim/ICA-AROMA">ICA-AROMA</a>, a classifier for detecting
+motion-related ICs.</p>
+<p>An IC classificaiton file is a plain text file which looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">filtered_func_data</span><span class="o">.</span><span class="n">ica</span>
+<span class="mi">1</span><span class="p">,</span> <span class="n">Signal</span><span class="p">,</span> <span class="kc">False</span>
+<span class="mi">2</span><span class="p">,</span> <span class="n">Unclassified</span> <span class="n">Noise</span><span class="p">,</span> <span class="kc">True</span>
+<span class="mi">3</span><span class="p">,</span> <span class="n">Unknown</span><span class="p">,</span> <span class="kc">False</span>
+<span class="mi">4</span><span class="p">,</span> <span class="n">Signal</span><span class="p">,</span> <span class="kc">False</span>
+<span class="mi">5</span><span class="p">,</span> <span class="n">Unclassified</span> <span class="n">Noise</span><span class="p">,</span> <span class="kc">True</span>
+<span class="mi">6</span><span class="p">,</span> <span class="n">Unclassified</span> <span class="n">Noise</span><span class="p">,</span> <span class="kc">True</span>
+<span class="mi">7</span><span class="p">,</span> <span class="n">Non</span><span class="o">-</span><span class="n">brain</span><span class="p">,</span> <span class="n">Movement</span><span class="p">,</span> <span class="kc">True</span>
+<span class="mi">8</span><span class="p">,</span> <span class="n">Signal</span><span class="p">,</span> <span class="kc">False</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The file format comprises three sections:</p>
+<ul class="simple">
+<li><p>The first line of the file contains the name of the MELODIC directory which
+the label file corresponds to (specified as a path relative to the location
+of the label file).</p></li>
+<li><p>Then, one line is present for each component. Each component line contains
+the following, separated by commas:</p>
+<ul>
+<li><p>The component index (starting from 1).</p></li>
+<li><p>One or more labels for the component (multiple labels are separated with a
+comma).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if the component has been classified as a <em>bad</em> component <a class="footnote-reference brackets" href="#id18" id="id16">#</a>,
+<code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p></li>
+</ul>
+</li>
+<li><p>The last line of the file contains the indices (starting from 1) of all
+<em>bad</em> components. These indices are separated with commas, and contained
+within square brackets.</p></li>
+</ul>
+<p>FSLeyes is also capable of loading classification files which only contain the
+bad component list. Such files contain a single line of comma-separated
+component indices, which may or may not be contained within square
+brackets. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>This is also valid:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span>
+</pre></div>
+</div>
+<dl class="footnote brackets">
+<dt class="label" id="id17"><span class="brackets"><a class="fn-backref" href="#id13">¶</a></span></dt>
+<dd><p>The one exception to this is that files saved with FSLeyes, which
+contain more than one label per component, cannot be loaded into
+Melview.  These files <em>can</em> be used with FIX, however.</p>
+</dd>
+<dt class="label" id="id18"><span class="brackets"><a class="fn-backref" href="#id16">#</a></span></dt>
+<dd><p>A <em>bad</em> component is defined as any component which does not have a a
+label of <code class="docutils literal notranslate"><span class="pre">Signal</span></code> or <code class="docutils literal notranslate"><span class="pre">Unknown</span></code>.</p>
+</dd>
+</dl>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tools.html" class="btn btn-neutral float-right" title="Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="feat_mode.html" class="btn btn-neutral float-left" title="Viewing FEAT analyses" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Paul McCarthy, University of Oxford, Oxford, UK
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

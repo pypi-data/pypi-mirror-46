@@ -1,0 +1,526 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Command line interface &mdash; FSLeyes 0.29.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="FSLeyes and Jupyter Notebook" href="fsleyes_notebook.html" />
+    <link rel="prev" title="Tools" href="tools.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> FSLeyes
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.29.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overlays.html">Overlays</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ortho_lightbox_views.html">Orthographic/lightbox views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_views.html">Plotting views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3d_view.html">3D view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atlases.html">Atlases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="editing_images.html">Editing NIFTI images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feat_mode.html">Viewing FEAT analyses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ic_classification.html">IC classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command line interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#help">Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#useful-command-line-options">Useful command line options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#auto-display">Auto-display</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#add-standard">Add standard</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#layouts">Layouts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#font-size">Font size</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#neurological-orientation">Neurological orientation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#force-load-images">Force-load images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#run-script">Run script</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-command-line-arguments">Generating command line arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#volume-overlays">Volume overlays</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vector-overlays">Vector overlays</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#melodic-mode">Melodic mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lightbox-view">Lightbox view</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#off-screen-rendering">Off-screen rendering</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fsleyes_notebook.html">FSLeyes and Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="display_space.html">The display space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising.html">Customising FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">FSLeyes plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html"><code class="docutils literal notranslate"><span class="pre">fsleyes</span></code> release history</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FSLeyes</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Command line interface</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/command_line.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="command-line-interface">
+<span id="command-line"></span><h1>Command line interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h1>
+<p>FSLeyes has a comprehensive command line interface. Nearly everything that you
+can control through the <a class="reference internal" href="overlays.html#overlays-overlay-display-panel"><span class="std std-ref">overlay display panel</span></a>, and the <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-view-settings"><span class="std std-ref">view settings panel</span></a> for orthographic/lightbox/3D views, can
+be set via the command line.</p>
+<div class="section" id="overview">
+<span id="command-line-overview"></span><h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The FSLeyes command line interface follows this pattern:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span> <span class="n">file</span> <span class="p">[</span><span class="n">displayOpts</span><span class="p">]</span> <span class="n">file</span> <span class="p">[</span><span class="n">displayOpts</span><span class="p">]</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code> refers to options which relate to FSLeyes layout, behaviour,
+orthographic/lightbox configuration, etc.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">displayOpts</span></code> refers to a group of options which are applied to the
+<code class="docutils literal notranslate"><span class="pre">file</span></code> that preceeds the group.</p></li>
+</ul>
+</div>
+<div class="section" id="help">
+<span id="command-line-help"></span><h2>Help<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h2>
+<p>To get a brief overview of the FSLeyes command line interface, which just
+displays basic options:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">--</span><span class="n">help</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">h</span>
+</pre></div>
+</div>
+<p>To get help on the full FSLeyes command line interface (warning: it is quite
+long!):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">--</span><span class="n">fullhelp</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">fh</span>
+</pre></div>
+</div>
+<p>To print the version of FSLeyes you are using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">--</span><span class="n">version</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">V</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="useful-command-line-options">
+<h2>Useful command line options<a class="headerlink" href="#useful-command-line-options" title="Permalink to this headline">¶</a></h2>
+<p>What follows is a short list highlighting some of the features in FSLeyes that
+you can access through the command line interface. For full details, refer to
+the <a class="reference internal" href="#command-line-help"><span class="std std-ref">command line help</span></a>.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#command-line-auto-display"><span class="std std-ref">Auto display</span></a></p></li>
+<li><p><a class="reference internal" href="#command-line-add-standard"><span class="std std-ref">Add standard</span></a></p></li>
+<li><p><a class="reference internal" href="#command-line-layouts"><span class="std std-ref">Layouts</span></a></p></li>
+<li><p><a class="reference internal" href="#command-line-font-size"><span class="std std-ref">Font size</span></a></p></li>
+<li><p><a class="reference internal" href="#command-line-neurological-orientation"><span class="std std-ref">Neurological orientation</span></a></p></li>
+<li><p><a class="reference internal" href="#command-line-force-load-images"><span class="std std-ref">Force-load images</span></a></p></li>
+<li><p><a class="reference internal" href="#command-line-run-script"><span class="std std-ref">Run script</span></a></p></li>
+</ul>
+<div class="section" id="auto-display">
+<span id="command-line-auto-display"></span><h3>Auto-display<a class="headerlink" href="#auto-display" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">--</span><span class="n">autoDisplay</span> <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">ad</span>          <span class="n">files</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--autoDisplay</span></code> option tells FSLeyes to automatically configure certain
+display properties when you load an overlay. For example, if you start FSLeyes
+with <code class="docutils literal notranslate"><span class="pre">--autoDisplay</span></code>, and then load some Z-statistic images from a
+<a class="reference internal" href="feat_mode.html#feat-mode"><span class="std std-ref">FEAT analysis</span></a>, FSLeyes will set a colour map and threshold
+value on the images.</p>
+<p>As another example, loading a <a class="reference internal" href="ic_classification.html#ic-classification"><span class="std std-ref">MELODIC analysis</span></a> with
+<code class="docutils literal notranslate"><span class="pre">--autoDisplay</span></code> enabled will cause FSLeyes to load a background image, and
+to configure positive and negative colour maps on the <code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code> image.</p>
+</div>
+<div class="section" id="add-standard">
+<span id="command-line-add-standard"></span><h3>Add standard<a class="headerlink" href="#add-standard" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">--</span><span class="n">standard</span>    <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span> <span class="o">--</span><span class="n">standard1mm</span> <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">std</span>         <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">std1mm</span>      <span class="n">files</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--standard</span></code> and <code class="docutils literal notranslate"><span class="pre">--standard1mm</span></code> options respectively tell FSLeyes to
+load 2mm and 1mm versions of the MNI152 template. These options only work if
+your command line environment has been correctly configured to use FSL
+(e.g. the <code class="docutils literal notranslate"><span class="pre">$FSLDIR</span></code> environment variable is set).</p>
+</div>
+<div class="section" id="layouts">
+<span id="command-line-layouts"></span><h3>Layouts<a class="headerlink" href="#layouts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">--</span><span class="n">scene</span> <span class="n">feat</span>     <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span> <span class="o">--</span><span class="n">scene</span> <span class="n">melodic</span>  <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span> <span class="o">--</span><span class="n">scene</span> <span class="n">default</span>  <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span> <span class="o">--</span><span class="n">scene</span> <span class="n">ortho</span>    <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span> <span class="o">--</span><span class="n">scene</span> <span class="n">ligthbox</span> <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">s</span>     <span class="n">feat</span>     <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">s</span>     <span class="n">melodic</span>  <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">s</span>     <span class="n">default</span>  <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">s</span>     <span class="n">ortho</span>    <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">s</span>     <span class="n">ligthbox</span> <span class="n">files</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--scene</span></code> option allows you to tell FSLeyes to start up with a specific
+<a class="reference internal" href="overview.html#overview-layouts"><span class="std std-ref">layout</span></a>. If you have saved your
+own custom layout, you can also load it, by name, using the <code class="docutils literal notranslate"><span class="pre">--scene</span></code>
+option.</p>
+</div>
+<div class="section" id="font-size">
+<span id="command-line-font-size"></span><h3>Font size<a class="headerlink" href="#font-size" title="Permalink to this headline">¶</a></h3>
+<p>You can set the font used throughout the FSLeyes interface via the
+<code class="docutils literal notranslate"><span class="pre">--fontSize</span></code> argument:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">--</span><span class="n">fontSize</span>  <span class="mi">6</span> <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">fs</span>       <span class="mi">14</span> <span class="n">files</span> <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="neurological-orientation">
+<span id="command-line-neurological-orientation"></span><h3>Neurological orientation<a class="headerlink" href="#neurological-orientation" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">--</span><span class="n">neuroOrientation</span> <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">no</span>               <span class="n">files</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>By default, FSLeyes displays images in radiological orientation (i.e. with
+subject right to the left of the display, and subject left to the right). You
+can use the <code class="docutils literal notranslate"><span class="pre">--neuroOrientation</span></code> option to tell FSLeyes to use neurological
+orientation instead.</p>
+</div>
+<div class="section" id="force-load-images">
+<span id="command-line-force-load-images"></span><h3>Force-load images<a class="headerlink" href="#force-load-images" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">--</span><span class="n">bigmem</span> <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">b</span>      <span class="n">files</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>By default, FSLeyes keeps large compressed NIFTI files on disk, only
+decompressing and loading data on-demand (i.e. when it needs to be viewed).
+While this reduces the amount of RAM needed to view such images, it also slows
+down the performance of changing volumes (e.g. via <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-view-settings-movie-mode"><span class="std std-ref">movie mode</span></a>) and of viewing <a class="reference internal" href="plot_views.html#plot-views-time-series-view"><span class="std std-ref">time
+series</span></a>.</p>
+<p>If you are using a computer with a large amount of RAM, and you don’t mind
+loading the entire image into memory, you can use the <code class="docutils literal notranslate"><span class="pre">--bigmem</span></code> argument to
+tell FSLeyes to do just that.</p>
+</div>
+<div class="section" id="run-script">
+<span id="command-line-run-script"></span><h3>Run script<a class="headerlink" href="#run-script" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">--</span><span class="n">runscript</span> <span class="n">script</span><span class="o">.</span><span class="n">py</span> <span class="n">files</span> <span class="o">...</span>
+<span class="n">fsleyes</span>  <span class="o">-</span><span class="n">r</span>         <span class="n">script</span><span class="o">.</span><span class="n">py</span> <span class="n">files</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>FSLeyes has a programming interface which you can use to programmatically set
+up complex scenes. The <code class="docutils literal notranslate"><span class="pre">--runscript</span></code> option allows you to execute a Python
+script when FSLeyes starts, which can load overlays and configure their
+display properties, and set up the FSLeyes interface.  These scripts have
+access to the same environment that is available via the <a class="reference internal" href="fsleyes_notebook.html#fsleyes-notebook"><span class="std std-ref">FSLeyes-Jupyter
+notebook</span></a>.</p>
+</div>
+</div>
+<div class="section" id="generating-command-line-arguments">
+<span id="command-line-generating-arguments"></span><h2>Generating command line arguments<a class="headerlink" href="#generating-command-line-arguments" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views"><span class="std std-ref">orthographic, ligthtbox</span></a> and <a class="reference internal" href="3d_view.html#d-view"><span class="std std-ref">3D</span></a> views have the ability to generate a command line which describes
+the currently displayed scene. This is available in the <em>View</em> sub-menu for
+each of these views, as the <em>Show command line for scene</em> option.  These views
+also have a <em>Apply command line arguments</em> option, which allows you to paste
+in a previosuly generated command line.</p>
+</div>
+<div class="section" id="examples">
+<span id="command-line-examples"></span><h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="volume-overlays">
+<h3>Volume overlays<a class="headerlink" href="#volume-overlays" title="Permalink to this headline">¶</a></h3>
+<p>Set up display/clipping/colourmap/interpolation on an image, and centre
+display at a specific voxel:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">-</span><span class="n">sortho</span> <span class="o">-</span><span class="n">std1mm</span> <span class="o">-</span><span class="n">vl</span> <span class="mi">33</span> <span class="mi">20</span> <span class="mi">31</span> \
+  <span class="n">zstat1</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span> <span class="o">-</span><span class="n">dr</span> <span class="mf">2.5</span> <span class="mf">3.5</span> <span class="o">-</span><span class="n">cr</span> <span class="mf">2.5</span> <span class="mf">3.5</span> <span class="o">-</span><span class="n">cm</span> <span class="n">hot</span> <span class="o">-</span><span class="ow">in</span> <span class="n">spline</span>
+</pre></div>
+</div>
+<p>Set up positive/negative colour map on a PE image:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">-</span><span class="n">std1mm</span> <span class="n">pe1</span> <span class="o">-</span><span class="n">un</span> <span class="o">-</span><span class="n">cm</span> <span class="n">red</span><span class="o">-</span><span class="n">yellow</span> \
+  <span class="o">-</span><span class="n">nc</span> <span class="n">blue</span><span class="o">-</span><span class="n">lightblue</span> <span class="o">-</span><span class="n">dr</span> <span class="mi">10</span> <span class="mi">60</span> <span class="o">-</span><span class="ow">in</span> <span class="n">spline</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="vector-overlays">
+<h3>Vector overlays<a class="headerlink" href="#vector-overlays" title="Permalink to this headline">¶</a></h3>
+<p>Display <code class="docutils literal notranslate"><span class="pre">dtifit</span></code> output as an RGB vector:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">dti_FA</span> <span class="n">dti_V1</span> <span class="o">-</span><span class="n">ot</span> <span class="n">rgbvector</span>
+</pre></div>
+</div>
+<p>Display <code class="docutils literal notranslate"><span class="pre">bedpostx</span></code> two-fibre output as line vectors:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">mean_f1samples</span> <span class="n">dyads1</span> <span class="o">-</span><span class="n">ot</span> <span class="n">linevector</span> <span class="n">dyads2_thr0</span><span class="o">.</span><span class="mi">05</span> <span class="o">-</span><span class="n">ot</span> <span class="n">linevector</span>
+</pre></div>
+</div>
+<p>Display <code class="docutils literal notranslate"><span class="pre">dtifit</span></code> output as a tensor (not possible in a SSH/X11 session).
+You can specify the <code class="docutils literal notranslate"><span class="pre">dtifit</span></code> output directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">dtifit</span><span class="o">/</span><span class="n">dti_FA</span> <span class="n">dtifit</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>Or the 6-volume image containing the unique elements of the tensor matrix:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">dtifit</span><span class="o">/</span><span class="n">dti_FA</span> <span class="n">dtifit</span><span class="o">/</span><span class="n">dti_tensor</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span> <span class="o">-</span><span class="n">ot</span> <span class="n">tensor</span>
+</pre></div>
+</div>
+<p>Display spherical harmonic coefficients (not possible in a SSH/X11 session):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">asym_fods</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span> <span class="o">-</span><span class="n">ot</span> <span class="n">sh</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="melodic-mode">
+<h3>Melodic mode<a class="headerlink" href="#melodic-mode" title="Permalink to this headline">¶</a></h3>
+<p>Specify the path to your filtered_func_data.ica directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">-</span><span class="n">s</span> <span class="n">melodic</span> <span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">analysis</span><span class="o">.</span><span class="n">ica</span><span class="o">/</span><span class="n">filtered_func_data</span><span class="o">.</span><span class="n">ica</span>
+</pre></div>
+</div>
+<p>Or the path to your melodic_IC file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">-</span><span class="n">s</span> <span class="n">melodic</span> <span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">analysis</span><span class="o">.</span><span class="n">ica</span><span class="o">/</span><span class="n">filtered_func_data</span><span class="o">.</span><span class="n">ica</span><span class="o">/</span><span class="n">melodic_IC</span>
+</pre></div>
+</div>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">-ad</span></code> flag (<code class="docutils literal notranslate"><span class="pre">--autoDisplay</span></code>) to automatically set up colour maps:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">-</span><span class="n">ad</span> <span class="o">-</span><span class="n">s</span> <span class="n">melodic</span> <span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">analysis</span><span class="o">.</span><span class="n">ica</span><span class="o">/</span><span class="n">filtered_func_data</span><span class="o">.</span><span class="n">ica</span><span class="o">/</span><span class="n">melodic_IC</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="lightbox-view">
+<h3>Lightbox view<a class="headerlink" href="#lightbox-view" title="Permalink to this headline">¶</a></h3>
+<p>Set Z axis, number of rows, and number of columns:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">-</span><span class="n">slightbox</span> <span class="o">-</span><span class="n">zx</span> <span class="n">Z</span> <span class="o">-</span><span class="n">nr</span> <span class="mi">10</span> <span class="o">-</span><span class="n">nc</span> <span class="mi">10</span> <span class="o">-</span><span class="n">std1mm</span>
+</pre></div>
+</div>
+<p>Set slice spacing (mm):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">-</span><span class="n">slightbox</span> <span class="o">-</span><span class="n">zx</span> <span class="n">Z</span> <span class="o">-</span><span class="n">ss</span> <span class="mi">10</span> <span class="o">-</span><span class="n">std1mm</span>
+</pre></div>
+</div>
+<p>Set slice range (mm, starting from 0):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="o">-</span><span class="n">slightbox</span> <span class="o">-</span><span class="n">zx</span> <span class="n">Z</span> <span class="o">-</span><span class="n">ss</span> <span class="mi">5</span> <span class="o">-</span><span class="n">zr</span>  <span class="mi">0</span>  <span class="mi">91</span> <span class="o">-</span><span class="n">std1mm</span>
+<span class="n">fsleyes</span> <span class="o">-</span><span class="n">slightbox</span> <span class="o">-</span><span class="n">zx</span> <span class="n">Z</span> <span class="o">-</span><span class="n">ss</span> <span class="mi">5</span> <span class="o">-</span><span class="n">zr</span> <span class="mi">91</span> <span class="mi">182</span> <span class="o">-</span><span class="n">std1mm</span>
+<span class="n">fsleyes</span> <span class="o">-</span><span class="n">slightbox</span> <span class="o">-</span><span class="n">zx</span> <span class="n">Z</span> <span class="o">-</span><span class="n">ss</span> <span class="mi">5</span> <span class="o">-</span><span class="n">zr</span> <span class="mi">45</span> <span class="mi">136</span> <span class="o">-</span><span class="n">std1mm</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="off-screen-rendering">
+<span id="command-line-offscreen-rendering"></span><h2>Off-screen rendering<a class="headerlink" href="#off-screen-rendering" title="Permalink to this headline">¶</a></h2>
+<p>FSLeyes is capable of generating screenshots from the command line. This is
+useful, for example, if you need to generate a large number of PNG images for
+quality control purposes. Simply build a FSLeyes command line which generates
+the scene that you wish to view, and then tell FSLeyes to render the scene to
+a file.</p>
+<p>You can access the FSLeyes off-screen renderer by passing the word <code class="docutils literal notranslate"><span class="pre">render</span></code>
+as the <strong>first</strong> argument to FSLeyes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">render</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>FSLeyes should also work on systems which do not have a display (e.g. cluster
+nodes), via a tool such as <a class="reference external" href="https://www.x.org/archive/X11R7.6/doc/man/man1/Xvfb.1.xhtml">Xvfb</a>, which is easy
+to install on most linux platforms. Make sure that you specify a 24-bit
+depth-buffer, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">xvfb</span><span class="o">-</span><span class="n">run</span> <span class="o">-</span><span class="n">s</span> <span class="s2">&quot;-screen 0 640x480x24&quot;</span> <span class="n">fsleyes</span> <span class="n">render</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>You can access command line help in the same manner as <a class="reference internal" href="#command-line-help"><span class="std std-ref">described above</span></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">render</span> <span class="o">--</span><span class="n">help</span>
+<span class="n">fsleyes</span> <span class="n">render</span>  <span class="o">-</span><span class="n">h</span>
+<span class="n">fsleyes</span> <span class="n">render</span> <span class="o">--</span><span class="n">fullhelp</span>
+<span class="n">fsleyes</span> <span class="n">render</span>  <span class="o">-</span><span class="n">fh</span>
+</pre></div>
+</div>
+<p>Using the off-screen renderer is nearly identical to using the <a class="reference internal" href="#command-line-overview"><span class="std std-ref">standard
+FSLeyes command line interface</span></a>, but you must also
+specify an output file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">render</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span> <span class="o">--</span><span class="n">outfile</span> <span class="n">outfile</span> <span class="n">file</span> <span class="p">[</span><span class="n">displayOpts</span><span class="p">]</span> <span class="o">...</span>
+<span class="n">fsleyes</span> <span class="n">render</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span>  <span class="o">-</span><span class="n">of</span>      <span class="n">outfile</span> <span class="n">file</span> <span class="p">[</span><span class="n">displayOpts</span><span class="p">]</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>You may also specify the size of the generated image, in pixels:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">render</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span> <span class="o">--</span><span class="n">outfile</span> <span class="n">outfile</span> <span class="o">--</span><span class="n">size</span> <span class="mi">800</span> <span class="mi">600</span> <span class="n">file</span> <span class="p">[</span><span class="n">displayOpts</span><span class="p">]</span> <span class="o">...</span>
+<span class="n">fsleyes</span> <span class="n">render</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span>  <span class="o">-</span><span class="n">of</span>      <span class="n">outfile</span>  <span class="o">-</span><span class="n">sz</span>   <span class="mi">800</span> <span class="mi">600</span> <span class="n">file</span> <span class="p">[</span><span class="n">displayOpts</span><span class="p">]</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>When using the off-screen renderer, the <code class="docutils literal notranslate"><span class="pre">--scene</span></code> option, normally used to
+<a class="reference internal" href="#command-line-layouts"><span class="std std-ref">specify a layout</span></a>, allows you to choose
+between generating a screenshot with an <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-ortho"><span class="std std-ref">orthographic</span></a>, <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-lightbox"><span class="std std-ref">lightbox</span></a>, or <a class="reference internal" href="3d_view.html#d-view"><span class="std std-ref">3D</span></a> view:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsleyes</span> <span class="n">render</span> <span class="o">--</span><span class="n">scene</span> <span class="n">ortho</span>    <span class="o">--</span><span class="n">outfile</span> <span class="n">outfile</span> <span class="n">file</span> <span class="p">[</span><span class="n">displayOpts</span><span class="p">]</span> <span class="o">...</span>
+<span class="n">fsleyes</span> <span class="n">render</span> <span class="o">--</span><span class="n">scene</span> <span class="n">lightbox</span> <span class="o">--</span><span class="n">outfile</span> <span class="n">outfile</span> <span class="n">file</span> <span class="p">[</span><span class="n">displayOpts</span><span class="p">]</span> <span class="o">...</span>
+<span class="n">fsleyes</span> <span class="n">render</span> <span class="o">--</span><span class="n">scene</span> <span class="mi">3</span><span class="n">d</span>       <span class="o">--</span><span class="n">outfile</span> <span class="n">outfile</span> <span class="n">file</span> <span class="p">[</span><span class="n">displayOpts</span><span class="p">]</span> <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="fsleyes_notebook.html" class="btn btn-neutral float-right" title="FSLeyes and Jupyter Notebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="tools.html" class="btn btn-neutral float-left" title="Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Paul McCarthy, University of Oxford, Oxford, UK
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

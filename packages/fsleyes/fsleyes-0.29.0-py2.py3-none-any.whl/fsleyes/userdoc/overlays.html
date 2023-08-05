@@ -1,0 +1,868 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Overlays &mdash; FSLeyes 0.29.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Orthographic/lightbox views" href="ortho_lightbox_views.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> FSLeyes
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.29.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Overlays</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#loading-an-overlay">Loading an overlay</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#overlay-display-settings">Overlay display settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-overlay-display-toolbar">The overlay display toolbar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-overlay-display-panel">The overlay display panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-overlay-information-panel">The overlay information panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#overlay-types">Overlay types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#volume">Volume</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#label">Label</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mask">Mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#maximum-intensity-projection-mip">Maximum intensity projection (MIP)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vector">Vector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tensor">Tensor </a></li>
+<li class="toctree-l3"><a class="reference internal" href="#diffusion-sh">Diffusion SH </a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mesh">Mesh</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ortho_lightbox_views.html">Orthographic/lightbox views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_views.html">Plotting views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3d_view.html">3D view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atlases.html">Atlases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="editing_images.html">Editing NIFTI images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feat_mode.html">Viewing FEAT analyses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ic_classification.html">IC classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fsleyes_notebook.html">FSLeyes and Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="display_space.html">The display space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising.html">Customising FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">FSLeyes plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html"><code class="docutils literal notranslate"><span class="pre">fsleyes</span></code> release history</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FSLeyes</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Overlays</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/overlays.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="overlays">
+<span id="id1"></span><h1>Overlays<a class="headerlink" href="#overlays" title="Permalink to this headline">¶</a></h1>
+<p>FSLeyes refers to the files that you load as <em>overlays</em>. FSLeyes 0.29.0 is
+capable of loading the following types of data:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference external" href="https://nifti.nimh.nih.gov/">NIFTI</a> image files (<code class="docutils literal notranslate"><span class="pre">.nii</span></code>, <code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code>).</p></li>
+<li><p><a class="reference external" href="http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat">MGH</a>
+image files (<code class="docutils literal notranslate"><span class="pre">.mgh</span></code>, <code class="docutils literal notranslate"><span class="pre">.mgz</span></code>).</p></li>
+<li><p><a class="reference external" href="http://www.nitrc.org/projects/gifti/">GIFTI</a> surface files
+(<code class="docutils literal notranslate"><span class="pre">.surf.gii</span></code>, <code class="docutils literal notranslate"><span class="pre">.gii</span></code>).</p></li>
+<li><p><a class="reference external" href="http://www.grahamwideman.com/gw/brain/fs/surfacefileformats.htm">Freesurfer</a> surface
+files (<code class="docutils literal notranslate"><span class="pre">lh.orig</span></code>, <code class="docutils literal notranslate"><span class="pre">lh.pial</span></code>, <code class="docutils literal notranslate"><span class="pre">lh.white</span></code>, etc).</p></li>
+<li><p><a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FEAT">FEAT</a> analysis directories
+(<code class="docutils literal notranslate"><span class="pre">.feat</span></code>).</p></li>
+<li><p><a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/MELODIC">MELODIC</a> analysis
+directories (<code class="docutils literal notranslate"><span class="pre">.melodic</span></code>).</p></li>
+<li><p><a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FDT/UserGuide#DTIFIT">dtifit</a>
+output directories.</p></li>
+<li><p><a class="reference external" href="http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf">VTK legacy files</a>
+(<code class="docutils literal notranslate"><span class="pre">.vtk</span></code>) which are in a format similar to that produced by the <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FIRST">FIRST</a> sub-cortical segmentation
+tool.</p></li>
+</ul>
+</div></blockquote>
+<p>Volumetric images can be displayed in a variety of different ways, depending
+on the nature of the image data, and on how you want to display it. The way in
+which an overlay is displayed is called the <em>overlay type</em> or the <em>display
+type</em>.  The most conventional overlay/display type for a volumetric image is
+the <a class="reference internal" href="#overlays-volume"><span class="std std-ref">volume</span></a>; the other types are described <a class="reference internal" href="#overlays-overlay-type"><span class="std std-ref">below</span></a>.</p>
+<div class="section" id="loading-an-overlay">
+<span id="overlays-loading-an-overlay"></span><h2>Loading an overlay<a class="headerlink" href="#loading-an-overlay" title="Permalink to this headline">¶</a></h2>
+<p>You can load an overlay by doing one of the following:</p>
+<ol class="arabic simple">
+<li><p>The <em>File</em> ⇒ <em>Add from file</em> menu option allows you to choose a
+file to load (e.g. a <code class="docutils literal notranslate"><span class="pre">.nii</span></code>, <code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code>, or <code class="docutils literal notranslate"><span class="pre">.gii</span></code> file).</p></li>
+<li><p>The <em>File</em> ⇒ <em>Add from directory</em> menu option allows you to
+choose a directory to load (e.g. a <code class="docutils literal notranslate"><span class="pre">.feat</span></code>, <code class="docutils literal notranslate"><span class="pre">.ica</span></code>, or <code class="docutils literal notranslate"><span class="pre">dtifit</span></code>
+directory).</p></li>
+<li><p>The <em>File</em> ⇒ <em>Add standard</em> menu option allows you to choose a
+file from the <code class="docutils literal notranslate"><span class="pre">$FSLDIR/data/standard/</span></code> directory to load <a class="footnote-reference brackets" href="#id4" id="id2">*</a>.</p></li>
+<li><p>The <em>File</em> ⇒ <em>Add from XNAT</em> menu option allows you to
+connect to, and download files from, XNAT server.</p></li>
+<li><p>The <em>File</em> ⇒ <em>Add from DICOM</em> menu option allows you to load
+volumetric data from a DICOM directory <a class="footnote-reference brackets" href="#id5" id="id3">†</a>.</p></li>
+</ol>
+<ol class="arabic simple" start="5">
+<li><p>The + button on the <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-overlay-list"><span class="std std-ref">overlay list</span></a>
+allows you to choose a file to load.</p></li>
+</ol>
+<dl class="footnote brackets">
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id2">*</a></span></dt>
+<dd><p>The <em>File</em> ⇒ <em>Add standard</em> menu option will be disabled
+if your FSL environment is not configured correctly.</p>
+</dd>
+<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id3">†</a></span></dt>
+<dd><p>The <em>Add from DICOM</em> option will only be available if Chris Rorden’s
+<code class="docutils literal notranslate"><span class="pre">dcm2niix</span></code> is present on your system - it is available <a class="reference external" href="https://github.com/rordenlab/dcm2niix">here</a>.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="overlay-display-settings">
+<span id="overlays-overlay-display-settings"></span><h2>Overlay display settings<a class="headerlink" href="#overlay-display-settings" title="Permalink to this headline">¶</a></h2>
+<p>When you select an overlay, or change the type of an overlay, the contents of
+the <a class="reference internal" href="#overlays-overlay-display-toolbar"><span class="std std-ref">overlay display toolbar</span></a> will
+change to show commonly used display settings for that overlay. All display
+settings for the currently selected overlay are available in the <a class="reference internal" href="#overlays-overlay-display-panel"><span class="std std-ref">overlay
+display panel</span></a>.</p>
+</div>
+<div class="section" id="the-overlay-display-toolbar">
+<span id="overlays-overlay-display-toolbar"></span><h2>The overlay display toolbar<a class="headerlink" href="#the-overlay-display-toolbar" title="Permalink to this headline">¶</a></h2>
+<p>The overlay display toolbar allows you to adjust basic display settings for
+the currently selected overlay. Some settings are available for all overlay
+types, whereas other settings will change depending on the type of the
+selected overlay.</p>
+<a class="reference internal image-reference" href="_images/overlays_overlay_toolbar.png"><img alt="_images/overlays_overlay_toolbar.png" class="align-center" src="_images/overlays_overlay_toolbar.png" style="width: 80%;" /></a>
+<p>The following settings are available for all overlay types:</p>
+<ol class="arabic simple">
+<li><p><strong>Overlay display panel</strong> Clicking on the <img alt="gear_icon" src="_images/gear_icon.png" /> button will open the
+<a class="reference internal" href="#overlays-overlay-display-panel"><span class="std std-ref">overlay display panel</span></a>.</p></li>
+<li><p><strong>Overlay information</strong> Clicking on the <img alt="information_icon" src="_images/information_icon.png" /> button will open
+the <a class="reference internal" href="#overlays-overlay-information-panel"><span class="std std-ref">overlay information panel</span></a>.</p></li>
+<li><p><strong>Overlay name</strong> You can change the overlay name, as shown in the
+<a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-overlay-list"><span class="std std-ref">overlay list panel</span></a>, here.</p></li>
+<li><p><strong>Overlay type</strong> You can change the overlay type here.</p></li>
+<li><p><strong>Opacity</strong> This slider allows you to adjust the overlay
+opacity/transparency.</p></li>
+<li><p><strong>Brightness/contrast</strong> These sliders allow you to adjust the overlay
+brightness and contrast.</p></li>
+</ol>
+<p>The remaining settings will differ depending on the overlay type. For
+<a class="reference internal" href="#overlays-volume"><span class="std std-ref">volume</span></a> overlays, the following settings are
+available:</p>
+<ol class="arabic simple" start="7">
+<li><p><strong>Reset display range</strong> This button will reset the <strong>display range</strong> to
+the range of the image data.</p></li>
+<li><p><strong>Display range</strong> These fields control the way that the image data is
+coloured.</p></li>
+<li><p><strong>Colour map</strong> You can select a range of different colour maps for
+colouring the image data.</p></li>
+<li><p><strong>-ve colour map</strong> If the negative colour map is enabled, this control
+allows you to choose the colour map for negative valued voxels.</p></li>
+<li><p><strong>Enable -ve colour map</strong> This button toggles the use of the negative
+colour map - for images which have both positive and negative values,
+positive voxels will be coloured with the standard colour map,
+and negative voxels will be coloured with the negative colour map.</p></li>
+</ol>
+</div>
+<div class="section" id="the-overlay-display-panel">
+<span id="overlays-overlay-display-panel"></span><h2>The overlay display panel<a class="headerlink" href="#the-overlay-display-panel" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#overlays-overlay-display-toolbar"><span class="std std-ref">overlay toolbar</span></a> allows you to
+adjust basic display settings for the currently selected overlay. Many more
+settings are available in the overlay display panel (accessed via the
+<img alt="gear_icon" src="_images/gear_icon.png" /> button on the overlay toolbar):</p>
+<a class="reference internal image-reference" href="_images/overlays_overlay_display_panel.png"><img alt="_images/overlays_overlay_display_panel.png" class="align-center" src="_images/overlays_overlay_display_panel.png" style="width: 50%;" /></a>
+<div class="sidebar" id="overlays-linking-overlay-properties">
+<p class="sidebar-title">Linking overlay properties</p>
+<p>The <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-overlay-list"><span class="std std-ref">overlay list panel</span></a>
+allows you to link some display properties across a group of
+overlays, via the <img alt="chainlink_icon" src="_images/chainlink_icon.png" /> button.  This is useful if,
+for example, you have two or more 4D NIFTI images, and you want
+to display the same volume from each of them.</p>
+</div>
+<p>The <em>General display settings</em> section at the top contains settings common to
+all overlay types. The bottom section (<em>Volume settings</em> in this example)
+contain settings which are specific to the type of the currently selected
+overlay. The settings available for each overlay type are covered <a class="reference internal" href="#overlays-overlay-type"><span class="std std-ref">below</span></a> <a class="footnote-reference brackets" href="#id7" id="id6">‡</a>.</p>
+<blockquote>
+<div><dl class="footnote brackets">
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id6">‡</a></span></dt>
+<dd><p>In the <a class="reference internal" href="3d_view.html#d-view"><span class="std std-ref">3D view</span></a>, the overlay display panel contains a
+third section containing 3d-specific settings. These settings are
+described separately in the <a class="reference internal" href="3d_view.html#d-view-overlay-display-settings"><span class="std std-ref">3D view</span></a> section.</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="the-overlay-information-panel">
+<span id="overlays-overlay-information-panel"></span><h2>The overlay information panel<a class="headerlink" href="#the-overlay-information-panel" title="Permalink to this headline">¶</a></h2>
+<p>Clicking the <img alt="information_icon" src="_images/information_icon.png" /> button on the overlay toolbar brings up the
+overlay information panel:</p>
+<a class="reference internal image-reference" href="_images/overlays_overlay_information_panel.png"><img alt="_images/overlays_overlay_information_panel.png" class="align-center" src="_images/overlays_overlay_information_panel.png" style="width: 50%;" /></a>
+<p>This panel contains basic information about the currently selected overlay,
+such as its dimensions, file name, and transformation/orientation information.</p>
+</div>
+<div class="section" id="overlay-types">
+<span id="overlays-overlay-type"></span><h2>Overlay types<a class="headerlink" href="#overlay-types" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="volume">
+<span id="overlays-volume"></span><h3>Volume<a class="headerlink" href="#volume" title="Permalink to this headline">¶</a></h3>
+<p>This is the default (and most conventional) display type for NIFTI
+images. Voxel intensities are coloured according to a colour map. The display
+range used to colour voxels can be adjusted, and voxels can be <em>clipped</em>
+(hidden) with an independent clipping range.</p>
+<div class="image-strip docutils container">
+<a class="reference internal image-reference" href="_images/overlays_volume1.png"><img alt="_images/overlays_volume1.png" src="_images/overlays_volume1.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_volume2.png"><img alt="_images/overlays_volume2.png" src="_images/overlays_volume2.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_volume3.png"><img alt="_images/overlays_volume3.png" src="_images/overlays_volume3.png" style="width: 25%;" /></a>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>The following settings are available for volume overlays:</p>
+<ul>
+<li><p><strong>Volume</strong> If your image is 4D, you can select the displayed volume with
+this slider <a class="footnote-reference brackets" href="#id9" id="id8">§</a>.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id8">§</a></span></dt>
+<dd><p>The <strong>Volume</strong> setting is also available on <a class="reference internal" href="#overlays-label"><span class="std std-ref">label</span></a> and <a class="reference internal" href="#overlays-mask"><span class="std std-ref">mask</span></a> overlays.</p>
+</dd>
+</dl>
+</li>
+<li><p><strong>Dimension</strong> If your image has more than four dimensinos, you can select
+the dimension (fourth or higher) that the <strong>Volume</strong> setting controls.</p></li>
+<li><p><strong>Interpolation</strong> You can interpolate the image data (resampled to the
+resolution of your display). This is useful for generating figures, and to
+smooth over voxel or slice boundaries for oblique images (images which are
+not orthogonal to the display coordinate system). You can choose between no
+interpolation (equivalent to nearest-neighbour), tri-linear, or spline <a class="footnote-reference brackets" href="#id11" id="id10">¶</a>
+interpolation.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id10">¶</a></span></dt>
+<dd><p>Spline interpolation may not be available if you are using
+FSLeyes over a SSH/X11 connection, in a VNC session, on an
+older computer, or at a reduced performance setting.</p>
+</dd>
+</dl>
+</li>
+<li><p><strong>Colour map</strong> The colour map defines how voxels are coloured on the
+display. Voxels with an intensity equal to the low display range value will
+be coloured according to the lowest (left-most) colour in the selected
+colour map., and voxels with an intensity equal to the high display range
+will be coloured according to the highest (right-most) colour. You can
+choose from a pre-defined colour map selection, or load your own via the the
+<strong>Load colour map</strong> button. See the page on <a class="reference internal" href="customising.html#customising-colour-maps"><span class="std std-ref">customising FSLeyes</span></a> for more details..</p></li>
+<li><p><strong>-ve (negative) colour map</strong> You can apply a second colour map for images
+which contain positive and negative values, such as Z-statistic images, or
+ICA component maps. The first colour map will be applied to positive values,
+and the second to negative values. When a negative colour map is enabled,
+the display and clipping range will be applied inversely to both positive
+and negative values.</p></li>
+<li><p><strong>Colour map resolution</strong> This setting allows you to reduce the number of
+colours that are used in the colour map. For example, if the underlying
+colour map file (see the section on <a class="reference internal" href="customising.html#customising-colour-maps"><span class="std std-ref">colour maps</span></a>) contains 256 colours, and you set the resolution
+to 128, only half of the colours from the colour map will be used.</p></li>
+<li><p><strong>Gamma correction</strong> This setting allows you to apply a weighting to the
+display range, so that either lower or higher values will take up more
+of the colour range.</p></li>
+<li><p><strong>Interpolate colour maps</strong> This setting allows you to enable linear
+interpolation between colours in the selected colour map. The default
+behaviour (when this setting is disabled) is to use nearest neighbour
+interpolation.</p></li>
+<li><p><strong>Invert colour map</strong> This setting inverts the colour map, so that low voxel
+intensities are coloured with the high colour from the colour map, and
+vice-versa.</p></li>
+<li><p><strong>Invert clipping range</strong> This setting inverts the behaviour of the clipping
+range, so that voxels with an intensity inside the range are clipped, and
+those with an intensity outside of the range are shown.</p></li>
+<li><p><strong>Link low display/clipping ranges</strong> This setting (enabled by default) links
+the low display and clipping ranges, so that voxels with an intensity below
+the low display range value are also clipped.</p></li>
+<li><p><strong>Link high display/clipping ranges</strong> This setting (disabled by default)
+links the high display and clipping ranges, so that voxels with an intensity
+above the high display range value are also clipped.</p></li>
+<li><p><strong>Display range</strong> This setting controls how the colour map relates to voxel
+intensities.</p></li>
+<li><p><strong>Clipping range</strong> This setting allows you to hide voxels which lie outside
+of the range.</p></li>
+<li><p><strong>Clip by</strong> This setting allows you to clip the selected overlay by the
+voxel intensities that are in another image. When a <em>clip by</em> image is
+selected, the <em>clipping range</em> will be in terms of that image, not of the
+image being clipped.</p></li>
+<li><p><strong>Override image data range</strong> This setting allows you to effectively
+override the image data range with a custom range. By default, FSLeyes sets
+the default display and clipping range according to the minimum and maximum
+values in the image. While this is suitable for most images, it is
+inconvenient for images which have a very large data range that is driven by
+outlier voxels. By overriding the image data range with this setting, you
+can adjust the display and clipping range limits to a range which is more
+sensible with respect to the data that you are viewing <a class="footnote-reference brackets" href="#id13" id="id12">#</a>.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id13"><span class="brackets"><a class="fn-backref" href="#id12">#</a></span></dt>
+<dd><p>If you are using FSLeyes over a SSH/X11 connection, in a VNC session,
+or on an older computer, it may be necessary to override the data
+range of such an image before you are able to view it.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="sidebar" id="overlays-the-lookup-table-panel">
+<p class="sidebar-title">The lookup table panel</p>
+<p>FSLeyes treats lookup tables independently from the colour maps
+used to colour <a class="reference internal" href="#overlays-volume"><span class="std std-ref">volume</span></a> overlays. FSLeyes
+provides a handful of pre-defined lookup tables, and allows you
+to create your own through the <em>lookup table panel</em>, available as
+a <a class="reference internal" href="overview.html#overview-views-and-controls"><span class="std std-ref">control panel</span></a> on
+<a class="reference internal" href="overview.html#overview-views-and-controls"><span class="std std-ref">ortho and lightbox views</span></a>:</p>
+<a class="reference internal image-reference" href="_images/overlays_lookup_table_panel.png"><img alt="_images/overlays_lookup_table_panel.png" class="align-center" src="_images/overlays_lookup_table_panel.png" style="width: 90%;" /></a>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>You can also install your own lookup tables - see the page on
+<a class="reference internal" href="customising.html#customising-lookup-tables"><span class="std std-ref">customising FSLeyes</span></a> for more
+details.</p>
+</div>
+</div>
+<div class="section" id="label">
+<span id="overlays-label"></span><h3>Label<a class="headerlink" href="#label" title="Permalink to this headline">¶</a></h3>
+<p>This type is useful for viewing NIFTI images which contain discrete integer
+values (<em>labels</em>), such as <a class="reference internal" href="atlases.html#atlases"><span class="std std-ref">atlases</span></a> and (sub-)cortical
+segmentation summary images.  Label overlays are coloured according to a
+<em>lookup table</em>.</p>
+<div class="image-strip docutils container">
+<a class="reference internal image-reference" href="_images/overlays_label1.png"><img alt="_images/overlays_label1.png" src="_images/overlays_label1.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_label2.png"><img alt="_images/overlays_label2.png" src="_images/overlays_label2.png" style="width: 25%;" /></a>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>The following settings are available on label overlays:</p>
+<ul class="simple">
+<li><p><strong>Lookup table</strong> Choose the lookup table which defines the mapping between
+voxel intensity and colour.</p></li>
+<li><p><strong>Show outline only</strong> You can choose to display label overlays with filled
+regions, or display region outlines.</p></li>
+<li><p><strong>Outline width</strong> This setting controls the region outline width.</p></li>
+</ul>
+</div>
+<div class="section" id="mask">
+<span id="overlays-mask"></span><h3>Mask<a class="headerlink" href="#mask" title="Permalink to this headline">¶</a></h3>
+<p>This type is useful if you want to display an image as a binary mask. You can
+display any NIFTI image as a mask - not just binary images.</p>
+<div class="image-strip docutils container">
+<a class="reference internal image-reference" href="_images/overlays_mask1.png"><img alt="_images/overlays_mask1.png" src="_images/overlays_mask1.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_mask2.png"><img alt="_images/overlays_mask2.png" src="_images/overlays_mask2.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_mask3.png"><img alt="_images/overlays_mask3.png" src="_images/overlays_mask3.png" style="width: 25%;" /></a>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>Mask overlays have the following settings:</p>
+<ul class="simple">
+<li><p><strong>Colour</strong> This setting controls the colour used to display the mask.</p></li>
+<li><p><strong>Invert</strong> This setting inverts the behaviour of the <em>threshold</em> setting -
+when enabled, voxels within the range are excluded from the mask, and
+vice-versa.</p></li>
+<li><p><strong>Threshold</strong> This range defines which voxels are included in the
+mask. Voxels which are within the range are included, and those outside of
+the range are excluded.</p></li>
+<li><p><strong>Interpolation</strong> This setting allows to interpolate the mask overaly on the
+display.</p></li>
+<li><p><strong>Show outline only</strong> This setting will cause only the mask outline to be
+displayed (according to the current threshold), rather than showing it
+“filled”.</p></li>
+<li><p><strong>Outline width</strong> If the <em>Show outline only</em> option is enabled, this
+setting allows you to control the outline width.</p></li>
+</ul>
+</div>
+<div class="section" id="maximum-intensity-projection-mip">
+<span id="overlays-mip"></span><h3>Maximum intensity projection (MIP)<a class="headerlink" href="#maximum-intensity-projection-mip" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><a class="reference internal image-reference" href="_images/overlays_mip1.png"><img alt="_images/overlays_mip1.png" class="align-right" src="_images/overlays_mip1.png" style="width: 25%;" /></a>
+</div></blockquote>
+<p>Selecting this overlay type enables an X-ray-like effect, where the maximum
+values present in the image, along a ray perpendicular to the viewing
+plane, is displayed. The <a class="reference internal" href="tools.html#tools-adjust-image-transform"><span class="std std-ref">Nudge</span></a> tool can
+be applied to MIP overlays to give you a 3D effect.</p>
+<p>In addition to many options shared with the <a class="reference internal" href="#overlays-volume"><span class="std std-ref">volume</span></a>
+overlay type, the following settings are available for MIP overlays:</p>
+<ul class="simple">
+<li><p><strong>MIP window length</strong> This setting allows you to control the window over
+which the MIP is calculated. It is calculated over a window centered at the
+current display location, and of a length specified as a proportion of the
+image - setting the window length to <strong>1</strong> will cause the MIP to be
+calculated over the entire image.</p></li>
+<li><p><strong>Minimum intensity</strong> This setting allows you to display the minimum
+intensity, rather than the maximum intensity.</p></li>
+<li><p><strong>Absolute intensity</strong> This setting allows you to display the absolute
+maximum intensity, rather than the maximum intensity. This setting will
+override the <em>Minimum intensity</em> setting.</p></li>
+</ul>
+</div>
+<div class="section" id="vector">
+<span id="overlays-vector"></span><h3>Vector<a class="headerlink" href="#vector" title="Permalink to this headline">¶</a></h3>
+<p>4D NIFTI images which contain exactly three 3D volumes may be interpreted as a
+<em>vector</em> image where, at each voxel, the three volumes respectively contain X,
+Y and Z coordinates specifying the magnitude and direction of a vector at that
+voxel.  For example, the <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FDT/UserGuide#DTIFIT">dtifit</a> tool outputs
+diffusion tensor eigenvectors, and the <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FDT/UserGuide#BEDPOSTX">bedpostx</a> tool outputs
+mean principal diffusion directions, as vector images.</p>
+<p>A vector image can be displayed in one of two ways - as a <em>RGB</em> vector, or as
+a <em>line</em> vector.</p>
+<div class="image-strip docutils container">
+<a class="reference internal image-reference" href="_images/overlays_rgbvector1.png"><img alt="_images/overlays_rgbvector1.png" src="_images/overlays_rgbvector1.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_rgbvector2.png"><img alt="_images/overlays_rgbvector2.png" src="_images/overlays_rgbvector2.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_rgbvector3.png"><img alt="_images/overlays_rgbvector3.png" src="_images/overlays_rgbvector3.png" style="width: 25%;" /></a>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>In a RGB vector image, each voxel is coloured according to the magnitude of
+the X, Y, and Z vector components. The default colours are (respectively) red
+green and blue, but these can be customised or individually disabled
+(<em>suppressed</em>). If you have another image in the same space (e.g. a fractional
+anisotropy [FA] or mean diffusivity [MD] map), you can modulate the brightness
+of the vector colours in each voxel according to the values in the other
+image.</p>
+<div class="image-strip docutils container">
+<a class="reference internal image-reference" href="_images/overlays_linevector1.png"><img alt="_images/overlays_linevector1.png" src="_images/overlays_linevector1.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_linevector2.png"><img alt="_images/overlays_linevector2.png" src="_images/overlays_linevector2.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_linevector3.png"><img alt="_images/overlays_linevector3.png" src="_images/overlays_linevector3.png" style="width: 25%;" /></a>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>In a line vector image, the vector at each voxel is displayed as a line, and
+typically coloured in the same manner as for a RGB vector. Line width and
+length can be scaled by a constant factor, and the vector values can be
+displayed with varying lengths (according to their individual magnitudes), or
+all scaled to have the same length.</p>
+<p>The following settings are available on vector overlays:</p>
+<ul class="simple">
+<li><p><strong>Colour by</strong> This setting overrides the default RGB vector colouring
+scheme, allowing you to colour the vector data in each voxel according to
+the voxel intensities in another image. This is not very useful for RGB
+vector overlays, but can be useful for line vectors.</p></li>
+<li><p><strong>Modulate by</strong> This setting allows you to modulate the brightness of
+the vector overlay according to the voxel intensities in another image.</p></li>
+<li><p><strong>Clip by</strong> This setting allows you to clip the voxels in the vector overlay
+according to the voxel intensities in another image.</p></li>
+<li><p><strong>Colour map</strong> If you have selected a <em>Colour by</em> image, this setting allows
+you to choose the colour map to use.</p></li>
+<li><p><strong>Clipping range</strong> If you have selected a <em>Clip by</em> image, this setting
+allows you to adjust the clipping range. The range limits are relative to
+the selected <em>Clip by</em> image.</p></li>
+<li><p><strong>Modulation range</strong> If you have selected a <em>Modulate by</em> image, this
+setting allows you to adjust the modulation range. The range limits are
+relative to the selected <em>Modulate by</em> image.</p></li>
+<li><p><strong>X Colour</strong> The colour to be used for the X vector component.</p></li>
+<li><p><strong>Y Colour</strong> The colour to be used for the Y vector component.</p></li>
+<li><p><strong>Z Colour</strong> The colour to be used for the Z vector component.</p></li>
+<li><p><strong>Suppress X value</strong> Suppress the X vector component - its contribution to
+the overall colour will be replaced according to the current <em>suppression
+mode</em>.</p></li>
+<li><p><strong>Suppress Y value</strong> Suppress the Y vector component.</p></li>
+<li><p><strong>Suppress Z value</strong> Suppress the Z vector component.</p></li>
+<li><p><strong>Suppression mode</strong> What to do when a component is suppressed - you can
+choose to replace vector components with white, black, or transparent.</p></li>
+</ul>
+<p>RGB vectors have some additional settings:</p>
+<ul class="simple">
+<li><p><strong>Interpolation</strong> You can interpolate RGB vector overlays using linear or
+spline interpolation.</p></li>
+</ul>
+<p>And the following settings are available on line vectors:</p>
+<ul class="simple">
+<li><p><strong>Interpret vectors as directed</strong> By default, FSLeyes will interpret the
+vectors at each voxel as undirected - the vector will be symmetric about the
+voxel centre. If this option is selected, FSLeyes will interpret vectors as
+directed - they will begin from the voxel centre, and extend outwards.</p></li>
+<li><p><strong>Scale vectors to unit length</strong> This setting is selected by default. When
+selected, FSLeyes will scale the length of each vector voxel to have a
+length of 1mm (or 0.5mm if the <em>Interpret vectors as directed</em> setting is
+also enabled). Otherwise, FSLeyes will not scale vector lengths. See
+also the <em>Length scaling factor</em> setting below.</p></li>
+<li><p><strong>L/R orientation flip</strong> If selected, line vector orientations are flipped
+about the X axis (which typically correpsonds to the left-right axis). This
+setting may be useful if you have vector data with non-standard
+orientation. By default, this setting is disabled for radiologically stored
+images, and enabled for neuroloigically stored images. See the
+<a class="reference internal" href="troubleshooting.html#troubleshooting-vector-orientation"><span class="std std-ref">troubleshooting section on vector orientation</span></a> for more information.</p></li>
+<li><p><strong>Line width</strong> This setting allows you to adjust the line vector width, in
+display pixels.</p></li>
+<li><p><strong>Length scaling factor (%)</strong> This setting applies a constant scaling factor
+to the length of all line vectors.</p></li>
+</ul>
+</div>
+<div class="section" id="tensor">
+<span id="overlays-tensor"></span><h3>Tensor <a class="footnote-reference brackets" href="#id17" id="id15">♠</a><a class="headerlink" href="#tensor" title="Permalink to this headline">¶</a></h3>
+<div class="image-strip docutils container">
+<a class="reference internal image-reference" href="_images/overlays_tensor1.png"><img alt="_images/overlays_tensor1.png" src="_images/overlays_tensor1.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_tensor2.png"><img alt="_images/overlays_tensor2.png" src="_images/overlays_tensor2.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_tensor3.png"><img alt="_images/overlays_tensor3.png" src="_images/overlays_tensor3.png" style="width: 25%;" /></a>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="sidebar">
+<p class="sidebar-title">Loading diffusion tensor data</p>
+<p>FSLeyes accepts tensor image data in one of the following forms:</p>
+<ul class="simple">
+<li><p>A <code class="docutils literal notranslate"><span class="pre">dtifit</span></code> directory with NIFTI images containing the
+eigenvectors and eigenvalues of the tensor matrix
+decomposition - open such a directory via the <em>File</em>
+⇒ <em>Add overlay from directory</em> menu option.</p></li>
+<li><p>A 4D NIFTI image containing six volumes which comprise the
+unique elements of the tensor matrix. <code class="docutils literal notranslate"><span class="pre">dtifit</span></code> (in FSL
+5.0.10) can output these images via its
+<code class="docutils literal notranslate"><span class="pre">--save_tensor</span></code> flag.</p></li>
+</ul>
+</div>
+<p>Directories which contain <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FDT/UserGuide#DTIFIT">dtifit</a> output, and
+images which contain exactly 6 volumes (assumed to contain the unique elements
+of a tensor matrix at each voxel) can be displayed as <em>tensors</em>, where the
+magnitude, anisotropy, and orientation of water diffusion within each voxel is
+modelled by a tensor matrix, which can be visualised as an ellipsoid.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id17"><span class="brackets"><a class="fn-backref" href="#id15">♠</a></span></dt>
+<dd><p>Tensor overlays may not be available if you are using FSLeyes over a
+SSH/X11 connection, in a VNC session, on an older computer, or at a
+reduced performance setting.</p>
+</dd>
+</dl>
+<p>Most of the settings which can be applied to <a class="reference internal" href="#overlays-vector"><span class="std std-ref">vector</span></a>
+overlays can also be applied to tensor overlays. Tensor overlays also have the
+following settings:</p>
+<ul class="simple">
+<li><p><strong>Lighting effects</strong> This setting toggles a lighting effect on the tensor
+ellipsoids.</p></li>
+<li><p><strong>L/R orientation flip</strong> This setting flips all ellipsoids about the X
+(left-right) axis - see the <a class="reference internal" href="troubleshooting.html#troubleshooting-vector-orientation"><span class="std std-ref">troubleshooting section on vector
+orientation</span></a>.</p></li>
+<li><p><strong>Ellipsoid quality</strong> This setting allows you to decrease/increase the
+ellipsoid quality (the number of vertices used to draw the ellipsoids).</p></li>
+<li><p><strong>Tensor size</strong> This setting scales each ellipsoid by a constant factor.</p></li>
+</ul>
+</div>
+<div class="section" id="diffusion-sh">
+<span id="overlays-diffusion-sh"></span><h3>Diffusion SH <a class="footnote-reference brackets" href="#id19" id="id18">♥</a><a class="headerlink" href="#diffusion-sh" title="Permalink to this headline">¶</a></h3>
+<p>Images which appear to contain spherical harmonic (SH) coefficients for
+spherical deconvolution-based diffusion modelling techniques can be displayed
+as spherical harmonic functions.</p>
+<div class="image-strip docutils container">
+<a class="reference internal image-reference" href="_images/overlays_sh1.png"><img alt="_images/overlays_sh1.png" src="_images/overlays_sh1.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_sh2.png"><img alt="_images/overlays_sh2.png" src="_images/overlays_sh2.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_sh3.png"><img alt="_images/overlays_sh3.png" src="_images/overlays_sh3.png" style="width: 25%;" /></a>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<dl class="footnote brackets">
+<dt class="label" id="id19"><span class="brackets"><a class="fn-backref" href="#id18">♥</a></span></dt>
+<dd><p>Diffusion SH overlays may not be available if you are using FSLeyes
+over a SSH/X11 connection, in a VNC session, on an older computer, or
+at a reduced performance setting.</p>
+</dd>
+</dl>
+<div class="sidebar">
+<p class="sidebar-title">Fibre Orientation Distributions (FODs)</p>
+<p>Spherical Deconvolution (SD) methods represent the fibre
+orientation distribution (FOD) within each voxel as a linear
+combination of Spherical Harmonic (SH) functions.  FSLeyes
+0.29.0 is capable of displaying FODs described by SH functions
+up to order 16.  4D images which contain 1, 6, 15, 28, 45, 66,
+91, 120, or 153 volumes can be displayed as symmetric SH
+functions (i.e. the file contains coefficients for SH functions
+of even order only). 4D images which contain 1, 9, 25, 49, 81,
+121, 169, 225, or 289 volumes can be displayed as asymmetric SH
+functions (i.e. the file contains coefficients for both SH
+functions of both odd and even spherical order).</p>
+</div>
+<p>Many of the display properties which can be applied to <a class="reference internal" href="#overlays-vector"><span class="std std-ref">vector overlay</span></a> images can also be applied to SH images. The fibre
+orientation distributions (FODs) within each voxel can be coloured according
+to their orientation, or to the magnitude of their radius.  In addition to
+supporting vector overlay settings, the following settings are available
+on diffusion SH overlays:</p>
+<ul class="simple">
+<li><p><strong>FOD quality</strong> This setting controls the FOD quality (the number of
+vertices used to draw each FOD).</p></li>
+<li><p><strong>Maximum SH order</strong> This setting allows you to adjust the maxmimum number
+of SH functions used to represent each FOD.</p></li>
+<li><p><strong>L/R orientation flip</strong> This setting flips all FODs about the X
+(left-right) axis - see the <a class="reference internal" href="troubleshooting.html#troubleshooting-vector-orientation"><span class="std std-ref">troubleshooting section on vector
+orientation</span></a>.</p></li>
+<li><p><strong>Lighting effects</strong> This setting toggles an FOD lighting model <a class="footnote-reference brackets" href="#id21" id="id20">♦</a>.</p></li>
+<li><p><strong>Normalise FOD sizes</strong> This setting normalises the size of each FOD
+to be the same. This is useful for data which contains extreme values.</p></li>
+<li><p><strong>FOD size</strong> This setting allows you to scale the size of each FOD by a
+constant factor.</p></li>
+<li><p><strong>Radious threshold</strong> This setting allows you to clip FODs which have a
+small maximum radius.</p></li>
+<li><p><strong>Colour mode</strong> You can choose to colour FODs by direction, or by the
+magnitude of their radii.</p></li>
+</ul>
+<dl class="footnote brackets">
+<dt class="label" id="id21"><span class="brackets"><a class="fn-backref" href="#id20">♦</a></span></dt>
+<dd><p>The FOD lighting model in FSLeyes 0.29.0 is broken, as I have not
+yet figured out a way to make a better lighting model work in a
+computationally efficient manner.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="mesh">
+<span id="overlays-mesh"></span><h3>Mesh<a class="headerlink" href="#mesh" title="Permalink to this headline">¶</a></h3>
+<p>FSLeyes is able to display 2D cross sections of 3D triangle meshes.</p>
+<div class="image-strip docutils container">
+<a class="reference internal image-reference" href="_images/overlays_vtkmodel1.png"><img alt="_images/overlays_vtkmodel1.png" src="_images/overlays_vtkmodel1.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_vtkmodel2.png"><img alt="_images/overlays_vtkmodel2.png" src="_images/overlays_vtkmodel2.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="_images/overlays_gifti.png"><img alt="_images/overlays_gifti.png" src="_images/overlays_gifti.png" style="width: 25%;" /></a>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="sidebar" id="overlays-mesh-reference-image">
+<p class="sidebar-title">Mesh reference image</p>
+<p>FSLeyes cannot always automatically determine the coordinate
+system that is used by a mesh overlay. For this reason, in order
+to ensure that the mesh is displayed in the correct space, you
+must associate a <em>reference image</em> with each mesh. For
+example, if you have performed sub-cortical segmentation on a T1
+image with FIRST, you would associate that T1 image with the
+resulting VTK model files. FSLeyes will then be able to correclty
+position the VTK model on the display.</p>
+</div>
+<p>FSLeyes can display 3D triangle mesh data loaded from:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference external" href="http://www.nitrc.org/projects/gifti/">GIFTI files</a> which contain
+surface data (a <code class="docutils literal notranslate"><span class="pre">NIFTI_INTENT_POINTSET</span></code> array containing vertices,
+and a <code class="docutils literal notranslate"><span class="pre">NIFTI_INTENT_TRIANGLE</span></code> array containing triangles <a class="footnote-reference brackets" href="#id26" id="id22">♣</a>.</p></li>
+<li><p><a class="reference external" href="http://www.grahamwideman.com/gw/brain/fs/surfacefileformats.htm">Freesurfer</a>
+surface files.</p></li>
+<li><p><a class="reference external" href="http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf">VTK legacy files</a> which
+specify a triangle mesh in the <code class="docutils literal notranslate"><span class="pre">POLYDATA</span></code> data format. Files of this
+type are generated by the <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FIRST">FIRST</a> sub-cortical segmentation
+tool, to represent sub-cortical structures.</p></li>
+</ul>
+</div></blockquote>
+<dl class="footnote brackets">
+<dt class="label" id="id26"><span class="brackets"><a class="fn-backref" href="#id22">♣</a></span></dt>
+<dd><p>Future versions of FSLeyes will hopefuolly include more comprehensive
+GIFTI support, and support for more VTK data formats.</p>
+</dd>
+</dl>
+<p>On <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views"><span class="std std-ref">orthographic and lightbox views</span></a>, FSLeyes
+displays cross sections through the model along planes perpendicular to the
+X, Y, and Z axes.</p>
+<p>The following display settings are available for mesh overlays:</p>
+<ul class="simple">
+<li><p><strong>Reference image</strong> This setting allows you to choose the NIFTI reference
+image associated with the model (see the <a class="reference internal" href="#overlays-mesh-reference-image"><span class="std std-ref">sidebar</span></a>).</p></li>
+<li><p><strong>Mesh coordinate space</strong> This is an advanced setting which allows you to
+specify how the VTK model coordinates are defined, relative to its reference
+image.</p></li>
+<li><p><strong>Show outline only</strong> You can choose between showing the filled mesh, or
+showing just its outline.</p></li>
+<li><p><strong>Outline width</strong> If the <em>Show outline only</em> setting is enabled, this slider
+controls the outline width.</p></li>
+<li><p><strong>Colour</strong> The colour to use for the mesh.</p></li>
+<li><p><strong>Surface definition</strong> If there are multiple definitions for your mesh (e.g.
+a white matter mesh, pial mesh, and mid-thickness mesh), this setting allows
+you to select the surface definition to use.</p></li>
+<li><p><strong>Vertex data</strong> You can use this setting to select some data associated with
+the mesh vertices (either plain <cite>.txt</cite> files, or <cite>.func.gii</cite>, <cite>.shape.gii</cite>,
+<cite>.label.gii</cite>, or <cite>.time.gii</cite> files for GIFTI overlays). You may then colour
+and clip the mesh according to this data (only when showing the mesh
+outline), using the same properties that are described for <a class="reference internal" href="#overlays-volume"><span class="std std-ref">volume
+overlays</span></a>.</p></li>
+<li><p><strong>Vertex data index</strong> If you have selected some 4D <strong>vertex data</strong>, this
+setting allows you to control the data volume that is displayed.</p></li>
+<li><p><strong>Lookup table</strong> If you have selected some categorical vertex data, you may
+use this setting to colour the mesh according to a lookup table instead of a
+colour map.</p></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ortho_lightbox_views.html" class="btn btn-neutral float-right" title="Orthographic/lightbox views" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Paul McCarthy, University of Oxford, Oxford, UK
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

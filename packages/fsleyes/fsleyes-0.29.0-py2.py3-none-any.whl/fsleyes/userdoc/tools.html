@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Tools &mdash; FSLeyes 0.29.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Command line interface" href="command_line.html" />
+    <link rel="prev" title="IC classification" href="ic_classification.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> FSLeyes
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.29.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overlays.html">Overlays</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ortho_lightbox_views.html">Orthographic/lightbox views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_views.html">Plotting views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3d_view.html">3D view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atlases.html">Atlases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="editing_images.html">Editing NIFTI images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feat_mode.html">Viewing FEAT analyses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ic_classification.html">IC classification</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#general-tools">General tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#flirt-affine-transformations">FLIRT/affine transformations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#resample-image">Resample image</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#ortho-view-tools">Ortho view tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#crop-image">Crop image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adjust-image-transform-a-k-a-nudge">Adjust image transform (a.k.a. <em>Nudge</em>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#seed-correlation">Seed correlation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#time-series-view-tools">Time series view tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#histogram-view-tools">Histogram view tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="command_line.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fsleyes_notebook.html">FSLeyes and Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="display_space.html">The display space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising.html">Customising FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">FSLeyes plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html"><code class="docutils literal notranslate"><span class="pre">fsleyes</span></code> release history</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FSLeyes</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Tools</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/tools.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tools">
+<span id="id1"></span><h1>Tools<a class="headerlink" href="#tools" title="Permalink to this headline">¶</a></h1>
+<p>The FSLeyes <em>Tools</em> menu contains a range of tools to perform various types of
+processing and analysis on your data. The <em>Tools</em> menu is organised into
+one or more sections:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>A section which contains tools that are always present, and independent of
+any open <a class="reference internal" href="overview.html#overview-views-and-controls"><span class="std std-ref">view</span></a>.</p></li>
+<li><p>One section for each open view - some views have no tools associated with
+them, so will not appear in the tools menu.</p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="general-tools">
+<span id="tools-general"></span><h2>General tools<a class="headerlink" href="#general-tools" title="Permalink to this headline">¶</a></h2>
+<p>FSLeyes provides a selection of tools which allow you to manipulate the
+currently selected overlay.</p>
+<div class="section" id="flirt-affine-transformations">
+<span id="tools-flirt-transformations"></span><h3>FLIRT/affine transformations<a class="headerlink" href="#flirt-affine-transformations" title="Permalink to this headline">¶</a></h3>
+<p>The <strong>Load affine transformation</strong> tool allows you to load an affine
+transformation from a text file and apply it to the currently selected image.</p>
+<a class="reference internal image-reference" href="_images/tools_load_affine.png"><img alt="_images/tools_load_affine.png" class="align-center" src="_images/tools_load_affine.png" style="width: 70%;" /></a>
+<p>The <strong>File type</strong> setting allows you to select the type of affine matrix you
+wish to load:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>A <em>FLIRT</em> matrix is an affine transformation produced by the <a class="reference external" href="https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FLIRT">FLIRT</a> linear registration
+tool. A FLIRT matrix encodes a transformation from a source image to a
+reference image, where both the source and reference image spaces are in a
+scaled-voxel coordinate system, possibly with an inversion about the first
+(left-right) voxel axis. More information on FLIRT matrices can be found
+<a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FLIRT/FAQ#What_is_the_format_of_the_matrix_used_by_FLIRT.2C_and_how_does_it_relate_to_the_transformation_parameters.3F">here</a>.</p></li>
+<li><p>A <em>voxel-to-world</em> matrix is an affine matrix which encodes a
+transformation for a single image, from voxel coordinates into world
+coordinates.</p></li>
+</ul>
+</div></blockquote>
+<p>If you are loading a FLIRT matrix, you must specify a reference image. You can
+use the <strong>Reference image</strong> drop-down box to select one of the images currently
+loaded in FSLeyes. Or, if you choose <em>Select file manually</em>, you can select
+an image from the file system.</p>
+<p>The <strong>Export affine transformation</strong> tool allows you to save the affine for
+the currently selected image.  This is useful if you have used the <strong>Nudge</strong>
+tool (<a class="reference external" href="tools_adjust_image_transform">covered below</a>) to manually adjust the
+affine for an image.</p>
+</div>
+<div class="section" id="resample-image">
+<span id="tools-resample-image"></span><h3>Resample image<a class="headerlink" href="#resample-image" title="Permalink to this headline">¶</a></h3>
+<a class="reference internal image-reference" href="_images/tools_resample_image.png"><img alt="_images/tools_resample_image.png" class="align-center" src="_images/tools_resample_image.png" style="width: 50%;" /></a>
+<p>The <strong>Resample image</strong> tool allows you to resample the currently selected
+image to a different resolution. You can specify a desired shape via the <em>New
+shape</em> inputs, or a desired voxel resolution via the <em>New pixdims</em> inputs.</p>
+<p>The <strong>Interpolation</strong> option allows you to choose different interpolation
+options to use during the resampling. If you are resampling a binary mask, you
+will likely want to select <em>Nearest neighbour</em> interpolation.</p>
+<p>You can also specify the output <em>Data type</em>, and apply <em>Smoothing</em> to the
+resampled image.</p>
+</div>
+</div>
+<div class="section" id="ortho-view-tools">
+<span id="tools-ortho"></span><h2>Ortho view tools<a class="headerlink" href="#ortho-view-tools" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="ortho_lightbox_views_ortho">ortho view</a> has a number of interactive
+tools for editing and adjusting NIFTI images. The <strong>Edit mode</strong> option is
+covered in the page on <a class="reference external" href="editing_images">editing NIFTI images</a>.</p>
+<div class="section" id="crop-image">
+<span id="tools-crop-image"></span><h3>Crop image<a class="headerlink" href="#crop-image" title="Permalink to this headline">¶</a></h3>
+<a class="reference internal image-reference" href="_images/tools_crop_image.png"><img alt="_images/tools_crop_image.png" class="align-center" src="_images/tools_crop_image.png" style="width: 60%;" /></a>
+<a class="reference internal image-reference" href="_images/tools_crop_image_example.png"><img alt="_images/tools_crop_image_example.png" class="align-right" src="_images/tools_crop_image_example.png" style="width: 20%;" /></a>
+<p>The <strong>Crop image</strong> tool allows you to manually crop an image - it is
+essentialy an interactive version of the <code class="docutils literal notranslate"><span class="pre">fslroi</span></code> <a class="reference external" href="https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Fslutils">command-line tool</a>.</p>
+<p>When you select the <em>Crop image</em> tool, a blue overlay will appear on the ortho
+view. You can click and drag on the ortho canvases to adjust the region that
+will be cropped. You can also use the sliders in the crop image dialog box to
+adjust the cropping region.</p>
+<p>If FSL is installed, clicking the <strong>Robust FOV</strong> button will run the
+<code class="docutils literal notranslate"><span class="pre">robustfov</span></code> command-line tool - this tool estimates a good cropping region
+for images with a large field-of-view.</p>
+<p>When you are happy with the region, click on the <strong>Crop</strong> button to create a
+cropped copy of the image. You can then select that image, and save it out to
+a file.</p>
+<p>The <strong>Save</strong> and <strong>Load</strong> buttons allow you to save and load cropping
+parameters to/from simple text files. The format used in these text files is
+equivalent to the parameters that would be passed to the <code class="docutils literal notranslate"><span class="pre">fslroi</span></code>
+command-line tool.</p>
+</div>
+<div class="section" id="adjust-image-transform-a-k-a-nudge">
+<span id="tools-adjust-image-transform"></span><h3>Adjust image transform (a.k.a. <em>Nudge</em>)<a class="headerlink" href="#adjust-image-transform-a-k-a-nudge" title="Permalink to this headline">¶</a></h3>
+<p>The <strong>Nudge</strong> tool allows you to adjust the affine transformation of a NIFTI
+image. This can be useful if you need to manually register one image to
+another, if you need to fine-tune a previously calculated linear registration,
+or if you simply wish to view some image data from a different angle.</p>
+<a class="reference internal image-reference" href="_images/tools_nudge.png"><img alt="_images/tools_nudge.png" class="align-center" src="_images/tools_nudge.png" style="width: 50%;" /></a>
+<p>The three sets of sliders allow you to apply scalings, translations, and
+rotations to each of the three image axes. The <strong>Centre of rotation</strong>
+drop-down box can be used to set the centre of rotation to either the image
+centre, or to the current display location.</p>
+<p>The <strong>Load affine</strong> and <strong>Save affine</strong> buttons allow you to load a
+transformation from a file, or save the current transformation to a file (see
+the section on <a class="reference internal" href="#tools-flirt-transformations"><span class="std std-ref">FLIRT/affine transformations</span></a>, above).</p>
+<p>Once you are happy with your adjustments, click the <strong>Apply</strong> button to apply
+it to the image. You may then need to save the image to file, to make your
+adjustments permanent.</p>
+</div>
+<div class="section" id="seed-correlation">
+<span id="tools-seed-correlation"></span><h3>Seed correlation<a class="headerlink" href="#seed-correlation" title="Permalink to this headline">¶</a></h3>
+<a class="reference internal image-reference" href="_images/tools_seed_correlation.png"><img alt="_images/tools_seed_correlation.png" class="align-right" src="_images/tools_seed_correlation.png" style="width: 20%;" /></a>
+<p>The <strong>Seed correlation</strong> tool is active when a 4D image is selected. When you
+select this tool, it will calculate Pearson’s correlation coefficient between
+the time series of the voxel at the current location, and the time series of
+all other voxels. When the calculation is complete, a correlation map will be
+added as a new overlay.</p>
+<p>You can then select a different location and re-run seed correlation. The
+correlation map will then be updated with the correlation values for the new
+location.</p>
+</div>
+</div>
+<div class="section" id="time-series-view-tools">
+<span id="tools-timeseries"></span><h2>Time series view tools<a class="headerlink" href="#time-series-view-tools" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="_images/tools_add_time_series_from_roi.png"><img alt="_images/tools_add_time_series_from_roi.png" class="align-center" src="_images/tools_add_time_series_from_roi.png" style="width: 60%;" /></a>
+<p>The <a class="reference internal" href="plot_views.html#plot-views-time-series-view"><span class="std std-ref">time series view</span></a> currently has a
+single tool, the <strong>Add time series from ROI</strong> tool. This tool is active when
+the currently selected overlay is a 4D image, and one or more other images,
+which are in the same space as the selected image <a class="footnote-reference brackets" href="#id3" id="id2">*</a>, are also loaded.</p>
+<p>When you select a mask and click the <strong>Ok</strong> button, FSLeyes will calculate the
+mean time series from the selected image, of all voxels which are in the mask.
+If the mask is non-binary, you can also choose to calculate a weighted mean by
+selecting the <strong>Calculated weighted mean</strong> checkbox.</p>
+<p>The mean time course will then be added to the time series view.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id3"><span class="brackets"><a class="fn-backref" href="#id2">*</a></span></dt>
+<dd><p>Has the same voxel dimensions and affine transformation.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="histogram-view-tools">
+<span id="tools-histogram"></span><h2>Histogram view tools<a class="headerlink" href="#histogram-view-tools" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="_images/tools_histogram_roi.png"><img alt="_images/tools_histogram_roi.png" class="align-center" src="_images/tools_histogram_roi.png" style="width: 60%;" /></a>
+<p>The <a class="reference internal" href="plot_views.html#plot-views-histogram-view"><span class="std std-ref">histogram view</span></a> has a similar tool which
+allows you to calculate the histogram of a region within an image, where the
+region is specified by a binary mask.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="command_line.html" class="btn btn-neutral float-right" title="Command line interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ic_classification.html" class="btn btn-neutral float-left" title="IC classification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Paul McCarthy, University of Oxford, Oxford, UK
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

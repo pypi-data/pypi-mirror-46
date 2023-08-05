@@ -1,0 +1,560 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Plotting views &mdash; FSLeyes 0.29.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3D view" href="3d_view.html" />
+    <link rel="prev" title="Orthographic/lightbox views" href="ortho_lightbox_views.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> FSLeyes
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.29.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overlays.html">Overlays</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ortho_lightbox_views.html">Orthographic/lightbox views</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Plotting views</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#time-series-view">Time series view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#power-spectrum-view">Power spectrum view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#histogram-view">Histogram view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#controlling-what-gets-plotted">Controlling what gets plotted</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-overlay-list">The overlay list</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-plot-toolbar">The plot toolbar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#holding-data-series-and-the-plot-list">Holding data series and the plot list</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#importing-exporting-data">Importing/exporting data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#customising-the-plot-the-plot-control-panel">Customising the plot (the plot control panel)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#general-plot-settings">General plot settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot-settings-for-selected-overlay">Plot settings for selected overlay</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="3d_view.html">3D view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atlases.html">Atlases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="editing_images.html">Editing NIFTI images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feat_mode.html">Viewing FEAT analyses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ic_classification.html">IC classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fsleyes_notebook.html">FSLeyes and Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="display_space.html">The display space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising.html">Customising FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">FSLeyes plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html"><code class="docutils literal notranslate"><span class="pre">fsleyes</span></code> release history</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FSLeyes</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Plotting views</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/plot_views.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="plotting-views">
+<span id="plot-views"></span><h1>Plotting views<a class="headerlink" href="#plotting-views" title="Permalink to this headline">¶</a></h1>
+<a class="reference internal image-reference" href="_images/plot_views_time_series_example.png"><img alt="_images/plot_views_time_series_example.png" class="align-center" src="_images/plot_views_time_series_example.png" style="width: 90%;" /></a>
+<p>FSLeyes 0.29.0 provides three plotting views:</p>
+<ul class="simple">
+<li><p>The <a class="reference internal" href="#plot-views-time-series-view"><span class="std std-ref">Time series</span></a> view plots voxel
+intensities from 4D NIFTI images.</p></li>
+<li><p>The <a class="reference internal" href="#plot-views-power-spectrum-view"><span class="std std-ref">Power spectrum</span></a> view is similar
+to the time series view, but it plots time series transformed into the
+frequency domain.</p></li>
+<li><p>The <a class="reference internal" href="#plot-views-histogram-view"><span class="std std-ref">Histogram</span></a> view plots a histogram of
+the intensities of all voxels in a 3D NIFTI image (or one 3D volume of a 4D
+image).</p></li>
+</ul>
+<p>All of these views have a similar interface and functionality - they can plot
+data series from <a class="reference internal" href="#plot-views-overlay-list"><span class="std std-ref">multiple overlays</span></a> and
+<a class="reference internal" href="#plot-views-holding-data-series-and-the-plot-list"><span class="std std-ref">multiple voxels</span></a>, and
+you can also <a class="reference internal" href="#plot-views-importing-exporting-data"><span class="std std-ref">import and export data series</span></a>.</p>
+<div class="section" id="time-series-view">
+<span id="plot-views-time-series-view"></span><h2>Time series view<a class="headerlink" href="#time-series-view" title="Permalink to this headline">¶</a></h2>
+<p>The time series view plots voxel intensities from 4D NIFTI images. It is also
+capable of displaying various <a class="reference internal" href="feat_mode.html#feat-mode"><span class="std std-ref">FEAT analysis</span></a> outputs, and
+<a class="reference internal" href="ic_classification.html#ic-classification"><span class="std std-ref">MELODIC component time series</span></a> - refer to those
+pages for more details.</p>
+<p>When you are viewing a 4D NIFTI image in an <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views"><span class="std std-ref">orthographic or ligthbox
+view</span></a>, the time series view will update as you change
+the display location, to show the time series from the voxel (or voxels, if
+you have more than one 4D image loaded) at the current location. Clicking, or
+clicking and dragging on the time series plot will update the volume that is
+displayed for the currently selected image.  You can use the <a class="reference internal" href="#plot-views-plot-toolbar"><span class="std std-ref">plot
+toolbar</span></a> or <a class="reference internal" href="#plot-views-holding-data-series-and-the-plot-list"><span class="std std-ref">plot list</span></a> to “hold” the time series
+for one or more voxels, which will keep them on the plot after you change the
+display location.</p>
+<p>The plot control panel (described <a class="reference internal" href="#plot-views-customising-the-plot-the-plot-control-panel"><span class="std std-ref">below</span></a>) contains some
+settings specific to time series plots:</p>
+<a class="reference internal image-reference" href="_images/plot_views_time_series_control.png"><img alt="_images/plot_views_time_series_control.png" class="align-center" src="_images/plot_views_time_series_control.png" style="width: 50%;" /></a>
+<div class="sidebar" id="plot-views-percent-signal-changed-calculation">
+<p class="sidebar-title">Percent-signal changed calculation</p>
+<p>FSLeyes calculates percent-signal changed for each voxel using
+the mean intensity, over time, for that voxel. For a given voxel
+the intensity <span class="math notranslate nohighlight">\(i\)</span> at time <span class="math notranslate nohighlight">\(t\)</span> is calculated as
+follows:</p>
+<div class="math notranslate nohighlight">
+\[i_t = 100 \times \frac{i_t}{\bar{i}} - 100\]</div>
+<p>where <span class="math notranslate nohighlight">\(\bar{i}\)</span> is the mean voxel intensity across time.</p>
+</div>
+<ul class="simple">
+<li><p><strong>Plotting mode</strong> This setting allows you to scale or normalise the time
+series which are displayed. You can plot the “raw” data, demean it,
+normalise it to the range <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code>, or scale it to
+percent-signal-changed (suitable for FMRI BOLD data).</p></li>
+<li><p><strong>Use pixdims</strong> This setting is disabled by default. When enabled, the
+<code class="docutils literal notranslate"><span class="pre">pixdim</span></code> field of the time dimension in the NIFTI header is assumed to
+contain the TR time, and is used to scale the time series data along the X
+axis. Effectively, this means that the X axis will show seconds. When
+disabled, the X axis corresponds to the volume index (starting from 0) in
+the 4D image.</p></li>
+<li><p><strong>Plot component time courses for Melodic images</strong> This setting is enabled
+by default. If the currently selected overlay is the <code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code> file
+from a <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/MELODIC">MELODIC</a> analysis,
+the component time series for the current component (the current volume in
+the image) is shown, instead of the voxel intensity across all components.
+See the page on <a class="reference internal" href="ic_classification.html#ic-classification"><span class="std std-ref">IC classification</span></a> for more
+details.</p></li>
+</ul>
+</div>
+<div class="section" id="power-spectrum-view">
+<span id="plot-views-power-spectrum-view"></span><h2>Power spectrum view<a class="headerlink" href="#power-spectrum-view" title="Permalink to this headline">¶</a></h2>
+<p>The power spectrum view performs a similar role to that of the <a class="reference internal" href="#plot-views-time-series-view"><span class="std std-ref">time
+series view</span></a>, but the time series are
+transformed into the frequency domain before being plotted.</p>
+<div class="sidebar" id="plot-views-power-spectrum-calculation">
+<p class="sidebar-title">Power spectrum calculation</p>
+<p>Given the time series for a voxel, FSLeyes calculates the power
+spectrum using a Fast Fourier Transform, via the <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfft.html">numpy.fft.rfft</a>
+function. FSLeyes then converts the result into a magnitude by
+summing the squares of the real and imaginary components.</p>
+</div>
+<p>The <a class="reference internal" href="#plot-views-customising-the-plot-the-plot-control-panel"><span class="std std-ref">plot control panel</span></a> for a power spectrum
+view contains the following settings:</p>
+<a class="reference internal image-reference" href="_images/plot_views_power_spectrum_control.png"><img alt="_images/plot_views_power_spectrum_control.png" class="align-center" src="_images/plot_views_power_spectrum_control.png" style="width: 40%;" /></a>
+<ul class="simple">
+<li><p><strong>Show frequencies along the X axis</strong> This setting is enabled by
+default. When selected, the X axis values are transformed into frequencies,
+using the TR time specified in the NIFTI file header. Otherwise, the X axis
+values are simply plotted as indices.</p></li>
+<li><p><strong>Plot component power spectra for Melodic images</strong> In the same manner as
+the <a class="reference internal" href="#plot-views-time-series-view"><span class="std std-ref">time series view</span></a>, if the currently
+selected overlay is a <code class="docutils literal notranslate"><span class="pre">melodic_IC</span></code> image, the power spectrum
+(pre-calculated by <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/MELODIC">MELODIC</a>) for the current component
+will be plotted.</p></li>
+</ul>
+<p>One further setting is available for each data series displayed on a power
+spectrum view (in the <em>Plot settings for selected overlay</em> section of the plot
+control panel, described <a class="reference internal" href="#plot-views-customising-the-plot-the-plot-control-panel"><span class="std std-ref">below</span></a>):</p>
+<ul class="simple">
+<li><p><strong>Normalise to unit variance</strong> This setting is enabled by default. When
+selected, the time series data is normalised before being transformed into
+the frequency domain, by subtracting its mean, and dividing by its standard
+deviation.</p></li>
+</ul>
+</div>
+<div class="section" id="histogram-view">
+<span id="plot-views-histogram-view"></span><h2>Histogram view<a class="headerlink" href="#histogram-view" title="Permalink to this headline">¶</a></h2>
+<p>The histogram view plots a histogram of the intensities of all voxels in a 3D
+NIFTI image, or of the current 3D volume in a 4D image. Both the <a class="reference internal" href="#plot-views-plot-toolbar"><span class="std std-ref">plot
+toolbar</span></a> and <a class="reference internal" href="#plot-views-customising-the-plot-the-plot-control-panel"><span class="std std-ref">plot control panel</span></a> allow you to choose
+between displaying the histogram data series as probabilities, or as counts.</p>
+<p>The following settings will be displayed on the plot control panel for a
+histogram view, allowing you to customise the histogram for the currently
+selected image:</p>
+<a class="reference internal image-reference" href="_images/plot_views_histogram_control.png" id="plot-views-histogram-control"><img alt="_images/plot_views_histogram_control.png" class="align-center" id="plot-views-histogram-control" src="_images/plot_views_histogram_control.png" style="width: 60%;" /></a>
+<div class="sidebar">
+<p class="sidebar-title">3D histogram overlay</p>
+<a class="reference internal image-reference" href="_images/plot_views_histogram_overlay.png"><img alt="_images/plot_views_histogram_overlay.png" class="align-center" src="_images/plot_views_histogram_overlay.png" style="width: 100%;" /></a>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>When you enable the <em>Show 3D histogram overlay</em> setting, a
+<a class="reference internal" href="overlays.html#overlays-mask"><span class="std std-ref">mask</span></a> is added to the display, allowing you
+to see the voxels that have been included in the histogram.
+Clicking and dragging on the histogram plot allows you to
+interactively adjust the range of voxel intensities that are
+displayed.</p>
+</div>
+<ul class="simple">
+<li><p><strong>Ignore zeros</strong> This setting is selected by default. When selected, voxels
+which have an intensity equal to 0 are excluded from the histogram
+calculation.</p></li>
+<li><p><strong>Show 3D histogram overlay</strong> When this setting is selected, a <a class="reference internal" href="overlays.html#overlays-mask"><span class="std std-ref">mask</span></a> overlay is created, which displays the voxels that have
+been included in the histogram calculation. See the sidebar for more
+details.</p></li>
+<li><p><strong>Include values out of data range</strong> When this setting is selected, the
+histogram will be updated so that the first and last bins contain voxels
+that are outside of the <em>Data range</em>.</p></li>
+<li><p><strong>Automatic histogram binning</strong> This setting is selected by default. When
+selected, the <em>Number of bins</em> is automatically set according to the data
+range.</p></li>
+<li><p><strong>Number of bins</strong> When <em>Automatic histogram binning</em> is disabled, this
+setting allows you to adjust the number of bins used in the histogram
+calculation.</p></li>
+<li><p><strong>Volume</strong> If the currently selected overlay is a 4D NIFTI image, this
+slider allows you to choose the 3D volume used in the histogram calculation.</p></li>
+<li><p><strong>Data range</strong> This setting allows you to control the data range that is
+included in the histogram calculation.</p></li>
+</ul>
+</div>
+<div class="section" id="controlling-what-gets-plotted">
+<span id="plot-views-controlling-what-gets-plotted"></span><h2>Controlling what gets plotted<a class="headerlink" href="#controlling-what-gets-plotted" title="Permalink to this headline">¶</a></h2>
+<p>Each of the plotting views allow you to plot data series for multiple
+overlays, and for multiple voxels. You can also import arbitrary data series
+from a text file, and export the data series that are plotted.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The <a class="reference internal" href="#plot-views-overlay-list"><span class="std std-ref">overlay list</span></a> allows you to toggle the
+data series for each overlay on and off.</p></li>
+<li><p>The <a class="reference internal" href="#plot-views-plot-toolbar"><span class="std std-ref">plot toolbar</span></a> contains controls
+allowing you to import/export data series, and to “hold” data series for
+the current voxel.</p></li>
+<li><p>The <a class="reference internal" href="#plot-views-holding-data-series-and-the-plot-list"><span class="std std-ref">plot list</span></a>
+allows you to customise the data series that have been “held” on the plot.</p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="the-overlay-list">
+<span id="plot-views-overlay-list"></span><h3>The overlay list<a class="headerlink" href="#the-overlay-list" title="Permalink to this headline">¶</a></h3>
+<p>The overlay list which is available on plotting views is slightly different to
+the <a class="reference internal" href="ortho_lightbox_views.html#ortho-lightbox-views-overlay-list"><span class="std std-ref">one available in orthographic/lightbox views</span></a>. It simply displays a list of all loaded
+overlays, and allows you to toggle on and off the data series associated with
+each overlay, by clicking the <img alt="eye_icon" src="_images/eye_icon.png" /> button next to each overlay’s name.</p>
+</div>
+<div class="section" id="the-plot-toolbar">
+<span id="plot-views-plot-toolbar"></span><h3>The plot toolbar<a class="headerlink" href="#the-plot-toolbar" title="Permalink to this headline">¶</a></h3>
+<p>Each plotting view has a toolbar which contains some controls allowing you to
+do the following:</p>
+<a class="reference internal image-reference" href="_images/plot_views_plot_toolbar.png"><img alt="_images/plot_views_plot_toolbar.png" class="align-center" src="_images/plot_views_plot_toolbar.png" style="width: 60%;" /></a>
+<ol class="arabic simple">
+<li><p><strong>Plot control panel</strong> This button opens the <a class="reference internal" href="#plot-views-customising-the-plot-the-plot-control-panel"><span class="std std-ref">plot control panel</span></a>, which contains
+all available plot settings.</p></li>
+<li><p><strong>Plot list</strong> This button opens the <a class="reference internal" href="#plot-views-holding-data-series-and-the-plot-list"><span class="std std-ref">plot list</span></a>, which allows you to
+add and remove data series, and to customise the ones which are currently
+being plotted.</p></li>
+<li><p><strong>Screenshot</strong> This button allows you to save the current plot as a
+screenshot.</p></li>
+<li><p><strong>Import data series</strong> This button opens a file selection dialog, with
+which you can choose a file to <a class="reference internal" href="#plot-views-importing-exporting-data"><span class="std std-ref">import data series</span></a> from.</p></li>
+<li><p><strong>Export data series</strong> This button allows you to <a class="reference internal" href="#plot-views-importing-exporting-data"><span class="std std-ref">export</span></a> the data series which are currently
+plotted to a text file.</p></li>
+<li><p><strong>Add data series</strong> This button <a class="reference internal" href="#plot-views-holding-data-series-and-the-plot-list"><span class="std std-ref">“holds”</span></a> the plotted data series
+for the currently selected overlay, at the current voxel.</p></li>
+<li><p><strong>Remove data series</strong> This button removes the most recently <a class="reference internal" href="#plot-views-holding-data-series-and-the-plot-list"><span class="std std-ref">“held”</span></a> data series from the
+plot.</p></li>
+</ol>
+</div>
+<div class="section" id="holding-data-series-and-the-plot-list">
+<span id="plot-views-holding-data-series-and-the-plot-list"></span><h3>Holding data series and the plot list<a class="headerlink" href="#holding-data-series-and-the-plot-list" title="Permalink to this headline">¶</a></h3>
+<p>When you are viewing time series for voxels in a 4D NIFTI image, it can be
+useful to view the time series at different voxels simultaneously.</p>
+<p>You can accomplish this by “holding” the time series for the voxels in
+question - when you push the + button on either the plot toolbar or the plot
+list, the time series (or power spectrum) for the currently selected overlay,
+at the current voxel, will be added to the plot list, and will be held on the
+plot.  All data series that have been added to the plot list will remain on
+the plot, even after you have selected a different overlay or moved to a
+different voxel.</p>
+<p>The plot list allows you to manage all held data series:</p>
+<a class="reference internal image-reference" href="_images/plot_views_plot_list.png"><img alt="_images/plot_views_plot_list.png" class="align-center" src="_images/plot_views_plot_list.png" style="width: 75%;" /></a>
+<p>Through the plot list, you can add/remove data series, and customise the
+appearance of all data series that have been added to the plot.</p>
+</div>
+<div class="section" id="importing-exporting-data">
+<span id="plot-views-importing-exporting-data"></span><h3>Importing/exporting data<a class="headerlink" href="#importing-exporting-data" title="Permalink to this headline">¶</a></h3>
+<p>The <em>Import data series</em> button <img alt="import_data_series_icon" src="_images/import_data_series_icon.png" /> on the <a class="reference internal" href="#plot-views-plot-toolbar"><span class="std std-ref">plot
+toolbar</span></a> allows you to import data series from a
+text file to plot alongside the image data.</p>
+<div class="sidebar" id="plot-views-import-export-data-series-file-format">
+<p class="sidebar-title">Import/export data series file format</p>
+<p>FSLeyes expects the data series files that you import to consist
+of plain text numeric data organised into columns. One file may
+contain multiple data series, with the value from each series
+separated by white space. For example, FSLeyes will interpret
+this data as containing three three data series, each with six
+samples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">0.39</span>  <span class="o">-</span><span class="mf">1.53</span>  <span class="o">-</span><span class="mf">0.22</span>
+<span class="mf">0.58</span>  <span class="o">-</span><span class="mf">8.19</span>  <span class="o">-</span><span class="mf">0.27</span>
+<span class="mf">0.55</span>   <span class="mf">0.16</span>  <span class="o">-</span><span class="mf">0.18</span>
+<span class="mf">0.58</span>   <span class="mf">4.19</span>  <span class="o">-</span><span class="mf">0.25</span>
+<span class="mf">0.58</span>  <span class="o">-</span><span class="mf">0.11</span>  <span class="o">-</span><span class="mf">0.18</span>
+<span class="mf">0.53</span>   <span class="mf">3.5</span>   <span class="o">-</span><span class="mf">0.22</span>
+</pre></div>
+</div>
+</div>
+<p>For example, <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FEAT">FEAT</a> and <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/MELODIC">MELODIC</a> analyses typically contain
+estimates of subject motion, generated by the <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/MCFLIRT">MCFLIRT</a> tool. It can sometimes be
+useful to plot these estimates alongside the voxel time series, to visually
+check for motion-related correlations and artefacts.</p>
+<p>When you import data series from a file, FSLeyes will ask you how the data
+series are to be scaled on the X axis:</p>
+<a class="reference internal image-reference" href="_images/plot_views_import_data_x_scale.png"><img alt="_images/plot_views_import_data_x_scale.png" class="align-center" src="_images/plot_views_import_data_x_scale.png" style="width: 40%;" /></a>
+<p>If the first column in your data file contains the X axis data, click the
+<em>First column is X data</em> button. Otherwise, FSLeyes will set the X axis data
+according to the value that you enter <a class="footnote-reference brackets" href="#id4" id="id3">*</a>.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id3">*</a></span></dt>
+<dd><p>On time series views, make sure that the <strong>Use pixdims</strong> option is set
+appropriately for your X-axis scaling.</p>
+</dd>
+</dl>
+<p>The <em>Export data series</em> button <img alt="export_data_series_icon" src="_images/export_data_series_icon.png" /> on the <a class="reference internal" href="#plot-views-plot-toolbar"><span class="std std-ref">plot
+toolbar</span></a> allows you to save the data series that are
+currently plotted to a text file in the format described in the <a class="reference internal" href="#plot-views-import-export-data-series-file-format"><span class="std std-ref">sidebar</span></a>. To export data series of
+different lengths and sample rates out to the same text file, FSLeyes applies
+linear interpolation, and pads shorter data series with <code class="docutils literal notranslate"><span class="pre">nan</span></code>.</p>
+</div>
+</div>
+<div class="section" id="customising-the-plot-the-plot-control-panel">
+<span id="plot-views-customising-the-plot-the-plot-control-panel"></span><h2>Customising the plot (the plot control panel)<a class="headerlink" href="#customising-the-plot-the-plot-control-panel" title="Permalink to this headline">¶</a></h2>
+<p>The plot control panel contains all of the settings available for customising
+how each plotting view behaves, and how it looks. The available settings are
+organised into three groups:</p>
+<a class="reference internal image-reference" href="_images/plot_views_plot_control_panel_groups.png"><img alt="_images/plot_views_plot_control_panel_groups.png" class="align-center" src="_images/plot_views_plot_control_panel_groups.png" style="width: 30%;" /></a>
+<p>The view-specific settings (<em>Time series settings</em> in the above example) have
+been covered above, in the sections on the <a class="reference internal" href="#plot-views-time-series-view"><span class="std std-ref">time series</span></a>, <a class="reference internal" href="#plot-views-power-spectrum-view"><span class="std std-ref">power spectrum</span></a>, and <a class="reference internal" href="#plot-views-histogram-view"><span class="std std-ref">histogram</span></a> views. The <em>General plot settings</em> and <em>Plot
+settings for selected overlay</em> groups are the same across all plotting views.</p>
+<p>A fourth group of settings may be present, depending on the plotting view type
+(e.g. the <a class="reference internal" href="#plot-views-histogram-control"><span class="std std-ref">histogram settings</span></a>), and on
+the overlay type (e.g. <a class="reference internal" href="feat_mode.html#feat-mode-viewing-model-fits-in-the-time-series-panel"><span class="std std-ref">FEAT images</span></a>).</p>
+<div class="section" id="general-plot-settings">
+<h3>General plot settings<a class="headerlink" href="#general-plot-settings" title="Permalink to this headline">¶</a></h3>
+<p>This group of settings allows you to control how the plot looks and how it
+behaves:</p>
+<a class="reference internal image-reference" href="_images/plot_views_plot_control_panel_general_plot_settings.png"><img alt="_images/plot_views_plot_control_panel_general_plot_settings.png" class="align-center" src="_images/plot_views_plot_control_panel_general_plot_settings.png" style="width: 50%;" /></a>
+<div class="sidebar" id="plot-views-data-series-smoothing">
+<p class="sidebar-title">Data series smoothing</p>
+<p>When the <em>Smooth</em> setting is selected, FSLeyes smooths each data
+series using the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/interpolate.html">scipy.interpolate</a>
+package. First, a B-spline representation of degree 3, of the
+data series is calculated using the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.splrep.html">splrep</a>
+function. Then, the data series is interpolated at five times its
+original resolution using the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.splev.html">splev</a>
+function.</p>
+</div>
+<ul class="simple">
+<li><p><strong>Log scale (x axis)</strong> When selected, the base 10 logarithm of the X axis
+data will be displayed.</p></li>
+<li><p><strong>Log scale (y axis)</strong> When selected, the base 10 logarithm of the Y axis
+data will be displayed.</p></li>
+<li><p><strong>Smooth</strong> When selected, each data series is upsampled and smoothed (see
+the <a class="reference internal" href="#plot-views-data-series-smoothing"><span class="std std-ref">sidebar</span></a>).</p></li>
+<li><p><strong>Show legend</strong> Toggle the plot legend on and off.</p></li>
+<li><p><strong>Show ticks</strong> Toggle the plot ticks on and off.</p></li>
+<li><p><strong>Show grid</strong> Toggle the plot grid on and off.</p></li>
+<li><p><strong>Grid colour</strong> This setting allows you to change the plot grid colour.</p></li>
+<li><p><strong>Background colour</strong> This setting allows you to change the plot background
+colour.</p></li>
+<li><p><strong>Auto-scale (x axis)</strong> This setting is selected by default. When selected,
+the X axis limits are automatically scaled to fit the data series that are
+plotted.</p></li>
+<li><p><strong>Auto-scale (y axis)</strong> This setting is selected by default. When selected,
+the Y axis limits are automatically scaled to fit the data series that are
+plotted.</p></li>
+<li><p><strong>X limits</strong> If <em>Auto-scale</em> is disabled for the X axis, this setting allows
+you to manually specify the X axis limits.</p></li>
+<li><p><strong>Y limits</strong> If <em>Auto-scale</em> is disabled for the Y axis, this setting allows
+you to manually specify the Y axis limits.</p></li>
+<li><p><strong>Labels</strong> Set the X and Y axis labels here.</p></li>
+</ul>
+</div>
+<div class="section" id="plot-settings-for-selected-overlay">
+<h3>Plot settings for selected overlay<a class="headerlink" href="#plot-settings-for-selected-overlay" title="Permalink to this headline">¶</a></h3>
+<p>This group of settings allows you to control how the data series for the
+current overlay is plotted.</p>
+<a class="reference internal image-reference" href="_images/plot_views_plot_control_panel_plot_settings_for_selected_overlay.png"><img alt="_images/plot_views_plot_control_panel_plot_settings_for_selected_overlay.png" class="align-center" src="_images/plot_views_plot_control_panel_plot_settings_for_selected_overlay.png" style="width: 35%;" /></a>
+<p>You can customise the data series line colour, transparency, width, and
+style - available styles are <em>Solid line</em>, <em>Dashed line</em>, <em>Dash-dot line</em>, and
+<em>Dotted line</em>.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="3d_view.html" class="btn btn-neutral float-right" title="3D view" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ortho_lightbox_views.html" class="btn btn-neutral float-left" title="Orthographic/lightbox views" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Paul McCarthy, University of Oxford, Oxford, UK
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

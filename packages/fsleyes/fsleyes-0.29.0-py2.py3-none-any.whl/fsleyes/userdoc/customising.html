@@ -1,0 +1,532 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Customising FSLeyes &mdash; FSLeyes 0.29.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="FSLeyes plugins" href="plugins.html" />
+    <link rel="prev" title="The display space" href="display_space.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> FSLeyes
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.29.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing FSLeyes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overlays.html">Overlays</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ortho_lightbox_views.html">Orthographic/lightbox views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_views.html">Plotting views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3d_view.html">3D view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atlases.html">Atlases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="editing_images.html">Editing NIFTI images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feat_mode.html">Viewing FEAT analyses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ic_classification.html">IC classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fsleyes_notebook.html">FSLeyes and Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="display_space.html">The display space</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Customising FSLeyes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#fsleyes-settings-directory">FSLeyes settings directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#colour-maps">Colour maps</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#built-in-colour-maps">Built-in colour maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-added-colour-maps">User-added colour maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rgb-colour-map-files">RGB colour map files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vest-colour-map-files">VEST colour map files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#lookup-tables">Lookup tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#atlases">Atlases</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">FSLeyes plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html"><code class="docutils literal notranslate"><span class="pre">fsleyes</span></code> release history</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FSLeyes</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Customising FSLeyes</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/customising.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="customising-fsleyes">
+<span id="customising"></span><h1>Customising FSLeyes<a class="headerlink" href="#customising-fsleyes" title="Permalink to this headline">¶</a></h1>
+<p>This page contains details on customising various aspects of FSLeyes.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are a Python developer, and want to develop custom plugins
+for FSLeyes, check out the page on <a class="reference internal" href="plugins.html#fsleyes-plugins"><span class="std std-ref">plugins</span></a>.</p>
+</div>
+<div class="section" id="fsleyes-settings-directory">
+<span id="customising-fsleyes-settings-directory"></span><h2>FSLeyes settings directory<a class="headerlink" href="#fsleyes-settings-directory" title="Permalink to this headline">¶</a></h2>
+<p>FSLeyes stores all of its user-specific settings, and user-added colour maps
+and lookup tables in a directory which, under macOS, will be located at:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$HOME/.fsleyes/
+</pre></div>
+</div>
+<p>Under Linux, the FSLeyes directory will be found in either:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$XDG_CONFIG_HOME/fsleyes/
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$HOME/.config/fsleyes/
+</pre></div>
+</div>
+<p>Most FSLeyes settings are stored in a Python <a class="reference external" href="https://docs.python.org/3/library/pickle.html">pickle</a> file called <code class="docutils literal notranslate"><span class="pre">config.pkl</span></code>.
+The <em>FSLeyes</em> ⇒ <em>Clear FSLeyes settings</em> menu option simply
+deletes this directory, which causes FSLeyes to forget all settings (and
+user-added colour maps and lookup tables).</p>
+</div>
+<div class="section" id="colour-maps">
+<span id="customising-colour-maps"></span><h2>Colour maps<a class="headerlink" href="#colour-maps" title="Permalink to this headline">¶</a></h2>
+<p>For <a class="reference internal" href="overlays.html#overlays-volume"><span class="std std-ref">volume</span></a> overlays, the <a class="reference internal" href="overlays.html#overlays-overlay-display-panel"><span class="std std-ref">overlay display panel</span></a> has a <strong>Load colour map</strong> button which
+allows you to load new colour maps into FSLeyes.  Clicking on this button will
+bring up a file selection dialog, allowing you to choose a file which contains
+a custom colour map.</p>
+<p>FSLeyes can read in two types of colour map files, both described below:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#customising-rgb-colour-map-files"><span class="std std-ref">RGB files</span></a>, which simply contain a
+list of RGB values</p></li>
+<li><p><a class="reference internal" href="#customising-vest-colour-map-files"><span class="std std-ref">VEST files</span></a>, which are in the
+format used by <a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslView/">FSLView</a>.</p></li>
+</ul>
+</div></blockquote>
+<p>When you apply a colour map to an image, FSLeyes will map the image display
+range to the colours in the colour map - the low display range value will map
+to the first colour in the colour map (i.e. the first colour in the file), and
+the high display range to the last colour (the last colour in the file). The
+<strong>Interpolate colour maps</strong> setting for <a class="reference internal" href="overlays.html#overlays-volume"><span class="std std-ref">volume</span></a> allows
+you to define a continuous colour map by only specifying a few colours. For
+example, you could define the greyscale colour map with just two colours:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span>
+<span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
+</pre></div>
+</div>
+<p>When the <strong>Interpolate colour maps</strong> setting is enabled, FSLeyes will
+interpolate between these colours.</p>
+<div class="section" id="built-in-colour-maps">
+<h3>Built-in colour maps<a class="headerlink" href="#built-in-colour-maps" title="Permalink to this headline">¶</a></h3>
+<p>FSLeyes comes with a set of built-in colour maps. Under macOS, the built-in
+colour map files (as <a class="reference internal" href="#customising-rgb-colour-map-files"><span class="std std-ref">RGB files</span></a>) can
+be found at:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">FSLeyes</span><span class="o">.</span><span class="n">app</span><span class="o">/</span><span class="n">Contents</span><span class="o">/</span><span class="n">Resources</span><span class="o">/</span><span class="n">assets</span><span class="o">/</span><span class="n">colourmaps</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>And under Linux, they are located in:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">FSLeyes</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">FSLeyes</span><span class="o">/</span><span class="n">assets</span><span class="o">/</span><span class="n">colourmaps</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>You can customise the display names and order of the built-in colour
+maps. Inside the <code class="docutils literal notranslate"><span class="pre">colourmaps/</span></code> directory you will find a file called
+<code class="docutils literal notranslate"><span class="pre">order.txt</span></code>. This file defines the order in which colour maps are displayed
+in the FSLeyes interface, and also contains the display name for each colour
+map; it contains a list of colour map file names (without the <code class="docutils literal notranslate"><span class="pre">.cmap</span></code>
+suffix), and corresponding display names for each:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">greyscale</span>        <span class="n">Greyscale</span>
+<span class="n">red</span><span class="o">-</span><span class="n">yellow</span>       <span class="n">Red</span><span class="o">-</span><span class="n">Yellow</span>
+<span class="n">blue</span><span class="o">-</span><span class="n">lightblue</span>   <span class="n">Blue</span><span class="o">-</span><span class="n">Light</span> <span class="n">blue</span>
+<span class="n">red</span>              <span class="n">Red</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Any colour maps which exist in the <code class="docutils literal notranslate"><span class="pre">colourmaps/</span></code> directory, but are not
+listed in <code class="docutils literal notranslate"><span class="pre">order.txt</span></code> will still be available in the FSLeyes interface, but
+will be added after all of the colour maps listed in <code class="docutils literal notranslate"><span class="pre">order.txt</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When creating your own <code class="docutils literal notranslate"><span class="pre">.cmap</span></code> file, make sure that there are
+no spaces in the file name. This also applies to <code class="docutils literal notranslate"><span class="pre">.lut</span></code> files
+(covered <a class="reference internal" href="#customising-lookup-tables"><span class="std std-ref">below</span></a>).</p>
+</div>
+</div>
+<div class="section" id="user-added-colour-maps">
+<h3>User-added colour maps<a class="headerlink" href="#user-added-colour-maps" title="Permalink to this headline">¶</a></h3>
+<p>When you load a custom colour map through the <a class="reference internal" href="overlays.html#overlays-overlay-display-panel"><span class="std std-ref">overlay display panel</span></a>, FSLeyes will ask you if you would like to
+install it permanently. If you choose to do so, FSLeyes will save the colour
+map (as a <a class="reference internal" href="#customising-rgb-colour-map-files"><span class="std std-ref">RGB file</span></a>) under the
+<a class="reference internal" href="#customising-fsleyes-settings-directory"><span class="std std-ref">FSLeyes settings directory</span></a> (in
+a sub-directory called <code class="docutils literal notranslate"><span class="pre">colourmaps/</span></code>), renaming the file so it ends with
+<code class="docutils literal notranslate"><span class="pre">.cmap</span></code>. In the FSLeyes interface, all user-added colour maps will appear
+after the built-in colour maps.</p>
+<p>You can also create your own <code class="docutils literal notranslate"><span class="pre">order.txt</span></code> file and store it alongside the
+user-added colour map files - it will be used in place of the built-in
+<code class="docutils literal notranslate"><span class="pre">order.txt</span></code> file.</p>
+</div>
+<div class="section" id="rgb-colour-map-files">
+<span id="customising-rgb-colour-map-files"></span><h3>RGB colour map files<a class="headerlink" href="#rgb-colour-map-files" title="Permalink to this headline">¶</a></h3>
+<p>RGB colour map files simply contain a list of RGB colours, one per line, with
+each colour specified by three space-separated floating point values in the
+range <code class="docutils literal notranslate"><span class="pre">0.0</span> <span class="pre">-</span> <span class="pre">1.0</span></code>, with each value corresponding to the R, G, and B colour
+channels respectively. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">1.000000</span> <span class="mf">0.260217</span> <span class="mf">0.000000</span>
+<span class="mf">0.000000</span> <span class="mf">0.687239</span> <span class="mf">1.000000</span>
+<span class="mf">0.738949</span> <span class="mf">0.000000</span> <span class="mf">1.000000</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="vest-colour-map-files">
+<span id="customising-vest-colour-map-files"></span><h3>VEST colour map files<a class="headerlink" href="#vest-colour-map-files" title="Permalink to this headline">¶</a></h3>
+<p>VEST colour map files follow the colour map file format supported by
+FSLView. They contain a list of RGB colour tuples, with some additional
+metadata <a class="footnote-reference brackets" href="#id2" id="id1">*</a>. A VEST file looks something like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>%!VEST-LUT
+%%BeginInstance
+&lt;&lt;
+/SavedInstanceClassName /ClassLUT
+/PseudoColorMinimum 0.00
+/PseudoColorMaximum 1.00
+/PseudoColorMinControl /Low
+/PseudoColorMaxControl /High
+/PseudoColormap [
+&lt;-color{0.000000,0.000000,0.000000}-&gt;
+&lt;-color{0.010000,0.010000,0.010000}-&gt;
+.
+.
+.
+&lt;-color{1.000000,1.000000,1.000000}-&gt;
+]
+&gt;&gt;
+
+%%EndInstance
+%%EOF
+</pre></div>
+</div>
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">*</a></span></dt>
+<dd><p>FSLeyes ignores all of the metadata contained in VEST colour map files,
+and only extracts the RGB colour values.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="lookup-tables">
+<span id="customising-lookup-tables"></span><h2>Lookup tables<a class="headerlink" href="#lookup-tables" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="overlays.html#overlays-label"><span class="std std-ref">Label</span></a> overlays are coloured according to a lookup
+table, which is distinct from a <a class="reference internal" href="#customising-colour-maps"><span class="std std-ref">colour map</span></a>. The <a class="reference internal" href="overlays.html#overlays-the-lookup-table-panel"><span class="std std-ref">lookup table panel</span></a> allows you to create your own lookup
+tables, and load a lookup table from a file.</p>
+<p>FSLeyes manages lookup tables for label overlays in a very similar manner as
+for colour maps. A FSLeyes lookup table file has a name that ends in <code class="docutils literal notranslate"><span class="pre">.lut</span></code>,
+and defines a lookup table which may be used to display images wherein each
+voxel has a discrete integer label.  The lookup table file defines a name and
+a colour for each of the possible voxel values in such an image.</p>
+<p>Each line in a <code class="docutils literal notranslate"><span class="pre">.lut</span></code> file must specify a label value, RGB colour, and
+associated name.  The first column (where columns are space-separated) defines
+the label value, the second to fourth columns specify the RGB values, and all
+remaining columns give the label name. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">1</span>  <span class="mf">0.00000</span> <span class="mf">0.93333</span> <span class="mf">0.00000</span> <span class="n">Frontal</span> <span class="n">Pole</span>
+<span class="mi">2</span>  <span class="mf">0.62745</span> <span class="mf">0.32157</span> <span class="mf">0.17647</span> <span class="n">Insular</span> <span class="n">Cortex</span>
+<span class="mi">3</span>  <span class="mf">1.00000</span> <span class="mf">0.85490</span> <span class="mf">0.72549</span> <span class="n">Superior</span> <span class="n">Frontal</span> <span class="n">Gyrus</span>
+</pre></div>
+</div>
+<p>FSLeyes manages lookup table files in the same manner as described for
+<a class="reference internal" href="#customising-colour-maps"><span class="std std-ref">colour maps</span></a>. Built-in lookup table files can
+be located under the FSLeyes <code class="docutils literal notranslate"><span class="pre">assets/luts/</span></code> directory. A file called
+<code class="docutils literal notranslate"><span class="pre">order.txt</span></code> allows you to customise the display names and order of built-in
+lookup tables.  Custom lookup tables which are added via the <a class="reference internal" href="overlays.html#overlays-the-lookup-table-panel"><span class="std std-ref">lookup
+table panel</span></a> are saved into the
+<a class="reference internal" href="#customising-fsleyes-settings-directory"><span class="std std-ref">FSLeyes settings directory</span></a>, in
+a sub-directory called <code class="docutils literal notranslate"><span class="pre">luts</span></code>.</p>
+</div>
+<div class="section" id="atlases">
+<span id="customising-atlases"></span><h2>Atlases<a class="headerlink" href="#atlases" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="atlases.html#atlases-atlas-management"><span class="std std-ref">atlas management</span></a> panel allows you to
+load custom atlases into FSLeyes. FSL 5.0.10 and FSLeyes 0.29.0
+supports atlases which are described by an <code class="docutils literal notranslate"><span class="pre">xml</span></code> file that adheres to the
+<a class="reference external" href="https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Atlases-Reference">FSL atlas XML file format</a>.</p>
+<p>FSLeyes 0.29.0 understands two types of atlases <a class="footnote-reference brackets" href="#id4" id="id3">†</a>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>A <em>label</em> (or <em>summary</em>) atlas is a 3D NIFTI image which contains different
+discrete integer values for each region defined in the atlas.</p></li>
+<li><p>A <em>probabilistic</em> atlas is a 4D NIFTI image, where each volume contains a
+probability map for one region in the atlas.  This probabilistic image may
+also be accompanied by a corresponding label image.</p></li>
+</ul>
+</div></blockquote>
+<p>Multiple versions of these images, at different resolutions, may exist
+(e.g. 1mm and 2mm versions of the same image may be present).</p>
+<p>If you have an atlas image which you would like to use in FSLeyes, you must
+write an <code class="docutils literal notranslate"><span class="pre">xml</span></code> file which describes the atlas, contains paths to the atlas
+image(s), and contains a description of every region in the atlas.</p>
+<p>The best way to create one of these files is to look at the atlas files that
+exist in <code class="docutils literal notranslate"><span class="pre">$FSLDIR/data/atlases</span></code>. Create a copy of one of these files -
+select one which describes an atlas that is similar to your own atlas
+(i.e. probabilistic or label) - and then modify the atlas name, file paths,
+and label descriptions to suit your atlas.  Your <code class="docutils literal notranslate"><span class="pre">xml</span></code> atlas file should end
+up looking something like the following:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;atlas&gt;</span>
+
+  <span class="c">&lt;!-- The header defines the atlas name, type,</span>
+<span class="c">       and paths to the atlas image files. --&gt;</span>
+  <span class="nt">&lt;header&gt;</span>
+
+    <span class="c">&lt;!-- Human-readable atlas name --&gt;</span>
+    <span class="nt">&lt;name&gt;</span>Harvard-Oxford Cortical Structural Atlas<span class="nt">&lt;/name&gt;</span>
+
+    <span class="c">&lt;!-- Abbreviated atlas name --&gt;</span>
+    <span class="nt">&lt;shortname&gt;</span>HOCPA<span class="nt">&lt;/shortname&gt;</span>
+
+    <span class="c">&lt;!-- Atlas type - &quot;Probabilistic&quot; or &quot;Label&quot; --&gt;</span>
+    <span class="nt">&lt;type&gt;</span>Probabilistic<span class="nt">&lt;/type&gt;</span>
+
+    <span class="c">&lt;!-- Paths (defined relative to the location</span>
+<span class="c">         of this XML file) to the atlas images.</span>
+<span class="c">         Multiple &lt;images&gt; elements may be present</span>
+<span class="c">         - one for each resolution in which the</span>
+<span class="c">         atlas is available. --&gt;</span>
+    <span class="nt">&lt;images&gt;</span>
+
+      <span class="c">&lt;!-- If the atlas type is &quot;Probabilistic&quot;, the</span>
+<span class="c">           &lt;imagefile&gt; must be a path to a 4D image</span>
+<span class="c">           which contains one volume per region.</span>
+<span class="c">           Otherwise, if the atlas type is &quot;Label&quot;,</span>
+<span class="c">           the &lt;imagefile&gt; must be a path to 3D</span>
+<span class="c">           label image. --&gt;</span>
+      <span class="nt">&lt;imagefile&gt;</span>/HarvardOxford/HarvardOxford-cort-prob-2mm<span class="nt">&lt;/imagefile&gt;</span>
+
+      <span class="c">&lt;!-- If the atlas type is &quot;Probabilistic&quot;, the</span>
+<span class="c">           &lt;summaryimagefile&gt; must be a path to a 3D</span>
+<span class="c">           label image which &#39;summarises&#39; the</span>
+<span class="c">           probabilistic image. If the atlas type is</span>
+<span class="c">           &quot;Label&quot;, the &lt;summaryimagefile&gt; is identical</span>
+<span class="c">           to the &lt;imagefile&gt;. There must be a</span>
+<span class="c">           &lt;summaryimagefile&gt; for every &lt;imagefile&gt;. --&gt;</span>
+      <span class="nt">&lt;summaryimagefile&gt;</span>/HarvardOxford/HarvardOxford-cort-maxprob-thr25-2mm<span class="nt">&lt;/summaryimagefile&gt;</span>
+    <span class="nt">&lt;/images&gt;</span>
+
+    <span class="c">&lt;!-- A 1mm version of the same atlas images. --&gt;</span>
+    <span class="nt">&lt;images&gt;</span>
+      <span class="nt">&lt;imagefile&gt;</span>/HarvardOxford/HarvardOxford-cort-prob-1mm<span class="nt">&lt;/imagefile&gt;</span>
+      <span class="nt">&lt;summaryimagefile&gt;</span>/HarvardOxford/HarvardOxford-cort-maxprob-thr25-1mm<span class="nt">&lt;/summaryimagefile&gt;</span>
+    <span class="nt">&lt;/images&gt;</span>
+  <span class="nt">&lt;/header&gt;</span>
+
+  <span class="c">&lt;!-- The &lt;data&gt; element contains descriptions</span>
+<span class="c">       of all regions in the atlas. --&gt;</span>
+  <span class="nt">&lt;data&gt;</span>
+
+    <span class="c">&lt;!-- Every region in the atlas has a &lt;label&gt; element which defines:</span>
+
+<span class="c">         - The &quot;index&quot;. For probabilistic atlases, this is the index</span>
+<span class="c">           of the corresponding volume in the 4D image file. For</span>
+<span class="c">           label images, the index is the value of voxels which</span>
+<span class="c">           are in the corresponding region. For 3D summary images of</span>
+<span class="c">           probabilistic atlases, add 1 to the index to get the</span>
+<span class="c">           label value.</span>
+
+<span class="c">         - The &quot;x&quot;, &quot;y&quot;, and &quot;z&quot; coordinates of a pre-</span>
+<span class="c">           calculated &quot;centre-of-gravity&quot; for this region.</span>
+<span class="c">           These are specified as voxel coordinates,</span>
+<span class="c">           relative to the *first* image in the &lt;images&gt;</span>
+<span class="c">           list, above.</span>
+
+<span class="c">         - The name of the region. --&gt;</span>
+
+    <span class="nt">&lt;label</span> <span class="na">index=</span><span class="s">&quot;0&quot;</span> <span class="na">x=</span><span class="s">&quot;48&quot;</span> <span class="na">y=</span><span class="s">&quot;94&quot;</span> <span class="na">z=</span><span class="s">&quot;35&quot;</span><span class="nt">&gt;</span>Frontal Pole<span class="nt">&lt;/label&gt;</span>
+    <span class="nt">&lt;label</span> <span class="na">index=</span><span class="s">&quot;1&quot;</span> <span class="na">x=</span><span class="s">&quot;25&quot;</span> <span class="na">y=</span><span class="s">&quot;70&quot;</span> <span class="na">z=</span><span class="s">&quot;32&quot;</span><span class="nt">&gt;</span>Insular Cortex<span class="nt">&lt;/label&gt;</span>
+    <span class="nt">&lt;label</span> <span class="na">index=</span><span class="s">&quot;2&quot;</span> <span class="na">x=</span><span class="s">&quot;33&quot;</span> <span class="na">y=</span><span class="s">&quot;73&quot;</span> <span class="na">z=</span><span class="s">&quot;63&quot;</span><span class="nt">&gt;</span>Superior Frontal Gyrus<span class="nt">&lt;/label&gt;</span>
+
+    <span class="c">&lt;!-- ... --&gt;</span>
+
+    <span class="nt">&lt;label</span> <span class="na">index=</span><span class="s">&quot;45&quot;</span> <span class="na">x=</span><span class="s">&quot;74&quot;</span> <span class="na">y=</span><span class="s">&quot;53&quot;</span> <span class="na">z=</span><span class="s">&quot;40&quot;</span><span class="nt">&gt;</span>Planum Temporale<span class="nt">&lt;/label&gt;</span>
+    <span class="nt">&lt;label</span> <span class="na">index=</span><span class="s">&quot;46&quot;</span> <span class="na">x=</span><span class="s">&quot;44&quot;</span> <span class="na">y=</span><span class="s">&quot;21&quot;</span> <span class="na">z=</span><span class="s">&quot;42&quot;</span><span class="nt">&gt;</span>Supracalcarine Cortex<span class="nt">&lt;/label&gt;</span>
+    <span class="nt">&lt;label</span> <span class="na">index=</span><span class="s">&quot;47&quot;</span> <span class="na">x=</span><span class="s">&quot;37&quot;</span> <span class="na">y=</span><span class="s">&quot;15&quot;</span> <span class="na">z=</span><span class="s">&quot;34&quot;</span><span class="nt">&gt;</span>Occipital Pole<span class="nt">&lt;/label&gt;</span>
+  <span class="nt">&lt;/data&gt;</span>
+<span class="nt">&lt;/atlas&gt;</span>
+</pre></div>
+</div>
+<dl class="footnote brackets">
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id3">†</a></span></dt>
+<dd><p>Future releases of FSL and FSLeyes will support different types of
+atlases (e.g. longitudinal, surface-based, etc.).</p>
+</dd>
+</dl>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="plugins.html" class="btn btn-neutral float-right" title="FSLeyes plugins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="display_space.html" class="btn btn-neutral float-left" title="The display space" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Paul McCarthy, University of Oxford, Oxford, UK
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
