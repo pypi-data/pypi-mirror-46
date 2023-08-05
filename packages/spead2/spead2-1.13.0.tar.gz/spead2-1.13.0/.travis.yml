@@ -1,0 +1,86 @@
+language: generic
+cache:
+  ccache: true
+  pip: true
+  directories:
+    - $HOME/.ccache
+matrix:
+  include:
+    - os: linux
+      sudo: false
+      dist: trusty
+      env: COVERAGE=yes
+        TEST_PYTHON=yes PYTHON=python3 CC="gcc"
+        TEST_CXX=yes CXX="g++"
+        NETMAP=yes RECVMMSG=yes SENDMMSG=yes EVENTFD=yes IBV=yes PCAP=yes
+    - os: linux
+      sudo: false
+      dist: trusty
+      env: TEST_CXX=yes CXX="ccache g++" RECVMMSG=yes SENDMMSG=yes EVENTFD=yes PCAP=yes NETMAP=yes IBV=yes
+    - os: linux
+      sudo: false
+      dist: trusty
+      env: TEST_CXX=yes CXX="ccache g++"
+    - os: linux
+      sudo: false
+      dist: trusty
+      env: TEST_CXX=yes CXX="ccache clang++-3.5 -Qunused-arguments" RECVMMSG=yes SENDMMSG=yes EVENTFD=yes PCAP=yes NETMAP=yes IBV=yes
+    - os: linux
+      sudo: false
+      dist: trusty
+      env: TEST_CXX=yes CXX="ccache clang++-3.5 -Qunused-arguments"
+    - os: linux
+      sudo: false
+      dist: trusty
+      env: TEST_PYTHON=yes PYTHON=python2 CC="ccache gcc" CXX="g++"
+    - os: linux
+      sudo: false
+      dist: trusty
+      env: TEST_PYTHON=yes PYTHON=python2 CC="clang-3.5" CXX="clang++-3.5"
+    - os: linux
+      sudo: false
+      dist: trusty
+      env: TEST_PYTHON=yes PYTHON=python3 CC="ccache gcc" CXX="g++"
+    - os: linux
+      sudo: false
+      dist: trusty
+      env: TEST_PYTHON=yes PYTHON=python3 CC="clang-3.5" CXX="clang++-3.5"
+    - os: linux
+      sudo: false
+      dist: trusty
+      env: TEST_PYTHON=yes PYTHON=pypy2 CC="ccache gcc" CXX="g++"
+    - os: osx
+      osx_image: xcode8.3
+      env: TEST_CXX=yes CXX="clang++"
+    - os: osx
+      osx_image: xcode8.3
+      env: TEST_PYTHON=yes PYTHON=python2 CC="clang" CXX="clang++"
+    - os: osx
+      osx_image: xcode8.3
+      env: TEST_PYTHON=yes PYTHON=python3 CC="clang" CXX="clang++"
+
+addons:
+  apt:
+    packages:
+      - gcc
+      - g++
+      - clang-3.5
+      - libboost-system1.55-dev
+      - libboost-test1.55-dev
+      - libboost-program-options1.55-dev
+      - libpcap-dev
+      - python-dev
+      - python3-dev
+      - python-pip
+      - python3-pip
+      - librdmacm-dev
+      - libibverbs-dev
+install:
+  - ./.travis/install.sh
+script:
+  - ./.travis/script.sh
+after_success:
+  - |
+    if [ "$COVERAGE" = "yes" ]; then
+      ./venv/bin/coveralls --include src --include include/spead2 --gcov-options '\-lp'
+    fi
