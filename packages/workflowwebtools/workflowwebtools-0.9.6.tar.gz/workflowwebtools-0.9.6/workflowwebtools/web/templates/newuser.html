@@ -1,0 +1,47 @@
+<%inherit file="simple.html"/>
+
+<%block name="title">New User Registration</%block>
+
+<%block name="scripts">
+<script>
+  var validEmails = ["${'","'.join(emails)}"]
+</script>
+<script src="/static/js/checkuser.js"></script>
+</%block>
+
+<p>
+  On a successful submission,
+  you will get a confirmation page that an email was sent.
+</p>
+
+<form name="infoform" method="POST" onsubmit="return validateForm()">
+  E-mail: <br>
+  <input type="text" name="email"> <br>
+  Username: <br>
+  <input type="text" name="username"> <br>
+  Password: <br>
+  <input id="firstword" type="password" name="password"> <br>
+  Confirm Password: <br>
+  <input id="secondword" type="password" onkeyup="checkPassword()">
+  <span id="confirmresult"></span> <br>
+  <input type="submit" value="Submit">
+</form>
+
+<p>
+  The username must only contain alphanumeric characters,
+  or it will not be added to the database.
+</p>
+<!-- I'll write the javascript for that later. -->
+
+<p>
+  The email must end with one of the following:
+</p>
+<ul>
+  % for email in emails:
+  % if email[0] == '@':
+  <li> ${email}
+    % endif
+    % endfor
+</ul>
+
+<div id="error"></div>

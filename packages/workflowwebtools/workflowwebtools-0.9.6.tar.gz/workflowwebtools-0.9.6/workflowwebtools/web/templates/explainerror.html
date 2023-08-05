@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta name="viewport" content="width=device-width,user-scalable=yes"/>
+    <title>Error Explained</title>
+    % if source == '/':
+    <script>
+      function goBack() {
+          window.history.back()
+      }
+    </script>
+    % endif
+  </head>
+
+  <body>
+
+    <%
+       if source == '/':
+           returnstring = '<button onclick="goBack()">Go Back</button>'
+       else:
+           returnstring = '<a href="/seeworkflow/?workflow=' + source.split('/')[1] + '#' + source + '">Return to workflow table</a>'
+    %>
+
+    ${returnstring}
+    <h2>${error}</h2>
+    <% 
+       toprint = ('\n --- \n' + returnstring + '\n --- \n').join(explanation).replace('\n','<br>')
+    %>
+    <div style="max-width:100%; word-wrap:break-word">
+      ${toprint}
+    <div>
+  </body>
+</html>
