@@ -1,0 +1,2 @@
+from .TextPhraseAbstractModels import TextPhraseAbstractModel
+from .TextImagePhraseAbstractModels import TextImagePhraseAbstractModel
