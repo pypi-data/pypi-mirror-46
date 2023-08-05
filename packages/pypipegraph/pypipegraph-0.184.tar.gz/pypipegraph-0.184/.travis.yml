@@ -1,0 +1,74 @@
+sudo: false
+
+language: python
+
+
+matrix:
+  fast_finish: true
+  include:
+    - python: 3.6
+      env:
+        - JOB: 'UNITTEST'
+        - FULL_DEPS: true
+          #- python: 3.6
+          #env:
+          #- JOB: 'DOCS'
+          #- FULL_DEPS: true
+          #addons:
+          #apt:
+          #packages:
+          #- pandoc
+      #- python: 3.6
+          #env:
+          #- JOB: 'LINT'
+          #- FULL_DEPS: false
+    
+cache: pip
+
+
+notifications:
+  email: false
+
+# miniconda recipe
+# http://conda.pydata.org/docs/travis.html#using-conda-with-travis-ci
+before_install:
+  - |
+      echo "before install"
+
+# Install packages
+install:
+  # Install dependencies
+  - |
+     echo "install"
+  - |
+    if [[ "$JOB" == "UNITTEST" ]]; then
+      pip install setuptools -U
+      pip install pytest -U
+      pip install .[testing]
+    fi
+  - pip list
+
+script:
+  - |
+    if [[ "$JOB" == "UNITTEST" ]]; then
+      coverage erase
+      pytest
+      #elif [[ "$JOB" == "DOCS" ]]; then
+      #pushd doc
+      # low pandoc version leads to a warning so
+      # SPHINXOPTS=-W fails
+      #make html && popd
+      #elif [[ "$JOB" == "LINT" ]]; then
+    #make lint
+    #flake8 
+    fi
+
+
+# Calculate coverage
+after_success:
+  - echo "success"
+  - |
+      #if [[ "$JOB" == "UNITTEST" ]]; then
+      #coveralls --rcfile=.coveragerc
+    
+
