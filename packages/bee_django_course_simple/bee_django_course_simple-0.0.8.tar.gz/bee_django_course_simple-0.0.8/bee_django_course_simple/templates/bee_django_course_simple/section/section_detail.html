@@ -1,0 +1,85 @@
+{% extends "bee_django_course_simple/base.html" %}
+{% load bootstrap3 %}
+{% load bee_django_course_simple_filter %}
+{% block styles %}
+    <style>
+        .section_info img {
+            max-width: 100%;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    {#    <h4>课件详情</h4>#}
+    <h4>
+        <a href="{% url 'bee_django_course_simple:course_detail'  pk=section.course.id %}">{{ section.course.title }}</a>
+        -> {{ section.title }}详情</h4>
+    {% if perms.bee_django_course_simple.change_section %}
+        <a href="{% url 'bee_django_course_simple:section_update'  section.id %}">修改课件</a>
+    {% endif %}
+    <table class="table">
+
+
+        <tr>
+            <td>标题</td>
+            <td>{{ section.title }}</td>
+        </tr>
+        <tr>
+            <td class="col-xs-3">额外标题</td>
+            <td>{{ section.extra_title|default:""  }}</td>
+        </tr>
+        <tr>
+            <td class="">顺序</td>
+            <td>{{ section.number }}</td>
+        </tr>
+
+    </table>
+    <div>
+        <h4>包含的小节</h4>
+        {% if perms.bee_django_course_simple.change_section %}
+            <div><a href="{% url 'bee_django_course_simple:part_add'  section_id=section.id %}">添加小节</a></div>
+        {% endif %}
+        <div>
+
+
+            {% for part in section.part_set.all %}
+                <div style="border: 4px solid #efefef;padding: 10px;margin: 10px auto;">
+                    <div class="text-right">
+                        <a href="{% url 'bee_django_course_simple:part_detail' pk=part.id %}"
+                           class="btn btn-default">详情</a>
+                        {% if part.type == 1 %}
+                            {% if perms.bee_django_course_simple.change_section %}
+                                <a href="{% url 'bee_django_course_simple:part_detail' pk=part.id %}"
+                                   class="btn btn-default">为该小节添加视频</a>
+                            {% endif %}
+                        {% elif part.type == 2 %}
+                            {% if perms.bee_django_course_simple.change_section %}
+                                <a href="{% url 'bee_django_course_simple:question_add' part_id=part.id %}"
+                                   class="btn btn-default">为该小节添加选择题</a>
+                            {% endif %}
+                        {% endif %}
+                        {% if perms.bee_django_course_simple.change_section %}
+                            <a href="#" id="delete_{{ part.id }}"
+                               data-confirm="{% url "bee_django_course_simple:part_delete" part.id %}"
+                               onclick="click_del(this,'part')" class="btn btn-danger">删除</a>
+                        {% endif %}
+                    </div>
+
+                    <h5>  {{ part.title }}{{ part.extra_title|default:"" }}
+                        {% if perms.bee_django_course_simple.change_section %}
+                            <span><a href="{% url 'bee_django_course_simple:part_update' part.id %}">基本信息修改</a></span>
+                        {% endif %}
+                    </h5>
+
+
+                    {% include 'bee_django_course_simple/part/_part_info.html' %}
+
+                </div>
+            {% endfor %}
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+
+{% endblock %}

@@ -1,0 +1,249 @@
+<script type="text/javascript">
+    function load_page_data() {
+        var options = {};
+        var url = "{% url 'bee_django_course_simple:vue_user_section' user_section_id=user_section.id %}";
+
+        $.get(url, options)
+            .done(function (data) {
+                user_section.user_parts = JSON.parse(data['user_parts']);
+                user_section.status = data['status'];
+            })
+            .fail(function (data) {
+
+            });
+
+    }
+
+    function update_user_part_data(data, _this) {
+        var part_can_pass = data['user_part_can_pass'];
+        var section_can_pass = data['user_section_can_pass'];
+
+        if (section_can_pass) {
+            window.user_section.status = 2;
+            window.next_section_button.url = data['next_user_section_url'];
+
+            alert(window.section_pass_alert);
+        }
+
+        if (part_can_pass) {
+            _this.display = false;
+            _this.$emit('update:status', 2);
+
+            var next_user_part_id = data['next_user_part_id'];
+            if (next_user_part_id) {
+                var next_user_part = window.user_section.find_user_part_by_id(next_user_part_id);
+                next_user_part.status = 1;
+            }
+
+            var message = window.part_pass_alert;
+            var question_count = data['question_count'];
+            var question_correct_count = data['question_correct_count'];
+            if (question_correct_count === 0) {
+
+            } else {
+                if (question_correct_count === question_count) {
+                    message = message + window.question_all_pass;
+                } else if (question_correct_count === 1) {
+                    message = message + window.question_1_pass;
+                } else if (question_correct_count === 2) {
+                    message = message + window.question_2_pass;
+                }
+            }
+
+            alert(message);
+        }
+
+    }
+
+    $(document).ready(function () {
+        window.user_section = new Vue({
+            el: '#user_parts',
+            data: {
+                status: 0,
+                user_parts: []
+            },
+
+            methods: {
+                find_user_part_by_id: function (user_part_id) {
+                    for (var i = 0; i < this.user_parts.length; i++) {
+                        var user_part = this.user_parts[i];
+                        if (user_part.id === user_part_id) {
+                            return user_part;
+                        }
+                    }
+                }
+            }
+        });
+
+        window.next_section_button = new Vue({
+            el: '#next_section_button',
+            data: {
+                url: {% if next_user_section %}
+                    "{% url 'bee_django_course_simple:custom_user_section_detail' pk=next_user_section.id %}" {% else %}
+                    "" {% endif %}
+            },
+
+            methods: {
+                display: function () {
+                    return window.user_section.status === 2;
+                }
+            }
+        });
+
+        Vue.component('video_part', {
+            template: '#video_part',
+            props: ['videos', 'status', 'title', 'extra_title', 'user_part_id'],
+            data: function () {
+                return {
+                    display: false,
+                    update_url: "{% url 'bee_django_course_simple:user_part_update' user_part_id=1 %}"
+                }
+            },
+
+            methods: {
+                toggle_detail_part: function () {
+                    this.display = !this.display;
+                },
+
+                show: function () {
+                    if (this.status === 1) {
+                        return true;
+                    } else {
+                        return this.display;
+                    }
+                },
+
+                video_ended: function (video_id) {
+                    var new_update_url = this.update_url.replace(/\d+$/, this.user_part_id);
+
+                    if (this.status === 1) {
+                        var _this = this;
+                        $.post(new_update_url, {'video_id': video_id}).done(function (data) {
+                            update_user_part_data(data, _this);
+                        });
+
+                    }
+                }
+            }
+        });
+
+        Vue.component('question_part', {
+            template: '#question_part',
+            props: ['questions', 'status', 'title', 'extra_title', 'user_part_id'],
+            data: function () {
+                return {
+                    display: false,
+                    update_url: "{% url 'bee_django_course_simple:user_part_update' user_part_id=1 %}",
+                    selected_question_option: []
+                }
+            },
+
+            methods: {
+                toggle_detail_part: function () {
+                    this.display = !this.display;
+                },
+
+                show: function () {
+                    if (this.status === 1) {
+                        return true;
+                    } else {
+                        return this.display;
+                    }
+                },
+
+                check_option: function (question_id, option_value) {
+                    var option_id = parseInt(option_value);
+                    var index = this.selected_question_option.findIndex(function (x) {
+                        return x['question_id'] === question_id;
+                    });
+
+                    if (index === -1) {
+                        this.selected_question_option.push({'question_id': question_id, 'option_id': option_id});
+                    } else {
+                        var question_option = this.selected_question_option[index];
+                        question_option['option_id'] = option_id;
+                    }
+
+                },
+
+                submit_user_answer: function () {
+                    if (this.selected_question_option.length === this.questions.length) {
+                        var new_update_url = this.update_url.replace(/\d+$/, this.user_part_id);
+                        var _this = this;
+                        $.post(new_update_url, {'question_data': JSON.stringify(this.selected_question_option)}).done(function (data) {
+                            update_user_part_data(data, _this);
+                        });
+                    } else {
+                        alert('请回答所有问题后再提交');
+                    }
+
+                }
+            }
+        });
+
+        load_page_data();
+    });
+</script>
+<script type="text/x-template" id="video_part">
+    <div style="border-bottom:1px solid #ccc;padding:10px;margin:10px auto;">
+        {% verbatim %}
+        <div v-if="status === 0"><i class="glyphicon glyphicon-play-circle">{{ title }}</i></div>
+        <div v-else>
+            <a href="#" v-on:click.prevent="toggle_detail_part()">
+                <i class="glyphicon glyphicon-play-circle">{{ title }}</i>
+                <span v-if="status === 2" class="user_part_status">{{ extra_title }} (已观看)</span>
+                <span v-else class="user_part_status">(看完视频可进入下一节)</span>
+            </a>
+        </div>
+        <br/>
+        <div v-show="show()" class="part_detail" v-for="e in videos" v-bind:key="e.id">
+            <div align="center" class="embed-responsive embed-responsive-16by9">
+                <video controls
+                       class="embed-responsive-item"
+                       v-on:ended="video_ended(e.id)">
+                    <source v-bind:src="e.url" type="video/mp4">
+                    你的浏览器不支持video标签.
+                </video>
+            </div>
+            <div class="unselectable">
+                <p v-html="e.content"></p>
+            </div>
+        </div>
+        {% endverbatim %}
+    </div>
+
+</script>
+
+<script type="text/x-template" id="question_part">
+    <div style="border-bottom: 1px solid #ccc;padding:10px;margin:10px auto;">
+        {% verbatim %}
+        <div v-if="status === 0"><i class="glyphicon glyphicon-list">{{ title }}</i></div>
+        <div v-else>
+            <a href="#" v-on:click.prevent="toggle_detail_part()">
+                <i class="glyphicon glyphicon-list">{{ title }}</i>
+                <span v-if="status === 2" class="user_part_status">{{ extra_title }} (已通过)</span>
+            </a>
+        </div>
+        <br/>
+        <div v-show="show()" class="part_detail">
+            <div v-for="question in questions" v-bind:key="question.id">
+                <h5>
+                    {{ question.title }}
+                </h5>
+                <div class="user_question">
+                    <div v-for="option in question.options" v-bind:key="option.id">
+                        <input type="radio" v-bind:id="'option'+option.id" v-bind:name="'question' + question.id "
+                               v-bind:disabled="status !== 1"
+                               v-on:change="check_option(question.id, $event.target.value)"
+                               v-bind:value="option.id"/>
+                        <label v-bind:for="'option'+option.id">{{ option.title }}</label>
+                    </div>
+                </div>
+            </div>
+
+            <input type="button" value="提交" class="btn btn-default" v-on:click="submit_user_answer()"
+                   v-bind:disabled="status !== 1"/>
+        </div>
+        {% endverbatim %}
+    </div>
+</script>

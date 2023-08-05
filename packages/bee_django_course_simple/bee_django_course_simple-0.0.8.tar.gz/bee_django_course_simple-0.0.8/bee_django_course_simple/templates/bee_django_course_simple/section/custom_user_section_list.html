@@ -1,0 +1,89 @@
+{% extends "bee_django_course_simple/user_base.html" %}
+{% load static %}
+
+{% block content %}
+    {% include 'bee_django_course_simple/section/_custom_user_section_list_css.html' %}
+    {#课程列表#}
+    <div style="margin: 10px 0;">
+        <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                课程列表
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                {% for u_c in user_course_list %}
+                    <li>
+                        <a href="{% url 'bee_django_course_simple:custom_user_section_list' user_id=user.id  user_course_id=u_c.id %}">{{ u_c.course.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+
+        </div>
+
+    </div>
+
+    <div class="text-center"><h4>{{ user_course.course.title }}</h4></div>
+
+
+    <div class="user_section_list">
+        {% for us in user_section_list %}
+            <div class="user_section">
+                {% if us.section.group_name %}
+                    <div class="section_group_name">
+                        {{ us.section.group_name }}
+                    </div>
+                {% endif %}
+                <div class="section_title">
+                    {% if us.is_pass %}
+                        <a href="{% url 'bee_django_course_simple:custom_user_section_detail' us.id %}">
+                             {{ us.section.title }}{{ us.section.extra_title|default:"" }}
+                        </a> （已通过）
+
+                    {% elif us.is_open %}
+                        <a href="{% url 'bee_django_course_simple:custom_user_section_detail' us.id %}">
+                            {{ us.section.title|default:"" }}
+                        </a> （学习中）
+                    {% else %}
+                        {{ us.section.title|default:"" }}
+                    {% endif %}
+                </div>
+                <div class="part_title">
+                    {% for up in us.userpart_set.all %}
+                        <div class="user_part">
+                            {{ up.part.title|default:"" }}
+                            {% if up.status == 2 %}
+                                {{ up.part.extra_title|default:"" }}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+
+            {#                <td>#}
+            {#                    {% if e.is_open %}#}
+            {#                        {{ e.started_at }} 开始#}
+            {#                    {% endif %}#}
+            {#                    {% if e.is_pass %}#}
+            {#                        {{ e.started_at }} - {{ e.passed_at }}#}
+            {##}
+            {#                    {% endif %}#}
+            {#                </td>#}
+
+        {% endfor %}
+    </div>
+
+    {% include 'bee_django_course_simple/paginator.html' %}
+
+
+{% endblock content %}
+{% block scripts %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+
+        });
+
+    </script>
+{% endblock scripts %}

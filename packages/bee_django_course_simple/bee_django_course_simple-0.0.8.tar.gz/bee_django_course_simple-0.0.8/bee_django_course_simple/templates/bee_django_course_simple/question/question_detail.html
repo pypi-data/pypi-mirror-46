@@ -1,0 +1,68 @@
+{% extends "bee_django_course_simple/base.html" %}
+{% load bootstrap3 %}
+{% load bee_django_course_simple_filter %}
+{% block styles %}
+    <style>
+        .section_info img {
+            max-width: 100%;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <h4>问题详情</h4>
+
+
+        <a href="{% url 'bee_django_course_simple:question_update'  question.id %}">修改问题</a>
+
+    <table class="table">
+
+        <tr>
+            <td class="col-xs-3">问题</td>
+            <td>{{ question.title }}</td>
+        </tr>
+        <tr>
+            <td class="">顺序</td>
+            <td>{{ question.number }}</td>
+        </tr>
+
+    </table>
+    <div>
+        <h4>选项</h4>
+
+        <div><a href="{% url 'bee_django_course_simple:option_add'  question_id=question.id %}">添加选项</a></div>
+        <hr>
+        <div>
+
+
+            {% for option in question.option_set.all %}
+
+                <div>
+                    {{ option.number }}-{{ option.title }}
+                    {% if option.is_correct %}（正确答案）{% endif %}
+                </div>
+
+            <hr>
+
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.remove_video_button').click(function (e) {
+                e.preventDefault();
+
+                if (confirm('确定移除此视频吗?')) {
+                    var url = $(this).attr('data-confirm');
+                    $.post(url).done(function (data) {
+                        alert(data['message']);
+                        var id = data['section_video_id'];
+                        $('#' + id).remove();
+                    });
+                }
+            });
+        })
+    </script>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends "bee_django_course_simple/base.html" %}
+
+{% block content %}
+
+    {#课程列表#}
+    <div style="margin: 10px 0;">
+        <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                课程列表
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                {% for u_c in user_course_list %}
+                    <li>
+                        <a href="{% url 'bee_django_course_simple:user_section_list' user_id=user.id  user_course_id=u_c.id %}">{{ u_c.course.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            {% if perms.bee_django_course_simple.assign_user_course %}
+                <a href="{% url 'bee_django_course_simple:user_course_add' user_id=user.id %}"
+                   class="btn btn-default">添加新课程</a>
+            {% endif %}
+            {% if perms.bee_django_course_simple.delete_section %}
+                {% if user_course %}
+
+                    <a href="#" id="delete_{{ user_course.id }}"
+                       data-confirm="{% url 'bee_django_course_simple:user_course_delete' user_course.id %}"
+                       onclick="click_del(this)" class="btn btn-danger">删除该课程</a>
+                {% endif %}
+            {% endif %}
+        </div>
+
+    </div>
+
+    <div class="text-center"><h4>{{ user.get_user_name }}-{{ user_course.course.title }}</h4></div>
+
+    <table class="table">
+        <thead>
+        <tr>
+            {#            <th>顺序</th>#}
+            <th>ID</th>
+            <th>课件</th>
+            <th>状态</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for e in user_section_list %}
+            <tr>
+                <td>
+                    {{ e.id }}
+                </td>
+                <td>
+                    {{ e.section.title }}{{ e.section.extra_title|default:'' }}
+                </td>
+                <td>
+                    {#                    <a href="{% url 'bee_django_course_simple:user_section_detail' e.id %}">#}
+                    {% if e.status == 0 %}
+                        未开始
+                    {% elif e.status == 1 %}
+                        学习中
+                    {% elif e.status == 2 %}
+                        已通过
+                    {% elif e.status == 3 %}
+                        退回重修
+                    {% elif e.status == 4 %}
+                        已提交
+                    {% endif %}
+                    {#                    </a>#}
+                    {#                    ({{ e.started_at|default:"" }} - {{ e.passed_at|default:"" }})#}
+                </td>
+
+                <td>
+                    {% if e.status == 0 %}
+                        {% if perms.bee_django_course_simple.open_ucs %}
+                            <a href="#" class="btn btn-danger update_ucs"
+                               data-confirm="{% url 'bee_django_course_simple:user_section_update' user_section_id=e.id type='open' %}">
+                                开启
+                            </a>
+                        {% endif %}
+                    {% elif e.status == 1 %}
+                        {% if perms.bee_django_course_simple.pass_ucs %}
+                            <a href="#" class="btn btn-success update_ucs"
+                               data-confirm="{% url 'bee_django_course_simple:user_section_update' user_section_id=e.id type='pass' %}">
+                                通过
+                            </a>
+                        {% endif %}
+                        {% if perms.bee_django_course_simple.close_ucs %}
+                            <a href="#" class="btn btn-warning update_ucs"
+                               data-confirm="{% url 'bee_django_course_simple:user_section_update' user_section_id=e.id type='close' %}">
+                                关闭
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% include 'bee_django_course_simple/paginator.html' %}
+
+
+{% endblock content %}
+{% block scripts %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.update_ucs').click(function (e) {
+                if (confirm('确定?')) {
+                    e.preventDefault();
+                    var url = $(this).attr('data-confirm');
+                    $.post(url).done(function (data) {
+                        alert(data['message']);
+                        {#                        window.location.href = data['new_url'];#}
+                        location.reload();
+                    });
+                }
+            });
+
+        });
+        function click_del(_this) {
+
+            if (!confirm("确定要删除该课程吗？")) {
+                return false;
+            }
+            var url = $(_this).attr('data-confirm');
+            $.post(url).done(function (data) {
+                alert('删除成功!');
+                location.href = '{% url "bee_django_course_simple:user_section_list" user_id=user.id user_course_id=0 %}'
+            });
+        }
+    </script>
+{% endblock scripts %}
