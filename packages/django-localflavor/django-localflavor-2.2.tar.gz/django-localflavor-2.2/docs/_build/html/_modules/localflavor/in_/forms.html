@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>localflavor.in_.forms &#8212; django-localflavor 2.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for localflavor.in_.forms</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;India-specific Form helpers.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">django.core.validators</span> <span class="k">import</span> <span class="n">EMPTY_VALUES</span>
+<span class="kn">from</span> <span class="nn">django.forms</span> <span class="k">import</span> <span class="n">ValidationError</span>
+<span class="kn">from</span> <span class="nn">django.forms.fields</span> <span class="k">import</span> <span class="n">Field</span><span class="p">,</span> <span class="n">RegexField</span><span class="p">,</span> <span class="n">Select</span>
+<span class="kn">from</span> <span class="nn">django.utils.encoding</span> <span class="k">import</span> <span class="n">force_text</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="k">import</span> <span class="n">ugettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="kn">from</span> <span class="nn">.in_states</span> <span class="k">import</span> <span class="n">STATE_CHOICES</span><span class="p">,</span> <span class="n">STATES_NORMALIZED</span>
+
+<span class="n">aadhaar_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(?P&lt;part1&gt;\d</span><span class="si">{4}</span><span class="s2">)[-\ ]?(?P&lt;part2&gt;\d</span><span class="si">{4}</span><span class="s2">)[-\ ]?(?P&lt;part3&gt;\d</span><span class="si">{4}</span><span class="s2">)$&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="INZipCodeField"><a class="viewcode-back" href="../../../localflavor/in_.html#localflavor.in_.forms.INZipCodeField">[docs]</a><span class="k">class</span> <span class="nc">INZipCodeField</span><span class="p">(</span><span class="n">RegexField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A form field that validates input as an Indian zip code, with the format XXXXXXX.&quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter a zip code in the format XXXXXX or XXX XXX.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">INZipCodeField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^\d</span><span class="si">{3}</span><span class="s1">\s?\d</span><span class="si">{3}</span><span class="s1">$&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="INZipCodeField.clean"><a class="viewcode-back" href="../../../localflavor/in_.html#localflavor.in_.forms.INZipCodeField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">INZipCodeField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_values</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span>
+        <span class="c1"># Convert to &quot;NNNNNN&quot; if &quot;NNN NNN&quot; given</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^(\d</span><span class="si">{3}</span><span class="s1">)\s(\d</span><span class="si">{3}</span><span class="s1">)$&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;\1\2&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div></div>
+
+
+<div class="viewcode-block" id="INStateField"><a class="viewcode-back" href="../../../localflavor/in_.html#localflavor.in_.forms.INStateField">[docs]</a><span class="k">class</span> <span class="nc">INStateField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A form field that validates its input is a Indian state name or abbreviation.</span>
+
+<span class="sd">    It normalizes the input to the standard two-letter vehicle</span>
+<span class="sd">    registration abbreviation for the given state or union territory</span>
+
+<span class="sd">    .. versionchanged:: 1.1</span>
+
+<span class="sd">       Added Telangana to list of states. More details at</span>
+<span class="sd">       https://en.wikipedia.org/wiki/Telangana#Bifurcation_of_Andhra_Pradesh</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter an Indian state or territory.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="INStateField.clean"><a class="viewcode-back" href="../../../localflavor/in_.html#localflavor.in_.forms.INStateField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">INStateField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">EMPTY_VALUES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">force_text</span><span class="p">(</span><span class="n">STATES_NORMALIZED</span><span class="p">[</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()])</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="INAadhaarNumberField"><a class="viewcode-back" href="../../../localflavor/in_.html#localflavor.in_.forms.INAadhaarNumberField">[docs]</a><span class="k">class</span> <span class="nc">INAadhaarNumberField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A form field for Aadhaar number issued by Unique Identification Authority of India (UIDAI).</span>
+
+<span class="sd">    Checks the following rules to determine whether the number is valid:</span>
+
+<span class="sd">        * Conforms to the XXXX XXXX XXXX format.</span>
+<span class="sd">        * No group consists entirely of zeroes.</span>
+
+<span class="sd">    Important information:</span>
+
+<span class="sd">        * Aadhaar number is a proof of identity but not of citizenship.</span>
+<span class="sd">        * Aadhaar number is issued to every resident of India including</span>
+<span class="sd">          foreign citizens.</span>
+<span class="sd">        * Aadhaar number is not mandatory.</span>
+
+<span class="sd">    More information can be found at</span>
+<span class="sd">    http://uidai.gov.in/what-is-aadhaar-number.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter a valid Aadhaar number in XXXX XXXX XXXX or &#39;</span>
+                     <span class="s1">&#39;XXXX-XXXX-XXXX format.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="INAadhaarNumberField.clean"><a class="viewcode-back" href="../../../localflavor/in_.html#localflavor.in_.forms.INAadhaarNumberField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">INAadhaarNumberField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">EMPTY_VALUES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">aadhaar_re</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span>
+        <span class="n">part1</span><span class="p">,</span> <span class="n">part2</span><span class="p">,</span> <span class="n">part3</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()[</span><span class="s1">&#39;part1&#39;</span><span class="p">],</span> <span class="n">match</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()[</span><span class="s1">&#39;part2&#39;</span><span class="p">],</span> <span class="n">match</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()[</span><span class="s1">&#39;part3&#39;</span><span class="p">]</span>
+
+        <span class="c1"># all the parts can&#39;t be zero</span>
+        <span class="k">if</span> <span class="n">part1</span> <span class="o">==</span> <span class="s1">&#39;0000&#39;</span> <span class="ow">and</span> <span class="n">part2</span> <span class="o">==</span> <span class="s1">&#39;0000&#39;</span> <span class="ow">and</span> <span class="n">part3</span> <span class="o">==</span> <span class="s1">&#39;0000&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">part1</span><span class="p">,</span> <span class="n">part2</span><span class="p">,</span> <span class="n">part3</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="INStateSelect"><a class="viewcode-back" href="../../../localflavor/in_.html#localflavor.in_.forms.INStateSelect">[docs]</a><span class="k">class</span> <span class="nc">INStateSelect</span><span class="p">(</span><span class="n">Select</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Select widget that uses a list of Indian states/territories as its choices.</span>
+
+<span class="sd">    .. versionchanged:: 1.1</span>
+
+<span class="sd">       Added Telangana to list of states. More details at</span>
+<span class="sd">       https://en.wikipedia.org/wiki/Telangana#Bifurcation_of_Andhra_Pradesh</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">INStateSelect</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">STATE_CHOICES</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Django Software Foundation and individual contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.1.
+    </div>
+  </body>
+</html>

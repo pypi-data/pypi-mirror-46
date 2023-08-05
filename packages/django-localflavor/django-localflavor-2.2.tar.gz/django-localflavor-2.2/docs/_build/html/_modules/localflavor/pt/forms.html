@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>localflavor.pt.forms &#8212; django-localflavor 2.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for localflavor.pt.forms</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">django_localflavot_pt.forms</span>
+<span class="sd">~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">Contains PT-specific Django form helpers.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">from</span> <span class="nn">re</span> <span class="k">import</span> <span class="nb">compile</span> <span class="k">as</span> <span class="n">regex_compile</span>
+
+<span class="kn">from</span> <span class="nn">django.core.validators</span> <span class="k">import</span> <span class="n">EMPTY_VALUES</span>
+<span class="kn">from</span> <span class="nn">django.forms</span> <span class="k">import</span> <span class="n">ValidationError</span>
+<span class="kn">from</span> <span class="nn">django.forms.fields</span> <span class="k">import</span> <span class="n">Field</span><span class="p">,</span> <span class="n">RegexField</span><span class="p">,</span> <span class="n">Select</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="k">import</span> <span class="n">ugettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="kn">from</span> <span class="nn">.pt_regions</span> <span class="k">import</span> <span class="n">REGION_CHOICES</span>
+
+<span class="n">CITIZEN_CARD_NUMBER_REGEX</span> <span class="o">=</span> <span class="n">regex_compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^(\d</span><span class="si">{8}</span><span class="s1">)-?(\d[A-Z0-9]</span><span class="si">{2}</span><span class="s1">\d)$&#39;</span><span class="p">)</span>
+<span class="n">SOCIAL_SECURITY_NUMBER_MULTIPLIERS</span> <span class="o">=</span> <span class="p">[</span><span class="mi">29</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="n">SOCIAL_SECURITY_NUMBER_REGEX</span> <span class="o">=</span> <span class="n">regex_compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[12]\d</span><span class="si">{10}</span><span class="s1">$&#39;</span><span class="p">)</span>
+<span class="n">ZIP_CODE_REGEX</span> <span class="o">=</span> <span class="n">regex_compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[1-9]\d</span><span class="si">{3}</span><span class="s1">-\d</span><span class="si">{3}</span><span class="s1">$&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="PTCitizenCardNumberField"><a class="viewcode-back" href="../../../localflavor/pt.html#localflavor.pt.forms.PTCitizenCardNumberField">[docs]</a><span class="k">class</span> <span class="nc">PTCitizenCardNumberField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A field which validates Portuguese Citizen Card numbers (locally CC - &#39;Cartão do Cidadão&#39;).</span>
+
+<span class="sd">    - Citizen Card numbers have the format XXXXXXXXXYYX or XXXXXXXX-XYYX</span>
+<span class="sd">        (where X is a digit and Y is an alphanumeric character).</span>
+<span class="sd">    - Citizen Card numbers validate as per http://bit.ly/RP0BzW.</span>
+<span class="sd">    - The input string may or may not have an hyphen separating the identity number from the document&#39;s check-digits.</span>
+<span class="sd">    - This field does NOT validate old ID card numbers (locally BI - &#39;Bilhete de Identidade&#39;).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;badchecksum&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;The specified value is not a valid Citizen Card number.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Citizen Card numbers have the format XXXXXXXXXYYX or XXXXXXXX-XYYX &#39;</span>
+                     <span class="s1">&#39;(where X is a digit and Y is an alphanumeric character).&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="PTCitizenCardNumberField.clean"><a class="viewcode-back" href="../../../localflavor/pt.html#localflavor.pt.forms.PTCitizenCardNumberField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PTCitizenCardNumberField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">EMPTY_VALUES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">match</span> <span class="o">=</span> <span class="n">CITIZEN_CARD_NUMBER_REGEX</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span>
+
+        <span class="n">number</span><span class="p">,</span> <span class="n">checkdigits</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+
+        <span class="n">encoded</span> <span class="o">=</span> <span class="n">number</span> <span class="o">+</span> <span class="n">checkdigits</span>
+        <span class="n">decoded</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">digit</span><span class="p">,</span> <span class="mi">36</span><span class="p">)</span> <span class="k">for</span> <span class="n">digit</span> <span class="ow">in</span> <span class="n">encoded</span><span class="p">]</span>
+
+        <span class="n">checksum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">PTCitizenCardNumberField</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">decoded_value</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">decoded_value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">decoded</span><span class="p">)])</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">checksum</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;badchecksum&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">-</span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">checkdigits</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">*=</span> <span class="mi">2</span>
+            <span class="k">return</span> <span class="n">value</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">10</span> <span class="k">else</span> <span class="n">value</span> <span class="o">-</span> <span class="mi">9</span></div>
+
+
+<div class="viewcode-block" id="PTRegionSelect"><a class="viewcode-back" href="../../../localflavor/pt.html#localflavor.pt.forms.PTRegionSelect">[docs]</a><span class="k">class</span> <span class="nc">PTRegionSelect</span><span class="p">(</span><span class="n">Select</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A select widget which uses a list of Portuguese regions as its choices.</span>
+
+<span class="sd">    - Regions correspond to the Portuguese &#39;distritos&#39; and &#39;regiões autónomas&#39; as per ISO3166:2-PT.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PTRegionSelect</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">REGION_CHOICES</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PTSocialSecurityNumberField"><a class="viewcode-back" href="../../../localflavor/pt.html#localflavor.pt.forms.PTSocialSecurityNumberField">[docs]</a><span class="k">class</span> <span class="nc">PTSocialSecurityNumberField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A field which validates Portuguese Social Security numbers.</span>
+
+<span class="sd">    (locally NISS - &#39;Número de Identificação na Segurança Social&#39;).</span>
+<span class="sd">    - Social Security numbers must be in the format XYYYYYYYYYY (where X is either 1 or 2 and Y is any other digit).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;badchecksum&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;The specified number is not a valid Social Security number.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Social Security numbers must be in the format XYYYYYYYYYY &#39;</span>
+                     <span class="s1">&#39;(where X is either 1 or 2 and Y is any other digit).&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="PTSocialSecurityNumberField.clean"><a class="viewcode-back" href="../../../localflavor/pt.html#localflavor.pt.forms.PTSocialSecurityNumberField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PTSocialSecurityNumberField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">EMPTY_VALUES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">match</span> <span class="o">=</span> <span class="n">SOCIAL_SECURITY_NUMBER_REGEX</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span>
+
+        <span class="n">digits</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">digit</span><span class="p">)</span> <span class="k">for</span> <span class="n">digit</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+
+        <span class="n">factors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">digits</span><span class="p">,</span> <span class="n">SOCIAL_SECURITY_NUMBER_MULTIPLIERS</span><span class="p">))</span>
+        <span class="n">dotproduct</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span> <span class="o">*</span> <span class="n">q</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">factors</span><span class="p">)</span>
+
+        <span class="n">checksum</span> <span class="o">=</span> <span class="mi">9</span> <span class="o">-</span> <span class="n">dotproduct</span> <span class="o">%</span> <span class="mi">10</span>
+        <span class="n">checkdigit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">checksum</span> <span class="o">==</span> <span class="n">checkdigit</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;badchecksum&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="PTZipCodeField"><a class="viewcode-back" href="../../../localflavor/pt.html#localflavor.pt.forms.PTZipCodeField">[docs]</a><span class="k">class</span> <span class="nc">PTZipCodeField</span><span class="p">(</span><span class="n">RegexField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A field which validates Portuguese zip codes.</span>
+
+<span class="sd">    NOTE</span>
+<span class="sd">    - Zip codes have the format XYYY-YYY (where X is a digit between 1 and 9 and Y is any other digit).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Zip codes must be in the format XYYY-YYY&#39;</span>
+                     <span class="s1">&#39; (where X is a digit between 1 and 9 and Y is any other digit).&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PTZipCodeField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ZIP_CODE_REGEX</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Django Software Foundation and individual contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.1.
+    </div>
+  </body>
+</html>

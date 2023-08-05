@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>localflavor.cn.forms &#8212; django-localflavor 2.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for localflavor.cn.forms</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;China(mainland)-specific Form helpers.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">django.forms</span> <span class="k">import</span> <span class="n">ValidationError</span>
+<span class="kn">from</span> <span class="nn">django.forms.fields</span> <span class="k">import</span> <span class="n">CharField</span><span class="p">,</span> <span class="n">RegexField</span><span class="p">,</span> <span class="n">Select</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="k">import</span> <span class="n">ugettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="kn">from</span> <span class="nn">.cn_provinces</span> <span class="k">import</span> <span class="n">CN_PROVINCE_CHOICES</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;CNProvinceSelect&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;CNPostCodeField&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;CNIDCardField&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="n">ID_CARD_RE</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;^\d</span><span class="si">{15}</span><span class="s1">(\d</span><span class="si">{2}</span><span class="s1">[0-9xX])?$&#39;</span>
+<span class="n">POST_CODE_RE</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;^\d</span><span class="si">{6}</span><span class="s1">$&#39;</span>
+
+<span class="c1"># Valid location code used in id card checking algorithm</span>
+<span class="n">CN_LOCATION_CODES</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="mi">11</span><span class="p">,</span>  <span class="c1"># Beijing</span>
+    <span class="mi">12</span><span class="p">,</span>  <span class="c1"># Tianjin</span>
+    <span class="mi">13</span><span class="p">,</span>  <span class="c1"># Hebei</span>
+    <span class="mi">14</span><span class="p">,</span>  <span class="c1"># Shanxi</span>
+    <span class="mi">15</span><span class="p">,</span>  <span class="c1"># Nei Mongol</span>
+    <span class="mi">21</span><span class="p">,</span>  <span class="c1"># Liaoning</span>
+    <span class="mi">22</span><span class="p">,</span>  <span class="c1"># Jilin</span>
+    <span class="mi">23</span><span class="p">,</span>  <span class="c1"># Heilongjiang</span>
+    <span class="mi">31</span><span class="p">,</span>  <span class="c1"># Shanghai</span>
+    <span class="mi">32</span><span class="p">,</span>  <span class="c1"># Jiangsu</span>
+    <span class="mi">33</span><span class="p">,</span>  <span class="c1"># Zhejiang</span>
+    <span class="mi">34</span><span class="p">,</span>  <span class="c1"># Anhui</span>
+    <span class="mi">35</span><span class="p">,</span>  <span class="c1"># Fujian</span>
+    <span class="mi">36</span><span class="p">,</span>  <span class="c1"># Jiangxi</span>
+    <span class="mi">37</span><span class="p">,</span>  <span class="c1"># Shandong</span>
+    <span class="mi">41</span><span class="p">,</span>  <span class="c1"># Henan</span>
+    <span class="mi">42</span><span class="p">,</span>  <span class="c1"># Hubei</span>
+    <span class="mi">43</span><span class="p">,</span>  <span class="c1"># Hunan</span>
+    <span class="mi">44</span><span class="p">,</span>  <span class="c1"># Guangdong</span>
+    <span class="mi">45</span><span class="p">,</span>  <span class="c1"># Guangxi</span>
+    <span class="mi">46</span><span class="p">,</span>  <span class="c1"># Hainan</span>
+    <span class="mi">50</span><span class="p">,</span>  <span class="c1"># Chongqing</span>
+    <span class="mi">51</span><span class="p">,</span>  <span class="c1"># Sichuan</span>
+    <span class="mi">52</span><span class="p">,</span>  <span class="c1"># Guizhou</span>
+    <span class="mi">53</span><span class="p">,</span>  <span class="c1"># Yunnan</span>
+    <span class="mi">54</span><span class="p">,</span>  <span class="c1"># Xizang</span>
+    <span class="mi">61</span><span class="p">,</span>  <span class="c1"># Shaanxi</span>
+    <span class="mi">62</span><span class="p">,</span>  <span class="c1"># Gansu</span>
+    <span class="mi">63</span><span class="p">,</span>  <span class="c1"># Qinghai</span>
+    <span class="mi">64</span><span class="p">,</span>  <span class="c1"># Ningxia</span>
+    <span class="mi">65</span><span class="p">,</span>  <span class="c1"># Xinjiang</span>
+    <span class="mi">71</span><span class="p">,</span>  <span class="c1"># Taiwan</span>
+    <span class="mi">81</span><span class="p">,</span>  <span class="c1"># Hong Kong</span>
+    <span class="mi">91</span><span class="p">,</span>  <span class="c1"># Macao</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="CNProvinceSelect"><a class="viewcode-back" href="../../../localflavor/cn.html#localflavor.cn.forms.CNProvinceSelect">[docs]</a><span class="k">class</span> <span class="nc">CNProvinceSelect</span><span class="p">(</span><span class="n">Select</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A select widget providing the list of provinces and districts in People&#39;s Republic of China as choices.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CNProvinceSelect</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">CN_PROVINCE_CHOICES</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CNPostCodeField"><a class="viewcode-back" href="../../../localflavor/cn.html#localflavor.cn.forms.CNPostCodeField">[docs]</a><span class="k">class</span> <span class="nc">CNPostCodeField</span><span class="p">(</span><span class="n">RegexField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A form field that validates input as postal codes in mainland China.</span>
+
+<span class="sd">    Valid codes are in the format of XXXXXX where X is a digit.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter a post code in the format XXXXXX.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CNPostCodeField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">POST_CODE_RE</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CNIDCardField"><a class="viewcode-back" href="../../../localflavor/cn.html#localflavor.cn.forms.CNIDCardField">[docs]</a><span class="k">class</span> <span class="nc">CNIDCardField</span><span class="p">(</span><span class="n">CharField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A form field that validates input as a Resident Identity Card (PRC) number.</span>
+
+<span class="sd">    This field would check the following restrictions:</span>
+<span class="sd">        * the length could only be 15 or 18;</span>
+<span class="sd">        * if the length is 18, the last character can be x or X;</span>
+<span class="sd">        * has a valid checksum (only for those with a length of 18);</span>
+<span class="sd">        * has a valid date of birth;</span>
+<span class="sd">        * has a valid province.</span>
+
+<span class="sd">    The checksum algorithm is described in GB11643-1999.</span>
+<span class="sd">    See: http://en.wikipedia.org/wiki/Resident_Identity_Card#Identity_card_number</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;ID Card Number consists of 15 or 18 digits.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;checksum&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Invalid ID Card Number: Wrong checksum&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;birthday&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Invalid ID Card Number: Wrong birthdate&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;location&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Invalid ID Card Number: Wrong location code&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CNIDCardField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="n">max_length</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="n">min_length</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CNIDCardField.clean"><a class="viewcode-back" href="../../../localflavor/cn.html#localflavor.cn.forms.CNIDCardField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check whether the input is a valid ID Card Number.&quot;&quot;&quot;</span>
+        <span class="c1"># Check the length of the ID card number.</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CNIDCardField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_values</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span>
+        <span class="c1"># Check whether this ID card number has valid format</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">ID_CARD_RE</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span>
+        <span class="c1"># Check the birthday of the ID card number.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_valid_birthday</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;birthday&#39;</span><span class="p">])</span>
+        <span class="c1"># Check the location of the ID card number.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_valid_location</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">])</span>
+        <span class="c1"># Check the checksum of the ID card number.</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_valid_checksum</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;checksum&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="CNIDCardField.has_valid_birthday"><a class="viewcode-back" href="../../../localflavor/cn.html#localflavor.cn.forms.CNIDCardField.has_valid_birthday">[docs]</a>    <span class="k">def</span> <span class="nf">has_valid_birthday</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This method grabs the date of birth from the ID card number and test whether it is a valid date.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">15</span><span class="p">:</span>
+            <span class="c1"># 1st generation ID card</span>
+            <span class="n">time_string</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">12</span><span class="p">]</span>
+            <span class="n">format_string</span> <span class="o">=</span> <span class="s2">&quot;%y%m</span><span class="si">%d</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># 2nd generation ID card</span>
+            <span class="n">time_string</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span>
+            <span class="n">format_string</span> <span class="o">=</span> <span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">time_string</span><span class="p">,</span> <span class="n">format_string</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="c1"># invalid date</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="CNIDCardField.has_valid_location"><a class="viewcode-back" href="../../../localflavor/cn.html#localflavor.cn.forms.CNIDCardField.has_valid_location">[docs]</a>    <span class="k">def</span> <span class="nf">has_valid_location</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This method checks if the first two digits in the ID Card are valid province code.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span> <span class="ow">in</span> <span class="n">CN_LOCATION_CODES</span></div>
+
+<div class="viewcode-block" id="CNIDCardField.has_valid_checksum"><a class="viewcode-back" href="../../../localflavor/cn.html#localflavor.cn.forms.CNIDCardField.has_valid_checksum">[docs]</a>    <span class="k">def</span> <span class="nf">has_valid_checksum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This method checks if the last letter/digit is valid according to GB11643-1999.&quot;&quot;&quot;</span>
+        <span class="c1"># If the length of the number is not 18, then the number is a 1st</span>
+        <span class="c1"># generation ID card number, and there is no checksum to be checked.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">18</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="n">checksum_index</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">-</span> <span class="nb">ord</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">)),</span>
+                <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                <span class="n">value</span><span class="p">[:</span><span class="mi">17</span><span class="p">],),</span>
+        <span class="p">)</span> <span class="o">%</span> <span class="mi">11</span>
+        <span class="k">return</span> <span class="s1">&#39;10X98765432&#39;</span><span class="p">[</span><span class="n">checksum_index</span><span class="p">]</span> <span class="o">==</span> <span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Django Software Foundation and individual contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.1.
+    </div>
+  </body>
+</html>

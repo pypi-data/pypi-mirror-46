@@ -1,0 +1,437 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>localflavor.generic.validators &#8212; django-localflavor 2.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for localflavor.generic.validators</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">string</span>
+
+<span class="kn">from</span> <span class="nn">django.core.exceptions</span> <span class="k">import</span> <span class="n">ImproperlyConfigured</span><span class="p">,</span> <span class="n">ValidationError</span>
+<span class="kn">from</span> <span class="nn">django.utils.deconstruct</span> <span class="k">import</span> <span class="n">deconstructible</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="k">import</span> <span class="n">ugettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+<span class="kn">from</span> <span class="nn">stdnum</span> <span class="k">import</span> <span class="n">ean</span>
+
+<span class="kn">from</span> <span class="nn">.countries.iso_3166</span> <span class="k">import</span> <span class="n">ISO_3166_1_ALPHA2_COUNTRY_CODES</span>
+
+<span class="c1"># Dictionary of ISO country code to IBAN length.</span>
+<span class="c1">#</span>
+<span class="c1"># The official IBAN Registry document is the best source for up-to-date information about IBAN formats and which</span>
+<span class="c1"># countries are in IBAN.</span>
+<span class="c1">#</span>
+<span class="c1"># https://www.swift.com/standards/data-standards/iban</span>
+<span class="c1">#</span>
+<span class="c1"># The IBAN_COUNTRY_CODE_LENGTH dictionary has been updated version 78 of the IBAN Registry document which was published</span>
+<span class="c1"># in August 2017.</span>
+<span class="c1">#</span>
+<span class="c1"># Other Resources:</span>
+<span class="c1">#</span>
+<span class="c1"># https://en.wikipedia.org/wiki/International_Bank_Account_Number#IBAN_formats_by_country</span>
+<span class="c1"># http://www.ecbs.org/iban/france-bank-account-number.html</span>
+<span class="c1"># https://www.nordea.com/V%C3%A5ra+tj%C3%A4nster/Internationella+produkter+och+tj%C3%A4nster/Cash+Management/IBAN+countries/908472.html</span>
+
+
+<span class="n">IBAN_COUNTRY_CODE_LENGTH</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;AD&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># Andorra</span>
+                            <span class="s1">&#39;AE&#39;</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span>  <span class="c1"># United Arab Emirates</span>
+                            <span class="s1">&#39;AL&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Albania</span>
+                            <span class="s1">&#39;AT&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>  <span class="c1"># Austria</span>
+                            <span class="s1">&#39;AZ&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Azerbaijan</span>
+                            <span class="s1">&#39;BA&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>  <span class="c1"># Bosnia and Herzegovina</span>
+                            <span class="s1">&#39;BE&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>  <span class="c1"># Belgium</span>
+                            <span class="s1">&#39;BG&#39;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>  <span class="c1"># Bulgaria</span>
+                            <span class="s1">&#39;BH&#39;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>  <span class="c1"># Bahrain</span>
+                            <span class="s1">&#39;BR&#39;</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>  <span class="c1"># Brazil</span>
+                            <span class="s1">&#39;BY&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Republic of Belarus</span>
+                            <span class="s1">&#39;CH&#39;</span><span class="p">:</span> <span class="mi">21</span><span class="p">,</span>  <span class="c1"># Switzerland</span>
+                            <span class="s1">&#39;CR&#39;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>  <span class="c1"># Costa Rica</span>
+                            <span class="s1">&#39;CY&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Cyprus</span>
+                            <span class="s1">&#39;CZ&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># Czech Republic</span>
+                            <span class="s1">&#39;DE&#39;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>  <span class="c1"># Germany</span>
+                            <span class="s1">&#39;DK&#39;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span>  <span class="c1"># Denmark</span>
+                            <span class="s1">&#39;DO&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Dominican Republic</span>
+                            <span class="s1">&#39;EE&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>  <span class="c1"># Estonia</span>
+                            <span class="s1">&#39;ES&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># Spain</span>
+                            <span class="s1">&#39;FI&#39;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span>  <span class="c1"># Finland</span>
+                            <span class="s1">&#39;FO&#39;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span>  <span class="c1"># Faroe Islands</span>
+                            <span class="s1">&#39;FR&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># France + French Guiana (GF), Guadeloupe (GP), Martinique (MQ), Réunion (RE),</span>
+                                       <span class="c1">#          French Polynesia (PF), French Southern Territories (TF), Mayotte (YT),</span>
+                                       <span class="c1">#          New Caledonia (NC), Saint Barthélemy (BL),</span>
+                                       <span class="c1">#          Saint Martin - French part (MF), Saint-Pierre and Miquelon (PM),</span>
+                                       <span class="c1">#          Wallis and Futuna (WF)</span>
+                            <span class="s1">&#39;GB&#39;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>  <span class="c1"># United Kingdom + Guernsey (GG), Isle of Man (IM), Jersey (JE)</span>
+                            <span class="s1">&#39;GE&#39;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>  <span class="c1"># Georgia</span>
+                            <span class="s1">&#39;GI&#39;</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span>  <span class="c1"># Gibraltar</span>
+                            <span class="s1">&#39;GL&#39;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span>  <span class="c1"># Greenland</span>
+                            <span class="s1">&#39;GR&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># Greece</span>
+                            <span class="s1">&#39;GT&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Guatemala</span>
+                            <span class="s1">&#39;HR&#39;</span><span class="p">:</span> <span class="mi">21</span><span class="p">,</span>  <span class="c1"># Croatia</span>
+                            <span class="s1">&#39;HU&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Hungary</span>
+                            <span class="s1">&#39;IE&#39;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>  <span class="c1"># Ireland</span>
+                            <span class="s1">&#39;IL&#39;</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span>  <span class="c1"># Israel</span>
+                            <span class="s1">&#39;IQ&#39;</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span>  <span class="c1"># Iraq</span>
+                            <span class="s1">&#39;IS&#39;</span><span class="p">:</span> <span class="mi">26</span><span class="p">,</span>  <span class="c1"># Iceland</span>
+                            <span class="s1">&#39;IT&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># Italy</span>
+                            <span class="s1">&#39;JO&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>  <span class="c1"># Jordan</span>
+                            <span class="s1">&#39;KW&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>  <span class="c1"># Kuwait</span>
+                            <span class="s1">&#39;KZ&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>  <span class="c1"># Kazakhstan</span>
+                            <span class="s1">&#39;LB&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Lebanon</span>
+                            <span class="s1">&#39;LC&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>  <span class="c1"># Saint Lucia</span>
+                            <span class="s1">&#39;LI&#39;</span><span class="p">:</span> <span class="mi">21</span><span class="p">,</span>  <span class="c1"># Liechtenstein</span>
+                            <span class="s1">&#39;LT&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>  <span class="c1"># Lithuania</span>
+                            <span class="s1">&#39;LU&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>  <span class="c1"># Luxembourg</span>
+                            <span class="s1">&#39;LV&#39;</span><span class="p">:</span> <span class="mi">21</span><span class="p">,</span>  <span class="c1"># Latvia</span>
+                            <span class="s1">&#39;MC&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># Monaco</span>
+                            <span class="s1">&#39;MD&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># Moldova</span>
+                            <span class="s1">&#39;ME&#39;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>  <span class="c1"># Montenegro</span>
+                            <span class="s1">&#39;MK&#39;</span><span class="p">:</span> <span class="mi">19</span><span class="p">,</span>  <span class="c1"># Macedonia</span>
+                            <span class="s1">&#39;MR&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># Mauritania</span>
+                            <span class="s1">&#39;MT&#39;</span><span class="p">:</span> <span class="mi">31</span><span class="p">,</span>  <span class="c1"># Malta</span>
+                            <span class="s1">&#39;MU&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>  <span class="c1"># Mauritius</span>
+                            <span class="s1">&#39;NL&#39;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span>  <span class="c1"># Netherlands</span>
+                            <span class="s1">&#39;NO&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>  <span class="c1"># Norway</span>
+                            <span class="s1">&#39;PK&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># Pakistan</span>
+                            <span class="s1">&#39;PL&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Poland</span>
+                            <span class="s1">&#39;PS&#39;</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>  <span class="c1"># Palestine</span>
+                            <span class="s1">&#39;PT&#39;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>  <span class="c1"># Portugal</span>
+                            <span class="s1">&#39;QA&#39;</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>  <span class="c1"># Qatar</span>
+                            <span class="s1">&#39;RO&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># Romania</span>
+                            <span class="s1">&#39;RS&#39;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>  <span class="c1"># Serbia</span>
+                            <span class="s1">&#39;SA&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># Saudi Arabia</span>
+                            <span class="s1">&#39;SC&#39;</span><span class="p">:</span> <span class="mi">31</span><span class="p">,</span>  <span class="c1"># Seychelles</span>
+                            <span class="s1">&#39;SE&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># Sweden</span>
+                            <span class="s1">&#39;SI&#39;</span><span class="p">:</span> <span class="mi">19</span><span class="p">,</span>  <span class="c1"># Slovenia</span>
+                            <span class="s1">&#39;SK&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># Slovakia</span>
+                            <span class="s1">&#39;SM&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># San Marino</span>
+                            <span class="s1">&#39;ST&#39;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>  <span class="c1"># Sao Tome and Principe</span>
+                            <span class="s1">&#39;SV&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># El Salvador</span>
+                            <span class="s1">&#39;TL&#39;</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span>  <span class="c1"># Timor-Leste</span>
+                            <span class="s1">&#39;TN&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># Tunisia</span>
+                            <span class="s1">&#39;TR&#39;</span><span class="p">:</span> <span class="mi">26</span><span class="p">,</span>  <span class="c1"># Turkey</span>
+                            <span class="s1">&#39;UA&#39;</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>  <span class="c1"># Ukraine</span>
+                            <span class="s1">&#39;VA&#39;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>  <span class="c1"># Vatican</span>
+                            <span class="s1">&#39;VG&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># British Virgin Islands</span>
+                            <span class="s1">&#39;XK&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">}</span>  <span class="c1"># Kosovo (user-assigned country code)</span>
+
+
+<span class="c1"># Nordea has catalogued IBANs for some additional countries but they are not part of the office IBAN network yet.</span>
+<span class="c1">#</span>
+<span class="c1"># Reference:</span>
+<span class="c1"># https://www.nordea.com/V%C3%A5ra+tj%C3%A4nster/Internationella+produkter+och+tj%C3%A4nster/Cash+Management/IBAN+countries/908472.html</span>
+
+<span class="n">NORDEA_COUNTRY_CODE_LENGTH</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;AO&#39;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>  <span class="c1"># Angola</span>
+                              <span class="s1">&#39;BJ&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Benin</span>
+                              <span class="s1">&#39;BF&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># Burkina Faso</span>
+                              <span class="s1">&#39;BI&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>  <span class="c1"># Burundi</span>
+                              <span class="s1">&#39;CI&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Ivory Coast</span>
+                              <span class="s1">&#39;CG&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># Congo</span>
+                              <span class="s1">&#39;CM&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># Cameroon</span>
+                              <span class="s1">&#39;CV&#39;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>  <span class="c1"># Cape Verde</span>
+                              <span class="s1">&#39;DZ&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># Algeria</span>
+                              <span class="s1">&#39;EG&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># Egypt</span>
+                              <span class="s1">&#39;GA&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># Gabon</span>
+                              <span class="s1">&#39;IR&#39;</span><span class="p">:</span> <span class="mi">26</span><span class="p">,</span>  <span class="c1"># Iran</span>
+                              <span class="s1">&#39;MG&#39;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># Madagascar</span>
+                              <span class="s1">&#39;ML&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># Mali</span>
+                              <span class="s1">&#39;MZ&#39;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>  <span class="c1"># Mozambique</span>
+                              <span class="s1">&#39;SN&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">}</span>  <span class="c1"># Senegal</span>
+
+
+<div class="viewcode-block" id="IBANValidator"><a class="viewcode-back" href="../../../generic.html#localflavor.generic.validators.IBANValidator">[docs]</a><span class="nd">@deconstructible</span>
+<span class="k">class</span> <span class="nc">IBANValidator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A validator for International Bank Account Numbers (IBAN - ISO 13616-1:2007).&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_nordea_extensions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_countries</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_nordea_extensions</span> <span class="o">=</span> <span class="n">use_nordea_extensions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">include_countries</span> <span class="o">=</span> <span class="n">include_countries</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validation_countries</span> <span class="o">=</span> <span class="n">IBAN_COUNTRY_CODE_LENGTH</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_nordea_extensions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validation_countries</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">NORDEA_COUNTRY_CODE_LENGTH</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">include_countries</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">country_code</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">include_countries</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">country_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">validation_countries</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Explicitly requested country code </span><span class="si">%s</span><span class="s1"> is not &#39;</span> \
+                          <span class="s1">&#39;part of the configured IBAN validation set.&#39;</span> <span class="o">%</span> <span class="n">country_code</span>
+                    <span class="k">raise</span> <span class="n">ImproperlyConfigured</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">use_nordea_extensions</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">use_nordea_extensions</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">include_countries</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">include_countries</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IBANValidator.iban_checksum"><a class="viewcode-back" href="../../../generic.html#localflavor.generic.validators.IBANValidator.iban_checksum">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">iban_checksum</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns check digits for an input IBAN number.</span>
+
+<span class="sd">        Original checksum in input value is ignored.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1. Move the two initial characters to the end of the string, replacing checksum for &#39;00&#39;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span> <span class="o">+</span> <span class="n">value</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;00&#39;</span>
+
+        <span class="c1"># 2. Replace each letter in the string with two digits, thereby expanding the string, where</span>
+        <span class="c1">#    A = 10, B = 11, ..., Z = 35.</span>
+        <span class="n">value_digits</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;0&#39;</span> <span class="o">&lt;=</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="s1">&#39;9&#39;</span><span class="p">:</span>
+                <span class="n">value_digits</span> <span class="o">+=</span> <span class="n">x</span>
+            <span class="k">elif</span> <span class="s1">&#39;A&#39;</span> <span class="o">&lt;=</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="s1">&#39;Z&#39;</span><span class="p">:</span>
+                <span class="n">value_digits</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">55</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is not a valid character for IBAN.&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># 3. The remainder of the number above when divided by 97 is then subtracted from 98.</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%02d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">98</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">value_digits</span><span class="p">)</span> <span class="o">%</span> <span class="mi">97</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validates the IBAN value using the official IBAN validation algorithm.</span>
+
+<span class="sd">        https://en.wikipedia.org/wiki/International_Bank_Account_Number#Validating_the_IBAN</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Check that the total IBAN length is correct as per the country. If not, the IBAN is invalid.</span>
+        <span class="n">country_code</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">country_code</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">validation_countries</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validation_countries</span><span class="p">[</span><span class="n">country_code</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                <span class="n">msg_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;country_code&#39;</span><span class="p">:</span> <span class="n">country_code</span><span class="p">,</span> <span class="s1">&#39;number&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">validation_countries</span><span class="p">[</span><span class="n">country_code</span><span class="p">]}</span>
+                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(country_code)s</span><span class="s1"> IBANs must contain </span><span class="si">%(number)s</span><span class="s1"> characters.&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">msg_params</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is not a valid country code for IBAN.&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">country_code</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">include_countries</span> <span class="ow">and</span> <span class="n">country_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">include_countries</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> IBANs are not allowed in this field.&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">country_code</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iban_checksum</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="n">value</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Not a valid IBAN.&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="BICValidator"><a class="viewcode-back" href="../../../generic.html#localflavor.generic.validators.BICValidator">[docs]</a><span class="nd">@deconstructible</span>
+<span class="k">class</span> <span class="nc">BICValidator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A validator for SWIFT Business Identifier Codes (ISO 9362:2009).</span>
+
+<span class="sd">    Validation is based on the BIC structure found on wikipedia.</span>
+
+<span class="sd">    https://en.wikipedia.org/wiki/ISO_9362#Structure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="c1"># There is no outside modification of properties so this should always be true by default.</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+        <span class="c1"># Length is 8 or 11.</span>
+        <span class="n">bic_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bic_length</span> <span class="o">!=</span> <span class="mi">8</span> <span class="ow">and</span> <span class="n">bic_length</span> <span class="o">!=</span> <span class="mi">11</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;BIC codes have either 8 or 11 characters.&#39;</span><span class="p">))</span>
+
+        <span class="c1"># BIC is alphanumeric</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">char</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;BIC codes only contain alphabet letters and digits.&#39;</span><span class="p">))</span>
+
+        <span class="c1"># First 4 letters are A - Z.</span>
+        <span class="n">institution_code</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">char</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">institution_code</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is not a valid institution code.&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">institution_code</span><span class="p">)</span>
+
+        <span class="c1"># Letters 5 and 6 consist of an ISO 3166-1 alpha-2 country code.</span>
+        <span class="n">country_code</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">country_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ISO_3166_1_ALPHA2_COUNTRY_CODES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is not a valid country code.&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">country_code</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EANValidator"><a class="viewcode-back" href="../../../generic.html#localflavor.generic.validators.EANValidator">[docs]</a><span class="nd">@deconstructible</span>
+<span class="k">class</span> <span class="nc">EANValidator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A generic validator for EAN like codes with the last digit being the checksum.</span>
+
+<span class="sd">    http://en.wikipedia.org/wiki/International_Article_Number_(EAN)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Not a valid EAN code.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strip_nondigits</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">message</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strip_nondigits</span> <span class="o">=</span> <span class="n">strip_nondigits</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">((</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">message</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">strip_nondigits</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">strip_nondigits</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strip_nondigits</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^\d]+&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ean</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="s1">&#39;invalid&#39;</span><span class="p">)</span></div>
+
+
+<span class="n">VATIN_PATTERN_MAP</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;AT&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^ATU\d</span><span class="si">{8}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BE&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^BE0?\d</span><span class="si">{9}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BG&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^BG\d{9,10}$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;HR&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^HR\d</span><span class="si">{11}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;CY&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^CY\d</span><span class="si">{8}</span><span class="s1">[A-Z]$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;CZ&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^CZ\d{8,10}$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DE&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^DE\d</span><span class="si">{9}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DK&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^DK\d</span><span class="si">{8}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;EE&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^EE\d</span><span class="si">{9}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;EL&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^EL\d</span><span class="si">{9}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ES&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^ES[A-Z0-9]\d</span><span class="si">{7}</span><span class="s1">[A-Z0-9]$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;FI&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^FI\d</span><span class="si">{8}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;FR&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^FR[A-HJ-NP-Z0-9][A-HJ-NP-Z0-9]\d</span><span class="si">{9}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GB&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^(GB(GD|HA)\d</span><span class="si">{3}</span><span class="s1">|GB\d</span><span class="si">{9}</span><span class="s1">|GB\d</span><span class="si">{12}</span><span class="s1">)$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;HU&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^HU\d</span><span class="si">{8}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;IE&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^IE\d[A-Z0-9\+\*]\d</span><span class="si">{5}</span><span class="s1">[A-Z]{1,2}$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;IT&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^IT\d</span><span class="si">{11}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;LT&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^LT(\d</span><span class="si">{9}</span><span class="s1">|\d</span><span class="si">{12}</span><span class="s1">)$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;LU&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^LU\d</span><span class="si">{8}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;LV&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^LV\d</span><span class="si">{11}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MT&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^MT\d</span><span class="si">{8}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;NL&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^NL\d</span><span class="si">{9}</span><span class="s1">B\d</span><span class="si">{2}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PL&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^PL\d</span><span class="si">{10}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PT&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^PT\d</span><span class="si">{9}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;RO&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^RO\d{2,10}$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SE&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^SE\d</span><span class="si">{10}</span><span class="s1">01$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SI&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^SI\d</span><span class="si">{8}</span><span class="s1">$&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SK&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^SK\d</span><span class="si">{10}</span><span class="s1">$&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Map of country codes and regular expressions.</span>
+
+<span class="sd">See https://en.wikipedia.org/wiki/VAT_identification_number</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">VATIN_COUNTRY_CODE_LENGTH</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Length of the country code prefix of a VAT identification number.</span>
+
+<span class="sd">Codes are two letter ISO 3166-1 alpha-2 codes except for Greece that uses</span>
+<span class="sd">ISO 639-1.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="VATINValidator"><a class="viewcode-back" href="../../../generic.html#localflavor.generic.validators.VATINValidator">[docs]</a><span class="nd">@deconstructible</span>
+<span class="k">class</span> <span class="nc">VATINValidator</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A validator for VAT identification numbers.</span>
+
+<span class="sd">    Currently only supports European VIES VAT identification numbers.</span>
+
+<span class="sd">    See See https://en.wikipedia.org/wiki/VAT_identification_number</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;country_code&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(country_code)s</span><span class="s1"> is not a valid country code.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;vatin&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(vatin)s</span><span class="s1"> is not a valid VAT identification number.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">country_code</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">VATIN_PATTERN_MAP</span><span class="p">[</span><span class="n">country_code</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">messages</span><span class="p">[</span><span class="s1">&#39;vatin&#39;</span><span class="p">],</span>
+                    <span class="n">code</span><span class="o">=</span><span class="s1">&#39;vatin&#39;</span><span class="p">,</span>
+                    <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;vatin&#39;</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span>
+                <span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">messages</span><span class="p">[</span><span class="s1">&#39;country_code&#39;</span><span class="p">],</span>
+                <span class="n">code</span><span class="o">=</span><span class="s1">&#39;country_code&#39;</span><span class="p">,</span>
+                <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;country_code&#39;</span><span class="p">:</span> <span class="n">country_code</span><span class="p">}</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="VATINValidator.clean"><a class="viewcode-back" href="../../../generic.html#localflavor.generic.validators.VATINValidator.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return tuple of country code and number.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">[:</span><span class="n">VATIN_COUNTRY_CODE_LENGTH</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="n">VATIN_COUNTRY_CODE_LENGTH</span><span class="p">:]</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Django Software Foundation and individual contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.1.
+    </div>
+  </body>
+</html>

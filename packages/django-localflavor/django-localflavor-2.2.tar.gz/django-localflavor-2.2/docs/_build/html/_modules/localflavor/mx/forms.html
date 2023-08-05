@@ -1,0 +1,408 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>localflavor.mx.forms &#8212; django-localflavor 2.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for localflavor.mx.forms</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Mexican-specific form helpers.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">django.forms</span> <span class="k">import</span> <span class="n">ValidationError</span>
+<span class="kn">from</span> <span class="nn">django.forms.fields</span> <span class="k">import</span> <span class="n">RegexField</span><span class="p">,</span> <span class="n">Select</span>
+<span class="kn">from</span> <span class="nn">django.utils</span> <span class="k">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="k">import</span> <span class="n">ugettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="kn">from</span> <span class="nn">.mx_states</span> <span class="k">import</span> <span class="n">STATE_CHOICES</span>
+
+<span class="n">DATE_RE</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;\d</span><span class="si">{2}</span><span class="s1">((01|03|05|07|08|10|12)(0[1-9]|[12]\d|3[01])|02(0[1-9]|[12]\d)|(04|06|09|11)(0[1-9]|[12]\d|30))&#39;</span>
+
+
+<span class="c1">#: This is the list of inconvenient words according to the `Anexo IV` of the</span>
+<span class="c1">#: document described in the next link:</span>
+<span class="c1">#: http://www.sisi.org.mx/jspsi/documentos/2005/seguimiento/06101/0610100162005_065.doc</span>
+<span class="n">RFC_INCONVENIENT_WORDS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;BUEI&#39;</span><span class="p">,</span> <span class="s1">&#39;BUEY&#39;</span><span class="p">,</span> <span class="s1">&#39;CACA&#39;</span><span class="p">,</span> <span class="s1">&#39;CACO&#39;</span><span class="p">,</span> <span class="s1">&#39;CAGA&#39;</span><span class="p">,</span> <span class="s1">&#39;CAGO&#39;</span><span class="p">,</span> <span class="s1">&#39;CAKA&#39;</span><span class="p">,</span> <span class="s1">&#39;CAKO&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;COGE&#39;</span><span class="p">,</span> <span class="s1">&#39;COJA&#39;</span><span class="p">,</span> <span class="s1">&#39;COJE&#39;</span><span class="p">,</span> <span class="s1">&#39;COJI&#39;</span><span class="p">,</span> <span class="s1">&#39;COJO&#39;</span><span class="p">,</span> <span class="s1">&#39;CULO&#39;</span><span class="p">,</span> <span class="s1">&#39;FETO&#39;</span><span class="p">,</span> <span class="s1">&#39;GUEY&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;JOTO&#39;</span><span class="p">,</span> <span class="s1">&#39;KACA&#39;</span><span class="p">,</span> <span class="s1">&#39;KACO&#39;</span><span class="p">,</span> <span class="s1">&#39;KAGA&#39;</span><span class="p">,</span> <span class="s1">&#39;KAGO&#39;</span><span class="p">,</span> <span class="s1">&#39;KOGE&#39;</span><span class="p">,</span> <span class="s1">&#39;KOJO&#39;</span><span class="p">,</span> <span class="s1">&#39;KAKA&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;KULO&#39;</span><span class="p">,</span> <span class="s1">&#39;MAME&#39;</span><span class="p">,</span> <span class="s1">&#39;MAMO&#39;</span><span class="p">,</span> <span class="s1">&#39;MEAR&#39;</span><span class="p">,</span> <span class="s1">&#39;MEAS&#39;</span><span class="p">,</span> <span class="s1">&#39;MEON&#39;</span><span class="p">,</span> <span class="s1">&#39;MION&#39;</span><span class="p">,</span> <span class="s1">&#39;MOCO&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MULA&#39;</span><span class="p">,</span> <span class="s1">&#39;PEDA&#39;</span><span class="p">,</span> <span class="s1">&#39;PEDO&#39;</span><span class="p">,</span> <span class="s1">&#39;PENE&#39;</span><span class="p">,</span> <span class="s1">&#39;PUTA&#39;</span><span class="p">,</span> <span class="s1">&#39;PUTO&#39;</span><span class="p">,</span> <span class="s1">&#39;QULO&#39;</span><span class="p">,</span> <span class="s1">&#39;RATA&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;RUIN&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: This is the list of inconvenient words according to the `Anexo 2` of the</span>
+<span class="c1">#: document described in the next link:</span>
+<span class="c1">#: http://portal.veracruz.gob.mx/pls/portal/url/ITEM/444112558A57C6E0E040A8C02E00695C</span>
+<span class="n">CURP_INCONVENIENT_WORDS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;BACA&#39;</span><span class="p">,</span> <span class="s1">&#39;BAKA&#39;</span><span class="p">,</span> <span class="s1">&#39;BUEI&#39;</span><span class="p">,</span> <span class="s1">&#39;BUEY&#39;</span><span class="p">,</span> <span class="s1">&#39;CACA&#39;</span><span class="p">,</span> <span class="s1">&#39;CACO&#39;</span><span class="p">,</span> <span class="s1">&#39;CAGA&#39;</span><span class="p">,</span> <span class="s1">&#39;CAGO&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;CAKA&#39;</span><span class="p">,</span> <span class="s1">&#39;CAKO&#39;</span><span class="p">,</span> <span class="s1">&#39;COGE&#39;</span><span class="p">,</span> <span class="s1">&#39;COGI&#39;</span><span class="p">,</span> <span class="s1">&#39;COJA&#39;</span><span class="p">,</span> <span class="s1">&#39;COJE&#39;</span><span class="p">,</span> <span class="s1">&#39;COJI&#39;</span><span class="p">,</span> <span class="s1">&#39;COJO&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;COLA&#39;</span><span class="p">,</span> <span class="s1">&#39;CULO&#39;</span><span class="p">,</span> <span class="s1">&#39;FALO&#39;</span><span class="p">,</span> <span class="s1">&#39;FETO&#39;</span><span class="p">,</span> <span class="s1">&#39;GETA&#39;</span><span class="p">,</span> <span class="s1">&#39;GUEI&#39;</span><span class="p">,</span> <span class="s1">&#39;GUEY&#39;</span><span class="p">,</span> <span class="s1">&#39;JETA&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;JOTO&#39;</span><span class="p">,</span> <span class="s1">&#39;KACA&#39;</span><span class="p">,</span> <span class="s1">&#39;KACO&#39;</span><span class="p">,</span> <span class="s1">&#39;KAGA&#39;</span><span class="p">,</span> <span class="s1">&#39;KAGO&#39;</span><span class="p">,</span> <span class="s1">&#39;KAKA&#39;</span><span class="p">,</span> <span class="s1">&#39;KAKO&#39;</span><span class="p">,</span> <span class="s1">&#39;KOGE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;KOGI&#39;</span><span class="p">,</span> <span class="s1">&#39;KOJA&#39;</span><span class="p">,</span> <span class="s1">&#39;KOJE&#39;</span><span class="p">,</span> <span class="s1">&#39;KOJI&#39;</span><span class="p">,</span> <span class="s1">&#39;KOJO&#39;</span><span class="p">,</span> <span class="s1">&#39;KOLA&#39;</span><span class="p">,</span> <span class="s1">&#39;KULO&#39;</span><span class="p">,</span> <span class="s1">&#39;LILO&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;LOCA&#39;</span><span class="p">,</span> <span class="s1">&#39;LOCO&#39;</span><span class="p">,</span> <span class="s1">&#39;LOKA&#39;</span><span class="p">,</span> <span class="s1">&#39;LOKO&#39;</span><span class="p">,</span> <span class="s1">&#39;MAME&#39;</span><span class="p">,</span> <span class="s1">&#39;MAMO&#39;</span><span class="p">,</span> <span class="s1">&#39;MEAR&#39;</span><span class="p">,</span> <span class="s1">&#39;MEAS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MEON&#39;</span><span class="p">,</span> <span class="s1">&#39;MIAR&#39;</span><span class="p">,</span> <span class="s1">&#39;MION&#39;</span><span class="p">,</span> <span class="s1">&#39;MOCO&#39;</span><span class="p">,</span> <span class="s1">&#39;MOKO&#39;</span><span class="p">,</span> <span class="s1">&#39;MULA&#39;</span><span class="p">,</span> <span class="s1">&#39;MULO&#39;</span><span class="p">,</span> <span class="s1">&#39;NACA&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;NACO&#39;</span><span class="p">,</span> <span class="s1">&#39;PEDA&#39;</span><span class="p">,</span> <span class="s1">&#39;PEDO&#39;</span><span class="p">,</span> <span class="s1">&#39;PENE&#39;</span><span class="p">,</span> <span class="s1">&#39;PIPI&#39;</span><span class="p">,</span> <span class="s1">&#39;PITO&#39;</span><span class="p">,</span> <span class="s1">&#39;POPO&#39;</span><span class="p">,</span> <span class="s1">&#39;PUTA&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PUTO&#39;</span><span class="p">,</span> <span class="s1">&#39;QULO&#39;</span><span class="p">,</span> <span class="s1">&#39;RATA&#39;</span><span class="p">,</span> <span class="s1">&#39;ROBA&#39;</span><span class="p">,</span> <span class="s1">&#39;ROBE&#39;</span><span class="p">,</span> <span class="s1">&#39;ROBO&#39;</span><span class="p">,</span> <span class="s1">&#39;RUIN&#39;</span><span class="p">,</span> <span class="s1">&#39;SENO&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TETA&#39;</span><span class="p">,</span> <span class="s1">&#39;VACA&#39;</span><span class="p">,</span> <span class="s1">&#39;VAGA&#39;</span><span class="p">,</span> <span class="s1">&#39;VAGO&#39;</span><span class="p">,</span> <span class="s1">&#39;VAKA&#39;</span><span class="p">,</span> <span class="s1">&#39;VUEI&#39;</span><span class="p">,</span> <span class="s1">&#39;VUEY&#39;</span><span class="p">,</span> <span class="s1">&#39;WUEI&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;WUEY&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="MXStateSelect"><a class="viewcode-back" href="../../../localflavor/mx.html#localflavor.mx.forms.MXStateSelect">[docs]</a><span class="k">class</span> <span class="nc">MXStateSelect</span><span class="p">(</span><span class="n">Select</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Select widget that uses a list of Mexican states as its choices.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MXStateSelect</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">STATE_CHOICES</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MXZipCodeField"><a class="viewcode-back" href="../../../localflavor/mx.html#localflavor.mx.forms.MXZipCodeField">[docs]</a><span class="k">class</span> <span class="nc">MXZipCodeField</span><span class="p">(</span><span class="n">RegexField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A form field that accepts a Mexican Zip Code.</span>
+
+<span class="sd">    More info about this:</span>
+<span class="sd">        http://en.wikipedia.org/wiki/List_of_postal_codes_in_Mexico</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter a valid zip code in the format XXXXX.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">zip_code_re</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;^(0[1-9]|[1][0-6]|[2-9]\d)(\d</span><span class="si">{3}</span><span class="s1">)$&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MXZipCodeField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">zip_code_re</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MXRFCField"><a class="viewcode-back" href="../../../localflavor/mx.html#localflavor.mx.forms.MXRFCField">[docs]</a><span class="k">class</span> <span class="nc">MXRFCField</span><span class="p">(</span><span class="n">RegexField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A form field that validates a Mexican *Registro Federal de Contribuyentes*.</span>
+
+<span class="sd">    Validates either `Persona física` or `Persona moral`.</span>
+<span class="sd">    The Persona física RFC string is integrated by a juxtaposition of</span>
+<span class="sd">    characters following the next pattern:</span>
+
+<span class="sd">        =====  ======  ===========================================</span>
+<span class="sd">        Index  Format  Accepted Characters</span>
+<span class="sd">        =====  ======  ===========================================</span>
+<span class="sd">        1      X       Any letter</span>
+<span class="sd">        2      X       Any vowel</span>
+<span class="sd">        3-4    XX      Any letter</span>
+<span class="sd">        5-10   YYMMDD  Any valid date</span>
+<span class="sd">        11-12  XX      Any letter or number between 0 and 9</span>
+<span class="sd">        13     X       Any digit between 0 and 9 or the letter *A*</span>
+<span class="sd">        =====  ======  ===========================================</span>
+
+<span class="sd">    The Persona moral RFC string is integrated by a juxtaposition of</span>
+<span class="sd">    characters following the next pattern:</span>
+
+<span class="sd">        =====  ======  ============================================</span>
+<span class="sd">        Index  Format  Accepted Characters</span>
+<span class="sd">        =====  ======  ============================================</span>
+<span class="sd">        1-3    XXX     Any letter including *&amp;* and *Ñ* chars</span>
+<span class="sd">        4-9    YYMMDD  Any valid date</span>
+<span class="sd">        10-11  XX      Any letter or number between 0 and 9</span>
+<span class="sd">        12     X       Any number between 0 and 9 or the letter *A*</span>
+<span class="sd">        =====  ======  ============================================</span>
+
+<span class="sd">    More info about this:</span>
+<span class="sd">        http://es.wikipedia.org/wiki/Registro_Federal_de_Contribuyentes_(M%C3%A9xico)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter a valid RFC.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;invalid_checksum&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Invalid checksum for RFC.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">rfc_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^([A-Z&amp;Ññ]</span><span class="si">{3}</span><span class="s1">|[A-Z][AEIOU][A-Z]</span><span class="si">{2}</span><span class="s1">)</span><span class="si">%s</span><span class="s1">[A-Z0-9]</span><span class="si">{2}</span><span class="s1">[0-9A]$&#39;</span> <span class="o">%</span> <span class="n">DATE_RE</span><span class="p">,</span>
+                            <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MXRFCField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">rfc_re</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="n">min_length</span><span class="p">,</span>
+                                         <span class="n">max_length</span><span class="o">=</span><span class="n">max_length</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MXRFCField.clean"><a class="viewcode-back" href="../../../localflavor/mx.html#localflavor.mx.forms.MXRFCField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">MXRFCField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_values</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_homoclave</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_checksum</span><span class="p">(</span><span class="n">value</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid_checksum&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_inconvenient_word</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+    <span class="k">def</span> <span class="nf">_has_homoclave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rfc</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This check is done due to the existance of RFCs without a *homoclave*.</span>
+
+<span class="sd">        Since the current algorithm to calculate it had not been created for</span>
+<span class="sd">        the first RFCs ever in Mexico.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rfc_without_homoclave_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[A-Z&amp;Ññ]{3,4}</span><span class="si">%s</span><span class="s1">$&#39;</span> <span class="o">%</span> <span class="n">DATE_RE</span><span class="p">,</span>
+                                              <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="n">rfc_without_homoclave_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">rfc</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_checksum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rfc</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checksum.</span>
+
+<span class="sd">        More info about this procedure:</span>
+<span class="sd">            www.sisi.org.mx/jspsi/documentos/2005/seguimiento/06101/0610100162005_065.doc</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">chars</span> <span class="o">=</span> <span class="s1">&#39;0123456789ABCDEFGHIJKLMN&amp;OPQRSTUVWXYZ-Ñ&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rfc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">11</span><span class="p">:</span>
+            <span class="n">rfc</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">rfc</span>
+
+        <span class="n">sum_</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">chars</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">14</span><span class="p">)),</span> <span class="n">rfc</span><span class="p">))</span>
+        <span class="n">checksum</span> <span class="o">=</span> <span class="mi">11</span> <span class="o">-</span> <span class="n">sum_</span> <span class="o">%</span> <span class="mi">11</span>
+
+        <span class="k">if</span> <span class="n">checksum</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;A&#39;</span>
+        <span class="k">elif</span> <span class="n">checksum</span> <span class="o">==</span> <span class="mi">11</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;0&#39;</span>
+
+        <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">checksum</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_has_inconvenient_word</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rfc</span><span class="p">):</span>
+        <span class="n">first_four</span> <span class="o">=</span> <span class="n">rfc</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">first_four</span> <span class="ow">in</span> <span class="n">RFC_INCONVENIENT_WORDS</span></div>
+
+
+<div class="viewcode-block" id="MXCLABEField"><a class="viewcode-back" href="../../../localflavor/mx.html#localflavor.mx.forms.MXCLABEField">[docs]</a><span class="k">class</span> <span class="nc">MXCLABEField</span><span class="p">(</span><span class="n">RegexField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This field validates a CLABE (Clave Bancaria Estandarizada).</span>
+
+<span class="sd">    A CLABE is a 18-digits long number. The first 6 digits denote bank and branch number.</span>
+<span class="sd">    The remaining 12 digits denote an account number, plus a verifying digit.</span>
+
+<span class="sd">    More info:</span>
+<span class="sd">    https://en.wikipedia.org/wiki/CLABE</span>
+
+<span class="sd">    .. versionadded:: 1.4</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter a valid CLABE.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;invalid_checksum&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Invalid checksum for CLABE.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">clabe_re</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;^\d</span><span class="si">{18}</span><span class="s1">$&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MXCLABEField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">clabe_re</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="n">min_length</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="n">max_length</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_checksum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">verification_digit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">number</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">weight_factor</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+
+        <span class="n">sum_remainder</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">%</span> <span class="mi">10</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">weight_factor</span><span class="p">,</span> <span class="n">number</span><span class="p">))</span> <span class="o">%</span> <span class="mi">10</span>
+
+        <span class="k">return</span> <span class="n">verification_digit</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span> <span class="o">-</span> <span class="n">sum_remainder</span><span class="p">)</span> <span class="o">%</span> <span class="mi">10</span>
+
+<div class="viewcode-block" id="MXCLABEField.clean"><a class="viewcode-back" href="../../../localflavor/mx.html#localflavor.mx.forms.MXCLABEField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">MXCLABEField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_values</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_checksum</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid_checksum&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">value</span></div></div>
+
+
+<div class="viewcode-block" id="MXCURPField"><a class="viewcode-back" href="../../../localflavor/mx.html#localflavor.mx.forms.MXCURPField">[docs]</a><span class="k">class</span> <span class="nc">MXCURPField</span><span class="p">(</span><span class="n">RegexField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A field that validates a Mexican Clave Única de Registro de Población.</span>
+
+<span class="sd">    The CURP is integrated by a juxtaposition of characters following the next</span>
+<span class="sd">    pattern:</span>
+
+<span class="sd">        =====  ======  ===================================================</span>
+<span class="sd">        Index  Format  Accepted Characters</span>
+<span class="sd">        =====  ======  ===================================================</span>
+<span class="sd">        1      X       Any letter</span>
+<span class="sd">        2      X       Any vowel</span>
+<span class="sd">        3-4    XX      Any letter</span>
+<span class="sd">        5-10   YYMMDD  Any valid date</span>
+<span class="sd">        11     X       Either `H` or `M`, depending on the person&#39;s gender</span>
+<span class="sd">        12-13  XX      Any valid acronym for a state in Mexico</span>
+<span class="sd">        14-16  XXX     Any consonant</span>
+<span class="sd">        17     X       Any number between 0 and 9 or any letter</span>
+<span class="sd">        18     X       Any number between 0 and 9</span>
+<span class="sd">        =====  ======  ===================================================</span>
+
+<span class="sd">    More info about this:</span>
+<span class="sd">        http://www.condusef.gob.mx/index.php/clave-unica-de-registro-de-poblacion-curp</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter a valid CURP.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;invalid_checksum&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Invalid checksum for CURP.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">states_re</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;(AS|BC|BS|CC|CL|CM|CS|CH|DF|DG|GT|GR|HG|JC|MC|MN|&#39;</span> \
+                    <span class="sa">r</span><span class="s1">&#39;MS|NT|NL|OC|PL|QT|QR|SP|SL|SR|TC|TS|TL|VZ|YN|ZS|NE)&#39;</span>
+        <span class="n">consonants_re</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;[B-DF-HJ-NP-TV-Z]&#39;</span>
+        <span class="n">curp_re</span> <span class="o">=</span> <span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[A-Z][AEIOU][A-Z]</span><span class="si">{2}%s</span><span class="s1">[HM]</span><span class="si">%s%s{3}</span><span class="s1">[0-9A-Z]\d$&#39;</span> <span class="o">%</span>
+                   <span class="p">(</span><span class="n">DATE_RE</span><span class="p">,</span> <span class="n">states_re</span><span class="p">,</span> <span class="n">consonants_re</span><span class="p">))</span>
+        <span class="n">curp_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">curp_re</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MXCURPField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">curp_re</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="n">min_length</span><span class="p">,</span>
+                                          <span class="n">max_length</span><span class="o">=</span><span class="n">max_length</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MXCURPField.clean"><a class="viewcode-back" href="../../../localflavor/mx.html#localflavor.mx.forms.MXCURPField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">MXCURPField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_values</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_checksum</span><span class="p">(</span><span class="n">value</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid_checksum&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_inconvenient_word</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+    <span class="k">def</span> <span class="nf">_checksum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">chars</span> <span class="o">=</span> <span class="s1">&#39;0123456789ABCDEFGHIJKLMN&amp;OPQRSTUVWXYZ&#39;</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">chars</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">19</span><span class="p">)),</span> <span class="n">value</span><span class="p">))</span>
+        <span class="n">checksum</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">-</span> <span class="n">s</span> <span class="o">%</span> <span class="mi">10</span>
+
+        <span class="k">if</span> <span class="n">checksum</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;0&#39;</span>
+        <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">checksum</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_has_inconvenient_word</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curp</span><span class="p">):</span>
+        <span class="n">first_four</span> <span class="o">=</span> <span class="n">curp</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">first_four</span> <span class="ow">in</span> <span class="n">CURP_INCONVENIENT_WORDS</span></div>
+
+
+<div class="viewcode-block" id="MXSocialSecurityNumberField"><a class="viewcode-back" href="../../../localflavor/mx.html#localflavor.mx.forms.MXSocialSecurityNumberField">[docs]</a><span class="k">class</span> <span class="nc">MXSocialSecurityNumberField</span><span class="p">(</span><span class="n">RegexField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A field that validates a Mexican Social Security Number.</span>
+
+<span class="sd">    The Social Security Number is integrated by a juxtaposition of digits</span>
+<span class="sd">    following the next pattern:</span>
+
+<span class="sd">    =====  ==================================================================</span>
+<span class="sd">    Index  Required numbers</span>
+<span class="sd">    =====  ==================================================================</span>
+<span class="sd">    1-2    The number of the branch office where the Social Security Number</span>
+<span class="sd">           was designated.</span>
+<span class="sd">    3-4    The year of inscription to the Social Security.</span>
+<span class="sd">    5-6    The year of birth of the Social Security Number owner.</span>
+<span class="sd">    7-10   The progressive number of procedure for the IMSS.</span>
+<span class="sd">           (This digit is provided exclusively by the Institute as it regards</span>
+<span class="sd">           the Folio number of such procedure).</span>
+<span class="sd">    11     The verification digit.</span>
+<span class="sd">    =====  ==================================================================</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter a valid Social Security Number.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;invalid_checksum&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Invalid checksum for Social Security Number.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">ssn_re</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;^\d</span><span class="si">{11}</span><span class="s1">$&#39;</span>
+        <span class="n">ssn_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">ssn_re</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MXSocialSecurityNumberField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ssn_re</span><span class="p">,</span>
+                                                          <span class="n">min_length</span><span class="o">=</span><span class="n">min_length</span><span class="p">,</span>
+                                                          <span class="n">max_length</span><span class="o">=</span><span class="n">max_length</span><span class="p">,</span>
+                                                          <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MXSocialSecurityNumberField.clean"><a class="viewcode-back" href="../../../localflavor/mx.html#localflavor.mx.forms.MXSocialSecurityNumberField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">MXSocialSecurityNumberField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_values</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__checksum</span><span class="p">(</span><span class="n">value</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid_checksum&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+    <span class="k">def</span> <span class="nf">__checksum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">multipliers</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span> <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">*</span> <span class="n">m</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">multipliers</span><span class="p">)]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">s</span><span class="p">))))</span>
+        <span class="n">checksum</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">-</span> <span class="n">s</span> <span class="o">%</span> <span class="mi">10</span>
+
+        <span class="k">if</span> <span class="n">checksum</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;0&#39;</span>
+        <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">checksum</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Django Software Foundation and individual contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>localflavor.us.forms &#8212; django-localflavor 2.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for localflavor.us.forms</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;USA-specific Form helpers.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">django.core.validators</span> <span class="k">import</span> <span class="n">EMPTY_VALUES</span>
+<span class="kn">from</span> <span class="nn">django.forms</span> <span class="k">import</span> <span class="n">ValidationError</span>
+<span class="kn">from</span> <span class="nn">django.forms.fields</span> <span class="k">import</span> <span class="n">CharField</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">RegexField</span><span class="p">,</span> <span class="n">Select</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="k">import</span> <span class="n">ugettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="n">ssn_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(?P&lt;area&gt;\d</span><span class="si">{3}</span><span class="s2">)[-\ ]?(?P&lt;group&gt;\d</span><span class="si">{2}</span><span class="s2">)[-\ ]?(?P&lt;serial&gt;\d</span><span class="si">{4}</span><span class="s2">)$&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="USZipCodeField"><a class="viewcode-back" href="../../../localflavor/us.html#localflavor.us.forms.USZipCodeField">[docs]</a><span class="k">class</span> <span class="nc">USZipCodeField</span><span class="p">(</span><span class="n">RegexField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A form field that validates input as a U.S. ZIP code.</span>
+
+<span class="sd">    Valid formats are XXXXX or XXXXX-XXXX.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        If you are looking for a form field with a list of U.S. Postal Service</span>
+<span class="sd">        locations please use :class:`~localflavor.us.forms.USPSSelect`.</span>
+
+<span class="sd">    .. versionadded:: 1.1</span>
+
+<span class="sd">    Whitespace around the ZIP code is accepted and automatically trimmed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter a zip code in the format XXXXX or XXXXX-XXXX.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">USZipCodeField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^\d</span><span class="si">{5}</span><span class="s1">(?:-\d</span><span class="si">{4}</span><span class="s1">)?$&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="USZipCodeField.to_python"><a class="viewcode-back" href="../../../localflavor/us.html#localflavor.us.forms.USZipCodeField.to_python">[docs]</a>    <span class="k">def</span> <span class="nf">to_python</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">USZipCodeField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">to_python</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_values</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span>
+        <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="USSocialSecurityNumberField"><a class="viewcode-back" href="../../../localflavor/us.html#localflavor.us.forms.USSocialSecurityNumberField">[docs]</a><span class="k">class</span> <span class="nc">USSocialSecurityNumberField</span><span class="p">(</span><span class="n">CharField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A United States Social Security number.</span>
+
+<span class="sd">    Checks the following rules to determine whether the number is valid:</span>
+
+<span class="sd">        * Conforms to the XXX-XX-XXXX format.</span>
+<span class="sd">        * No group consists entirely of zeroes.</span>
+<span class="sd">        * The leading group is not &quot;666&quot; (block &quot;666&quot; will never be allocated).</span>
+<span class="sd">        * The number is not in the promotional block 987-65-4320 through</span>
+<span class="sd">          987-65-4329, which are permanently invalid.</span>
+<span class="sd">        * The number is not one known to be invalid due to otherwise widespread</span>
+<span class="sd">          promotional use or distribution (e.g., the Woolworth&#39;s number or the</span>
+<span class="sd">          1962 promotional number).</span>
+
+<span class="sd">    .. versionadded:: 1.1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter a valid U.S. Social Security number in XXX-XX-XXXX format.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="USSocialSecurityNumberField.clean"><a class="viewcode-back" href="../../../localflavor/us.html#localflavor.us.forms.USSocialSecurityNumberField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">USSocialSecurityNumberField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_values</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">ssn_re</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span>
+        <span class="n">area</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">serial</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()[</span><span class="s1">&#39;area&#39;</span><span class="p">],</span> <span class="n">match</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()[</span><span class="s1">&#39;group&#39;</span><span class="p">],</span> <span class="n">match</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()[</span><span class="s1">&#39;serial&#39;</span><span class="p">]</span>
+
+        <span class="c1"># First pass: no blocks of all zeroes.</span>
+        <span class="k">if</span> <span class="n">area</span> <span class="o">==</span> <span class="s1">&#39;000&#39;</span> <span class="ow">or</span> <span class="n">group</span> <span class="o">==</span> <span class="s1">&#39;00&#39;</span> <span class="ow">or</span> <span class="n">serial</span> <span class="o">==</span> <span class="s1">&#39;0000&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span>
+
+        <span class="c1"># Second pass: promotional and otherwise permanently invalid numbers.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">area</span> <span class="o">==</span> <span class="s1">&#39;666&#39;</span> <span class="ow">or</span>
+                <span class="n">area</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;9&#39;</span><span class="p">)</span> <span class="ow">or</span>
+                <span class="p">(</span><span class="n">area</span> <span class="o">==</span> <span class="s1">&#39;078&#39;</span> <span class="ow">and</span> <span class="n">group</span> <span class="o">==</span> <span class="s1">&#39;05&#39;</span> <span class="ow">and</span> <span class="n">serial</span> <span class="o">==</span> <span class="s1">&#39;1120&#39;</span><span class="p">)</span> <span class="ow">or</span>
+                <span class="p">(</span><span class="n">area</span> <span class="o">==</span> <span class="s1">&#39;219&#39;</span> <span class="ow">and</span> <span class="n">group</span> <span class="o">==</span> <span class="s1">&#39;09&#39;</span> <span class="ow">and</span> <span class="n">serial</span> <span class="o">==</span> <span class="s1">&#39;9999&#39;</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">area</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">serial</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="USStateField"><a class="viewcode-back" href="../../../localflavor/us.html#localflavor.us.forms.USStateField">[docs]</a><span class="k">class</span> <span class="nc">USStateField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A form field that validates its input is a U.S. state, territory, or COFA territory.</span>
+<span class="sd">    The input is validated against a dictionary which includes names and abbreviations.</span>
+
+<span class="sd">    It normalizes the input to the standard two-letter postal service</span>
+<span class="sd">    abbreviation for the given state.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default_error_messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;invalid&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter a U.S. state or territory.&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="USStateField.clean"><a class="viewcode-back" href="../../../localflavor/us.html#localflavor.us.forms.USStateField.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.us_states</span> <span class="k">import</span> <span class="n">STATES_NORMALIZED</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">USStateField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">EMPTY_VALUES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">STATES_NORMALIZED</span><span class="p">[</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_messages</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="USStateSelect"><a class="viewcode-back" href="../../../localflavor/us.html#localflavor.us.forms.USStateSelect">[docs]</a><span class="k">class</span> <span class="nc">USStateSelect</span><span class="p">(</span><span class="n">Select</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Select widget that uses a list of U.S. states/territories as its choices.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.us_states</span> <span class="k">import</span> <span class="n">STATE_CHOICES</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">USStateSelect</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">STATE_CHOICES</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="USPSSelect"><a class="viewcode-back" href="../../../localflavor/us.html#localflavor.us.forms.USPSSelect">[docs]</a><span class="k">class</span> <span class="nc">USPSSelect</span><span class="p">(</span><span class="n">Select</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Select widget that uses a list of US Postal Service codes as its choices.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        If you are looking for a form field that validates U.S. ZIP codes</span>
+<span class="sd">        please use :class:`~localflavor.us.forms.USZipCodeField`.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.us_states</span> <span class="k">import</span> <span class="n">USPS_CHOICES</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">USPSSelect</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">USPS_CHOICES</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">django-localflavor 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Django Software Foundation and individual contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.1.
+    </div>
+  </body>
+</html>

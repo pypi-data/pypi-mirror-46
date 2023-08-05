@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Spain (es) &#8212; django-localflavor 2.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Finland (fi)" href="fi.html" />
+    <link rel="prev" title="Estonia (ee)" href="ee.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fi.html" title="Finland (fi)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ee.html" title="Estonia (ee)"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">django-localflavor 2.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="spain-es">
+<h1>Spain (<code class="docutils literal notranslate"><span class="pre">es</span></code>)<a class="headerlink" href="#spain-es" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-localflavor.es.forms">
+<span id="forms"></span><h2>Forms<a class="headerlink" href="#module-localflavor.es.forms" title="Permalink to this headline">¶</a></h2>
+<p>Spanish-specific Form helpers.</p>
+<dl class="class">
+<dt id="localflavor.es.forms.ESCCCField">
+<em class="property">class </em><code class="descclassname">localflavor.es.forms.</code><code class="descname">ESCCCField</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/localflavor/es/forms.html#ESCCCField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#localflavor.es.forms.ESCCCField" title="Permalink to this definition">¶</a></dt>
+<dd><p>A form field that validates its input as a Spanish bank account or CCC (Codigo Cuenta Cliente).</p>
+<blockquote>
+<div><p>Spanish CCC is in format EEEE-OOOO-CC-AAAAAAAAAA where:</p>
+<blockquote>
+<div><p>E = entity
+O = office
+C = checksum
+A = account</p>
+</div></blockquote>
+<p>It’s also valid to use a space as delimiter, or to use no delimiter.</p>
+<p>First checksum digit validates entity and office, and last one
+validates account. Validation is done multiplying every digit of 10
+digit value (with leading 0 if necessary) by number in its position in
+string 1, 2, 4, 8, 5, 10, 9, 7, 3, 6. Sum resulting numbers and extract
+it from 11.  Result is checksum except when 10 then is 1, or when 11
+then is 0.</p>
+</div></blockquote>
+<dl class="method">
+<dt id="localflavor.es.forms.ESCCCField.clean">
+<code class="descname">clean</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/localflavor/es/forms.html#ESCCCField.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#localflavor.es.forms.ESCCCField.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the given value and return its “cleaned” value as an
+appropriate Python object. Raise ValidationError for any errors.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="localflavor.es.forms.ESIdentityCardNumberField">
+<em class="property">class </em><code class="descclassname">localflavor.es.forms.</code><code class="descname">ESIdentityCardNumberField</code><span class="sig-paren">(</span><em>only_nif=False</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/localflavor/es/forms.html#ESIdentityCardNumberField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#localflavor.es.forms.ESIdentityCardNumberField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Spanish NIF/NIE/CIF (Fiscal Identification Number) code.</p>
+<p>Validates three diferent formats:</p>
+<blockquote>
+<div><p>NIF (individuals): 12345678A
+CIF (companies): A12345678
+NIE (foreigners): X12345678A</p>
+</div></blockquote>
+<p>according to a couple of simple checksum algorithms.</p>
+<p>Value can include a space or hyphen separator between number and letters.
+Number length is not checked for NIF (or NIE), old values start with a 1,
+and future values can contain digits greater than 8. The CIF control digit
+can be a number or a letter depending on company type. Algorithm is not
+public, and different authors have different opinions on which ones allows
+letters, so both validations are assumed true for all types.</p>
+<p><a class="reference external" href="http://es.wikipedia.org/wiki/N%C3%BAmero_de_identificaci%C3%B3n_fiscal">http://es.wikipedia.org/wiki/N%C3%BAmero_de_identificaci%C3%B3n_fiscal</a></p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.1.</span></p>
+</div>
+<dl class="method">
+<dt id="localflavor.es.forms.ESIdentityCardNumberField.clean">
+<code class="descname">clean</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/localflavor/es/forms.html#ESIdentityCardNumberField.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#localflavor.es.forms.ESIdentityCardNumberField.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the given value and return its “cleaned” value as an
+appropriate Python object. Raise ValidationError for any errors.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="localflavor.es.forms.ESPostalCodeField">
+<em class="property">class </em><code class="descclassname">localflavor.es.forms.</code><code class="descname">ESPostalCodeField</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/localflavor/es/forms.html#ESPostalCodeField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#localflavor.es.forms.ESPostalCodeField" title="Permalink to this definition">¶</a></dt>
+<dd><p>A form field that validates its input as a spanish postal code.</p>
+<p>Spanish postal code is a five digits string, with two first digits
+between 01 and 52, assigned to provinces code.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="localflavor.es.forms.ESProvinceSelect">
+<em class="property">class </em><code class="descclassname">localflavor.es.forms.</code><code class="descname">ESProvinceSelect</code><span class="sig-paren">(</span><em>attrs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/localflavor/es/forms.html#ESProvinceSelect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#localflavor.es.forms.ESProvinceSelect" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Select widget that uses a list of spanish provinces as its choices.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="localflavor.es.forms.ESRegionSelect">
+<em class="property">class </em><code class="descclassname">localflavor.es.forms.</code><code class="descname">ESRegionSelect</code><span class="sig-paren">(</span><em>attrs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/localflavor/es/forms.html#ESRegionSelect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#localflavor.es.forms.ESRegionSelect" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Select widget that uses a list of spanish regions as its choices.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="data">
+<h2>Data<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="localflavor.es.es_provinces.PROVINCE_CHOICES">
+<code class="descclassname">localflavor.es.es_provinces.</code><code class="descname">PROVINCE_CHOICES</code><em class="property"> = (('01', 'Araba'), ('02', 'Albacete'), ('03', 'Alacant'), ('04', 'Almeria'), ('05', 'Avila'), ('06', 'Badajoz'), ('07', 'Illes Balears'), ('08', 'Barcelona'), ('09', 'Burgos'), ('10', 'Caceres'), ('11', 'Cadiz'), ('12', 'Castello'), ('13', 'Ciudad Real'), ('14', 'Cordoba'), ('15', 'A Coruna'), ('16', 'Cuenca'), ('17', 'Girona'), ('18', 'Granada'), ('19', 'Guadalajara'), ('20', 'Guipuzkoa'), ('21', 'Huelva'), ('22', 'Huesca'), ('23', 'Jaen'), ('24', 'Leon'), ('25', 'Lleida'), ('26', 'La Rioja'), ('27', 'Lugo'), ('28', 'Madrid'), ('29', 'Malaga'), ('30', 'Murcia'), ('31', 'Navarre'), ('32', 'Ourense'), ('33', 'Asturias'), ('34', 'Palencia'), ('35', 'Las Palmas'), ('36', 'Pontevedra'), ('37', 'Salamanca'), ('38', 'Santa Cruz de Tenerife'), ('39', 'Cantabria'), ('40', 'Segovia'), ('41', 'Seville'), ('42', 'Soria'), ('43', 'Tarragona'), ('44', 'Teruel'), ('45', 'Toledo'), ('46', 'Valencia'), ('47', 'Valladolid'), ('48', 'Bizkaia'), ('49', 'Zamora'), ('50', 'Zaragoza'), ('51', 'Ceuta'), ('52', 'Melilla'))</em><a class="headerlink" href="#localflavor.es.es_provinces.PROVINCE_CHOICES" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alphabetical list of provinces</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="localflavor.es.es_regions.REGION_CHOICES">
+<code class="descclassname">localflavor.es.es_regions.</code><code class="descname">REGION_CHOICES</code><em class="property"> = (('AN', 'Andalusia'), ('AR', 'Aragon'), ('O', 'Principality of Asturias'), ('IB', 'Balearic Islands'), ('PV', 'Basque Country'), ('CN', 'Canary Islands'), ('S', 'Cantabria'), ('CM', 'Castile-La Mancha'), ('CL', 'Castile and Leon'), ('CT', 'Catalonia'), ('EX', 'Extremadura'), ('GA', 'Galicia'), ('LO', 'La Rioja'), ('M', 'Madrid'), ('MU', 'Region of Murcia'), ('NA', 'Foral Community of Navarre'), ('VC', 'Valencian Community'), ('CE', 'Autonomous city of Ceuta'), ('ML', 'Autonomous city of Mellila'))</em><a class="headerlink" href="#localflavor.es.es_regions.REGION_CHOICES" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alphabetical list of regions</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Spain (<code class="docutils literal notranslate"><span class="pre">es</span></code>)</a><ul>
+<li><a class="reference internal" href="#module-localflavor.es.forms">Forms</a></li>
+<li><a class="reference internal" href="#data">Data</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ee.html"
+                        title="previous chapter">Estonia (<code class="docutils literal notranslate"><span class="pre">ee</span></code>)</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="fi.html"
+                        title="next chapter">Finland (<code class="docutils literal notranslate"><span class="pre">fi</span></code>)</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/localflavor/es.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fi.html" title="Finland (fi)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ee.html" title="Estonia (ee)"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">django-localflavor 2.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Django Software Foundation and individual contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.1.
+    </div>
+  </body>
+</html>
