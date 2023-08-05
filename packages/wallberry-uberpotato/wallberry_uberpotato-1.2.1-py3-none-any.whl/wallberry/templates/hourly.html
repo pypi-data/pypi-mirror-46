@@ -1,0 +1,25 @@
+{% for f in data %}
+<div class="row hourly">
+  <img class="datapoint" src="{{ url_for('static', filename=f.icon+'.png') }}"
+     alt="{{ f.icon }}" />
+  <div class="datapoint-info">
+    <div class="datapoint-time">
+      {{ (f.time + offset) | datefmt('time') }}
+    </div>
+    <div class="datapoint-description text-muted">
+      {{ f.summary }}
+    </div>
+  </div>
+  {% if f.temperature %}
+  <h2 class="datapoint-temperature">
+   {{ f.temperature | tempfmt -}}
+    <small class="text-muted align-text-top degrees">{{- '%s' % TEMP_UNIT }}</small>
+  </h2>
+  {% endif %}
+  {% if f.precipProbability and (f.precipProbability // 0.1) > 0 %}
+  <h2 class="datapoint-precip">
+   {{ '%d%%' % ((f.precipProbability // 0.1) * 10) -}}
+  </h2>
+  {% endif %}
+</div>
+{% endfor %}
