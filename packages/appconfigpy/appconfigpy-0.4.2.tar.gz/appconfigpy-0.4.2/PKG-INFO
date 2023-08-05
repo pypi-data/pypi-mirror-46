@@ -1,0 +1,150 @@
+Metadata-Version: 2.1
+Name: appconfigpy
+Version: 0.4.2
+Summary: A Python library to create/load an application configuration file.
+Home-page: https://github.com/thombashi/appconfigpy
+Author: Tsuyoshi Hombashi
+Author-email: tsuyoshi.hombashi@gmail.com
+License: MIT License
+Project-URL: Source, https://github.com/thombashi/appconfigpy
+Project-URL: Tracker, https://github.com/thombashi/appconfigpy/issues
+Description: .. contents:: **appconfigpy**
+           :backlinks: top
+           :local:
+        
+        
+        Summary
+        =======
+        A Python library to create/load an application configuration file.
+        
+        
+        .. image:: https://badge.fury.io/py/appconfigpy.svg
+            :target: https://badge.fury.io/py/appconfigpy
+            :alt: PyPI package version
+        
+        .. image:: https://img.shields.io/pypi/pyversions/appconfigpy.svg
+            :target: https://pypi.org/project/appconfigpy
+            :alt: Supported Python versions
+        
+        
+        Installation
+        ============
+        
+        Install from PyPI
+        ------------------------------
+        ::
+        
+            pip install appconfigpy
+        
+        Install from PPA (for Ubuntu)
+        ------------------------------
+        ::
+        
+            sudo add-apt-repository ppa:thombashi/ppa
+            sudo apt update
+            sudo apt install python3-appconfigpy
+        
+        
+        Usage
+        =====
+        
+        Create a configuration file from user inputs
+        -------------------------------------------------------
+        .. code:: python
+        
+            # configure.py
+        
+            from appconfigpy import ConfigItem, ConfigManager, DefaultDisplayStyle
+        
+            app_config_mgr = ConfigManager(
+                config_name="example",
+                config_item_list=[
+                    ConfigItem(
+                        name="token",
+                        initial_value=None,
+                        prompt_text="API Token",
+                        default_display_style=DefaultDisplayStyle.PART_VISIBLE,
+                    ),
+                    ConfigItem(name="path", prompt_text="ABC Path", initial_value="."),
+                ],
+            )
+        
+            app_config_mgr.configure()
+        
+        
+        .. code::
+        
+            $ ./configure.py
+            API Token: abcdefghijklmn
+            ABC Path [.]:
+            $ cat ~/.example
+            {
+                "path": ".",
+                "token": "abcdefghijklmn"
+            }
+        
+        Load a configuration file
+        -------------------------------------------------------
+        .. code:: python
+        
+            # load.py
+        
+            from appconfigpy import ConfigItem, ConfigManager, DefaultDisplayStyle
+        
+            app_config_mgr = ConfigManager(
+                config_name="example",
+                config_item_list=[
+                    ConfigItem(
+                        name="token",
+                        initial_value=None,
+                        prompt_text="API Token",
+                        default_display_style=DefaultDisplayStyle.PART_VISIBLE,
+                    ),
+                    ConfigItem(name="path", prompt_text="ABC Path", initial_value="."),
+                ],
+            )
+        
+            print(app_config_mgr.load())
+        
+        .. code::
+        
+            $ ./load.py
+            {'token': 'abcdefghijklmn', 'path': '.'}
+        
+        
+        Dependencies
+        ============
+        Python 2.7+ or 3.5+
+        
+        - `six <https://pypi.org/project/six/>`__
+        
+        Optional Dependencies
+        ------------------------------------
+        - `click <https://github.com/pallets/click>`__
+        - `logbook <https://logbook.readthedocs.io/en/stable/>`__
+            - Logging using logbook if the package installed
+        - `pathvalidate <https://github.com/thombashi/pathvalidate>`__
+        - `simplejson <https://github.com/simplejson/simplejson>`__
+        - `typepy <https://github.com/thombashi/typepy>`__
+        
+Keywords: configuration
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Information Technology
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*
+Provides-Extra: test
+Provides-Extra: logging
+Provides-Extra: release
+Provides-Extra: build
