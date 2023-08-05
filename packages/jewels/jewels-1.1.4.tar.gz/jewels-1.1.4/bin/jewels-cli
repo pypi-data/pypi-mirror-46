@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+from sys import argv as sys_argv
+from sys import exit as sys_exit
+from os import path
+import argparse
+from jewels import Jewels
+
+# arg parser
+parser = argparse.ArgumentParser(
+    prog = 'Jewels',
+    description = 'A minimal utility for file encryption/decryption',
+    epilog = 'Encryption based on AES256 in EAX mode'
+)
+# add subparsers
+subparsers = parser.add_subparsers(help='command help', title='Jewels commands', description='Encryption operations')
+# generate key
+parser_gk = subparsers.add_parser('keygen', help='Generate encryption key')
+parser_gk.add_argument('key_file', help='Key filename', action='store', metavar='key-file')
+parser_gk.set_defaults(cmd='keygen')
+# encrypt
+parser_en = subparsers.add_parser('encrypt', help='Encrypt txt/json/yaml files')
+parser_en.add_argument('src', help='File to encrypt', action='store', metavar='src')
+parser_en.add_argument('key_file', help='Key filename', action='store', metavar='key-file')
+parser_en.add_argument('-r', '--recursive', help='Encrypt directories and their contents recursively', action='store_true', default=False)
+parser_en.add_argument('-o', '--output', help='Encrypted filename', action='store', metavar='output', default=None)
+parser_en.set_defaults(cmd='encrypt')
+
+if len(sys_argv)==1:
+    print('Command missing. See -h for usage.')
+    sys_exit()
+
+args = vars(parser.parse_args(sys_argv[1:]))
+
+if args['cmd'] == 'keygen':
+
+    key_file = args['key_file']
+    Jewels.generate_key(key_file)
+
+elif args['cmd'] == 'encrypt':
+
+    recursive = args['recursive']
+    output = args['output']
+
+    key_file = args['key_file']
+    src = args['src']
+
+    if recursive:
+        # destination folder
+        dest = output if output else src
+
+    else:
+        # destination file
+        dest = output if output else src.split('.')[0]
+
+
+    # check key_file and folders
+    if not path.isfile(key_file):
+        print('Error: "{0}" is not a valid filename.'.format(key_file))
+        sys_exit()
+
+    if (recursive==False and path.isdir(src)):
+        print('Error: "{0}" is a directory, use -r option instead.'.format(src))
+        sys_exit()
+    elif (recursive==False and not path.isfile(src)) or (recursive==True and not path.isdir(src)):
+        print('Error: "{0}" is not a valid path.'.format(src))
+        sys_exit()
+
+    # init jewels
+    jewel = Jewels(key_file)
+
+    if recursive:
+        jewel.encrypt_all(src, dest)
+
+    elif (src.endswith(Jewels.ALLOWED_FILES)):
+        jewel.encrypt(src, dest)
+
+else:
+    print('Command not recognized. See -h for usage.')
+    sys_exit()
