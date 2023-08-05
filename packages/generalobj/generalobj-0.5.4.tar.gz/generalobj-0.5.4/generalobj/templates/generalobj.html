@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+	<div class="container-fluid col-sm-4">
+		<div class="well well-sm">
+			<div class="btn-group" role="group" aria-label="">
+				<button type="button" class="btn btn-default" onClick="window.location = '{{ url_edit }}';">Edit</button>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-body">
+				{% for field in fields %}
+					<form class="form-horizontal">
+					<div class="form-group">
+						<label class="col-sm-4 control-label">{{ field.0|capfirst }}</label>
+						<div class="col-sm-8">
+							<p class="form-control-static">{{ field.1 }}</p>
+						</div>
+					</div>
+					</form>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+
+	<div class="col-sm-8">
+		<ul class="nav nav-tabs" role="tablist">
+			{% if additional_tabs %}
+				{% for tab in additional_tabs %}
+					<li role="presentation"{% if forloop.counter0 %} class="active"{% endif %}><A href="#{{ tab.0 }}" data-toggle="tab">{{ tab.0 }}</A></li>
+				{% endfor %}
+			{% else %}
+				<li role="presentation" class="active"><a href="#first_tab" data-toggle="tab">-</a></li>
+			{% endif %}
+		</ul>
+		<div class="tab-content">
+			{% if additional_tabs %}
+				{% for tab in additional_tabs %}
+					<div role="tabpanel" class="tab-pane{% if forloop.counter0 %} active{% endif %}" id="{{ tab.0 }}">
+						{% include tab.1 %}
+					</div>
+				{% endfor %}
+			{% else %}
+				<div role="tabpanel" class="tab-pane active" id="first_tab">
+					<div role="panel" class="panel panel-default" id="first_panel">
+						-
+					</div>
+				</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+	
+	
+{% endblock %}
+
+{% block scripts %}
+	<script type="text/javascript">
+		{% if html_scripts %}
+			{% for html_script in html_scripts %}
+				{% include html_script %}
+			{% endfor %}
+		{% endif %}
+	</script>
+{% endblock %}
