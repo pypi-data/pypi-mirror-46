@@ -1,0 +1,4539 @@
+components:
+  securitySchemes:
+    sessionAuth:
+      in: cookie
+      name: arkindex.auth
+      type: apiKey
+    tokenAuth:
+      scheme: Token
+      type: http
+info:
+  contact:
+    email: paris@teklia.com
+    name: Teklia
+    url: https://www.teklia.com/
+  title: Arkindex API
+  version: 0.9.4
+openapi: 3.0.2
+paths:
+  /api/v1/act/{id}/:
+    get:
+      description: Retrieve an act
+      operationId: RetrieveAct
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  children:
+                    items:
+                      properties:
+                        corpus:
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            public:
+                              type: boolean
+                          readOnly: true
+                          required:
+                          - name
+                          type: object
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        thumbnail_url:
+                          readOnly: true
+                          type: string
+                        type:
+                          enum:
+                          - volume
+                          - register
+                          - act
+                          - page
+                          - surface
+                          readOnly: true
+                      required:
+                      - name
+                    readOnly: true
+                    type: array
+                  id:
+                    readOnly: true
+                    type: string
+                  metadata:
+                    readOnly: true
+                    type: string
+                  name:
+                    type: string
+                  number:
+                    type: string
+                  parents:
+                    readOnly: true
+                    type: array
+                required:
+                - name
+                - number
+      security: []
+      tags:
+      - elements
+  /api/v1/acts/:
+    get:
+      description: Get a list of acts with their parent registers or volumes, the
+        total number of transcriptions found in the act, and a few (not all) of the
+        transcriptions found inside of each act, with their source, type, zone and
+        image, for a given search query.
+      operationId: SearchActs
+      parameters:
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      public:
+                        type: boolean
+                    required:
+                    - name
+                    type: object
+                  date_from:
+                    type: string
+                  date_to:
+                    type: string
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  number:
+                    type: string
+                  parent_paths:
+                    type: array
+                  total_transcriptions:
+                    type: integer
+                  transcriptions:
+                    items:
+                      properties:
+                        id:
+                          type: string
+                        score:
+                          nullable: true
+                          type: number
+                        source:
+                          properties:
+                            id:
+                              type: string
+                            internal:
+                              type: boolean
+                            revision:
+                              type: string
+                            slug:
+                              type: string
+                            type:
+                              enum:
+                              - classifier
+                              - recognizer
+                          required:
+                          - type
+                          - slug
+                          - revision
+                          - internal
+                          type: object
+                        text:
+                          nullable: true
+                          type: string
+                        type:
+                          enum:
+                          - page
+                          - paragraph
+                          - line
+                          - word
+                          - character
+                        zone:
+                          properties:
+                            id:
+                              type: string
+                            image_url:
+                              type: string
+                            polygon:
+                              type: array
+                            url:
+                              readOnly: true
+                              type: string
+                          required:
+                          - polygon
+                          - image_url
+                          type: object
+                      required:
+                      - type
+                      - zone
+                      - source
+                    type: array
+                required:
+                - name
+                - number
+                - transcriptions
+                - total_transcriptions
+                - parent_paths
+                - corpus
+                - date_from
+                - date_to
+      security: []
+      tags:
+      - search
+  /api/v1/classification/bulk/:
+    post:
+      description: Create multiple classifications at once on the same element with
+        the same classifier.
+      operationId: CreateClassifications
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                classifications:
+                  items:
+                    properties:
+                      class_name:
+                        type: string
+                      confidence:
+                        type: number
+                    required:
+                    - class_name
+                    - confidence
+                  type: array
+                classifier:
+                  type: string
+                parent:
+                  type: string
+              required:
+              - parent
+              - classifier
+              - classifications
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  classifications:
+                    items:
+                      properties:
+                        class_name:
+                          type: string
+                        confidence:
+                          type: number
+                      required:
+                      - class_name
+                      - confidence
+                    type: array
+                  classifier:
+                    type: string
+                  parent:
+                    type: string
+                required:
+                - parent
+                - classifier
+                - classifications
+      tags:
+      - ml
+  /api/v1/corpus/:
+    get:
+      description: List corpora with their access rights
+      operationId: ListCorpus
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  description:
+                    type: string
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  public:
+                    type: boolean
+                  rights:
+                    readOnly: true
+                    type: string
+                required:
+                - name
+      security: []
+      tags:
+      - corpora
+    post:
+      description: Create a new corpus
+      operationId: CreateCorpus
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                description:
+                  type: string
+                id:
+                  type: string
+                name:
+                  type: string
+                public:
+                  type: boolean
+              required:
+              - name
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  description:
+                    type: string
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  public:
+                    type: boolean
+                  rights:
+                    readOnly: true
+                    type: string
+                required:
+                - name
+      tags:
+      - corpora
+  /api/v1/corpus/{id}/:
+    delete:
+      description: 'Delete a corpus. Requires the "admin" right on the corpus.
+
+        Warning: This operation might not work on corpora with a large amount of elements,
+        as the deletion process will take more than 30 seconds.'
+      operationId: DestroyCorpus
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  description:
+                    type: string
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  public:
+                    type: boolean
+                  rights:
+                    readOnly: true
+                    type: string
+                required:
+                - name
+      tags:
+      - corpora
+    get:
+      description: Retrieve a single corpus
+      operationId: RetrieveCorpus
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  description:
+                    type: string
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  public:
+                    type: boolean
+                  rights:
+                    readOnly: true
+                    type: string
+                required:
+                - name
+      security: []
+      tags:
+      - corpora
+    patch:
+      description: Partially update a corpus
+      operationId: PartialUpdateCorpus
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                description:
+                  type: string
+                id:
+                  type: string
+                name:
+                  type: string
+                public:
+                  type: boolean
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  description:
+                    type: string
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  public:
+                    type: boolean
+                  rights:
+                    readOnly: true
+                    type: string
+                required:
+                - name
+      tags:
+      - corpora
+    put:
+      description: Update a corpus
+      operationId: UpdateCorpus
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                description:
+                  type: string
+                id:
+                  type: string
+                name:
+                  type: string
+                public:
+                  type: boolean
+              required:
+              - name
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  description:
+                    type: string
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  public:
+                    type: boolean
+                  rights:
+                    readOnly: true
+                    type: string
+                required:
+                - name
+      tags:
+      - corpora
+  /api/v1/corpus/{id}/pages/:
+    get:
+      description: List all pages in all volumes of a corpus
+      operationId: ListCorpusPages
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  best_classes:
+                    items:
+                      properties:
+                        class_name:
+                          type: string
+                        confidence:
+                          nullable: true
+                          type: number
+                        source:
+                          properties:
+                            id:
+                              type: string
+                            internal:
+                              type: boolean
+                            revision:
+                              type: string
+                            slug:
+                              type: string
+                            type:
+                              enum:
+                              - classifier
+                              - recognizer
+                          required:
+                          - type
+                          - slug
+                          - revision
+                          - internal
+                          type: object
+                      required:
+                      - source
+                      - class_name
+                    type: array
+                  direction:
+                    enum:
+                    - recto
+                    - verso
+                  display_name:
+                    readOnly: true
+                    type: string
+                  id:
+                    type: string
+                  image:
+                    properties:
+                      height:
+                        readOnly: true
+                        type: integer
+                      id:
+                        readOnly: true
+                        type: string
+                      path:
+                        readOnly: true
+                        type: string
+                      status:
+                        enum:
+                        - checked
+                        - unchecked
+                        - error
+                      url:
+                        readOnly: true
+                        type: string
+                      width:
+                        readOnly: true
+                        type: integer
+                    required:
+                    - status
+                    type: object
+                  nb:
+                    nullable: true
+                    type: integer
+                  page_type:
+                    enum:
+                    - page
+                    - summary
+                    - garde
+                    - contregarde
+                    - contreplat
+                    - plat
+                    - copy
+                required:
+                - page_type
+                - direction
+                - image
+                - best_classes
+      security: []
+      tags:
+      - elements
+  /api/v1/element/{id}/:
+    get:
+      description: Retrieve detailed information on a single element
+      operationId: RetrieveElement
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      public:
+                        type: boolean
+                    readOnly: true
+                    required:
+                    - name
+                    type: object
+                  id:
+                    type: string
+                  metadata:
+                    readOnly: true
+                    type: string
+                  name:
+                    type: string
+                  thumbnail_url:
+                    readOnly: true
+                    type: string
+                  type:
+                    enum:
+                    - volume
+                    - register
+                    - act
+                    - page
+                    - surface
+                    readOnly: true
+                required:
+                - name
+      security: []
+      tags:
+      - elements
+    patch:
+      description: Rename an element
+      operationId: PartialUpdateElement
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      public:
+                        type: boolean
+                    readOnly: true
+                    required:
+                    - name
+                    type: object
+                  id:
+                    type: string
+                  metadata:
+                    readOnly: true
+                    type: string
+                  name:
+                    type: string
+                  thumbnail_url:
+                    readOnly: true
+                    type: string
+                  type:
+                    enum:
+                    - volume
+                    - register
+                    - act
+                    - page
+                    - surface
+                    readOnly: true
+                required:
+                - name
+      tags:
+      - elements
+    put:
+      description: Rename an element
+      operationId: UpdateElement
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+              required:
+              - name
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      public:
+                        type: boolean
+                    readOnly: true
+                    required:
+                    - name
+                    type: object
+                  id:
+                    type: string
+                  metadata:
+                    readOnly: true
+                    type: string
+                  name:
+                    type: string
+                  thumbnail_url:
+                    readOnly: true
+                    type: string
+                  type:
+                    enum:
+                    - volume
+                    - register
+                    - act
+                    - page
+                    - surface
+                    readOnly: true
+                required:
+                - name
+      tags:
+      - elements
+  /api/v1/element/{id}/history/:
+    get:
+      description: List an element's update history
+      operationId: ListEvents
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  date:
+                    type: date-time
+                  id:
+                    type: string
+                  revision:
+                    properties:
+                      author:
+                        type: string
+                      commit_url:
+                        readOnly: true
+                        type: string
+                      date:
+                        type: date-time
+                      hash:
+                        type: string
+                      id:
+                        type: string
+                      message:
+                        type: string
+                      ref:
+                        type: string
+                      repo_id:
+                        readOnly: true
+                        type: string
+                    required:
+                    - date
+                    - hash
+                    - ref
+                    - message
+                    - author
+                    type: object
+                  type:
+                    enum:
+                    - A
+                    - M
+                    - D
+                required:
+                - type
+                - date
+                - revision
+      security: []
+      tags:
+      - elements
+  /api/v1/element/{id}/transcriptions/:
+    get:
+      description: List all transcriptions for an element, filtered by type
+      operationId: ListTranscriptions
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                  score:
+                    nullable: true
+                    type: number
+                  source:
+                    properties:
+                      id:
+                        type: string
+                      internal:
+                        type: boolean
+                      revision:
+                        type: string
+                      slug:
+                        type: string
+                      type:
+                        enum:
+                        - classifier
+                        - recognizer
+                    required:
+                    - type
+                    - slug
+                    - revision
+                    - internal
+                    type: object
+                  text:
+                    nullable: true
+                    type: string
+                  type:
+                    enum:
+                    - page
+                    - paragraph
+                    - line
+                    - word
+                    - character
+                  zone:
+                    properties:
+                      id:
+                        type: string
+                      image_url:
+                        type: string
+                      polygon:
+                        type: array
+                      url:
+                        readOnly: true
+                        type: string
+                    required:
+                    - polygon
+                    - image_url
+                    type: object
+                required:
+                - type
+                - zone
+                - source
+      security: []
+      tags:
+      - elements
+  /api/v1/elements/:
+    get:
+      description: List all elements, filtered by type
+      operationId: ListElements
+      parameters:
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      public:
+                        type: boolean
+                    readOnly: true
+                    required:
+                    - name
+                    type: object
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  thumbnail_url:
+                    readOnly: true
+                    type: string
+                  type:
+                    enum:
+                    - volume
+                    - register
+                    - act
+                    - page
+                    - surface
+                    readOnly: true
+                required:
+                - name
+      security: []
+      tags:
+      - elements
+  /api/v1/elements/create/:
+    post:
+      description: Create a new element
+      operationId: CreateElement
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                corpus:
+                  type: string
+                id:
+                  type: string
+                image:
+                  type: string
+                metadata:
+                  type: object
+                name:
+                  type: string
+                parent:
+                  type: string
+                type:
+                  enum:
+                  - volume
+                  - register
+                  - act
+                  - page
+                  - surface
+              required:
+              - type
+              - name
+              - corpus
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  id:
+                    type: string
+                  image:
+                    type: string
+                  metadata:
+                    type: object
+                  name:
+                    type: string
+                  parent:
+                    type: string
+                  type:
+                    enum:
+                    - volume
+                    - register
+                    - act
+                    - page
+                    - surface
+                required:
+                - type
+                - name
+                - corpus
+      tags:
+      - elements
+  /api/v1/elements/{id}/:
+    get:
+      description: List all parents and children of a single element
+      operationId: ListRelatedElements
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      public:
+                        type: boolean
+                    readOnly: true
+                    required:
+                    - name
+                    type: object
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  thumbnail_url:
+                    readOnly: true
+                    type: string
+                  type:
+                    enum:
+                    - volume
+                    - register
+                    - act
+                    - page
+                    - surface
+                    readOnly: true
+                required:
+                - name
+      security: []
+      tags:
+      - elements
+  /api/v1/elements/{id}/pages/:
+    get:
+      description: Detailed list of all children pages of an element
+      operationId: ListElementPages
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  best_classes:
+                    items:
+                      properties:
+                        class_name:
+                          type: string
+                        confidence:
+                          nullable: true
+                          type: number
+                        source:
+                          properties:
+                            id:
+                              type: string
+                            internal:
+                              type: boolean
+                            revision:
+                              type: string
+                            slug:
+                              type: string
+                            type:
+                              enum:
+                              - classifier
+                              - recognizer
+                          required:
+                          - type
+                          - slug
+                          - revision
+                          - internal
+                          type: object
+                      required:
+                      - source
+                      - class_name
+                    type: array
+                  direction:
+                    enum:
+                    - recto
+                    - verso
+                  display_name:
+                    readOnly: true
+                    type: string
+                  id:
+                    type: string
+                  image:
+                    properties:
+                      height:
+                        readOnly: true
+                        type: integer
+                      id:
+                        readOnly: true
+                        type: string
+                      path:
+                        readOnly: true
+                        type: string
+                      status:
+                        enum:
+                        - checked
+                        - unchecked
+                        - error
+                      url:
+                        readOnly: true
+                        type: string
+                      width:
+                        readOnly: true
+                        type: integer
+                    required:
+                    - status
+                    type: object
+                  nb:
+                    nullable: true
+                    type: integer
+                  page_type:
+                    enum:
+                    - page
+                    - summary
+                    - garde
+                    - contregarde
+                    - contreplat
+                    - plat
+                    - copy
+                required:
+                - page_type
+                - direction
+                - image
+                - best_classes
+      security: []
+      tags:
+      - elements
+  /api/v1/elements/{id}/surfaces/:
+    get:
+      description: Detailed list of all children surfaces of an element
+      operationId: ListElementSurfaces
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      public:
+                        type: boolean
+                    readOnly: true
+                    required:
+                    - name
+                    type: object
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  thumbnail_url:
+                    readOnly: true
+                    type: string
+                  type:
+                    enum:
+                    - volume
+                    - register
+                    - act
+                    - page
+                    - surface
+                    readOnly: true
+                required:
+                - name
+      security: []
+      tags:
+      - elements
+  /api/v1/entity/{id}/:
+    get:
+      description: Get all information about entity
+      operationId: RetrieveEntity
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  children:
+                    items:
+                      properties:
+                        child:
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            type:
+                              enum:
+                              - person
+                              - location
+                              - subject
+                              - organization
+                              - misc
+                          required:
+                          - name
+                          - type
+                          type: object
+                        id:
+                          type: string
+                        parent:
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            type:
+                              enum:
+                              - person
+                              - location
+                              - subject
+                              - organization
+                              - misc
+                          required:
+                          - name
+                          - type
+                          type: object
+                        role:
+                          properties:
+                            child_name:
+                              type: string
+                            child_type:
+                              enum:
+                              - person
+                              - location
+                              - subject
+                              - organization
+                              - misc
+                            parent_name:
+                              type: string
+                            parent_type:
+                              enum:
+                              - person
+                              - location
+                              - subject
+                              - organization
+                              - misc
+                          required:
+                          - parent_name
+                          - child_name
+                          - parent_type
+                          - child_type
+                          type: object
+                      required:
+                      - parent
+                      - child
+                      - role
+                    type: array
+                  corpus:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      public:
+                        type: boolean
+                    required:
+                    - name
+                    type: object
+                  id:
+                    type: string
+                  metas:
+                    nullable: true
+                    type: string
+                  name:
+                    type: string
+                  parents:
+                    items:
+                      properties:
+                        child:
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            type:
+                              enum:
+                              - person
+                              - location
+                              - subject
+                              - organization
+                              - misc
+                          required:
+                          - name
+                          - type
+                          type: object
+                        id:
+                          type: string
+                        parent:
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            type:
+                              enum:
+                              - person
+                              - location
+                              - subject
+                              - organization
+                              - misc
+                          required:
+                          - name
+                          - type
+                          type: object
+                        role:
+                          properties:
+                            child_name:
+                              type: string
+                            child_type:
+                              enum:
+                              - person
+                              - location
+                              - subject
+                              - organization
+                              - misc
+                            parent_name:
+                              type: string
+                            parent_type:
+                              enum:
+                              - person
+                              - location
+                              - subject
+                              - organization
+                              - misc
+                          required:
+                          - parent_name
+                          - child_name
+                          - parent_type
+                          - child_type
+                          type: object
+                      required:
+                      - parent
+                      - child
+                      - role
+                    type: array
+                  type:
+                    enum:
+                    - person
+                    - location
+                    - subject
+                    - organization
+                    - misc
+                required:
+                - name
+                - type
+                - corpus
+                - children
+                - parents
+      tags:
+      - elements
+  /api/v1/entity/{id}/elements/:
+    get:
+      description: Get all elements that have a link with the entity
+      operationId: ListEntityElements
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      public:
+                        type: boolean
+                    readOnly: true
+                    required:
+                    - name
+                    type: object
+                  id:
+                    type: string
+                  metadata:
+                    readOnly: true
+                    type: string
+                  name:
+                    type: string
+                  thumbnail_url:
+                    readOnly: true
+                    type: string
+                  type:
+                    enum:
+                    - volume
+                    - register
+                    - act
+                    - page
+                    - surface
+                    readOnly: true
+                required:
+                - name
+      tags:
+      - elements
+  /api/v1/image/:
+    post:
+      description: Create an image on the Arkindex image server, ready for upload
+        to Amazon S3. The response includes an Amazon S3 URL that you can use to upload
+        an image via HTTP PUT. Update the image's status to "checked" to confirm your
+        image is successfully uploaded and visible to Arkindex.
+      operationId: CreateImage
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                datafile:
+                  nullable: true
+                  type: string
+                hash:
+                  type: string
+              required:
+              - hash
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  datafile:
+                    nullable: true
+                    type: string
+                  hash:
+                    type: string
+                  height:
+                    readOnly: true
+                    type: integer
+                  id:
+                    readOnly: true
+                    type: string
+                  path:
+                    readOnly: true
+                    type: string
+                  s3_put_url:
+                    readOnly: true
+                    type: string
+                  status:
+                    enum:
+                    - checked
+                    - unchecked
+                    - error
+                    readOnly: true
+                  url:
+                    readOnly: true
+                    type: string
+                  width:
+                    readOnly: true
+                    type: integer
+                required:
+                - hash
+        '400':
+          content:
+            application/json:
+              examples:
+                image-exists:
+                  summary: An error where an image with this hash already exists,
+                    including the existing image's UUID.
+                  value:
+                    hash:
+                    - Image with this hash already exists
+                    id: 3cc2e9e0-4172-44b1-8d65-bc3fffd076dc
+              schema:
+                properties:
+                  datafile:
+                    description: One or more error messages for errors when validating
+                      the optional DataFile link.
+                    readOnly: true
+                    type: array
+                  detail:
+                    description: A generic error message when an error occurs outside
+                      of a specific field.
+                    readOnly: true
+                    type: string
+                  hash:
+                    description: One or more error messages for errors when validating
+                      the image hash.
+                    readOnly: true
+                    type: array
+                  id:
+                    description: UUID of an existing image, if the error comes from
+                      a duplicate hash.
+                    readOnly: true
+                    type: string
+          description: An error occured while validating the image.
+      tags:
+      - images
+  /api/v1/image/{id}/:
+    get:
+      description: Retrieve an image
+      operationId: RetrieveImage
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  height:
+                    readOnly: true
+                    type: integer
+                  id:
+                    readOnly: true
+                    type: string
+                  path:
+                    readOnly: true
+                    type: string
+                  status:
+                    enum:
+                    - checked
+                    - unchecked
+                    - error
+                  url:
+                    readOnly: true
+                    type: string
+                  width:
+                    readOnly: true
+                    type: integer
+                required:
+                - status
+      tags:
+      - images
+    patch:
+      description: Update an image's status
+      operationId: PartialUpdateImage
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                status:
+                  enum:
+                  - checked
+                  - unchecked
+                  - error
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  height:
+                    readOnly: true
+                    type: integer
+                  id:
+                    readOnly: true
+                    type: string
+                  path:
+                    readOnly: true
+                    type: string
+                  status:
+                    enum:
+                    - checked
+                    - unchecked
+                    - error
+                  url:
+                    readOnly: true
+                    type: string
+                  width:
+                    readOnly: true
+                    type: integer
+                required:
+                - status
+      tags:
+      - images
+    put:
+      description: Update an image's status
+      operationId: UpdateImage
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                status:
+                  enum:
+                  - checked
+                  - unchecked
+                  - error
+              required:
+              - status
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  height:
+                    readOnly: true
+                    type: integer
+                  id:
+                    readOnly: true
+                    type: string
+                  path:
+                    readOnly: true
+                    type: string
+                  status:
+                    enum:
+                    - checked
+                    - unchecked
+                    - error
+                  url:
+                    readOnly: true
+                    type: string
+                  width:
+                    readOnly: true
+                    type: integer
+                required:
+                - status
+      tags:
+      - images
+  /api/v1/imports/:
+    get:
+      description: List all data imports
+      operationId: ListDataImports
+      parameters:
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  has_failures:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  mode:
+                    enum:
+                    - images
+                    - pdf
+                    - repository
+                  state:
+                    enum:
+                    - unscheduled
+                    - pending
+                    - running
+                    - completed
+                    - failed
+                    - error
+                required:
+                - state
+                - mode
+                - corpus
+      tags:
+      - imports
+  /api/v1/imports/demo/{id}/:
+    post:
+      description: Run a data import with reduced access for demo users
+      operationId: CreateDataImport
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                corpus:
+                  type: string
+                files:
+                  items:
+                    type: string
+                  type: array
+                mode:
+                  enum:
+                  - images
+                  - pdf
+                  - repository
+                payload:
+                  type: object
+                state:
+                  enum:
+                  - unscheduled
+                  - pending
+                  - running
+                  - completed
+                  - failed
+                  - error
+              required:
+              - state
+              - mode
+              - corpus
+              - payload
+              - files
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  files:
+                    items:
+                      type: string
+                    type: array
+                  has_failures:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  mode:
+                    enum:
+                    - images
+                    - pdf
+                    - repository
+                  payload:
+                    type: object
+                  revision:
+                    properties:
+                      author:
+                        type: string
+                      commit_url:
+                        readOnly: true
+                        type: string
+                      date:
+                        type: date-time
+                      hash:
+                        type: string
+                      id:
+                        type: string
+                      message:
+                        type: string
+                      ref:
+                        type: string
+                      repo_id:
+                        readOnly: true
+                        type: string
+                    readOnly: true
+                    required:
+                    - date
+                    - hash
+                    - ref
+                    - message
+                    - author
+                    type: object
+                  state:
+                    enum:
+                    - unscheduled
+                    - pending
+                    - running
+                    - completed
+                    - failed
+                    - error
+                  workflow:
+                    readOnly: true
+                    type: string
+                required:
+                - state
+                - mode
+                - corpus
+                - payload
+                - files
+      security: []
+      tags:
+      - imports
+  /api/v1/imports/file/{id}/:
+    delete:
+      description: Delete an uploaded file
+      operationId: DestroyDataFile
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  content_type:
+                    readOnly: true
+                    type: string
+                  hash:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  images:
+                    items:
+                      properties:
+                        height:
+                          readOnly: true
+                          type: integer
+                        id:
+                          readOnly: true
+                          type: string
+                        path:
+                          readOnly: true
+                          type: string
+                        status:
+                          enum:
+                          - checked
+                          - unchecked
+                          - error
+                        url:
+                          readOnly: true
+                          type: string
+                        width:
+                          readOnly: true
+                          type: integer
+                      required:
+                      - status
+                    readOnly: true
+                    type: array
+                  name:
+                    readOnly: true
+                    type: string
+                  size:
+                    readOnly: true
+                    type: integer
+                  status:
+                    enum:
+                    - checked
+                    - unchecked
+                    - error
+                required:
+                - status
+      tags:
+      - files
+    get:
+      description: Get an uploaded file's metadata
+      operationId: RetrieveDataFile
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  content_type:
+                    readOnly: true
+                    type: string
+                  hash:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  images:
+                    items:
+                      properties:
+                        height:
+                          readOnly: true
+                          type: integer
+                        id:
+                          readOnly: true
+                          type: string
+                        path:
+                          readOnly: true
+                          type: string
+                        status:
+                          enum:
+                          - checked
+                          - unchecked
+                          - error
+                        url:
+                          readOnly: true
+                          type: string
+                        width:
+                          readOnly: true
+                          type: integer
+                      required:
+                      - status
+                    readOnly: true
+                    type: array
+                  name:
+                    readOnly: true
+                    type: string
+                  size:
+                    readOnly: true
+                    type: integer
+                  status:
+                    enum:
+                    - checked
+                    - unchecked
+                    - error
+                required:
+                - status
+      tags:
+      - files
+    patch:
+      description: Update a datafile's status
+      operationId: PartialUpdateDataFile
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                status:
+                  enum:
+                  - checked
+                  - unchecked
+                  - error
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  content_type:
+                    readOnly: true
+                    type: string
+                  hash:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  images:
+                    items:
+                      properties:
+                        height:
+                          readOnly: true
+                          type: integer
+                        id:
+                          readOnly: true
+                          type: string
+                        path:
+                          readOnly: true
+                          type: string
+                        status:
+                          enum:
+                          - checked
+                          - unchecked
+                          - error
+                        url:
+                          readOnly: true
+                          type: string
+                        width:
+                          readOnly: true
+                          type: integer
+                      required:
+                      - status
+                    readOnly: true
+                    type: array
+                  name:
+                    readOnly: true
+                    type: string
+                  size:
+                    readOnly: true
+                    type: integer
+                  status:
+                    enum:
+                    - checked
+                    - unchecked
+                    - error
+                required:
+                - status
+      tags:
+      - files
+    put:
+      description: Update a datafile's status
+      operationId: UpdateDataFile
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                status:
+                  enum:
+                  - checked
+                  - unchecked
+                  - error
+              required:
+              - status
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  content_type:
+                    readOnly: true
+                    type: string
+                  hash:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  images:
+                    items:
+                      properties:
+                        height:
+                          readOnly: true
+                          type: integer
+                        id:
+                          readOnly: true
+                          type: string
+                        path:
+                          readOnly: true
+                          type: string
+                        status:
+                          enum:
+                          - checked
+                          - unchecked
+                          - error
+                        url:
+                          readOnly: true
+                          type: string
+                        width:
+                          readOnly: true
+                          type: integer
+                      required:
+                      - status
+                    readOnly: true
+                    type: array
+                  name:
+                    readOnly: true
+                    type: string
+                  size:
+                    readOnly: true
+                    type: integer
+                  status:
+                    enum:
+                    - checked
+                    - unchecked
+                    - error
+                required:
+                - status
+      tags:
+      - files
+  /api/v1/imports/files/create/:
+    post:
+      description: Create a Datafile. In case of success, a signed uri is returned
+        to upload file content directly to remote server.
+      operationId: CreateDataFile
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                corpus:
+                  type: string
+                hash:
+                  type: string
+                name:
+                  type: string
+                size:
+                  type: integer
+              required:
+              - name
+              - hash
+              - size
+              - corpus
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  hash:
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  name:
+                    type: string
+                  s3_put_url:
+                    readOnly: true
+                    type: string
+                  s3_url:
+                    readOnly: true
+                    type: string
+                  size:
+                    type: integer
+                  status:
+                    enum:
+                    - checked
+                    - unchecked
+                    - error
+                    readOnly: true
+                required:
+                - name
+                - hash
+                - size
+                - corpus
+        '400':
+          content:
+            application/json:
+              examples:
+                file-exists:
+                  summary: Data file already exists. Response include existing file's
+                    UUID, status and remote server PUT url to upload file content.
+                  value:
+                    hash:
+                    - DataFile with this hash already exists
+                    id: 55cd009d-cd4b-4ec2-a475-b060f98f9138
+                    s3_put_url: https://remote-server.net/staging/55cd009d-cd4b-4ec2-a475-b060f98f9138?Credential=mycredential&Signature=mysignature
+                    status: unchecked
+              schema:
+                properties:
+                  corpus:
+                    description: Errors that occured during corpus ID field validation.
+                    readOnly: true
+                    type: array
+                  detail:
+                    description: A generic error message when an error occurs outside
+                      of a specific field.
+                    readOnly: true
+                    type: string
+                  hash:
+                    description: Errors that occured during hash field validation.
+                    readOnly: true
+                    type: array
+                  id:
+                    description: UUID of existing DataFile, if the error comes from
+                      a duplicated creation.
+                    readOnly: true
+                    type: string
+                  name:
+                    description: Errors that occured during name field validation.
+                    readOnly: true
+                    type: array
+                  s3_put_url:
+                    description: Signed url used to upload file content to remote
+                      server, if the error comes from a duplicated creation and file
+                      status is not checked.
+                    readOnly: true
+                    type: string
+                  s3_url:
+                    description: Remote file url, if the error comes from a duplicated
+                      creation and file status is checked.
+                    readOnly: true
+                    type: string
+                  size:
+                    description: Errors that occured during size field validation.
+                    readOnly: true
+                    type: array
+                  status:
+                    description: Status of existing DataFile, if the error comes from
+                      a duplicated creation.
+                    readOnly: true
+                    type: string
+          description: An error occured while creating the data file.
+      tags:
+      - files
+  /api/v1/imports/files/{id}/:
+    get:
+      description: List uploaded files in a corpus
+      operationId: ListDataFiles
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  content_type:
+                    readOnly: true
+                    type: string
+                  hash:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  images:
+                    items:
+                      properties:
+                        height:
+                          readOnly: true
+                          type: integer
+                        id:
+                          readOnly: true
+                          type: string
+                        path:
+                          readOnly: true
+                          type: string
+                        status:
+                          enum:
+                          - checked
+                          - unchecked
+                          - error
+                        url:
+                          readOnly: true
+                          type: string
+                        width:
+                          readOnly: true
+                          type: integer
+                      required:
+                      - status
+                    readOnly: true
+                    type: array
+                  name:
+                    readOnly: true
+                    type: string
+                  size:
+                    readOnly: true
+                    type: integer
+                  status:
+                    enum:
+                    - checked
+                    - unchecked
+                    - error
+                required:
+                - status
+      tags:
+      - files
+  /api/v1/imports/fromfiles/:
+    post:
+      description: Start a data import from one or more uploaded files
+      operationId: CreateDataImportFromFiles
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                classifier:
+                  nullable: true
+                  type: string
+                files:
+                  items:
+                    type: string
+                  type: array
+                mode:
+                  enum:
+                  - images
+                  - pdf
+                  - repository
+                pdf_engine:
+                  enum:
+                  - convert
+                  - poppler
+                recognizer:
+                  nullable: true
+                  type: string
+                volume_id:
+                  nullable: true
+                  type: string
+                volume_name:
+                  nullable: true
+                  type: string
+              required:
+              - files
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  classifier:
+                    nullable: true
+                    type: string
+                  files:
+                    items:
+                      type: string
+                    type: array
+                  mode:
+                    enum:
+                    - images
+                    - pdf
+                    - repository
+                  pdf_engine:
+                    enum:
+                    - convert
+                    - poppler
+                  recognizer:
+                    nullable: true
+                    type: string
+                  volume_id:
+                    nullable: true
+                    type: string
+                  volume_name:
+                    nullable: true
+                    type: string
+                required:
+                - files
+      tags:
+      - files
+  /api/v1/imports/hook/{id}/:
+    post:
+      description: This endpoint is intended as a webhook for Git repository hosting
+        applications like GitLab.
+      operationId: GitPushHook
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+      security: []
+      tags:
+      - repos
+  /api/v1/imports/mltools/:
+    get:
+      description: List available machine learning tools
+      operationId: ListMLTools
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  name:
+                    type: string
+                  slug:
+                    type: string
+                  type:
+                    enum:
+                    - classifier
+                    - recognizer
+                  version:
+                    type: string
+                required:
+                - name
+                - slug
+                - type
+                - version
+      security: []
+      tags:
+      - ml
+  /api/v1/imports/repos/:
+    get:
+      description: List connected repositories
+      operationId: ListRepositories
+      parameters:
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  enabled:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  url:
+                    readOnly: true
+                    type: string
+                required:
+                - corpus
+      tags:
+      - repos
+  /api/v1/imports/repos/search/{id}/:
+    get:
+      description: 'Search for a repository to connect to.
+
+        Using the given OAuth credentials ID, this uses the Git hosting application
+        API''s search feature to look for a repository matching the given query. Without
+        a query, returns a full list.'
+      operationId: RetrieveExternalRepository
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  id:
+                    type: integer
+                required:
+                - id
+                - corpus
+      tags:
+      - repos
+    post:
+      description: Using the given OAuth credentials, this links an external Git repository
+        to Arkindex, connects a push hook and starts an initial import.
+      operationId: CreateExternalRepository
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                corpus:
+                  type: string
+                id:
+                  type: integer
+              required:
+              - id
+              - corpus
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  id:
+                    type: integer
+                required:
+                - id
+                - corpus
+      tags:
+      - repos
+  /api/v1/imports/repos/{id}/:
+    delete:
+      description: Delete a repository
+      operationId: DestroyRepository
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  enabled:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  url:
+                    readOnly: true
+                    type: string
+                required:
+                - corpus
+      tags:
+      - repos
+    get:
+      description: Get a repository
+      operationId: RetrieveRepository
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  enabled:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  url:
+                    readOnly: true
+                    type: string
+                required:
+                - corpus
+      tags:
+      - repos
+  /api/v1/imports/repos/{id}/start/:
+    get:
+      description: Start a data import on the latest revision on a repository
+      operationId: StartRepositoryImport
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  import_id:
+                    type: string
+                required:
+                - import_id
+      tags:
+      - repos
+  /api/v1/imports/upload/{id}/:
+    post:
+      description: Upload a file to a corpus
+      operationId: UploadDataFile
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+        '400':
+          content:
+            application/json:
+              examples:
+                file-exists:
+                  summary: An error where the data file already exists, including
+                    the existing file's UUID.
+                  value:
+                    file:
+                    - File already exists
+                    id: 3cc2e9e0-4172-44b1-8d65-bc3fffd076dc
+              schema:
+                properties:
+                  corpus:
+                    description: One or more error messages for errors when validating
+                      the destination corpus ID.
+                    readOnly: true
+                    type: array
+                  detail:
+                    description: A generic error message when an error occurs outside
+                      of a specific field.
+                    readOnly: true
+                    type: string
+                  file:
+                    description: One or more error messages for errors when validating
+                      the file itself.
+                    readOnly: true
+                    type: array
+                  id:
+                    description: UUID of an existing DataFile, if the error  comes
+                      from a duplicated upload.
+                    readOnly: true
+                    type: string
+          description: An error occured while validating the file.
+      tags:
+      - files
+  /api/v1/imports/{id}/:
+    delete:
+      description: Delete a data import. Cannot be used on currently running data
+        imports.
+      operationId: DestroyDataImport
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  files:
+                    items:
+                      type: string
+                    type: array
+                  has_failures:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  mode:
+                    enum:
+                    - images
+                    - pdf
+                    - repository
+                  payload:
+                    type: object
+                  revision:
+                    properties:
+                      author:
+                        type: string
+                      commit_url:
+                        readOnly: true
+                        type: string
+                      date:
+                        type: date-time
+                      hash:
+                        type: string
+                      id:
+                        type: string
+                      message:
+                        type: string
+                      ref:
+                        type: string
+                      repo_id:
+                        readOnly: true
+                        type: string
+                    readOnly: true
+                    required:
+                    - date
+                    - hash
+                    - ref
+                    - message
+                    - author
+                    type: object
+                  state:
+                    enum:
+                    - unscheduled
+                    - pending
+                    - running
+                    - completed
+                    - failed
+                    - error
+                  workflow:
+                    readOnly: true
+                    type: string
+                required:
+                - state
+                - mode
+                - corpus
+                - payload
+                - files
+      tags:
+      - imports
+    get:
+      description: Retrieve a data import
+      operationId: RetrieveDataImport
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  files:
+                    items:
+                      type: string
+                    type: array
+                  has_failures:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  mode:
+                    enum:
+                    - images
+                    - pdf
+                    - repository
+                  payload:
+                    type: object
+                  revision:
+                    properties:
+                      author:
+                        type: string
+                      commit_url:
+                        readOnly: true
+                        type: string
+                      date:
+                        type: date-time
+                      hash:
+                        type: string
+                      id:
+                        type: string
+                      message:
+                        type: string
+                      ref:
+                        type: string
+                      repo_id:
+                        readOnly: true
+                        type: string
+                    readOnly: true
+                    required:
+                    - date
+                    - hash
+                    - ref
+                    - message
+                    - author
+                    type: object
+                  state:
+                    enum:
+                    - unscheduled
+                    - pending
+                    - running
+                    - completed
+                    - failed
+                    - error
+                  workflow:
+                    readOnly: true
+                    type: string
+                required:
+                - state
+                - mode
+                - corpus
+                - payload
+                - files
+      tags:
+      - imports
+  /api/v1/imports/{id}/failures/:
+    get:
+      description: List a data import's XML errors
+      operationId: ListDataImportFailures
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  context:
+                    nullable: true
+                    type: string
+                  element:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      type:
+                        enum:
+                        - volume
+                        - register
+                        - act
+                        - page
+                        - surface
+                    required:
+                    - type
+                    - name
+                    type: object
+                  id:
+                    type: string
+                  line:
+                    nullable: true
+                    type: integer
+                  message:
+                    type: string
+                  path:
+                    type: string
+                  view_url:
+                    readOnly: true
+                    type: string
+                required:
+                - element
+                - path
+                - message
+      tags:
+      - imports
+  /api/v1/imports/{id}/retry/:
+    post:
+      description: Retry a data import. Can only be used on imports with Error or
+        Failed states.
+      operationId: RetryDataImport
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                corpus:
+                  type: string
+                files:
+                  items:
+                    type: string
+                  type: array
+                mode:
+                  enum:
+                  - images
+                  - pdf
+                  - repository
+                payload:
+                  type: object
+                state:
+                  enum:
+                  - unscheduled
+                  - pending
+                  - running
+                  - completed
+                  - failed
+                  - error
+              required:
+              - state
+              - mode
+              - corpus
+              - payload
+              - files
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    type: string
+                  files:
+                    items:
+                      type: string
+                    type: array
+                  has_failures:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: string
+                  mode:
+                    enum:
+                    - images
+                    - pdf
+                    - repository
+                  payload:
+                    type: object
+                  revision:
+                    properties:
+                      author:
+                        type: string
+                      commit_url:
+                        readOnly: true
+                        type: string
+                      date:
+                        type: date-time
+                      hash:
+                        type: string
+                      id:
+                        type: string
+                      message:
+                        type: string
+                      ref:
+                        type: string
+                      repo_id:
+                        readOnly: true
+                        type: string
+                    readOnly: true
+                    required:
+                    - date
+                    - hash
+                    - ref
+                    - message
+                    - author
+                    type: object
+                  state:
+                    enum:
+                    - unscheduled
+                    - pending
+                    - running
+                    - completed
+                    - failed
+                    - error
+                  workflow:
+                    readOnly: true
+                    type: string
+                required:
+                - state
+                - mode
+                - corpus
+                - payload
+                - files
+      tags:
+      - imports
+  /api/v1/manifest/{id}/act/:
+    get:
+      description: Retrieve a IIIF manifest for an act
+      operationId: RetrieveActManifest
+      parameters:
+      - description: A UUID string identifying this act.
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+      security: []
+      tags:
+      - iiif
+  /api/v1/manifest/{id}/acts/:
+    get:
+      description: Retrieve an IIIF annotation list for a volume's surfaces and acts
+      operationId: RetrieveActAnnotationList
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+      security: []
+      tags:
+      - iiif
+  /api/v1/manifest/{id}/pages/:
+    get:
+      description: Retrieve an IIIF manifest for a volume.
+      operationId: RetrieveVolumeManifest
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+      security: []
+      tags:
+      - iiif
+  /api/v1/manifest/{id}/search/:
+    get:
+      description: Search for transcriptions on a volume manifest. This endpoint is
+        intended as a IIIF Search API 2.0 service.
+      operationId: SearchTranscriptionsAnnotationList
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+      security: []
+      tags:
+      - iiif
+  /api/v1/manifest/{id}/surface/:
+    get:
+      description: Retrieve an IIIF annotation list for a single surface
+      operationId: RetrieveSurfaceAnnotationList
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+      security: []
+      tags:
+      - iiif
+  /api/v1/manifest/{id}/transcriptions/:
+    get:
+      description: Retrieve an IIIF annotation list for a volume's transcriptions
+      operationId: RetrieveTranscriptionAnnotationList
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+      security: []
+      tags:
+      - iiif
+  /api/v1/oauth/credentials/:
+    get:
+      description: List all OAuth credentials for the authenticated user
+      operationId: ListOAuthCredentials
+      parameters:
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  account_name:
+                    nullable: true
+                    type: string
+                  id:
+                    type: string
+                  provider_display_name:
+                    type: string
+                  provider_name:
+                    enum:
+                    - GitLabOAuthProvider
+                  provider_url:
+                    type: string
+                  status:
+                    enum:
+                    - created
+                    - done
+                    - error
+                required:
+                - status
+                - provider_name
+                - provider_display_name
+                - provider_url
+      tags:
+      - oauth
+  /api/v1/oauth/credentials/{id}/:
+    delete:
+      description: Delete OAuth credentials. This may disable access to some Git repositories.
+      operationId: DestroyOAuthCredentials
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  account_name:
+                    nullable: true
+                    type: string
+                  id:
+                    type: string
+                  provider_display_name:
+                    type: string
+                  provider_name:
+                    enum:
+                    - GitLabOAuthProvider
+                  provider_url:
+                    type: string
+                  status:
+                    enum:
+                    - created
+                    - done
+                    - error
+                required:
+                - status
+                - provider_name
+                - provider_display_name
+                - provider_url
+      tags:
+      - oauth
+    get:
+      description: Retrieve OAuth credentials
+      operationId: RetrieveOAuthCredentials
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  account_name:
+                    nullable: true
+                    type: string
+                  id:
+                    type: string
+                  provider_display_name:
+                    type: string
+                  provider_name:
+                    enum:
+                    - GitLabOAuthProvider
+                  provider_url:
+                    type: string
+                  status:
+                    enum:
+                    - created
+                    - done
+                    - error
+                required:
+                - status
+                - provider_name
+                - provider_display_name
+                - provider_url
+      tags:
+      - oauth
+  /api/v1/oauth/credentials/{id}/retry/:
+    get:
+      description: Retry the OAuth authentication code flow for pending credentials
+      operationId: RetryOAuthCredentials
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  url:
+                    type: string
+                required:
+                - url
+      tags:
+      - oauth
+  /api/v1/oauth/providers/:
+    get:
+      description: List supported OAuth providers
+      operationId: ListOAuthProviders
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  default_url:
+                    type: string
+                  display_name:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - name
+                - display_name
+                - default_url
+      tags:
+      - oauth
+  /api/v1/oauth/providers/{provider}/signin/:
+    get:
+      description: Start the OAuth authentication code flow for a given provider
+      operationId: StartOAuthSignIn
+      parameters:
+      - description: ''
+        in: path
+        name: provider
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+      tags:
+      - oauth
+  /api/v1/page/{id}/:
+    get:
+      description: Retrieve detailed information about a page
+      operationId: RetrievePage
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  classifications:
+                    items:
+                      properties:
+                        class_name:
+                          type: string
+                        confidence:
+                          nullable: true
+                          type: number
+                        source:
+                          properties:
+                            id:
+                              type: string
+                            internal:
+                              type: boolean
+                            revision:
+                              type: string
+                            slug:
+                              type: string
+                            type:
+                              enum:
+                              - classifier
+                              - recognizer
+                          required:
+                          - type
+                          - slug
+                          - revision
+                          - internal
+                          type: object
+                      required:
+                      - source
+                      - class_name
+                    type: array
+                  corpus:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      public:
+                        type: boolean
+                    required:
+                    - name
+                    type: object
+                  direction:
+                    enum:
+                    - recto
+                    - verso
+                  display_name:
+                    readOnly: true
+                    type: string
+                  id:
+                    type: string
+                  image:
+                    properties:
+                      height:
+                        readOnly: true
+                        type: integer
+                      id:
+                        readOnly: true
+                        type: string
+                      path:
+                        readOnly: true
+                        type: string
+                      status:
+                        enum:
+                        - checked
+                        - unchecked
+                        - error
+                      url:
+                        readOnly: true
+                        type: string
+                      width:
+                        readOnly: true
+                        type: integer
+                    required:
+                    - status
+                    type: object
+                  nb:
+                    nullable: true
+                    type: integer
+                  page_type:
+                    enum:
+                    - page
+                    - summary
+                    - garde
+                    - contregarde
+                    - contreplat
+                    - plat
+                    - copy
+                  parents:
+                    readOnly: true
+                    type: array
+                  transcriptions:
+                    items:
+                      properties:
+                        id:
+                          type: string
+                        score:
+                          nullable: true
+                          type: number
+                        source:
+                          properties:
+                            id:
+                              type: string
+                            internal:
+                              type: boolean
+                            revision:
+                              type: string
+                            slug:
+                              type: string
+                            type:
+                              enum:
+                              - classifier
+                              - recognizer
+                          required:
+                          - type
+                          - slug
+                          - revision
+                          - internal
+                          type: object
+                        text:
+                          nullable: true
+                          type: string
+                        type:
+                          enum:
+                          - page
+                          - paragraph
+                          - line
+                          - word
+                          - character
+                        zone:
+                          properties:
+                            id:
+                              type: string
+                            image_url:
+                              type: string
+                            polygon:
+                              type: array
+                            url:
+                              readOnly: true
+                              type: string
+                          required:
+                          - polygon
+                          - image_url
+                          type: object
+                      required:
+                      - type
+                      - zone
+                      - source
+                    type: array
+                required:
+                - page_type
+                - direction
+                - image
+                - corpus
+                - transcriptions
+                - classifications
+      security: []
+      tags:
+      - elements
+  /api/v1/page/{id}/transcriptions/xml/:
+    post:
+      description: Import transcriptions into Arkindex from region data in the PAGE
+        XML format.
+      operationId: ImportPageXmlTranscriptions
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/xml:
+            schema: {}
+        description: A PAGE XML document. TextRegion tags will be imported as Paragraph
+          transcriptions and TextLine tags will become Line transcriptions. See https://github.com/PRImA-Research-Lab/PAGE-XML
+          for more info about the PAGE XML format.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+      tags:
+      - ml
+  /api/v1/pages/:
+    get:
+      description: Get a list of pages with their parent registers or volumes, the
+        total number of transcriptions found in the page, and a few (not all) of the
+        transcriptions found inside of each page, with their source, type, zone and
+        image, for a given search query.
+      operationId: SearchPages
+      parameters:
+      - description: A page number within the paginated result set.
+        in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  corpus:
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      public:
+                        type: boolean
+                    required:
+                    - name
+                    type: object
+                  date_from:
+                    type: string
+                  date_to:
+                    type: string
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  parent_paths:
+                    type: array
+                  total_transcriptions:
+                    type: integer
+                  transcriptions:
+                    items:
+                      properties:
+                        id:
+                          type: string
+                        score:
+                          nullable: true
+                          type: number
+                        source:
+                          properties:
+                            id:
+                              type: string
+                            internal:
+                              type: boolean
+                            revision:
+                              type: string
+                            slug:
+                              type: string
+                            type:
+                              enum:
+                              - classifier
+                              - recognizer
+                          required:
+                          - type
+                          - slug
+                          - revision
+                          - internal
+                          type: object
+                        text:
+                          nullable: true
+                          type: string
+                        type:
+                          enum:
+                          - page
+                          - paragraph
+                          - line
+                          - word
+                          - character
+                        zone:
+                          properties:
+                            id:
+                              type: string
+                            image_url:
+                              type: string
+                            polygon:
+                              type: array
+                            url:
+                              readOnly: true
+                              type: string
+                          required:
+                          - polygon
+                          - image_url
+                          type: object
+                      required:
+                      - type
+                      - zone
+                      - source
+                    type: array
+                required:
+                - name
+                - transcriptions
+                - total_transcriptions
+                - parent_paths
+                - corpus
+                - date_from
+                - date_to
+      security: []
+      tags:
+      - search
+  /api/v1/surface/{id}/:
+    get:
+      description: Retrieve detailed information about a surface
+      operationId: RetrieveSurface
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  page:
+                    properties:
+                      classifications:
+                        items:
+                          properties:
+                            class_name:
+                              type: string
+                            confidence:
+                              nullable: true
+                              type: number
+                            source:
+                              properties:
+                                id:
+                                  type: string
+                                internal:
+                                  type: boolean
+                                revision:
+                                  type: string
+                                slug:
+                                  type: string
+                                type:
+                                  enum:
+                                  - classifier
+                                  - recognizer
+                              required:
+                              - type
+                              - slug
+                              - revision
+                              - internal
+                              type: object
+                          required:
+                          - source
+                          - class_name
+                        type: array
+                      corpus:
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                          public:
+                            type: boolean
+                        required:
+                        - name
+                        type: object
+                      direction:
+                        enum:
+                        - recto
+                        - verso
+                      display_name:
+                        readOnly: true
+                        type: string
+                      id:
+                        type: string
+                      image:
+                        properties:
+                          height:
+                            readOnly: true
+                            type: integer
+                          id:
+                            readOnly: true
+                            type: string
+                          path:
+                            readOnly: true
+                            type: string
+                          status:
+                            enum:
+                            - checked
+                            - unchecked
+                            - error
+                          url:
+                            readOnly: true
+                            type: string
+                          width:
+                            readOnly: true
+                            type: integer
+                        required:
+                        - status
+                        type: object
+                      nb:
+                        nullable: true
+                        type: integer
+                      page_type:
+                        enum:
+                        - page
+                        - summary
+                        - garde
+                        - contregarde
+                        - contreplat
+                        - plat
+                        - copy
+                      parents:
+                        readOnly: true
+                        type: array
+                      transcriptions:
+                        items:
+                          properties:
+                            id:
+                              type: string
+                            score:
+                              nullable: true
+                              type: number
+                            source:
+                              properties:
+                                id:
+                                  type: string
+                                internal:
+                                  type: boolean
+                                revision:
+                                  type: string
+                                slug:
+                                  type: string
+                                type:
+                                  enum:
+                                  - classifier
+                                  - recognizer
+                              required:
+                              - type
+                              - slug
+                              - revision
+                              - internal
+                              type: object
+                            text:
+                              nullable: true
+                              type: string
+                            type:
+                              enum:
+                              - page
+                              - paragraph
+                              - line
+                              - word
+                              - character
+                            zone:
+                              properties:
+                                id:
+                                  type: string
+                                image_url:
+                                  type: string
+                                polygon:
+                                  type: array
+                                url:
+                                  readOnly: true
+                                  type: string
+                              required:
+                              - polygon
+                              - image_url
+                              type: object
+                          required:
+                          - type
+                          - zone
+                          - source
+                        type: array
+                    required:
+                    - page_type
+                    - direction
+                    - image
+                    - corpus
+                    - transcriptions
+                    - classifications
+                    type: object
+                  zone:
+                    properties:
+                      id:
+                        type: string
+                      image_url:
+                        type: string
+                      polygon:
+                        type: array
+                      url:
+                        readOnly: true
+                        type: string
+                    required:
+                    - polygon
+                    - image_url
+                    type: object
+                required:
+                - name
+                - page
+                - zone
+      security: []
+      tags:
+      - elements
+  /api/v1/transcription/:
+    post:
+      description: Create a single transcription on a page
+      operationId: CreateTranscription
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                element:
+                  type: string
+                polygon:
+                  type: array
+                score:
+                  type: number
+                source:
+                  type: string
+                text:
+                  type: string
+                type:
+                  enum:
+                  - page
+                  - paragraph
+                  - line
+                  - word
+                  - character
+              required:
+              - element
+              - source
+              - polygon
+              - text
+              - score
+              - type
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  element:
+                    type: string
+                  polygon:
+                    type: array
+                  score:
+                    type: number
+                  source:
+                    type: string
+                  text:
+                    type: string
+                  type:
+                    enum:
+                    - page
+                    - paragraph
+                    - line
+                    - word
+                    - character
+                required:
+                - element
+                - source
+                - polygon
+                - text
+                - score
+                - type
+      tags:
+      - ml
+  /api/v1/transcription/bulk/:
+    post:
+      description: Create multiple transcriptions at once, all linked to the same
+        page and to the same recognizer.
+      operationId: CreateTranscriptions
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                parent:
+                  type: string
+                recognizer:
+                  type: string
+                transcriptions:
+                  items:
+                    properties:
+                      polygon:
+                        type: array
+                      score:
+                        type: number
+                      text:
+                        type: string
+                      type:
+                        enum:
+                        - page
+                        - paragraph
+                        - line
+                        - word
+                        - character
+                    required:
+                    - polygon
+                    - text
+                    - score
+                    - type
+                  type: array
+              required:
+              - parent
+              - recognizer
+              - transcriptions
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  parent:
+                    type: string
+                  recognizer:
+                    type: string
+                  transcriptions:
+                    items:
+                      properties:
+                        polygon:
+                          type: array
+                        score:
+                          type: number
+                        text:
+                          type: string
+                        type:
+                          enum:
+                          - page
+                          - paragraph
+                          - line
+                          - word
+                          - character
+                      required:
+                      - polygon
+                      - text
+                      - score
+                      - type
+                    type: array
+                required:
+                - parent
+                - recognizer
+                - transcriptions
+      tags:
+      - ml
+    put:
+      description: Replace all existing transcriptions from a given recognizer on
+        a page with other transcriptions.
+      operationId: UpdateTranscriptions
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                parent:
+                  type: string
+                recognizer:
+                  type: string
+                transcriptions:
+                  items:
+                    properties:
+                      polygon:
+                        type: array
+                      score:
+                        type: number
+                      text:
+                        type: string
+                      type:
+                        enum:
+                        - page
+                        - paragraph
+                        - line
+                        - word
+                        - character
+                    required:
+                    - polygon
+                    - text
+                    - score
+                    - type
+                  type: array
+              required:
+              - parent
+              - recognizer
+              - transcriptions
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  parent:
+                    type: string
+                  recognizer:
+                    type: string
+                  transcriptions:
+                    items:
+                      properties:
+                        polygon:
+                          type: array
+                        score:
+                          type: number
+                        text:
+                          type: string
+                        type:
+                          enum:
+                          - page
+                          - paragraph
+                          - line
+                          - word
+                          - character
+                      required:
+                      - polygon
+                      - text
+                      - score
+                      - type
+                    type: array
+                required:
+                - parent
+                - recognizer
+                - transcriptions
+      tags:
+      - ml
+  /api/v1/user/:
+    delete:
+      description: Log out from the API
+      operationId: Logout
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  auth_token:
+                    readOnly: true
+                    type: string
+                  email:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: integer
+                  is_admin:
+                    readOnly: true
+                    type: boolean
+                required: []
+      tags:
+      - users
+    get:
+      description: Retrieve information about the authenticated user
+      operationId: RetrieveUser
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  auth_token:
+                    readOnly: true
+                    type: string
+                  email:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: integer
+                  is_admin:
+                    readOnly: true
+                    type: boolean
+                required: []
+      tags:
+      - users
+    patch:
+      description: Update a user's password. This action is not allowed to users without
+        confirmed e-mails.
+      operationId: PartialUpdateUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                password:
+                  type: string
+                  writeOnly: true
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  auth_token:
+                    readOnly: true
+                    type: string
+                  email:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: integer
+                  is_admin:
+                    readOnly: true
+                    type: boolean
+                required: []
+      tags:
+      - users
+    put:
+      description: Update a user's password. This action is not allowed to users without
+        confirmed e-mails.
+      operationId: UpdateUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                password:
+                  type: string
+                  writeOnly: true
+              required:
+              - password
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  auth_token:
+                    readOnly: true
+                    type: string
+                  email:
+                    readOnly: true
+                    type: string
+                  id:
+                    readOnly: true
+                    type: integer
+                  is_admin:
+                    readOnly: true
+                    type: boolean
+                required: []
+      tags:
+      - users
+  /api/v1/user/login/:
+    post:
+      description: Login using a username and a password
+      operationId: Login
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                  writeOnly: true
+              required:
+              - email
+              - password
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  email:
+                    type: string
+                required:
+                - email
+      security: []
+      tags:
+      - users
+  /api/v1/user/new/:
+    post:
+      description: Register as a demo user
+      operationId: Register
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+              required:
+              - email
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  email:
+                    type: string
+                required:
+                - email
+      security: []
+      tags:
+      - users
+  /api/v1/user/password-reset/:
+    post:
+      description: Start a password reset flow
+      operationId: ResetPassword
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+              required:
+              - email
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  email:
+                    type: string
+                required:
+                - email
+      security: []
+      tags:
+      - users
+  /api/v1/user/password-reset/confirm/:
+    post:
+      description: Confirm a password reset using data from the confirmation e-mail
+      operationId: PasswordResetConfirm
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                password:
+                  type: string
+                  writeOnly: true
+                token:
+                  type: string
+                  writeOnly: true
+                uidb64:
+                  type: string
+                  writeOnly: true
+              required:
+              - uidb64
+              - token
+              - password
+        x-name: body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                required: []
+      security: []
+      tags:
+      - users
+  /ponos/v1/task/{id}/:
+    get:
+      description: Retrieve a Ponos task status
+      operationId: RetrieveTask
+      parameters:
+      - description: A UUID string identifying this task.
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  depth:
+                    type: integer
+                  full_log:
+                    readOnly: true
+                    type: string
+                  id:
+                    type: string
+                  logs:
+                    type: string
+                  parent:
+                    nullable: true
+                    type: string
+                  run:
+                    type: integer
+                  slug:
+                    type: string
+                  state:
+                    enum:
+                    - unscheduled
+                    - pending
+                    - running
+                    - completed
+                    - failed
+                    - error
+                  url:
+                    readOnly: true
+                    type: string
+                required:
+                - run
+                - depth
+                - slug
+                - state
+                - logs
+      security: []
+      tags:
+      - ponos
+  /ponos/v1/task/{id}/log/:
+    get:
+      description: Retrieve the full task log as plain text
+      operationId: RetrieveTaskLog
+      parameters:
+      - description: ''
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+      security: []
+      tags:
+      - ponos
+  /ponos/v1/workflow/{id}/:
+    get:
+      description: Retrieve a Ponos workflow status
+      operationId: RetrieveWorkflow
+      parameters:
+      - description: A UUID string identifying this workflow.
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  created:
+                    readOnly: true
+                    type: date-time
+                  id:
+                    type: string
+                  state:
+                    enum:
+                    - unscheduled
+                    - pending
+                    - running
+                    - completed
+                    - failed
+                    - error
+                  tasks:
+                    items:
+                      properties:
+                        depth:
+                          type: integer
+                        id:
+                          type: string
+                        parent:
+                          nullable: true
+                          type: string
+                        run:
+                          type: integer
+                        slug:
+                          type: string
+                        state:
+                          enum:
+                          - unscheduled
+                          - pending
+                          - running
+                          - completed
+                          - failed
+                          - error
+                        url:
+                          readOnly: true
+                          type: string
+                      required:
+                      - run
+                      - depth
+                      - slug
+                      - state
+                    type: array
+                required:
+                - state
+                - tasks
+      security: []
+      tags:
+      - ponos
+security:
+- tokenAuth: []
+- sessionAuth: []
+servers:
+- description: Arkindex
+  url: https://arkindex.teklia.com
+- description: Arkindex preproduction
+  url: https://arkindex.dev.teklia.com
+tags:
+- name: corpora
+- name: elements
+- name: search
+- name: oauth
+- name: imports
+- name: files
+- name: images
+- name: ponos
+- description: IIIF manifests, annotation lists and services
+  name: iiif
+- description: Machine Learning tools and results
+  name: ml
