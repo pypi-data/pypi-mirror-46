@@ -1,0 +1,183 @@
+{
+  "platform": {
+    "name": "ubuntu",
+    "release": "18.04"
+  },
+  "profiles": [
+    {
+      "name": "ub18-apache-1",
+      "version": "0.1.0",
+      "sha256": "2e366c7b890581ee36a7f7707c0f0e15faf3059fb05491e10991ea023e30c22f",
+      "title": "Serve a static Website with Apache",
+      "maintainer": "Marvin Heimbrodt",
+      "summary": "Setup a basic web server with http and https",
+      "license": "Apache-2.0",
+      "copyright": "Marvin Heimbrodt",
+      "copyright_email": "marvin@6uhrmittag.de",
+      "supports": [
+        {
+          "platform": "os"
+        }
+      ],
+      "attributes": [],
+      "groups": [
+        {
+          "id": "controls/test.rb",
+          "controls": [
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "id": "1",
+          "title": "Web server",
+          "desc": "",
+          "descriptions": [
+            {
+              "label": "default",
+              "data": ""
+            }
+          ],
+          "impact": 0.9,
+          "refs": [],
+          "tags": {
+            "duration": "10"
+          },
+          "code": "control '1' do\n\timpact 'critical'\n\ttitle 'Web server'\n\tdesc ''\n\ttag duration: '10'\n\tdescribe package('apache2') do\n\t\tit { should be_installed }\n\tend\n\tdescribe service('apache2') do\n\t\tit { should be_installed }\n\t\tit { should be_enabled }\n\t\tit { should be_running }\n\tend\nend\n",
+          "source_location": {
+            "line": 2,
+            "ref": "/vagrant/training/ub18-apache-1/controls/test.rb"
+          },
+          "results": [
+            {
+              "status": "passed",
+              "code_desc": "System Package apache2 should be installed",
+              "run_time": 0.073910993,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            },
+            {
+              "status": "passed",
+              "code_desc": "Service apache2 should be installed",
+              "run_time": 0.093753804,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            },
+            {
+              "status": "passed",
+              "code_desc": "Service apache2 should be enabled",
+              "run_time": 0.000655324,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            },
+            {
+              "status": "passed",
+              "code_desc": "Service apache2 should be running",
+              "run_time": 0.000437057,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "HTTP",
+          "desc": "",
+          "descriptions": [
+            {
+              "label": "default",
+              "data": ""
+            }
+          ],
+          "impact": 0.9,
+          "refs": [],
+          "tags": {
+            "duration": "5"
+          },
+          "code": "control '2' do\n\timpact 'critical'\n\ttitle 'HTTP'\n\tdesc ''\n\ttag duration: '5'\n\tdescribe port(80) do\n\t\tit { should be_listening }\n\tend\n\tdescribe http('http://localhost', ssl_verify: false) do\n\t\tits('status') { should eq 200 }\n\t\tits('body') { should match /Hello World!/ }\n\t\tits('headers.Content-Type') { should cmp 'text/html' }\n\tend\nend\n",
+          "source_location": {
+            "line": 16,
+            "ref": "/vagrant/training/ub18-apache-1/controls/test.rb"
+          },
+          "results": [
+            {
+              "status": "passed",
+              "code_desc": "Port 80 should be listening",
+              "run_time": 0.048160967,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            },
+            {
+              "status": "passed",
+              "code_desc": "http GET on http://localhost status should eq 200",
+              "run_time": 0.020868988,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            },
+            {
+              "status": "passed",
+              "code_desc": "http GET on http://localhost body should match /Hello World!/",
+              "run_time": 0.005102499,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            },
+            {
+              "status": "passed",
+              "code_desc": "http GET on http://localhost headers.Content-Type should cmp == \"text/html\"",
+              "run_time": 0.000704106,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "HTTPS",
+          "desc": "",
+          "descriptions": [
+            {
+              "label": "default",
+              "data": ""
+            }
+          ],
+          "impact": 0.9,
+          "refs": [],
+          "tags": {
+            "duration": "5"
+          },
+          "code": "control '3' do\n\timpact 'critical'\n\ttitle 'HTTPS'\n\tdesc ''\n\ttag duration: '5'\n\tdescribe port(443) do\n\t\tit { should be_listening }\n\tend\n\tdescribe http('https://localhost', ssl_verify: false) do\n\t\tits('status') { should eq 200 }\n\t\tits('body') { should match /Hello World!/ }\n\t\tits('headers.Content-Type') { should cmp 'text/html' }\n\tend\nend\n",
+          "source_location": {
+            "line": 30,
+            "ref": "/vagrant/training/ub18-apache-1/controls/test.rb"
+          },
+          "results": [
+            {
+              "status": "passed",
+              "code_desc": "Port 443 should be listening",
+              "run_time": 0.002346092,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            },
+            {
+              "status": "passed",
+              "code_desc": "http GET on https://localhost status should eq 200",
+              "run_time": 0.039103542,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            },
+            {
+              "status": "passed",
+              "code_desc": "http GET on https://localhost body should match /Hello World!/",
+              "run_time": 0.00027605,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            },
+            {
+              "status": "passed",
+              "code_desc": "http GET on https://localhost headers.Content-Type should cmp == \"text/html\"",
+              "run_time": 0.000562229,
+              "start_time": "2019-01-20T22:40:28+00:00"
+            }
+          ]
+        }
+      ],
+      "status": "loaded"
+    }
+  ],
+  "statistics": {
+    "duration": 0.298665501
+  },
+  "version": "3.2.6"
+}
