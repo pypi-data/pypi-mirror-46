@@ -1,0 +1,36 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+  xmlns:tal="http://xml.zope.org/namespaces/tal"
+  xmlns:metal="http://xml.zope.org/namespaces/metal"
+  xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  lang="en"
+  metal:use-macro="here/main_template/macros/master"
+  i18n:domain="collective.embeddedpage">
+  <head>
+    <metal:block fill-slot="top_slot"
+                 tal:define="disable_column_two python:request.set('disable_plone.rightcolumn', context.disable_right_portlet);" />
+  </head>
+  <body>
+    <div metal:fill-slot="content-core">
+      <div class="before-embeddedpage"
+          tal:define="before context/before/output | nothing"
+          tal:condition="before">
+        <div tal:content="structure before">
+          Before Embedded Page
+        </div>
+      </div>
+      <div class="embeddedpage"
+           tal:attributes="data-embedded context/url">
+        <p tal:content="structure view/embeddedpage">
+          Embedded Page
+        </p>
+      </div>
+      <div class="after-embeddedpage"
+          tal:define="after context/after/output | nothing"
+          tal:condition="after">
+        <div tal:content="structure after">
+          After Embedded Page
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
