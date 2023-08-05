@@ -1,0 +1,37 @@
+# -*- coding: utf-8 -*-
+from distutils.core import setup
+
+packages = \
+['waldcli']
+
+package_data = \
+{'': ['*']}
+
+install_requires = \
+['PyYAML==3.13',
+ 'jinja2-cli==0.6.0',
+ 'jinja2==v2.10',
+ 'requests>=2,<3',
+ 'ruamel-yaml==0.15.91',
+ 'termcolor==1.1.0']
+
+entry_points = \
+{'console_scripts': ['waldcli = waldcli.butler:main']}
+
+setup_kwargs = {
+    'name': 'waldcli',
+    'version': '0.2.0',
+    'description': 'The waldemar client for web projects (using docker)',
+    'long_description': "# Welance Starter (ATM: CraftCMS 3.x + Docker)\n\nThe project is the base to fork to create new projects using craft cms.\nThe repository contains:\n\n- docker configuration for craft container\n- docker-compose configuration to run the craft+mysql enviroment\n- base schema customization of the craft installation\n- apache configuration\n- base template for craft frontend\n- utility scripts to start/stop the enviroment\n- utility scripts to import/export craft schema changes\n\nMore info about this project: **[here](build/README.md)**.\n\n# Installation \n\nTo install waldcli run `pip install waldcli`\n\nFor preview releases run `pip install --extra-index-url https://test.pypi.org/simple/ waldcli`\n\n## Workflow\n\nThe following is the standard workflow to use with the projects using craft/docker for development.\n\n### 0. Setup\n\n⚠️ **note:** Execute point nr. 4, only if the setup has not yet been done\n1. Fork the starter project\ncreate a fork of the latest release of the base repo : [https://github.com/welance/welance-craft-starter](https://github.com/welance/welance-craft-starter)\n2. Install python/libs and bash completion (make sure to have python3 installed, use [virtualenv](https://virtualenv.pypa.io/en/stable/) if necessary).\n3. run:\n   - `pip install -r bin/requirements.txt` to install the required libraries and\n   - `source bin/butler.bash-completion` to enable commands autocompletion\n4. Run `bin/butler.py setup` script. (required: [docker](https://www.docker.com/community-edition)). The script will ask for:\n\n> **!!! ATTENTION !!!**\n> customer and project number are used to setup the containers environment,\n> they cannot be easily changed once the project is on-going.\n\n5. Commit\ncommit the chagnes to the repository, in particular the changes reated to:\n\n```\n./bin/.butler.json\n./docker/docker-compose.yml\n./docker/docker-compose-staging.yml\n```\n\n### 1. Development\n\nDuring the development here are the most used commands:\n\n1. **Start!** Start The docker dev environment\n`bin/butler.py start --port [PORT_NUMBER]` script starts the docker containers\n\n2. **Work!** The development phase of the project will involve 3 main resources:\n- the `templates`folder\n- the `config/project.yaml`\n- the `plugins` folder\n\n3. **Stop!** Stop the docker dev environment\n`bin/butler.py stop` stops the docker conatiners. It doesn't delete the database or cms data.\n\n#### **Import/Export (Project/DB) Schema**\nThe schema is imported/exported automatically by Craft v3+ into `config/project.yml`, so just make sure tommit it\n\n\n#### Local **Plugin Development**:\nIf you would like to develop a local plugin, we need to put it inside the plugins folder such as `/plugins/VENDOR_NAME/PLUGIN_NAME`\n\n\n##### Import/Export database seed\nTo import/export the dump of the database that it is used to setup/seed the database\n\n- `bin/butler.py seed-import -f=path/to/file`\n- `bin/butler.py seed-export -f=path/to/file`\n\nthe seed sql file is imported/exported from `build/dump/base.sql`\n\n**TODO: change this!**\n\n### Accessing the database\nSince the database use in the containers is not accessible from outside docker a database web interface is provided to dump/load/edit the database directly. The interface of the database is [Adminer](https://www.adminer.org/) and\nis available via http or https.\n\nThe urls are:\n- [http://HOST/db](http://localhost/db)\n- [https://HOST/db](https://localhost/db).\n\nThe parameters to log in are:\n- System: MySQL or PostgreSQL depending on the driver selected\n- Server: database\n- Username: craft\n- Password: craft\n- Database: craft\n\n### Apache configuration and .htaccess\nThe website apache configuration is stored in `./docker/craft/conf/apache2/conf.d/welance.conf`.\nThe welance.conf contains all the settings for the installation to work and should be taken as a reference\nfor production installation. By default .htaccess is _DISABLED_, [because](https://nystudio107.com/blog/stop-using-htaccess-files-no-really).\nChanges to the apache configuration require to restart the environment (`bin/butler.py local-stop`, `bin/butler.py local-start`) to be enabled.\n\n\n### Applying Craftcms updates\n_TODO_\n\n\n### Troubleshooting\n\n**Docker**: the project folder must be located in one of the **Docker File Sharing** paths.\nYou can add a folder (for example the mamp one) by edit the prefernces of your docker installation\n\n**CraftCMS**: if you log in using HTTPS login with HTTP fails. This has someting to do with sessions\nand CSRF protection. To solve the issue clear the browser application data and retry.\n\n**Adminer**: if you log in using HTTPS login with HTTP fails. This has someting to do with sessions\nand CSRF protection. To solve the issue clear the browser application data and retry.\n\n### SSL\n\nthe certificate shipped with the project has been created using:\n\n```\nlocalhost:/# openssl req -x509 -nodes -days 1825 -newkey rsa:2048 -keyout welance.ssl.key -out welance.ssl.crt\nGenerating a 2048 bit RSA private key\n....................+++\n....................................................................+++\nwriting new private key to 'welance.ssl.key'\n-----\nYou are about to be asked to enter information that will be incorporated\ninto your certificate request.\nWhat you are about to enter is what is called a Distinguished Name or a DN.\nThere are quite a few fields but you can leave some blank\nFor some fields there will be a default value,\nIf you enter '.', the field will be left blank.\n-----\nCountry Name (2 letter code) []:DE\nState or Province Name (full name) []:Berlin\nLocality Name (eg, city) []:Berlin\nOrganization Name (eg, company) []:Welance\nOrganizational Unit Name (eg, section) []:\nCommon Name (eg, fully qualified host name) []:\nEmail Address []:info@welance.de\n```\n\n\n### 2. Deploy on Staging\n\nFor staging environment are available the commands:\n- `bin/butler.py open-staging`\n\nthey are used by the [welance clerk](https://github.com/welance/docker-staging) system\n\n\n### 3. Create a Release Package\nTo create an tar.gz archive of the craft installation use the command\n\n- `bin/butler.py release-package`\n\nit will create a file `release.tar.gz` file in the root of the project containing\nthe craft installation with a **fresh database dump** in the `build/dump/base.sql` location\n\n### Project removal\nOnce the project is finished to remove the resources associated with the project (containers and data)\nthe `bin/butler.py teardown`script is provided.\n\n## License\n\nhttps://commonsclause.com/",
+    'author': 'andrea giacobino',
+    'author_email': 'no.andrea@gmail.com',
+    'url': 'https://gitlab.com/welance/internal/waldcli',
+    'packages': packages,
+    'package_data': package_data,
+    'install_requires': install_requires,
+    'entry_points': entry_points,
+    'python_requires': '>=3.7,<4.0',
+}
+
+
+setup(**setup_kwargs)
