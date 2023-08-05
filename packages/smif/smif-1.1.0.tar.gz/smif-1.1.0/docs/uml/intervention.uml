@@ -1,0 +1,106 @@
+@startuml
+skinparam {
+  shadowing false
+  classBackgroundColor white
+  classBorderColor black
+  noteBackgroundColor white
+  noteBorderColor #222
+}
+
+package smif {
+    class ModelRunner {
+        + modelrun : ModelRun
+        --
+        + solve(modelrun)
+        - get_decisions(timestep, iteration)
+        - get_interventions(decisions)
+        - set_state(timestep, iteration, state)
+    }
+    class ModelRun {
+      + sos_model : SosModel
+      + strategy_bundle : DecisionModule
+    }
+
+package smif.model {
+
+    abstract class Model {
+    + state : Intervention
+    + simulate(timestep)
+    }
+
+    class SosModel {
+    + models : Model
+    + simulate(timestep)
+    }
+
+    SosModel --|> Model
+
+}
+
+
+
+package smif.intervention {
+
+  class Intervention {
+    + model : SectorModel
+    + name
+    + location
+    + capacity
+    + <attribute>
+  }
+
+  class InterventionRegister {
+    + interventions : Intervention
+    --
+    + add_interventions(model, interventions)
+    + get_intervention(name, model)
+  }
+
+  Intervention -- InterventionRegister
+
+}
+
+package smif.decisions {
+  class DecisionManager {
+    + strategy_bundle : DecisionModule
+    + __next__()
+    + get_decisions(timestep, iteration)
+  }
+
+  abstract class DecisionModule {
+    + get_decisions(timestep, iteration)
+  }
+
+  class RuleBased {
+      - satisfied : bool
+
+  }
+
+  class MOEA {
+      
+  }
+
+  DecisionModule <|-- PreSpecified
+  DecisionModule <|-- RuleBased
+  DecisionModule <|-- MOEA
+
+}
+
+package smif.data_layer {
+    class DataHandle {
+      + get_state(timestep, iteration, model)
+      + set_state(timestep, iteration, state)
+      + get_intervention(name, model)
+    }
+}
+
+ModelRunner *-- DecisionManager
+ModelRunner *-- InterventionRegister
+DecisionManager o-- DecisionModule
+
+ModelRunner o-- ModelRun
+ModelRun o-- SosModel
+
+}
+
+@enduml
