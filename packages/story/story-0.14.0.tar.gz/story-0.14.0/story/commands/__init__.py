@@ -1,0 +1,15 @@
+__all__ = [
+    'apps',
+    'write',
+    'config',
+    'feedback',
+    'login',
+    'logs',
+    'maintenance',
+    'releases',
+    'status',
+    'test',
+    'update',
+    'version',
+    'deploy',
+]
