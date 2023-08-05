@@ -1,0 +1,127 @@
+language: python
+stages:
+  - test
+  - deploy
+env:
+  global:
+    - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
+    - SEGFAULT_SIGNALS=all
+python:
+  - 2.6
+  - 2.7
+  - 3.4
+  - 3.5
+  - 3.6
+stage: test
+before_install:
+  # don't overwrite env if it's already set (otherwise check, docs won't work properly)
+  - export TOXENV="${TOXENV:-$TRAVIS_PYTHON_VERSION-codecov}"
+  - echo $TOXENV
+  - python --version
+  - uname -a
+  - lsb_release -a
+install:
+  - pip install --upgrade tox setuptools virtualenv wheel
+  - virtualenv --version
+  - easy_install --version
+  - pip --version
+  - tox --version
+script:
+  - tox -v
+before_script:
+  - |
+    if [ "$TRAVIS_BRANCH" = "develop" ]; then
+      # whether setup.cfg version has "dev" or not, it is added but not duplicated
+      ver=$(git show -s --format=%cd --date=format:'%Y%m%d%H%M%S')
+      sed -i -E "s/^(version = )([0-9]+\.[0-9]+\.[0-9]+).*$/\1\2.dev$ver/" setup.cfg
+    fi
+after_failure:
+  - more .tox/log/* | cat
+  - more .tox/*/log/* | cat
+before_cache:
+  - rm -rf $HOME/.cache/pip/log
+cache:
+  directories:
+    - "$HOME/.cache/pip"
+notifications:
+  email:
+    on_success: never
+    on_failure: always
+  slack:
+    rooms:
+      - secure: nsbTI19SAiog6V6OnN1diYU2V3RIwtmY+IqV4uAvki87dQZteWU22/kQ0wI0OZAOzvEG3lLrc7ZGnbKh+IiH3QJkAwwHgtgC2zdzy6EGkjyEQpeAFUujaEHcRKEIpeAdtNpSUTrPsywdbnT6sO4XN/S7ZhSxS3TRmL2Wi399i36/D0T7gt/GAcPdxrFKwZ20PN20By+5j54FO6/X7y0IVcoUgKdYIvP5NGILRyo+tlWP6dJKFeuxT7lU3FV6W7J7DQs/2yjwH1naBmulxWp22+wNopJ1loW9PHtsJzlN0kUp1Up/+pwHvr7bVbZBzXSZZ5V7j+Xi7uh0de8GYckg0ATJTvrB5c1KZaG9p2unhyMlVAyDfNez3LtgUERnd7S1YXxz8JwbyWlEodzKO/dcnA1PkzcPECEbeXQJtxdhXuz+8pVqIAkDejCv4bhZVUtC4beeQFjxTrqKewxMNpTKKCacIWEBLrCUzr4y15qy7ziRU8CPvFkaUYBkPSWIOp2Xv7FOBwlEhR8d5P6P2eJ7P1vbYVB1vvrYgo0Z4pQkaM02E2/YgSoEfpWsgrSNS+9W0aQtAxcIg6ilY4ZcY83xAmwa8W7uILygqqK0Q7m+UiirIePMWXJ3r9MNkpHHlEr+WebFQYYNhOqVDJ5oX1+KKZY91bJl0ozqUvy4KSlBPO8=
+    on_success: never
+    on_failure: always
+jobs:
+  include:
+    - stage: test
+      python: 3.7
+      dist: xenial
+    - stage: test
+      python: 3.6
+      env:
+        - TOXENV=check
+    - stage: test
+      python: 3.6
+      env:
+        - TOXENV=docs
+    - stage: deploy
+      if: branch = develop OR tag is present
+      python: 2.7
+      install: pip install m2r
+      script: echo "Deploying..."
+      deploy:
+      - provider: pypi
+        server: https://test.pypi.org/legacy/
+        distributions: sdist bdist_wheel
+        user: plus3it
+        password: $PYPI_TEST_PASSWORD
+        skip_cleanup: true
+        skip_upload_docs: true
+        on:
+          branch: develop
+      - provider: pypi
+        distributions: sdist bdist_wheel
+        user: plus3it
+        password: $PYPI_PASSWORD
+        skip_cleanup: true
+        skip_upload_docs: true
+        on:
+          tags: true
+    - stage: deploy
+      if: branch in (env(RELEASE_BRANCH), develop) OR tag is present
+      python: 3.6
+      dist: xenial
+      install:
+        - echo "Install"
+      script:
+        - chmod +x ci/prep_docker.sh && sudo ci/prep_docker.sh
+      before_deploy:
+        # prepare deployment envs
+        - source .gravitybee/gravitybee-environs.sh
+        - export SATS_TAG=$GB_ENV_APP_VERSION
+        - export SATS_BODY="* [$GB_ENV_APP_NAME v$GB_ENV_APP_VERSION CHANGELOG](https://github.com/plus3it/$GB_ENV_APP_NAME/blob/$GB_ENV_APP_VERSION/CHANGELOG.md)"
+        - export SATS_REL_NAME="Release v$GB_ENV_APP_VERSION"
+        - echo Tag name is $SATS_TAG
+        - pip install -r requirements/deploy.txt
+      deploy:
+        - provider: script
+          # deploy to github releases
+          script: satsuki
+          skip_cleanup: true
+          on:
+            branch: $RELEASE_BRANCH
+        - provider: s3
+          bucket: $RELEASE_BUCKET
+          upload-dir: $S3_KEYFIX
+          local-dir: $GB_ENV_STAGING_DIR
+          skip_cleanup: true
+          on:
+            tags: true
+        - provider: s3
+          bucket: $DEV_BUCKET
+          upload-dir: $S3_KEYFIX
+          local-dir: $GB_ENV_STAGING_DIR
+          skip_cleanup: true
+          on:
+            branch: develop
