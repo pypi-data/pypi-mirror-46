@@ -1,0 +1,81 @@
+Metadata-Version: 2.1
+Name: swh.journal
+Version: 0.0.10
+Summary: Software Heritage Journal utilities
+Home-page: https://forge.softwareheritage.org/diffusion/DJNL/
+Author: Software Heritage developers
+Author-email: swh-devel@inria.fr
+License: UNKNOWN
+Project-URL: Funding, https://www.softwareheritage.org/donate
+Project-URL: Bug Reports, https://forge.softwareheritage.org/maniphest
+Project-URL: Source, https://forge.softwareheritage.org/source/swh-journal
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Operating System :: OS Independent
+Classifier: Development Status :: 5 - Production/Stable
+Description-Content-Type: text/markdown
+Requires-Dist: kafka-python (>=1.3)
+Requires-Dist: msgpack
+Requires-Dist: vcversioner
+Requires-Dist: swh.core[http,db] (>=0.0.60)
+Requires-Dist: swh.storage (>=0.0.138)
+Provides-Extra: testing
+Requires-Dist: pytest ; extra == 'testing'
+Requires-Dist: swh.model (>=0.0.34) ; extra == 'testing'
+Requires-Dist: pytest-kafka ; extra == 'testing'
+Requires-Dist: hypothesis ; extra == 'testing'
+
+swh-journal
+===========
+
+Persistent logger of changes to the archive, with publish-subscribe support.
+
+See the
+[documentation](https://docs.softwareheritage.org/devel/swh-journal/index.html#software-heritage-journal)
+for more details.
+
+# Local test
+
+As a pre-requisite, you need a kakfa installation path.
+The following target will take care of this:
+
+```
+make install
+```
+
+Then, provided you are in the right virtual environment as described
+in the [swh getting-started](https://docs.softwareheritage.org/devel/developer-setup.html#developer-setup):
+
+```
+pytest
+```
+
+or:
+
+```
+tox
+```
+
+
+# Running
+
+## publisher
+
+Command:
+```
+$ swh-journal --config-file ~/.config/swh/journal/publisher.yml \
+              publisher
+```
+
+# Auto-completion
+
+To have the completion, add the following in your
+~/.virtualenvs/swh/bin/postactivate:
+
+```
+eval "$(_SWH_JOURNAL_COMPLETE=$autocomplete_cmd swh-journal)"
+```
+
+
