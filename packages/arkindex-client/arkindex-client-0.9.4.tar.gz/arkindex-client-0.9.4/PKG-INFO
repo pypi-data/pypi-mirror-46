@@ -1,0 +1,239 @@
+Metadata-Version: 2.1
+Name: arkindex-client
+Version: 0.9.4
+Summary: API client for the Arkindex project
+Home-page: https://gitlab.com/arkindex/api-client
+Author: Teklia <contact@teklia.com>
+License: MIT
+Description: Arkindex API Client
+        ===================
+        
+        **API documentation available at https://arkindex.gitlab.io/api-client/**
+        
+        ``arkindex-client`` provides an API client to interact with Arkindex servers.
+        
+        .. contents::
+           :depth: 2
+           :local:
+           :backlinks: none
+        
+        Setup
+        -----
+        
+        Install the client using ``pip``::
+        
+           pip install arkindex-client
+        
+        Usage
+        -----
+        
+        To create a client and login using an email/password combo,
+        use the ``ArkindexClient.login`` helper method:
+        
+        .. code:: python
+        
+           from arkindex import ArkindexClient
+           cli = ArkindexClient()
+           cli.login('EMAIL', 'PASSWORD')
+        
+        This helper method will save the authentication token in your API client, so
+        that it is reused in later API requests.
+        
+        If you already have an API token, you can create your client like so:
+        
+        .. code:: python
+        
+           from arkindex import ArkindexClient
+           cli = ArkindexClient('YOUR_TOKEN')
+        
+        To perform a simple API request, you can use the ``request()`` method. The method
+        takes an operation ID as a name and the operation's parameters as keyword arguments:
+        
+        Making requests
+        ^^^^^^^^^^^^^^^
+        
+        .. code:: python
+        
+           corpus = cli.request('RetrieveCorpus', id='...')
+        
+        The result will be a Python ``dict`` containing the result of the API request.
+        If the request returns an error, an ``apistar.exceptions.ErrorResponse`` will
+        be raised.
+        
+        Dealing with pagination
+        ^^^^^^^^^^^^^^^^^^^^^^^
+        
+        The Arkindex client adds another helper method for paginated endpoints that
+        deals with pagination for you: ``ArkindexClient.paginate``. This method
+        returns a ``ResponsePaginator`` instance, which is a classic Python
+        iterator that does not perform any actual requests until absolutely needed:
+        that is, until the next page must be loaded.
+        
+        .. code:: python
+        
+           for page in cli.paginate('ListCorpusPages', id=corpus['id']):
+               print(page['display_name'])
+        
+        **Warning:** Using ``list`` on a ``ResponsePaginator`` may load dozens
+        of pages at once and cause a big load on the server. You can use ``len`` to
+        get the total item count before spamming a server.
+        
+        Using another server
+        ^^^^^^^^^^^^^^^^^^^^
+        
+        By default, the API client is set to point to the main Arkindex server at
+        https://arkindex.teklia.com. If you need or want to use this API client on
+        another server, you can use the ``base_url`` keyword argument when setting up
+        your API client:
+        
+        .. code:: python
+        
+           cli = ArkindexClient(base_url='https://somewhere')
+        
+        Handling errors
+        ^^^^^^^^^^^^^^^
+        
+        APIStar_, the underlying API client we use, does all of the error handling.
+        It will raise two types of exceptions:
+        
+        ``apistar.exceptions.ErrorResponse``
+          The request resulted in a HTTP 4xx or 5xx response from the server.
+        ``apistar.exceptions.ClientError``
+          Any error that prevents the client from making the request or fetching
+          the response: invalid endpoint names or URLs, unsupported content types,
+          or unknown request parameters. See the exception messages for more info.  
+        
+        You can handle HTTP errors and fetch more information about them using the
+        exception's attributes:
+        
+        .. code:: python
+        
+           from apistar.exceptions import ErrorResponse
+           try:
+               # cli.request ...
+           except ErrorResponse as e:
+               print(e.title)   # "400 Bad Request"
+               print(e.status_code)  # 400
+               print(e.result)  # Any kind of response body the server might give
+        
+        Uploading a file
+        ^^^^^^^^^^^^^^^^
+        
+        The underlying API client we use does not currently handle sending anything
+        other than JSON; therefore, the client adds a helper method to upload files
+        to a corpus using the ``UploadDataFile`` endpoint: ``ArkindexClient.upload``.
+        
+        .. code:: python
+        
+           # Any readable file-like object is supported
+           with open('cat.jpg', 'rb') as f:
+               cli.upload('CORPUS_ID', f)
+        
+           # You can also use a path directly
+           cli.upload('CORPUS_ID', 'cat.jpg')
+        
+        Trying to upload an existing data file will result in a HTTP 400 error that
+        includes the existing data file's ID, so that you can try to delete it and
+        upload again or just reuse it.
+        
+        .. code:: python
+        
+           from apistar.exceptions import ErrorResponse
+           try:
+               data = cli.upload('CORPUS_ID', 'cat.jpg')
+               file_id = data['id']
+               print('Success', file_id)
+           except ErrorResponse as e:
+               if e.status_code != 400 or 'id' not in e.content:
+                   raise
+               file_id = e.content['id']
+               print('Already exists', file_id)
+        
+        Sending XML content
+        ^^^^^^^^^^^^^^^^^^^
+        
+        Some Arkindex endpoints expect XML to be sent as the request body; to do so,
+        use the ``ArkindexClient.send_xml`` method. This method expects a string,
+        bytestring, or a file-like object as the body. The method works just like
+        any other request.
+        
+        .. code:: python
+        
+           cli.send_xml('SomeEndpoint', body='<xml></xml>')
+           cli.send_xml('SomeEndpoint', id='...', arg='...', body=b'<xml></xml>')
+           cli.send_xml('SomeEndpoint', body=open('file.xml'))
+        
+        Examples
+        --------
+        
+        Print all volumes
+        ^^^^^^^^^^^^^^^^^
+        
+        .. code:: python
+        
+           for volume in cli.paginate('ListElements'):
+               print(volume['name'])
+        
+        Create transcriptions in bulk
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        
+        .. code:: python
+        
+           payload = {
+               "parent": "ELEMENT_ID",
+               "recognizer": "ML_TOOL_SLUG",
+               "transcriptions": [
+                   {
+                       # A polygon, as a list of at least 3 [x, y] points
+                       "polygon": [
+                           [100, 100],
+                           [100, 300],
+                           [200, 300],
+                           [200, 100],
+                       ],
+                       # The confidence score
+                       "score": 0.8,
+                       # Recognized text
+                       "text": "Blah",
+                       # Transcription type: page, paragraph, line, word, character
+                       "type": "word",
+                   },
+                   # ...
+               ]
+           }
+           cli.request('CreateTranscriptions', body=payload)
+        
+        Import transcriptions for a page from files in PAGE XML format
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        
+        .. code:: python
+        
+           cli.send_xml('ImportTranskribusTranscriptions', id='PAGE_ID', body=open('file.xml'))
+        
+        Download full logs for each Ponos task in a workflow
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        
+        .. code:: python
+        
+           workflow = cli.request('RetrieveWorkflow', id='...')
+           for task in workflow['tasks']:
+               with open(task['id'] + '.txt', 'w') as f:
+                   f.write(cli.request('RetrieveTaskLog', id=task['id']))
+        
+        .. _APIStar: http://docs.apistar.com/
+        
+Keywords: api client arkindex
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Intended Audience :: Science/Research
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Scientific/Engineering :: Image Recognition
+Classifier: Topic :: Text Processing :: Indexing
+Classifier: Topic :: Text Processing :: Linguistic
+Requires-Python: >=3.6
+Description-Content-Type: text/x-rst
+Provides-Extra: test
