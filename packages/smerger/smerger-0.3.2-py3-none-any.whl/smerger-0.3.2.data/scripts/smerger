@@ -1,0 +1,69 @@
+#!python
+
+import argparse
+import json
+import yaml
+from termcolor import colored
+
+
+def merge(dict1, dict2):
+    if type(dict2) is not list:
+        for el in dict2:
+            if el in dict1:
+                dict1[el] = merge(dict1[el], dict2[el])
+            else:
+                dict1[el] = dict2[el]
+        return dict1
+    else:
+        for el in dict2:
+            for i in range(0, len(dict1)):
+                if el["name"] == dict1[i]["name"]:
+                    el.pop("name")
+                    dict1[i] = merge(dict1[i], el)
+                    return dict1
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("swagger", help="The base swagger in .json format")
+parser.add_argument("complement", help="The file containing attributes to be added")
+parser.add_argument("result", help="The file in which the result will be saved")
+args = parser.parse_args()
+
+input_1 = args.swagger.split(".")[-1]
+input_2 = args.complement.split(".")[-1]
+output = args.result.split(".")[-1]
+
+# loading swagger
+with open(args.swagger, "r") as fp:
+    if input_1 == "json":
+        swagger = json.load(fp)
+    elif input_1 == "yaml":
+        swagger = yaml.load(fp)
+    else:
+        print(colored(input_1+" is not a supported extension. Aborting", "red"))
+        exit(1)
+
+# loading complement
+with open(args.complement, "r") as fp:
+    if input_2 == "json":
+        complement = json.load(fp)
+    elif input_2 == "yaml":
+        complement = yaml.load(fp)
+    else:
+        print(colored(input_2 + " is not a supported extension. Aborting", "red"))
+        exit(1)
+
+result = merge(swagger, complement)
+
+# Saving the result
+if output == "json":
+    with open(args.result, "w") as fp:
+        json.dump(result, fp, indent=2)
+elif output == "yaml":
+    with open(args.result, "w") as fp:
+        yaml.dump(result, fp, allow_unicode=True)
+else:
+    print(colored(output + " is not a supported format. Aborting", "red"))
+    exit(1)
+
+print(colored("Done.", "green"))
