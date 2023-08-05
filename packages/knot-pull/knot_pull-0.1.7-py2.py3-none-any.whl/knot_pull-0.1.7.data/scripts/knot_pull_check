@@ -1,0 +1,142 @@
+#!python
+#Copyright (c) Aleksandra Jarmolinska 2018
+
+"""Program for topologically conscious simplification of the 3D structure of  biological molecule.
+Can also calculate knot type using the Dowker notation."""
+from __future__ import print_function
+import argparse
+import sys,os,ntpath
+
+
+from knot_pull.reader import read_from_pdb, read_from_xyz, read_from_web,guess_format,download_from_pdb
+from knot_pull.puller import pull
+from knot_pull.writer import write_xyz
+from knot_pull.unentangler import unentangle
+
+name = "knot_pull"
+
+CONFIG = {'CHECK_KNOT': 0, 'KEEP_ALL': 0, 'TRAJECTORY': 1, 'OUTPUT': '', "GREEDY": 0, 'QUIET': 0}
+
+def main():
+    """Main body of the command line program"""
+    parser = argparse.ArgumentParser(description="Simplify the 3D structure of a molecule while preserving the topology")
+
+    parser.add_argument("infile", help="Structure file which will be used (to download the structure from RCSB PDB give only the PDB ID",nargs='?')
+    parser.add_argument("-p", "--preserve_resnums", action="store_true", default=0,
+                        help="Keep original numbering")
+    parser.add_argument("-t", "--trajectory", action="store_true", default=1,
+                        help="Write out all steps of the simplification [default is 1]")
+    parser.add_argument("-f", "--format", choices=['pdb','xyz','guess'], default='guess',
+                        help="Input file format: xyz or pdb [default is guess]")
+    parser.add_argument("-k", "--detect_knot", default=0,  action="store_true",
+                        help="Calculate the knot Dowker notation and assign the knot type")
+    parser.add_argument("-c", "--chain", default='',
+                        help="Specify which chain you want to simplify.")
+    parser.add_argument("-o", "--output", default='',nargs='?',
+                        help="""Specify the output file. Format is guessed based on extension [default pdb]. 
+                        For stdout use "-". Empty argument makes an '_out.pdb' file. 
+                        If this option is missing just the last frame will be shown (sets trajectory to 0)""")
+    parser.add_argument("-q", "--quiet", action="store_true", default=0,
+                        help="Nothing except the knot type (if calculated) will be written to the screen")
+    parser.add_argument("-s", "--save", default='',nargs='?',
+                        help="""Write out a savefile. If any argument is given here - run from a savefile (knot detection only).""")
+    args = parser.parse_args()
+
+    CONFIG['CHECK_KNOT'] = args.detect_knot
+    CONFIG['KEEP_ALL'] = args.preserve_resnums
+    CONFIG['TRAJECTORY'] = args.trajectory
+    CONFIG['GREEDY'] = args.detect_knot
+    CONFIG['QUIET'] = args.quiet
+
+
+    if args.save:
+        atoms = read_from_xyz(filename=args.save)
+        if not CONFIG['QUIET']: print ("Save start",len(atoms))
+        chains = pull(atoms, '', greedy=0, greedy_file='', trajectory=0)
+        unentangle(chains, outfile=0)
+        exit()
+
+    infile = args.infile
+    if not infile:
+        print ("""No input file specified!!\n##############################################""")
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    if not os.path.isfile(infile):
+        path,fname = ntpath.split(infile)
+        pdbid = fname.split(".")[0]
+        #savename = "{}{}{}.pdb".format(path,os.path.sep if path else "",pdbid)
+        #download_from_pdb(infile,savename=savename)
+        #args.format = 'pdb'
+        #infile = savename
+        args.format = 'online'
+        infile = pdbid
+
+
+    if args.format == "guess":
+        if ".xyz" in infile.lower():
+            fformat = 'xyz'
+        elif ".pdb" in infile.lower():
+            fformat = 'pdb'
+        else:
+            fformat = guess_format(infile)
+    else:
+        fformat = args.format
+
+    if not CONFIG['QUIET']: print ("#LOG: data format: {}".format(fformat))
+
+    if fformat == 'online':
+        atoms,cnames = read_from_web(infile,selected_chain=args.chain)
+        infile = "{}.pdb".format(infile)
+    elif fformat == 'pdb':
+        atoms,cnames = read_from_pdb(filename=infile,selected_chain=args.chain)
+        if not atoms:
+            print ("""No such chain: {}\n##############################################""".format(args.chain))
+            parser.print_help(sys.stderr)
+            sys.exit(1)
+    else:
+        if args.chain: print ("#WARNING: File format is .xyz yet chain was specified - it will not work, all chains will be used")
+        atoms,cnames = read_from_xyz(filename=infile)
+        if not atoms:
+            print ("""Empty file/wrong format!\n##############################################""")
+            parser.print_help(sys.stderr)
+            sys.exit(1)
+
+    if not CONFIG['QUIET']: print ("#LOG: got coordinates: {} bead(s)".format(len(atoms)))
+
+    output = args.output
+    if args.output == "":
+        output = sys.stdout
+        CONFIG['TRAJECTORY'] = False
+    elif args.output == "-":
+        output = sys.stdout
+    elif args.output is None:
+        output = infile.replace("xyz","pdb").replace(".pdb","_out.pdb")
+        output = open(output, "w")
+    else:
+        output = open(output, "w")
+
+    chains = pull(atoms, output, greedy=CONFIG["GREEDY"], greedy_file=output,trajectory=CONFIG['TRAJECTORY'],
+                  quiet=CONFIG['QUIET'], chain_names=cnames)
+
+    if not CONFIG['QUIET']: print ("#LOG: finished smoothing: {} chain(s)".format(len(chains)))
+
+    if args.save is None:
+        out = "SAVE_" + infile.replace(".pdb", "_out.pdb").replace(".xyz", "_out.xyz")
+        out = open(out, "w" )
+        for c in chains:
+            for alist in c.atom_lists:
+                write_xyz(out, alist)#,soft_end=True)
+        out.close()
+
+    if atoms and CONFIG['CHECK_KNOT']:
+        if not CONFIG['QUIET']: print ("Final topology:",sep="")
+        print (unentangle(chains, outfile=0))
+
+    if args.output:
+        output.close()
+
+
+
+if __name__ == "__main__":
+    main()
