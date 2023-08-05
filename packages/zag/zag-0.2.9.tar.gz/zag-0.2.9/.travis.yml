@@ -1,0 +1,35 @@
+sudo: false
+language: python
+cache:
+  directories:
+  - "$HOME/.cache/pip"
+matrix:
+  include:
+  - python: 3.7
+    env: TOXENV=pep8
+    dist: xenial
+    sudo: true
+  - python: 2.7
+    env: TOXENV=py27
+  - python: 3.7
+    env: TOXENV=py37
+    dist: xenial
+    sudo: true
+  - python: 3.7
+    dist: xenial
+    sudo: true
+    script: skip  # Skipping as tests are executed prior to hitting this stage
+    if: tag =~ ^v
+    deploy:
+      provider: pypi
+      user: jimbobhickville
+      password:
+        secure: "lRzTPBK59YgNpzn39reD97W3uO4dDP5gcErDmvNvgAAnca40cIaFUukej7LOJBIDWYRcmzpnvyVkE2N4Wc6gK4VyZ2LxwAmSmfSKnZxezxJeEKe5Dnrq6o100BriZu6DXa9SES2R0dPIW7i61UxF9kDW8hvk9NygfdHdmvP++myo5G4jW2hGhE3erDFruC1Ld68MtX8pZsKYdh0ZOYOFLfuAUcVsuX7hB1dzAK3cVZ043bY2/Km8PLMxv025ZZRoi8ikYYn8RQYqm0skYCJoMN3lI369n89hsPRmWqwGgPFBDfoh6UrwUAolbVYcWwRHD8e8QUZgRD6ZfirW3k2lWc55hIfc3Iq7qJKK70ajsohSZVlrz0L83b+z+AtTTPBWUgZoHyHyoOeAOLmnshpULMHR/Zzd3lLQCU3L1xtzYCQLmlmLb9w9PFO/mlwbhpxoUe7BeUDjtzfA+bd3I4RNa6GU+hCdh2JcQGHw6RhRf7s0j3EDd+KQrkBPse/9qC5w2JkYwnLmLbDctjte6yICrdflvnslrvWH+KJ+3PcyynUtgK0KlGlH/rd2lSePRoM5BtYsnLiZnRH/1oX9ZhXO9UuQQKMXIx4996SRN8no7yF0LP+sLS1fh1OR/iFF0Avskfom8wv0dqiTB6oAZtkKW9MBHTsFTHAyx6WyRQj3bLE="
+      distributions: "sdist bdist_wheel"
+      on:
+        tags: true
+
+install:
+- pip install tox
+script:
+- tox -e $TOXENV
