@@ -1,0 +1,124 @@
+Metadata-Version: 2.1
+Name: django-whiteless
+Version: 0.1.3
+Summary: Django template tags for dealing with pesky whitespaces
+Home-page: https://github.com/denizdogan/django-whiteless
+License: MIT
+Keywords: django,whitespace,template,tag
+Author: Deniz Dogan
+Author-email: denizdogan@users.noreply.github.com
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*
+Classifier: Development Status :: 4 - Beta
+Classifier: Framework :: Django
+Classifier: Framework :: Django :: 1.11
+Classifier: Framework :: Django :: 2.0
+Classifier: Framework :: Django :: 2.1
+Classifier: Framework :: Django :: 2.2
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Requires-Dist: Django (>=1.11,<2.0); python_version >= "2.7" and python_version < "2.8"
+Requires-Dist: Django (>=2.0,<3.0); python_version >= "3.5" and python_version < "4.0"
+Project-URL: Documentation, https://github.com/denizdogan/django-whiteless
+Project-URL: Repository, https://github.com/denizdogan/django-whiteless.git
+Description-Content-Type: text/markdown
+
+# django-whiteless
+
+Django template tags which deal with pesky whitespaces!
+
+[![CircleCI](https://circleci.com/gh/denizdogan/django-whiteless/tree/master.svg?style=svg)](https://circleci.com/gh/denizdogan/django-whiteless/tree/master)
+
+## Installation
+
+Install the latest version from PyPI:
+
+```bash
+$ pip install django-whiteless
+```
+
+Add `"whiteless"` to `INSTALLED_APPS`:
+
+```python
+INSTALLED_APPS = (
+    # ...
+    "whiteless",
+)
+```
+
+## Usage
+
+The library consists of two template tags, `{% whiteless %}` and `{% eof %}`.
+This is how you use them.
+
+### Remove all whitespaces
+
+```djangotemplate
+{% whiteless %}
+    ...
+{% endwhiteless %}
+```
+
+### Remove leading whitespaces
+
+```djangotemplate
+{% whiteless leading %}
+    ...
+{% endwhiteless %}
+```
+
+### Remove trailing whitespaces
+
+```djangotemplate
+{% whiteless trailing %}
+    ...
+{% endwhiteless %}
+```
+
+### Remove leading and trailing whitespaces
+
+```djangotemplate
+{% whiteless leading trailing %}
+    ...
+{% endwhiteless %}
+```
+
+### Replace whitespaces with a single space
+
+```djangotemplate
+{% whiteless space %}
+    ...
+{% endwhiteless %}
+```
+
+Note that if there are leading or trailing whitespaces in the block, those will
+also be replaced by a single space. In order to remove leading and trailing
+whitespaces and replace all other whitespaces with a single space, use:
+
+```djangotemplate
+{% whiteless space leading trailing %}
+    ...
+{% endwhiteless %}
+```
+
+### Remove trailing whitespaces at end of file
+
+```djangotemplate
+Hello there!{% eof %}
+```
+
+This is useful if e.g. your project style guide requires all files to end with
+a newline but that causes issues with your template.
+
+Note that `{% eof %}` cannot be used inside other tags. It only removes
+whitespaces that immediately follow itself.
+
+## License
+
+[MIT](LICENSE)
+
