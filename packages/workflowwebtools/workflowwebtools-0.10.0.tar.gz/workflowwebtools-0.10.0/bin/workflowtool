@@ -1,0 +1,82 @@
+#!/usr/bin/env python2.7
+
+# pylint: disable=no-member, invalid-name
+
+"""
+workflowtools.py
+----------------
+
+Script to run the WorkflowWebTools server.
+
+:author: Daniel Abercrombie <dabercro@mit.edu>
+"""
+
+import os
+import sys
+import cherrypy
+
+import workflowwebtools.web
+from workflowwebtools import serverconfig
+from workflowwebtools.web.templates import render
+from workflowwebtools.workflowtools import WorkflowTools
+from workflowwebtools import manageusers
+
+def secureheaders():
+    """Generates secure headers for cherrypy Tool"""
+    headers = cherrypy.response.headers
+    headers['Strict-Transport-Security'] = 'max-age=31536000'
+    headers['X-Frame-Options'] = 'DENY'
+    headers['X-XSS-Protection'] = '1; mode=block'
+    headers['Content-Security-Policy'] = "default-src='self'"
+
+_HOST = serverconfig.config_dict()['host']
+
+if os.path.exists('keys/cert.pem') and os.path.exists('keys/privkey.pem'):
+    cherrypy.tools.secureheaders = \
+        cherrypy.Tool('before_finalize', secureheaders, priority=60)
+    cherrypy.config.update({
+        'server.ssl_certificate': 'keys/cert.pem',
+        'server.ssl_private_key': 'keys/privkey.pem'
+        })
+
+if __name__ == '__main__':
+
+    CONF = {
+        'global': {
+            'server.socket_host': _HOST['name'],
+            'server.socket_port': _HOST['port'],
+            'log.access_file': 'access.log',
+            'log.error_file': 'application.log'
+        },
+        '/': {
+            'error_page.401': render('401.html'),
+            'error_page.404': render('404.html'),
+            'tools.staticdir.root': os.path.abspath(
+                os.path.dirname(workflowwebtools.web.__file__)),
+            'tools.sessions.on': True,
+            'tools.sessions.secure': True,
+            'tools.sessions.httponly': True,
+        },
+        '/static': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': './static'
+        },
+    }
+
+    with open('pid', 'w') as pid_file:
+        pid_file.write(str(os.getpid()))
+
+    CONF['/submitaction'] = {
+        'tools.auth_basic.on': True,
+        'tools.auth_basic.realm': 'localhost',
+        'tools.auth_basic.checkpassword': manageusers.validate_password
+        }
+    for key in ['/cluster', '/resetcache', '/sitesfortasks', '/submit2', '/updatereasons']:
+        CONF[key] = CONF['/submitaction']
+
+    cherrypy.quickstart(WorkflowTools(), '/', CONF)
+
+elif 'mod_wsgi' in sys.modules.keys():
+
+    cherrypy.config.update({'environment': 'embedded'})
+    application = cherrypy.Application(WorkflowTools(), script_name='/', config=CONF)
