@@ -1,0 +1,37 @@
+language: python
+dist: xenial
+
+matrix:
+    include:
+        - name: "docs,lint"
+          python: "3.6"
+          env: TOXENV=docs,lint
+          before_install:
+          after_success:
+        - python: "2.7"
+          env: TOXENV=py27,py27-datetime
+        - python: "3.5"
+          env: TOXENV=py35,py35-datetime
+        - python: "3.6"
+          env: TOXENV=py36,py36-datetime
+        - python: "3.7"
+          env: TOXENV=py37,py37-datetime
+        - python: "3.8-dev"
+          env: TOXENV=py38,py38-datetime
+before_install:
+    -  travis_retry pip install -U -c constraints.txt coveralls coverage
+install:
+    - travis_retry pip install -U pip setuptools
+    - travis_retry pip install -U -c constraints.txt tox
+
+script:
+    - travis_retry tox
+
+after_success:
+    - coverage combine
+    - coveralls
+
+notifications:
+    email: false
+cache:
+  pip: true
