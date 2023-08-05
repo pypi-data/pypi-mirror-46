@@ -1,0 +1,33 @@
+<div id="related-slider-wrapper"
+     tal:define="content view/related_content|nothing; normalizer nocall:context/plone_utils/normalizeString|nothing"
+     tal:condition="content">
+  <aside i18n:domain="collective.relatedslider" id="related-slider">
+    <h4 class="SliderTitle" tal:condition="view/slider_title|nothing" tal:content="view/slider_title">Slider Title:</h4>
+
+    <div class="slider">
+      <ul class="slides" role="listbox" tal:attributes="class python:'slides slider-items-{}'.format(len(content))">
+        <tal:items repeat="item content">
+        <li tal:define="url item/getURL|item/absolute_url;
+                        image nocall:item/image|nothing;
+                        num repeat/item/number;"
+            id="related-slider-slide-nav-${num}">
+          <a href=""
+              class="item-image"
+              tal:condition="nocall:image"
+              tal:attributes="href url">
+            <img src="" class="img-fluid"
+                  tal:attributes="src string:${url}/@@images/image/thumb;
+                                  alt item/image_caption|item/Description" />
+            <div class="missing-image" tal:condition="not:nocall:item/image|nothing" />
+            <span class="item-caption" tal:content="item/Title">
+              Title
+            </span>
+          </a>
+        </li>
+        </tal:items>
+      </ul>
+      <a href="#related-slider-slide-nav-${num}"
+         tal:repeat="num python:range(1, len(content) + 1)">${num}</a>
+    </div>
+  </aside>
+</div>
