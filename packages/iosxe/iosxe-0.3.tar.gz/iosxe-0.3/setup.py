@@ -1,0 +1,18 @@
+from setuptools import setup, find_packages
+setup(name='iosxe',
+      version='0.3',
+      description='Module for comunicate with iosxe device',
+      long_description='Connection to iosxe device, like Cisco CSR1000V',
+      classifiers=[ 'Development Status :: 3 - Alpha',
+                    'License :: OSI Approved :: MIT License',
+                    'Programming Language :: Python :: 2.7',
+                    'Topic :: Text Processing :: Linguistic', ],
+      keywords='iosxe CSR CSR1000V Cisco',
+#      url='http://github.com/storborg/funniest',
+      author='Dzmitry Buynovskiy',
+      author_email='imperituro@mail.com',
+      license='MIT',
+      packages=find_packages(include=['iosxe'], exclude=['iosxe.tests']),
+      install_requires=['paramiko', 'ncclient', 'requests'],
+      include_package_data=True,
+      zip_safe=False)
