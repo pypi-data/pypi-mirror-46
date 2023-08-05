@@ -1,0 +1,568 @@
+{
+  "contractName": "BankEventEmitter",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "bankRegistry",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "name": "_bankRegistry",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "beneficiary",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "bank",
+          "type": "address"
+        }
+      ],
+      "name": "EquityTokensIssued",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "beneficiary",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "principal",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "bank",
+          "type": "address"
+        }
+      ],
+      "name": "DebtTokensIssued",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "borrower",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "loanIdx",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "name": "bank",
+          "type": "address"
+        }
+      ],
+      "name": "LoanPayback",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "borrower",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "collateralType",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "collateralAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "borrowedAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "interestRate",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "loanIdx",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "name": "bank",
+          "type": "address"
+        }
+      ],
+      "name": "Borrowed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "debtRedeemer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "debtTokensRedeemed",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "payoutAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "bank",
+          "type": "address"
+        }
+      ],
+      "name": "DebtRedeemed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "equityRedeemer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "equityTokensRedeemed",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "payoutAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "bank",
+          "type": "address"
+        }
+      ],
+      "name": "EquityRedeemed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "postSettleBalance",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "name": "bank",
+          "type": "address"
+        }
+      ],
+      "name": "Settled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "collateralToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "bank",
+          "type": "address"
+        }
+      ],
+      "name": "CollateralAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "bank",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "TokenTransfer",
+      "type": "event"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "beneficiary",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "emitEquityTokensIssued",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "beneficiary",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "name": "principal",
+          "type": "uint256"
+        }
+      ],
+      "name": "emitDebtTokensIssued",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "borrower",
+          "type": "address"
+        },
+        {
+          "name": "collateralType",
+          "type": "address"
+        },
+        {
+          "name": "collateralAmount",
+          "type": "uint256"
+        },
+        {
+          "name": "borrowedAmount",
+          "type": "uint256"
+        },
+        {
+          "name": "interestRate",
+          "type": "uint256"
+        },
+        {
+          "name": "loanIdx",
+          "type": "uint256"
+        }
+      ],
+      "name": "emitBorrowed",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "borrower",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "name": "loanIdx",
+          "type": "uint256"
+        }
+      ],
+      "name": "emitLoanPayback",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "debtRedeemer",
+          "type": "address"
+        },
+        {
+          "name": "redeemAmount",
+          "type": "uint256"
+        },
+        {
+          "name": "payoutAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "emitDebtRedeemed",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "postSettleBalance",
+          "type": "uint256"
+        }
+      ],
+      "name": "emitSettled",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "equityRedeemer",
+          "type": "address"
+        },
+        {
+          "name": "equityTokensRedeemed",
+          "type": "uint256"
+        },
+        {
+          "name": "payoutAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "emitEquityRedeemed",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_bank",
+          "type": "address"
+        },
+        {
+          "name": "_from",
+          "type": "address"
+        },
+        {
+          "name": "_to",
+          "type": "address"
+        },
+        {
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "emitTransfer",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_collateralType",
+          "type": "address"
+        }
+      ],
+      "name": "emitCollateralAdded",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x608060405234801561001057600080fd5b50604051602080610bf58339810180604052602081101561003057600080fd5b50516001600160a01b03811661004557600080fd5b600080546001600160a01b039092166001600160a01b0319909216919091179055610b80806100756000396000f3fe608060405234801561001057600080fd5b506004361061009e5760003560e01c8063d563028a11610066578063d563028a146101cb578063d63da297146101e8578063ee1e5a9d1461020e578063f173aed914610240578063f436ad73146102725761009e565b8063014b4d3c146100a35780631b831217146100e957806329a8f5621461011b57806332c803a3146101575780634215caf31461019f575b600080fd5b6100d5600480360360608110156100b957600080fd5b506001600160a01b038135169060208101359060400135610296565b604080519115158252519081900360200190f35b6100d5600480360360608110156100ff57600080fd5b506001600160a01b038135169060208101359060400135610373565b6100d56004803603608081101561013157600080fd5b506001600160a01b0381358116916020810135821691604082013516906060013561044c565b6100d5600480360360c081101561016d57600080fd5b506001600160a01b03813581169160208101359091169060408101359060608101359060808101359060a00135610647565b6100d5600480360360408110156101b557600080fd5b506001600160a01b038135169060200135610736565b6100d5600480360360208110156101e157600080fd5b5035610805565b6100d5600480360360208110156101fe57600080fd5b50356001600160a01b03166108c7565b6100d56004803603606081101561022457600080fd5b506001600160a01b038135169060208101359060400135610992565b6100d56004803603606081101561025657600080fd5b506001600160a01b038135169060208101359060400135610a68565b61027a610b45565b604080516001600160a01b039092168252519081900360200190f35b6000805460408051600160e01b630eaad48902815233600482015290516001600160a01b0390921691630eaad48991602480820192602092909190829003018186803b1580156102e557600080fd5b505afa1580156102f9573d6000803e3d6000fd5b505050506040513d602081101561030f57600080fd5b505161031a57600080fd5b604080516001600160a01b03861681526020810185905280820184905233606082015290517fc4ce96ebce730c953885cb13c50c6046c5658f7effaefdcf2ffe4a48780156d39181900360800190a15060019392505050565b6000805460408051600160e01b630eaad48902815233600482015290516001600160a01b0390921691630eaad48991602480820192602092909190829003018186803b1580156103c257600080fd5b505afa1580156103d6573d6000803e3d6000fd5b505050506040513d60208110156103ec57600080fd5b50516103f757600080fd5b6040805184815260208101849052338183015290516001600160a01b038616917f6b96ff6dd5761f62d65e8ee23f1bae300f3437f64b3145fd52fdc201ef0ab626919081900360600190a25060019392505050565b60408051600160e01b6351489551028152600160048201529051600091869183916001600160a01b03841691635148955191602480820192602092909190829003018186803b15801561049e57600080fd5b505afa1580156104b2573d6000803e3d6000fd5b505050506040513d60208110156104c857600080fd5b505190506001600160a01b03811633146105685760408051600160e01b635148955102815260006004820152905133916001600160a01b03851691635148955191602480820192602092909190829003018186803b15801561052957600080fd5b505afa15801561053d573d6000803e3d6000fd5b505050506040513d602081101561055357600080fd5b50516001600160a01b03161461056857600080fd5b60005460408051600160e01b630eaad4890281526001600160a01b038a8116600483015291519190921691630eaad489916024808301926020929190829003018186803b1580156105b857600080fd5b505afa1580156105cc573d6000803e3d6000fd5b505050506040513d60208110156105e257600080fd5b50516105ed57600080fd5b6040805185815233602082015281516001600160a01b03808916938a821693918c16927fd57a59a95eb5cae73e661988916345c3078abd8a9b7b3ba22ea0779d99d2b8169281900390910190a45060019695505050505050565b6000805460408051600160e01b630eaad48902815233600482015290516001600160a01b0390921691630eaad48991602480820192602092909190829003018186803b15801561069657600080fd5b505afa1580156106aa573d6000803e3d6000fd5b505050506040513d60208110156106c057600080fd5b50516106cb57600080fd5b604080516001600160a01b038881168252602082018890528183018790526060820186905260808201859052915133928a16917f84b2afdd67bc0152f6a24cb82885bd88a964fe60bef62e77c92bc4049147d18e919081900360a00190a35060019695505050505050565b6000805460408051600160e01b630eaad48902815233600482015290516001600160a01b0390921691630eaad48991602480820192602092909190829003018186803b15801561078557600080fd5b505afa158015610799573d6000803e3d6000fd5b505050506040513d60208110156107af57600080fd5b50516107ba57600080fd5b6040805183815233602082015281516001600160a01b038616927fb3e6c396850de44de79ba11b2a1c52588c522dfadcc17afe75de34ab7c09b580928290030190a250600192915050565b6000805460408051600160e01b630eaad48902815233600482015290516001600160a01b0390921691630eaad48991602480820192602092909190829003018186803b15801561085457600080fd5b505afa158015610868573d6000803e3d6000fd5b505050506040513d602081101561087e57600080fd5b505161088957600080fd5b60408051838152905133917f1ddc75d9b5fc6d37e23b3284e94f0db77b95dfe06b38540ac86c16e6ee3f7238919081900360200190a2506001919050565b6000805460408051600160e01b630eaad48902815233600482015290516001600160a01b0390921691630eaad48991602480820192602092909190829003018186803b15801561091657600080fd5b505afa15801561092a573d6000803e3d6000fd5b505050506040513d602081101561094057600080fd5b505161094b57600080fd5b6040805133815290516001600160a01b038416917f63b5dc5e99047761794ba2b13700899319b3d9e518330e2eb21dd505d2f4b733919081900360200190a2506001919050565b6000805460408051600160e01b630eaad48902815233600482015290516001600160a01b0390921691630eaad48991602480820192602092909190829003018186803b1580156109e157600080fd5b505afa1580156109f5573d6000803e3d6000fd5b505050506040513d6020811015610a0b57600080fd5b5051610a1657600080fd5b6040805184815260208101849052815133926001600160a01b038816927f7d333388e8154f502458c7f0e3369f487153d92f41916e0f8163f1de76343e4c929081900390910190a35060019392505050565b6000805460408051600160e01b630eaad48902815233600482015290516001600160a01b0390921691630eaad48991602480820192602092909190829003018186803b158015610ab757600080fd5b505afa158015610acb573d6000803e3d6000fd5b505050506040513d6020811015610ae157600080fd5b5051610aec57600080fd5b604080516001600160a01b03861681526020810185905280820184905233606082015290517f09b0c0d3f92126bf3e2a2530ef91dec9674c55cd2e2df1a8bfc192d4aa50ebb49181900360800190a15060019392505050565b6000546001600160a01b03168156fea165627a7a7230582084801d51199bbf2987ffc7a82c9db3dda156db89df1a5a856d6c0e02288b3c590029",
+  "devdoc": {
+    "methods": {
+      "constructor": {
+        "details": "`BankRegistry` is necessary to deploy `BankEventEmitter`  as we are using BankRegistry's functions to be able to call functions on this contract."
+      },
+      "emitBorrowed(address,address,uint256,uint256,uint256,uint256)": {
+        "details": "Emits a corresponding event. Can only be called by a valid Bank.",
+        "params": {
+          "borrowedAmount": "- the amount of `loanTokens` borrowed from the `Bank`.",
+          "borrower": "- address of the borrower, `indexed` is used for tracking similar events for this address.",
+          "collateralAmount": "- the amount of `collateralTokens` deposited.",
+          "collateralType": "- the address of a particular `collateralToken` used for this `Loan`.",
+          "interestRate": "- interest rate of a `Loan`."
+        }
+      },
+      "emitDebtRedeemed(address,uint256,uint256)": {
+        "details": "Emits a corresponding event. Can only be called by a valid Bank.",
+        "params": {
+          "debtRedeemer": "- address that has redeemed `debtTokens`.",
+          "payoutAmount": "- total `loanToken` payout amount. Consists of all dividends for successfully returned loans and of own equity part of `loanToken` to send in return for `equityTokens`. Can be less then deposited amount as in this case would be partially redistributed to debt depositors.",
+          "redeemAmount": "- the amount of `debtTokens` redeemed."
+        }
+      },
+      "emitDebtTokensIssued(address,uint256,uint256)": {
+        "details": "Emits a corresponding event. Can only be called by a valid Bank.",
+        "params": {
+          "amount": "- the amount of `debtTokens` issued.",
+          "beneficiary": "- address that recieves `debtTokens`, `indexed` is used for tracking similar events for this address."
+        }
+      },
+      "emitEquityRedeemed(address,uint256,uint256)": {
+        "details": "Emits a corresponding event. Can only be called by a valid Bank.",
+        "params": {
+          "equityRedeemer": "- address that has redeemed `equityTokens`.",
+          "equityTokensRedeemed": "- the amount of `equityTokens` redeemed.",
+          "payoutAmount": "- total `loanToken` payout amount. Consists of all dividends for successfully returned loans and of own equity part of `loanToken` to send in return for `equityTokens`. Can be less then deposited amount as in this case would be partially redistributed to debt depositors."
+        }
+      },
+      "emitEquityTokensIssued(address,uint256)": {
+        "details": "Emits a corresponding event. Can only be called by a valid Bank.",
+        "params": {
+          "amount": "- the amount of `equityTokens` issued.",
+          "beneficiary": "- address that recieves `equityTokens`, `indexed` is used for tracking similar events for this address."
+        }
+      },
+      "emitLoanPayback(address,uint256,uint256)": {
+        "details": "Emits a corresponding event. Can only be called by a valid Bank.",
+        "params": {
+          "amount": "- the amount of `loanTokens` paid back.",
+          "borrower": "- address of the borower, `indexed` is used for tracking similar events for this address."
+        }
+      },
+      "emitSettled(uint256)": {
+        "details": "Emits a corresponding event. Can only be called by a valid Bank.",
+        "params": {
+          "postSettleBalance": "- final balance in loanToken terms"
+        }
+      }
+    }
+  }
+}
