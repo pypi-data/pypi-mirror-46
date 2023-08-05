@@ -1,0 +1,36 @@
+
+import os, sys
+import glob
+import numpy as np
+
+from astropy.time import Time
+
+gpstime = 1240327333.34
+skymap = "../data/GW190426/bayestar.fits.gz"
+cl = 0.9
+
+outputDir = "../output/GW190426/%.3f_GIT"%cl
+system_command = "python gwemopt_run --telescope GIT --doSchedule --doSkymap --doPlots --skymap %s --gpstime %d -o %s --doTiles --doSingleExposure --filters g --exposuretimes 30.0 --powerlaw_cl %.3f --doReferences"%(skymap,gpstime,outputDir,cl)
+#os.system(system_command)
+print(system_command)
+
+outputDir = "../output/GW190426/%.3f_ZTF"%cl
+system_command = "python gwemopt_run --telescope ZTF --doSchedule --doSkymap --doPlots --skymap %s --gpstime %d -o %s --doTiles --doSingleExposure --filters g --exposuretimes 30.0 --powerlaw_cl %.3f --doReferences"%(skymap,gpstime,outputDir,cl)
+#os.system(system_command)
+print(system_command)
+
+outputDir = "../output/GW190426/%.3f_DECam"%cl
+system_command = "python gwemopt_run --telescope DECam --doSchedule --doSkymap --doPlots --skymap %s --gpstime %d -o %s --doTiles --doSingleExposure --filters g --exposuretimes 30.0 --powerlaw_cl %.3f"%(skymap,gpstime,outputDir,cl)
+os.system(system_command)
+print(system_command)
+print(stop)
+
+outputDir = "../output/GW190426/%.3f_ZTF_DECam"%cl
+system_command = "python gwemopt_run --telescope ZTF,DECam --doSchedule --doSkymap --doPlots --skymap %s --gpstime %d -o %s --doTiles --doSingleExposure --filters g --exposuretimes 30.0 --powerlaw_cl %.3f --doReferences --doIterativeTiling"%(skymap,gpstime,outputDir,cl)
+#os.system(system_command)
+print(system_command)
+
+outputDir = "../output/GW190426/%.3f_ZTF_DECam_NoRef"%cl
+system_command = "python gwemopt_run --telescope ZTF,DECam --doSchedule --doSkymap --doPlots --skymap %s --gpstime %d -o %s --doTiles --doSingleExposure --filters g --exposuretimes 30.0 --powerlaw_cl %.3f --doIterativeTiling"%(skymap,gpstime,outputDir,cl)
+os.system(system_command)
+print(system_command)
