@@ -1,0 +1,32 @@
+pyRestTable
+===========
+
+Format a nice table in reST (reStructuredText) from Python.
+
+Each cell may have multiple lines, separated by a newline.
+The content of each cell will be rendered as str(cell).
+At present, *pyRestTable* only supports tables with content 
+that does not span any cells (no rowspans or columnspans).
+
+* Install with conda: ``conda install -c prjemian pyRestTable``
+* Install with pip: ``pip install pyRestTable``
+
+:author:    Pete R. Jemian
+:email:     prjemian@gmail.com
+:copyright: 2014-2019, Pete R. Jemian
+:license:   Creative Commons Attribution 4.0 International Public License (see *LICENSE.txt*)
+:docs:      https://pyRestTable.readthedocs.io
+:URL:       https://github.com/prjemian/pyRestTable
+:conda:     https://anaconda.org/prjemian/pyresttable
+:PyPI:      https://pypi.python.org/pypi/pyRestTable/
+:TODO list: https://github.com/prjemian/pyRestTable/issues
+:citations:
+    .. image:: https://zenodo.org/badge/16644277.svg
+       :target: https://zenodo.org/badge/latestdoi/16644277
+       :alt: DOI: 10.5281/zenodo.1471691
+:build:
+    .. image:: https://travis-ci.org/prjemian/pyRestTable.svg?branch=master
+               :target: https://travis-ci.org/prjemian/pyRestTable
+:coverage:
+   .. image:: https://coveralls.io/repos/github/prjemian/pyRestTable/badge.svg?branch=master
+              :target: https://coveralls.io/github/prjemian/pyRestTable?branch=master
