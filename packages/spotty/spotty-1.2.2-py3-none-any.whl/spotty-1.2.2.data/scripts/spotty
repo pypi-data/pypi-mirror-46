@@ -1,0 +1,61 @@
+#!python
+
+import sys
+import argparse
+import logging
+import spotty
+from spotty.commands.aws import AwsCommand
+from spotty.commands.download import DownloadCommand
+from spotty.commands.run import RunCommand
+from spotty.commands.ssh import SshCommand
+from spotty.commands.status import StatusCommand
+from spotty.commands.stop import StopCommand
+from spotty.commands.sync import SyncCommand
+from spotty.helpers.commands import add_subparsers, get_custom_commands
+from spotty.commands.start import StartCommand
+from spotty.commands.writers.output_writrer import OutputWriter
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-V', '--version', action='store_true', help='Display the version of the Spotty')
+
+commands = [
+    StartCommand,
+    StopCommand,
+    StatusCommand,
+    SshCommand,
+    RunCommand,
+    SyncCommand,
+    DownloadCommand,
+    AwsCommand,
+] + get_custom_commands()
+
+# add commands to the parser
+add_subparsers(parser, commands)
+
+# parse arguments
+args = parser.parse_args()
+output = OutputWriter()
+
+# display the version
+display_version = args.version
+if display_version:
+    output.write(spotty.__version__)
+    sys.exit(0)
+
+# logging
+logging_level = logging.DEBUG if 'debug' in args and args.debug else logging.WARNING
+logging.basicConfig(level=logging_level, format='[%(levelname)s] %(message)s')
+
+if 'command' not in args:
+    parser.print_help()
+    sys.exit(1)
+
+# run a command
+try:
+    args.command.run(args, output)
+except Exception as e:
+    output.write('Error:\n'
+                 '------\n'
+                 '%s' % str(e))
+    sys.exit(1)
