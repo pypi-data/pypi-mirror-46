@@ -1,0 +1,35 @@
+#!python
+import os
+import argparse
+
+commands = {
+'nodetool status' : 'Node status',
+'nodetool statusbackup' : 'Is any backup running now',
+'nodetool statusgossip' : 'status of gossip',
+'nodetool statushandoff' : 'status of hinted handoff',
+'nodetool statusthrift' : 'status of the Thrift server',
+'nodetool gossipinfo' : 'Gossip info',
+'nodetool tpstats' : 'usage statistics of thread pools'
+}
+
+def get_cmd(dockerid):
+    for key,value in commands.items():
+
+    #cmd = key
+        cmd = 'docker exec -it {} {}'.format(name,key)
+        output = os.popen(cmd)
+        header = '='
+        for i in range(len(value)):
+            header+=str('=')
+        print(value)
+        print(header)
+        print(output.read())
+
+
+if __name__=='__main__':
+    parser = argparse.ArgumentParser(description='Retrieve Docker Run Command from existing container')
+    parser.add_argument('name', action="store", help='docker container name')
+    results = parser.parse_args()
+    name = results.name
+    get_cmd(name)
+
