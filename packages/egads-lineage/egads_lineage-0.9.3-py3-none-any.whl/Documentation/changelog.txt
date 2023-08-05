@@ -1,0 +1,278 @@
+==========================
+CHANGELOG | LINEAGE BRANCH
+==========================
+
+To do list:
+-----------
+  - display a warning if a unit is not well recognized.
+
+To fix list:
+------------
+
+
+May 9 2019, Release version 0.9.3
+=================================
+  MODIFIED:
+    - the documentation of an algorithm has been modified for better understanding in the EGADS GUI.
+	- the code has been cleaned thanks to PyCharm.
+	- few logging messages have been modified.
+	- egads functions to set and read options have been modified for better handling.
+	- the user algorithm default folders are now created in EGADS init. This way it is possible to uninstall or update EGADS without loosing the algorithms created by users.
+	- the thread to check egads update has been a bit modified to remove the use of importlib.
+	- the documentation has been updated.
+  
+  ADDED:
+    - the unit psu (Practical Salinity Unit) has been added in EGADS. EGADS should be able to handle it correctly, when the unit is coded as 'psu' or as '0.001'.
+	- few logging messages have been added.
+	- code to test the CompareParamLcss algorithm has been added.
+	- the algorithm template in the documentation has been corrected.
+  
+  FIXED:
+    - an issue (a mispelled variable) has been corrected in the CompareParamLcss algorithm, leading to a crash of EGADS.
+	- changed log path to EGADS module path by default.
+
+
+October 1 2018, Release version 0.9.2
+=====================================
+  MODIFIED:
+    - the setup.py file has been modify to include a link to the online documentation on ReadTheDocs.
+
+    
+October 1 2018, Release version 0.9.1
+=====================================
+  MODIFIED:
+    - the result of the function 'get_dimension_list()' in the 'NetCDF' class has been changed from a standard dictionary to an OrderedDict from collections to keep the original distribution of dimensions in the opened netcdf file.
+    - as the netcdf library returns an OrderedDict when asking for a list of variables, the OrderedDict is changed into a list in EGADS.
+    - the branch version has been added to the '_version.py' file.
+  
+
+July 26 2018, Release version 0.9.0
+====================================
+EGADS Lineage has been converted for Python 3.5.x and above. As Nappy is not yet compatible with Python 3, it has been discarded and replaced by a homemade function. Quantities has been removed from third party folder, now to use EGADS it must be installed as a usual python package.
+
+  FIXED:
+    - few lines of code for testing purpose were still in the EGADS official test section. They have been removed.
+	- the function to compute the iso format for time has been fixed: a dictionnary was used for iso format interpretation and gave wrong result in few particular situations.
+    - fixed an issue with dict.keys() function: a list was return in Python 2.x and a dict_keys object is now return in Python 3.x.
+    - fixed an issue with delimiter in NasaAmes class.
+	
+  MODIFIED:
+    - simplified the code of few EGADS functions.
+    - few unecessary functions have been removed.
+    - 'U' has been added for string encoding in the 'parse_string_array' function.
+	- if the seek function is used with the parameter 1 for 'current' on an ascii file not opened in binary mode, an exception will be raised.
+	- for consistency, the type (scalar, vector, array) of the output of an algorithm is now based on the metadata 'OutputTypes' of the algorithm.
+    - the function _get_dimension_list in the NasaAmes class has been modified to display dimensions based on the independant variable (FFI1001).
+    - automatic update check has been disabled until I understand how branches work on Github ;o).
+    - when reading a NASA Ames file, SCOM and NCOM attributes are now stored in a NA Dict as a string with '\n' to delimit lines (no conversion, before each line of a comment was converted into a list). A user can create SCOM and NCOM as string with '\n' for newlines, or provide a list of line, when creating a new NASA Ames file.
+    - logging messages have been cleaned for a better understanding.
+    - the documentation has been updated.
+    
+  ADDED:
+    - a new function to read/write NASA Ames files has been introduced. For now, only reading/writing capabilities for FFI 1001 have been developed. It is possible to save NASA Ames file as csv by giving a delimiter.
+
+
+January 31 2018, Release version 0.8.9
+======================================
+  MODIFIED:
+    - the documentation has been updated.
+
+
+January 11 2018, Release version 0.8.8
+======================================
+  FIXED:
+    - metadata were missing for few algorithms.
+    - initialisation of filename was missing in a function of the nasa_ames_io module.
+    - fixed an issue in the write_variable function of the nasa_ames_io module.
+
+  MODIFIED:
+    - "name" metadata in nasa_ames_io module has been changed to "standard_name" for consistency with NetCDF module.
+
+
+January 3 2018, Release version 0.8.7
+=====================================
+  FIXED:
+    - the documentation has been fixed and updated.
+
+
+January 3 2018, Release version 0.8.6
+=====================================
+  FIXED:
+    - in the algorithm TimeToDecimalYear, when rescaling ISOtime to seconds, the value was passed as a scalar and not as a list.
+
+  MODIFIED:
+    - logging messages have been standardized with those of EGADS GUI.
+    - the set_log_options has been modified to accept level and path for log, and not a dictionary for options.
+
+  ADDED:
+    - if an egads.ini file doesn't exist in the EGADS directory, EGADS will create it with default options.
+    - functions have been added to explore the config dictionary.
+    - the user can now check if an update for EGADS exist.
+    - an option in the egads.ini file has been added to check, or not, for an update automatically when EGADS is imported.
+
+
+October 4 2017, Release version 0.8.5
+=====================================
+  MODIFIED:
+    - algorithm documentation has been updated.
+    - egads documentation has been updated.
+    
+  FIXED:
+    - an algorithm for testing purpose has been removed.
+
+
+October 3 2017, Release version 0.8.4
+=====================================
+  MODIFIED:
+    - few logging messages have been modified for a better understanding.
+    - algorithm documentation has been updated.
+    - the documentation has been updated to inform the user on the use of scalars with algorithms.
+    
+  FIXED:
+    - the Quantities module has been updated in EGADS package to avoid a compatibility issue with the latest versions of Numpy.
+    
+  ADDED:
+    - the pre-validating function for units now can take care of dimensionless data based on events (unit = '1') and the CF unit for percent '0.01'.
+    - a test for Quantities module has been added.
+    - few new metadata have been added to algorithms for a better integration in the EGADS GUI.
+    - a basic conversion of temperature has been added to egads_core to palliate Quantities which does not support absolute temperature scales.
+    - a new algorithm to compute altitude from pressure and temperature, incrementally, has been added to EGADS.
+    - a new algorithm to compute decimal year from a specific time vector has been added to EGADS.
+
+
+June 22 2017, Release version 0.8.3
+===================================
+  FIXED:
+    - the test directory added by the developer was still in egads with few test algorithms. They have been removed.
+    - the function to list all algorithms in egads directory was showing an issue: all folders were added twice.
+
+
+June 15 2017, Release version 0.8.2
+===================================
+  FIXED:
+    - fixed an issue related to attributes in the netcdf i/o function when writing a variable.
+    - a build in function was injected in a function of the netcdf i/o routine. It has been fixed.
+    
+  ADDED:
+    - the platforms have been added in the setup.py
+
+
+June 14 2017, Release version 0.8.1
+===================================
+  To allow the creation of new algorithms from the EGADS GUI, new folders have been introduced and pre-loaded.
+  
+  FIXED:
+    - an issue with a folder has been fixed in the setup.py.
+    - fixed an issue in the netcdf i/o function when setting an attribute.
+    - fixed an issue related to attributes in the netdf i/o function when writing a variable.
+    
+  ADDED:
+    - in the netcdf i/o function, the 'missing_value' attribute has been added if the '_FillValue' attribute is missing.
+    - in the netcdf i/o function, the 'delete_attribute' function has been added to remove an attribute from a file or a variable.
+    
+  MODIFIED:
+    - the documentation has been updated.
+
+
+March 24 2017, Release version 0.8.0
+====================================
+  FIXED:
+    - if a user wants to rescale an EgadsData object (unit 1 to unit 2), the metadata attribute disappears. It has been fixed and metadata are passed to the new EgadsData object, with the necessary modifications.
+    - if a user wants to slice an EgadsData object, the metadata attribute disappears. It has been fixed.
+    - the EgadsNetCdf class was searching in the EgadsData object for metadata attributes to save a variable in a NetCDF file. In the EgadsNetCdf and NetCdf classes, once a NetCDF file is open, all metadata are stored in only one attribute, a dictionary, '.metadata'. That attribute wasn't taking into acount and that leads to a crash of the EgadsNetCdf class when trying to write a variable. It has been fixed, and EgadsNetCdf class now uses the '.metadata' dictionary to retrieve metadata.
+    - the logging system wasn't logging Nappy and Quantities imports properly.
+    - fixed an error in the NasaAmes class when trying to get a list of all variables in a new NA dictionary.
+    - fixed an error in the NasaAmes.get_attribute_value function when a na_dict dictionary is passed.
+    - fixed an error which increased the size of NVOL in the EgadsNetCdf convert_to_nasa_ames function.
+    - if a variable passed to an algorithm has a category as a metadata, the category is deleted and replaced by the algorithm even if the algorithm category is empty. It has been fixed.
+    - fixed an error with Category handling when an EgadsData instance doesn't have a category in metadata.
+    
+  ADDED:
+    - the package Quantities doesn't take into account units of the form 'time since epoch'. A dirty way to keep that information has been added to EGADS.
+    - a "doc" directory has been added for the EGADS SPHINX documentation to help the creation of online documentation.
+    - a function to create a new dictionary has been added to the NASA Ames I/O class.
+    - a tutorial dedicated to the NASA/Ames I/O routines has been added in the documentation.
+    - a tutorial dedicated to the NetCdf I/O routines has been added in the documentation.
+    - a tutorial dedicated to the EgadsFile I/O routines has been added in the documentation.
+    - a tutorial dedicated to the EgadsCsv I/O routines has been added in the documentation.    
+    - a function to convert a NetCDF file to a NASA/Ames file has been introduced (FFI 1001).
+    - a function to convert a NetCDF file to a NASA/Ames CSV file has been introduced (FFI 1001).
+    - a function to convert a NASA/Ames file (FFI 1001) to a NetCDF file has been introduced.
+    - a function in the test process has been added to test the EgadsNetCdf class.
+    - a function in the test process has been added to test the EgadsNetCdf convert_to_nasa_ames function.
+    - a function in the test process has been added to test the NetCdf convert_to_nasa_ames function.
+    - a function in the test process has been added to test the EgadsNetCdf convert_to_csv function.
+    - a function in the test process has been added to test the NetCdf convert_to_csv function.
+    - a function in the test process has been added to test the NasaAmes convert_to_netcdf function.
+    - the name of the algorithm has been added to the metadata of the processed variable.
+    - if multiple white spaces exist in metadata between signs, only one white space is kept.
+    
+  MODIFIED:
+    - the documentation of EGADS has been updated.
+    - the documentation of EGADS algorithms has been updated.
+    - all the documentation has been moved to the "Documentation" directory.
+    - moved all templates in a dedicated directory.
+    - the functions to write data in a NASA Ames dictionary has been modified to include exceptions on metadata.
+
+
+January 24 2017, Release version 0.7.1
+======================================
+The IOP Model and Algorithms package provided by the Plymouth Marine Laboratory was a part of the EGADS package. But it has never been integrated in EGADS. Since it needs few libraries and is not compatible with windows, it has been removed from EGADS package and it is now available through its own webpage on the EUFAR website (http://www.eufar.net/software-tools/tool/pml-inherent-optical-property-model-l-edimlolpo) and on GitHub (https://github.com/eufarn7sp/pml-wq).
+EUFAR team will review the possibility to integrate the IOP model and algorithms in EGADS or to propose it as a standard Python package.
+
+
+January 23 2017, Release version 0.7.0
+======================================
+  FIXED:
+    - an issue with the LinearInterpolation algorithm has been fixed. 
+    - an issue (missing factor) has been fixed in the algorithm to compute an effective diameter of a size distribution (Microphysics algorithms).
+    - the get_description attribute of EgadsData class wasn't working properly (KeyError), it has been fixed.
+    - the validating function for units was crashing if the unit for time was 'xxxx since xxxxx' or composed of multiple words. It has been fixed
+    - fixed few small issues in EgadsCsv class.
+    - fixed few typographical errors in EGADS and algorithms documentations.
+    
+  ADDED:
+    - test functions to test Corrections, Mathematics and Transforms algorithms have been added.
+    - test functions to test Microphysics algorithms have been added.
+    - test functions to test Radiations algorithms have been added.
+    - an algorithm (available in the algorithm handbook) to compute dynamic pressure, angle of attack and sideslip has been added in EGADS. It must be reviewed.
+    - a new algorithm has been created based on the old LinearInterpolation algorithm. The old algorithm is still available for compatibility reasons.
+    - a logging system has been added to monitor the stability of EGADS.
+    - a function has been added to change dynamically the logging level.
+    - error messages has been added to the Metadata class during convention check.
+    - error messages has been added when a user try to open a text or csv file.
+    - a config file (egads.ini) has been introduced for logging options and future needs.
+    - a function has been introduced to update logging options.
+    
+  MODIFIED:
+    - the computation of delta_T has been added in the Solar Vector Calculation algorithm (solar_vector_reda.py).
+    - the documentation of algorithms has been updated.
+    - the documentation of EGADS has been updated.
+
+
+December 16 2016, Release version 0.6.0
+=======================================
+  FIXED:
+    - few issues have been fixed in the test functions.
+    - few tests to check netcdf functions have been fixed for a problem with opening file.
+    - few issues have been fixed in the Sphinx documentation.
+    
+  ADDED:
+    - a function to test EGADS metadata class has been included.
+    - two functions to test EGADS NASA/Ames support have been included.
+    - tex files for algorithms documentation have been included in EGADS package.
+    
+  MODIFIED:
+    - the function to test the conversion capabilities of EGADS has been deactived for now.
+    - the netcdf function to open nc file has been modified to take into account errors reported by Windows and not only linux.
+    - the documentation for EGADS and algorithms has been updated.
+
+
+December 1 2016, Release version 0.5.9
+======================================
+  Few fixes have been introduced in EGADS to make it compatible with Windows. The functions to interface EGADS with Nappy is old, a bug linked to the new Numpy version has been fixed. The function interfaced with Nappy to read NASA/Ames files has been rewritten. It as been simplified and it is now possible to write NA files. Conversion of NA files to netcdf files, and in the other way, is not possible for now.
+  
+
+December 1 2015 - 4 January 2016
+================================
+  EGADS version is currently 0.5.8. It appears to have critical issues with Nappy, as this one calls old numpy functions which have been discarded from newer versions.
