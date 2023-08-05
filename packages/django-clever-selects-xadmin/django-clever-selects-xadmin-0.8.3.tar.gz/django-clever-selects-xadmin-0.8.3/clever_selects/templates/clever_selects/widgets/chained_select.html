@@ -1,0 +1,21 @@
+{% include "django/forms/widgets/select.html" %}
+<script type="text/javascript">
+    "use strict";
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var parentFields = document.querySelectorAll("input#{{ js_parent_field_id }}");
+
+        for (var i = 0; i < parentFields.length; i++) {
+            parentFields[i].classList.add("chained-parent-field");
+
+            var chained_ids = parentFields[i].getAttribute("chained_ids");
+
+            if (chained_ids !== null && chained_ids !== "") {
+                parentFields[i].setAttribute("chained_ids", chained_ids + ",{{ js_chained_id }}");
+            }
+            else {
+                parentFields[i].setAttribute("chained_ids", "{{ js_chained_id }}");
+            }
+        }
+    });
+</script>
