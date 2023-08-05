@@ -1,0 +1,41 @@
+{% load extras %}
+{% for field in form %}
+	<div class="form-group{% if field.errors %} has-error{% endif %} has-popover" data-content='{{ field.help_text|linebreaksbr|safe }}' data-container="body" data-placement="right" data-html='true'>
+		<label for="{{ field.id_for_label }}" class="col-sm-4 control-label">{{ field.label }}{% if field.field.required %}<font color="red">*</font>{% endif %}</label>
+		<div class="col-sm-8" name="div_{{ field.name }}" id="div_{{ field.name }}">
+			{% if field.field.date_field %}
+				<div class="input-group date" data-provide="datepicker">
+			{% endif %}
+			{% if field.field.live_search %}
+				{{ field|addattr:"data-live-search:true,data-dropup-auto:false" }}
+			{% elif field.field.checkbox_field %}
+<!--				<label class="checkbox-inline">-->
+					{{ field }}
+<!--				</label>-->
+			{% else %}
+				{{ field }}
+			{% endif %}
+			{% if field.field.date_field %}
+					<div class="input-group-addon">
+						<span class="glyphicon glyphicon-th"></span>
+					</div>
+				</div>
+			{% endif %}
+			
+		</div>
+		<div class="col-sm-4">
+		</div>
+		<div class="col-sm-8">
+		{% if field.errors %}
+			<span id="helpBlock2" class="help-block">
+				{% for error in field.errors %}
+					{% if forloop.counter0 %}
+						<BR>
+					{% endif %}
+					{{ error }}
+				{% endfor %}
+			</span> 
+		{% endif %}
+		</div>
+	</div>
+{% endfor %}
