@@ -1,0 +1,103 @@
+version: 0.1.{build}
+pull_requests:
+  do_not_increment_build_number: true
+
+environment:
+  PGUSER: postgres
+  PGPASSWORD: Password12!
+  PGSQL_PATH: C:\Program Files\PostgreSQL\9.6
+  matrix:
+    - PYTHON: C:\Python36-x64
+
+services:
+  - postgresql
+
+install:
+  - ps: >
+      & "$env:PYTHON\python.exe" -m virtualenv C:\pacifica;
+      C:\pacifica\Scripts\activate.ps1;
+      python -m pip install --upgrade pip setuptools wheel;
+      python -m pip install -r requirements-dev.txt;
+      python -m pip install 'celery[eventlet]' 'celery[redis]' redis eventlet;
+
+before_test:
+  - ps: >
+      $env:PATH = "${env:PGSQL_PATH}\bin;${env:PATH}";
+      createdb pacifica_metadata;
+      createdb pacifica_uniqueid;
+      createdb pacifica_cartd;
+      createdb pacifica_ingest;
+      createdb pacifica_notify;
+      createdb pacifica_dispatcher;
+  - ps: >
+      nuget install redis-64 -excludeversion;
+      redis-64\tools\redis-server.exe --service-install;
+      redis-64\tools\redis-server.exe --service-start;
+  - ps: >
+      $env:METADATA_CPCONFIG = "$PWD/travis/metadata/server.conf";
+      $env:METADATA_CONFIG = "$PWD/travis/metadata/ap-config.ini";
+      $env:UNIQUEID_CPCONFIG = "$PWD/travis/uniqueid/server.conf";
+      $env:UNIQUEID_CONFIG = "$PWD/travis/uniqueid/ap-config.ini";
+      $env:INGEST_CPCONFIG = "$PWD/travis/ingest/server.conf";
+      $env:INGEST_CONFIG = "$PWD/travis/ingest/ap-config.ini";
+      $env:CARTD_CPCONFIG = "$PWD/travis/cartd/server.conf";
+      $env:CARTD_CONFIG = "$PWD/travis/cartd/ap-config.ini";
+      $env:ARCHIVEINTERFACE_CPCONFIG = "$PWD/travis/archivei/server.conf";
+      $env:ARCHIVEINTERFACE_CONFIG = "$PWD/travis/archivei/config.ini";
+      $env:NOTIFICATIONS_CPCONFIG = "$PWD/travis/notify/server.conf";
+      $env:NOTIFICATIONS_CONFIG = "$PWD/travis/notify/ap-config.ini";
+      $env:VOLUME_PATH = "/tmp/ingest";
+      C:\pacifica\Scripts\activate.ps1;
+      pacifica-metadata-cmd dbsync;
+      pacifica-cartd-cmd dbsync;
+      pacifica-uniqueid-cmd dbsync;
+      pacifica-ingest-cmd dbsync;
+      pacifica-notifications-cmd dbsync;
+      Start-Process C:\pacifica\Scripts\pacifica-metadata.exe;
+      Start-Process C:\pacifica\Scripts\pacifica-archiveinterface.exe;
+      Start-Process C:\pacifica\Scripts\pacifica-uniqueid.exe;
+      Start-Process C:\pacifica\Scripts\pacifica-cartd.exe;
+      Start-Process C:\pacifica\Scripts\celery.exe -ArgumentList "-A pacifica.cartd.tasks worker --loglevel=info -P solo -c 1" -RedirectStandardOutput ccelery-output.log -RedirectStandardError ccelery-error.log;
+      Start-Process C:\pacifica\Scripts\pacifica-ingest.exe;
+      Start-Process C:\pacifica\Scripts\celery.exe -ArgumentList "-A pacifica.ingest.tasks worker --loglevel=info -P eventlet" -RedirectStandardOutput icelery-output.log -RedirectStandardError icelery-error.log;
+      Start-Process C:\pacifica\Scripts\pacifica-notifications.exe;
+      Start-Process C:\pacifica\Scripts\celery.exe -ArgumentList "-A pacifica.notifications.tasks worker --loglevel=info -P solo -c 1" -RedirectStandardOutput ncelery-output.log -RedirectStandardError ncelery-error.log;
+  - ps: >
+      $MD_VERSION = `pip show pacifica-metadata | grep Version: | awk '{ print $2 }';
+      Invoke-WebRequest https://github.com/pacifica/pacifica-metadata/archive/v${MD_VERSION}.zip -OutFile pacifica-metadata.zip;
+      Expand-Archive pacifica-metadata.zip -DestinationPath C:\pacifica-metadata;
+      sleep 10; Invoke-WebRequest http://localhost:8121/users;
+      pushd C:\pacifica-metadata\pacifica-metadata-${MD_VERSION};
+      python tests\test_files\loadit_test.py;
+      popd;
+  - ps: >
+      $env:POLICY_CPCONFIG = "$PWD/travis/policy/server.conf";
+      Start-Process C:\pacifica\Scripts\pacifica-policy.exe;
+      Invoke-WebRequest -InFile README.md -Method PUT -Headers @{'Last-Modified'='Sun, 06 Nov 1994 08:49:37 GMT'} http://127.0.0.1:8080/103;
+      Invoke-WebRequest -InFile README.md -Method PUT -Headers @{'Last-Modified'='Sun, 06 Nov 1994 08:49:37 GMT'} http://127.0.0.1:8080/104;
+      $size = (Get-Item README.md).length;
+      $hash = (Get-FileHash -Algorithm sha1 readme.md).hash;
+      '{ "hashsum": "'+$hash.ToLower()+'", "hashtype": "sha1", "size": '+$size+'}' | Invoke-WebRequest -Method POST -Headers @{ "content-type" = "application/json" } http://127.0.0.1:8121/files?_id=103;
+      '{ "hashsum": "'+$hash.ToLower()+'", "hashtype": "sha1", "size": '+$size+'}' | Invoke-WebRequest -Method POST -Headers @{ "content-type" = "application/json" } http://127.0.0.1:8121/files?_id=104;
+      Get-Content icelery-output.log; Get-Content icelery-error.log;
+      Invoke-WebRequest http://127.0.0.1:8181/status/users/search/dmlb2001/simple -TimeoutSec 1800;
+      Invoke-WebRequest 'http://127.0.0.1:8066/get_state?job_id=1234';
+      Invoke-WebRequest 'http://127.0.0.1:8051/getid?range=42&mode=test_mode';
+      Invoke-WebRequest http://127.0.0.1:8080/1234;
+      echo 'Done';
+
+build: off
+
+test_script:
+  - ps: >
+      mkdir C:\tmp; C:\pacifica\Scripts\activate.ps1;
+      pre-commit run -a;
+      pip install .; cd tests;
+      $env:DATABASE_URL = "postgres://postgres:Password12!@localhost/pacifica_dispatcher";
+      $env:BROKER_URL = "redis://127.0.0.1:6379/0";
+      $celery_proc = Start-Process C:\pacifica\Scripts\coverage.exe -ArgumentList "run --include=*/site-packages/pacifica/dispatcher/* -p -m celery -A receiver_test worker -l info -c 1 -P solo" -RedirectStandardError celery-error.log -RedirectStandardOutput celery-output.log;
+      coverage run --include='*/site-packages/pacifica/dispatcher/*' -m pytest -xv;
+      python -m celery -A receiver_test control shutdown;
+      $celery_proc | Wait-Process;
+      ls .coverage* | %{ python -m coverage combine -a $_.name };
+      coverage report -m --fail-under=100;
