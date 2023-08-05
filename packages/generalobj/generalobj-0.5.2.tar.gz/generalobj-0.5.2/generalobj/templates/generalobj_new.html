@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+<div class="container-fluid">
+	<div class="container-fluid col-sm-8">
+              {% if edit %}
+                 <div><h4>Edit {{ class_name }} : {{ obj }}</h4></div>
+              {% else%}
+                 <div><h4>Create new {{ class_name }}</h4></div>
+              {% endif %}
+		<div class="panel panel-default">
+			<div class="panel-body">
+<!---->
+				<form method="post" name ="" class="form-horizontal">
+				        {% csrf_token %}
+				        {% include "blocks/display_form.html" %}
+
+					<div class="form-group">
+        					<div class="col-sm-offset-2 col-sm-6">
+        						<button type="submit" class="btn btn-default">SAVE</button>
+        						<button type="submit" class="btn btn-default" name='cancel' id='cancel' value='cancel'>CANCEL</button>
+        					</div>
+    					</div>
+        
+				</form>	
+
+
+			</div>
+		</div>
+	</div>
+</div>
+	
+{% endblock %}
+
+
+
+{% block scriptsready %}
+        $( "form label" ).addClass(function( index ) {
+        return "col-sm-2 control-label";
+        });
+
+        $( "form input" ).addClass(function( index ) {
+        return "form-control";
+        });
+
+        $( "form select" ).addClass(function( index ) {
+        return "form-control selectpicker";
+        });
+
+        $('.has-popover').popover({'trigger':'hover'});
+{% endblock %}
+
+{% block scripts %}
+	<script type="text/javascript">
+        	{% if html_scripts %}
+        		{% include html_scripts %}
+	        {% endif %}
+        </script>
+{% endblock %}

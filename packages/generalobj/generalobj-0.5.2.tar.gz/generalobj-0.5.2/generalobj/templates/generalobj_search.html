@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block scripts %}
+	<script type="text/javascript">
+//		{-% include "js/start_stop_progress.js" %}
+		function get_object_list() {
+//			start_progress();
+			{% if booleanfield_exists %}
+				true_false = Array('true', 'false');
+			{% endif %}
+			{% for field in fields %}
+				{% ifequal field.1 "number" %}
+					{{ field.0 }}_gt = $('#{{ field.0 }}_gt').val();
+					{{ field.0 }}_lt = $('#{{ field.0 }}_lt').val();
+				{% endifequal %}
+				{% ifequal field.1 "text" %}
+					{{ field.0 }} = $('#{{ field.0 }}').val();
+				{% endifequal %}
+				{% ifequal field.1 "date" %}
+					{{ field.0 }}_gt = $('#{{ field.0 }}_gt').val();
+					{{ field.0 }}_lt = $('#{{ field.0 }}_lt').val();
+				{% endifequal %}
+				{% ifequal field.1 "relation" %}
+					//RELATION IS MISSING FROM HERE
+				{% endifequal %}
+				{% ifequal field.1 "boolean" %}
+					{{ field.0 }} = Array();
+					for (var c = 0; c < true_false.length; c++) {
+						if ($('#{{ field.0 }}_' + true_false[c]).is(':checked')) {
+							{{ field.0 }}[{{ field.0 }}.length] = true_false[c];
+						}
+					}
+				{% endifequal %}
+			{% endfor %}
+			$.get("{{ ajax_url }}"{% for field in fields %}+ '{% if forloop.counter0 %}&{% else %}?{% endif %}{% ifequal field.2 "text" %}{{ field.0 }}=' + {{ field.0 }}{% endifequal %}{% ifequal field.2 "ltgt" %}{{ field.0 }}_gt=' + {{ field.0 }}_gt + '&{{ field.0 }}_lt=' + {{ field.0 }}_lt{% endifequal %}{% endfor %}, function(data) {
+				ids = data.split('\n')[0];
+				$('#ge_object').val('{{ class_name }}');
+				$('#ge_ids').val(ids);
+				valid_data = data.split('\n').slice(1).join('\n')
+				$('#object_list').html(valid_data);
+				$('#object_table').DataTable();
+				if (ids.lenght > 0) {
+					$('#download_excelsheet').show();
+				} else {
+					$('#download_excelsheet').hide();
+				}
+			});
+		}
+	</script>
+{% endblock %}
+
+{% block scriptsready %}
+	$.fn.datepicker.defaults.format = 'dd/mm/yyyy';
+
+	$('.input-daterange input').each(function() {
+		$(this).datepicker();
+	});
+
+	{% for field in fields %}
+		{% ifequal field.1 "text" %}
+			$('#{{ field.0 }}').keyup(function(e) {
+				if (e.keyCode == 13) {
+					get_object_list();
+				};
+			});
+		{% endifequal %}
+		{% ifequal field.1 "number" %}
+			$('#{{ field.0 }}_gt, #{{ field.0 }}_lt').keyup(function(e) {
+				if (e.keyCode == 13) {
+					get_object_list();
+				};
+			});
+		{% endifequal %} 
+	{% endfor %}
+	
+	$('#submit_ajax_query').click(function() {
+		get_object_list();
+	});
+{% endblock %}
+
+{% block content %}
+
+	<div class="container-fluid">
+		<div class="container-fluid col-sm-4">
+			<div class="well well-sm">
+				<div class="btn-group" role="group" aria-label="">
+					<button type="button" class="btn btn-default" data-toggle="modal" data-target="#excelModal" id="download_excelsheet" style="display: none;">Download Excel</button>
+				</div>
+			</div>
+			
+			<div class="panel panel-default">
+				<div class="panel-body">
+					<div class="form-horizontal">
+						{% for field in fields %}
+							<div class="form-group">
+								<label for="{{ field.0 }}" class="col-sm-4 control-label">{{ field.0 }}</label>
+								<div class="col-sm-8">
+									{% ifequal field.1 'text' %}
+										<input type="text" class="form-control" id="{{ field.0 }}" placeholder="{{ field.0 }}">
+									{% endifequal %}
+									{% ifequal field.1 'number' %}
+										<div class="input-group">
+											<input type="text" class="form-control" id="{{ field.0 }}_gt">
+											<div class="input-group-addon">to</div>
+											<input type="text" class="form-control" id="{{ field.0 }}_lt">
+										</div>
+									{% endifequal %}
+									{% ifequal field.1 'date' %}
+										<div class="input-group input-daterange">
+											<input type="text" class="form-control" id="{{ field.0 }}_gt">
+											<div class="input-group-addon">to</div>
+											<input type="text" class="form-control" id="{{ field.0 }}_lt">
+										</div>
+									{% endifequal %}
+									{% ifequal field.1 'boolean' %}
+										<label class="checkbox-inline">
+											<input type="checkbox" id="{{ field.0 }}_true">
+											True
+										</label>
+										<label class="checkbox-inline">
+											<input type="checkbox" id="{{ field.0 }}_false">
+											False
+										</label>
+									{% endifequal %}
+								</div>
+							</div>
+						{% endfor %}
+						{% include "blocks/find_button_for_ajax_searches.html" %}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-8">
+			<ul class="nav nav-tabs" role="tablist">
+				<li role="presentation" class="active"><A href="{{ class_names_lower }}" data-toggle="tab">{{ class_names_lower }}s</A></li>
+			</ul>
+			
+			<div class="tab-content">
+				<div role="tabpanel" class="tab-pane active" id="object_list"><!-- tab 1 -->
+				</div>
+			</div>
+			
+			<div class="tab-content">
+				<div role="tabpanel" class="tab-pane" id="filter_tab">
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
