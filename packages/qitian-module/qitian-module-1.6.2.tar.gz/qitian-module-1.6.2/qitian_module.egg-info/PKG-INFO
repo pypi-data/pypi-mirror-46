@@ -1,0 +1,258 @@
+Metadata-Version: 2.1
+Name: qitian-module
+Version: 1.6.2
+Summary: 起田(苏州)营销策划有限公司Django项目公用底层框架.
+Home-page: https://gitee.com/qtch/django_module
+Author: Peter Han
+Author-email: peter@qitian.com
+License: MIT License
+Description: # 起田（苏州）营销策划有限公司DJANGO项目共用模块系统
+        
+        ### 配置文件settings
+            此项目包含基础项目配置，一般项目可以直接复制settings配置为基础配置。此配置会根据新加入的模块来修改，已有项目不要直接拷贝。
+        
+        ### 项目依赖文件
+            此项目的依赖文件要采用手动添加的方法，避免使用freeze方式。目的是为了让依赖项目简洁易读。
+        
+        ### 管理界面
+            管理界面使用grappelli,管理首页使用grappelli-dashboard
+        
+        ### celery配置与执行
+            项目部署完成后，运行celery任务：`celery -A django_module beat -l info -S django`
+            这个只是运行定时任务，还要启动worder来执行这个任务. `celery -A django_module worker -l info`
+        在项目文件夹下建立`celery.py`, 内容如下
+        ```
+        from __future__ import absolute_import, unicode_literals
+        from celery import Celery
+        import os
+        
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_module.settings')
+        
+        app = Celery('django_module')
+        # 第一个参数是实例的名称,  也可以使用模块的名字.
+        # broker参数是消息代理人url.
+        # 还有一个backend参数，当我们需要拿到异步任务的返回时需要用到.
+        # 这里就直接略过了.
+        app.config_from_object('django.conf:settings', namespace='CELERY')
+        app.autodiscover_tasks()
+        ```
+        在项目的`__init__.py`文件中,添加或修复内容如下:
+        ```
+        from __future__ import absolute_import, unicode_literals
+        from .celery import app as celery_app
+        
+        __all__ = ('celery_app',)
+        ```
+        
+        ### 项目配置信息
+        APP列表
+        ```
+        INSTALLED_APPS = [
+            'grappelli.dashboard',
+            'grappelli',
+            'django.contrib.admin',
+            'django.contrib.auth',
+            'django.contrib.contenttypes',
+            'django.contrib.sessions',
+            'django.contrib.messages',
+            'django.contrib.staticfiles',
+            'django.contrib.sites',
+            'django_celery_beat',
+            'django_celery_results',
+            'smart_selects',
+            'easy_thumbnails',
+            'system',
+            'ueditor',
+            'autopost',
+            'usercenter',
+            'taggit',
+            'taggit_labels',
+            'taggit_helpers',
+        ]
+        ```
+        在middleware中添加`'system.middleware.site.CurrentSiteMiddleware',`
+        template.options添加 `'system.context_processors.site_info',`
+        
+        静态文件等配置
+        ```
+        LANGUAGE_CODE = 'zh-hans'
+        
+        TIME_ZONE = 'Asia/Shanghai'
+        
+        USE_I18N = True
+        
+        USE_L10N = True
+        
+        USE_TZ = True
+        
+        LANGUAGES = (
+            ('en', ('English',)),
+            ('zh-hans', ('中文简体',)),
+        )
+        
+        # 翻译文件所在目录，需要手工创建
+        LOCALE_PATHS = (
+            os.path.join(BASE_DIR, 'locale'),
+        )
+        # Static files (CSS, JavaScript, Images)
+        # https://docs.djangoproject.com/en/2.1/howto/static-files/
+        
+        STATIC_URL = '/static/'
+        
+        STATICFILES_DIRS = [
+            os.path.join(BASE_DIR, "static"),
+            'static/',
+        ]
+        
+        STATIC_ROOT = 'pub_static/'
+        STATICFILES_FINDERS = (
+            "django.contrib.staticfiles.finders.FileSystemFinder",
+            "django.contrib.staticfiles.finders.AppDirectoriesFinder"
+        )
+        # 静态文件版本，发布后，有js,css文件变动需更换
+        STATIC_VERSION = 0.1
+        # 项目支付设置
+        AES_KEY = env.str('AES_KEY')
+        PAY_PROJECT_ID = env.int('PAY_PROJECT_ID')
+        PAY_URL = 'https://pay.qitian.biz/pay/index/%d/' % PAY_PROJECT_ID
+        # SMS模板, 不同项目需要修改
+        SMS_TEMPLATE = {
+            'register': '【娱乐信息网】亲爱的{name}贵宾，您的验证码是{code}。有效期为{time}分钟，请尽快验证',
+            'notice': '【娱乐信息网】主人，客户：{name}已支付订单:{order}，请您及时处理！',
+            'reg_tel_admin': '【娱乐信息网】有手机号：{tel} 用户于{time}注册了{site}, 请尽快联系。',
+        }
+        SMS_TIMES = 3
+        
+        # 设置用户属性
+        AUTH_PROFILE_MODULE = 'usercenter.QtUser'
+        
+        # 接口定义
+        REST_FRAMEWORK = {
+            'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+            'PAGE_SIZE': 20,
+            'page_query_param': 'page',
+        }
+        
+        SHOW_TJ = env.bool('SHOW_TJ')
+        
+        SITE_NAME = env.str('SITE_NAME')
+        
+        GRAPPELLI_INDEX_DASHBOARD = 'dashboard.CustomIndexDashboard'
+        ```
+        缓存与log设置
+        ```
+        # 设置缓存
+        CACHES = {
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": "redis://127.0.0.1:6379/1",
+                "OPTIONS": {
+                    "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                    # "PASSWORD": "mysecret"
+                }
+            }
+        }
+        
+        LOGGING = {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'verbose': {
+                    'format': ('%(asctime)s [%(process)d] [%(levelname)s] ' +
+                               'pathname=%(pathname)s lineno=%(lineno)s ' +
+                               'funcname=%(funcName)s %(message)s'),
+                    'datefmt': '%Y-%m-%d %H:%M:%S',
+                },
+                'simple': {
+                    'format': '%(asctime)s [%(levelname)s] %(message)s',
+                    'datefmt': '%Y-%m-%d %H:%M:%S',
+                },
+            },
+            'handlers': {
+                'console': {
+                    'level': 'DEBUG',
+                    'class': 'logging.StreamHandler',
+                    'formatter': 'simple',
+                },
+                'console-verbose': {
+                    'level': 'DEBUG',
+                    'class': 'logging.StreamHandler',
+                    'formatter': 'verbose',
+                },
+                'log_file': {
+                    'level': 'DEBUG',
+                    'class': 'logging.handlers.RotatingFileHandler',
+                    'filename': os.path.join(BASE_DIR, 'django.log'),
+                    'maxBytes': 33554432,
+                    'formatter': 'verbose',
+                },
+                'celery': {
+                    # 'level': 'INFO',
+                    # 'class': 'logging.handlers.RotatingFileHandler',
+                    'level': 'DEBUG',
+                    'formatter': 'simple',
+                    'class': 'logging.handlers.TimedRotatingFileHandler',
+                    'filename': 'celery.log',
+                    'when': 'midnight'
+                },
+        
+            },
+            'loggers': {
+                'django': {
+                    'handlers': ['console', 'log_file'],
+                    'propagate': True,
+                    'level': 'INFO',
+                },
+                'qt_celery': {
+                    'handlers': ['celery'],
+                    'level': 'INFO',
+                    'propagate': True,
+                },
+            },
+        }
+        ```
+        CELERY设置
+        ```
+        # celery 设置
+        CELERY_BROKER_URL = 'redis://127.0.0.1:6379/2'
+        CELERY_TIMEZONE = 'Asia/Shanghai'
+        CELERY_ENABLE_UTC = True
+        CELERY_ACCEPT_CONTENT = ['json']
+        CELERY_RESULT_BACKEND = 'django-db'
+        CELERY_TASK_SERIALIZER = 'json'
+        ```
+        #七牛配置
+        ```
+        # 七牛配置
+        QINIU_ACCESS_KEY = 'r35LYq6an6L0FUAmDUhqDNXICbtZ5JI1vKWXBGKv'
+        QINIU_SECRET_KEY = '8GkmiCK4_RjGWLKcJtjIl_8RH9QdnvSI_ulo7Apu'
+        QINIU_URL = 'https://media.qitian.biz/'
+        QINIU_BUCKET = 'qitian'
+        QINIU_FOLDER = 'autopost'
+        ```
+        
+        ### 更新步骤
+        `autopost`模块需要删除: `article` `category` `author`
+        一定要先添加作者
+        
+        ### 部署添加前段支持
+        
+        `npm install -g vue-cli`
+Keywords: framework qitian common module
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Framework :: Django :: 1.11
+Classifier: Framework :: Django :: 2.0
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Topic :: Utilities
+Requires-Python: >=3.6, !=3.0.*
+Description-Content-Type: text/markdown
