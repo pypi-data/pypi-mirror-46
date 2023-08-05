@@ -1,0 +1,143 @@
+pipeline {
+    agent { label 'tala' }
+
+    parameters {
+        string(
+            defaultValue: 'refs/heads/master',
+            description: 'The Git reference used in checkout',
+            name: 'GERRIT_REFSPEC'
+        )
+    }
+
+    options {
+        buildDiscarder(
+            logRotator(
+                artifactDaysToKeepStr: '',
+                artifactNumToKeepStr: '',
+                daysToKeepStr: '',
+                numToKeepStr: '10'
+            )
+        )
+        timestamps()
+        timeout(time: 5, unit: 'MINUTES')
+    }
+
+    triggers {
+        gerrit(
+            customUrl: '',
+            gerritProjects:[
+                [
+                    branches: [
+                        [
+                            compareType: 'ANT',
+                            pattern: '**'
+                        ]
+                    ],
+                    compareType: 'PLAIN',
+                    disableStrictForbiddenFileVerification: false,
+                    pattern: 'tala'
+                ]
+            ],
+            serverName: 'Talkamatic',
+            triggerOnEvents: [
+                patchsetCreated(
+                    excludeDrafts: true,
+                    excludeNoCodeChange: false,
+                    excludeTrivialRebase: false
+                )
+            ],
+            skipVote: [
+              onSuccessful: false,
+              onFailed    : false,
+              onUnstable  : false,
+              onNotBuilt  : false
+            ]
+        )
+    }
+
+    stages {
+        stage('clean') {
+            steps {
+                step([$class: 'WsCleanup'])
+            }
+        }
+
+        stage('checkout') {
+            steps {
+                checkout(
+                    changelog: false,
+                    poll: false,
+                    scm: [
+                        $class: 'GitSCM',
+                        branches: [
+                            [name: '$GERRIT_BRANCH']
+                        ],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            [
+                                $class: 'BuildChooserSetting',
+                                buildChooser: [
+                                    $class: 'GerritTriggerBuildChooser'
+                                ]
+                            ],
+                            [
+                                $class: 'SubmoduleOption',
+                                disableSubmodules: false,
+                                parentCredentials: true
+                            ],
+                            [
+                                $class: 'RelativeTargetDirectory',
+                                relativeTargetDir: 'tala'
+                            ]
+                        ],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [
+                            [
+                                credentialsId: 'jenkinsatgerrit',
+                                refspec: '$GERRIT_REFSPEC',
+                                url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                            ]
+                        ]
+                    ]
+                )
+            }
+        }
+
+        stage('install') {
+            steps {
+                sh "virtualenv venv"
+                sh ". venv/bin/activate; pip install --editable ./tala"
+                sh ". venv/bin/activate; pip install -r tala/dev-requirements.txt"
+            }
+        }
+
+        stage('tests') {
+            failFast true
+            parallel {
+                stage('code checks') {
+                    steps {
+                        sh ". venv/bin/activate; cd tala; flake8 ."
+                    }
+                }
+
+                stage('lint') {
+                    steps {
+                        sh ". venv/bin/activate; cd tala; pylint tala"
+                    }
+                }
+
+                stage('unit test') {
+                    steps {
+                        sh ". venv/bin/activate; cd tala; py.test tala"
+                    }
+                }
+
+                stage('integration test') {
+                    steps {
+                        sh ". venv/bin/activate; cd tala; py.test integration_tests"
+                    }
+                }
+            }
+        }
+    }
+}

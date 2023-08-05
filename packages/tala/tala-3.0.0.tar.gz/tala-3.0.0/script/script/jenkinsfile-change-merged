@@ -1,0 +1,167 @@
+pipeline {
+    agent { label 'tala' }
+
+    options {
+        buildDiscarder(
+            logRotator(
+                artifactDaysToKeepStr: '',
+                artifactNumToKeepStr: '',
+                daysToKeepStr: '',
+                numToKeepStr: '10'
+            )
+        )
+        timestamps()
+        timeout(time: 5, unit: 'MINUTES')
+    }
+
+    triggers {
+        gerrit(
+            customUrl: '',
+            gerritProjects:[
+                [
+                    branches: [
+                        [
+                            compareType: 'ANT',
+                            pattern: 'master'
+                        ]
+                    ],
+                    compareType: 'PLAIN',
+                    disableStrictForbiddenFileVerification: false,
+                    pattern: 'tala'
+                ]
+            ],
+            serverName: 'Talkamatic',
+            triggerOnEvents: [
+                changeMerged()
+            ],
+            skipVote: [
+              onSuccessful: false,
+              onFailed    : false,
+              onUnstable  : false,
+              onNotBuilt  : false
+            ]
+        )
+    }
+
+    stages {
+        stage('clean') {
+            steps {
+                step([$class: 'WsCleanup'])
+            }
+        }
+
+        stage('checkout') {
+            steps {
+                script {
+                    def scm = checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/master']],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            [
+                                $class: 'RelativeTargetDirectory',
+                                relativeTargetDir: 'tala'
+                            ],[
+                                $class: 'SubmoduleOption',
+                                disableSubmodules: false,
+                                parentCredentials: true
+                            ]
+                        ],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [[
+                            credentialsId: 'jenkinsatgerrit',
+                            url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                        ]]
+                    ])
+                    env.GIT_COMMIT = scm.GIT_COMMIT
+                }
+                echo "${env.GIT_COMMIT}"
+                sh "virtualenv venv"
+            }
+        }
+
+        stage('build wheel') {
+            steps {
+                sh ". venv/bin/activate; pip wheel --wheel-dir tala/dist --no-deps ./tala"
+            }
+        }
+
+        stage('archive artifacts') {
+            steps {
+                archiveArtifacts 'tala/dist/tala*.whl'
+            }
+        }
+
+        stage ('freeze requirements') {
+            steps {
+                sh ". venv/bin/activate; pip install tala/dist/tala*.whl"
+                sh ". venv/bin/activate; pip uninstall -y tala"
+                sh ". venv/bin/activate; pip freeze --local > tala/requirements.txt"
+            }
+        }
+
+        stage('build master') {
+            steps {
+                sh "docker build tala -t talkamatic/tala:${env.GIT_COMMIT}"
+                sh "docker tag talkamatic/tala:${env.GIT_COMMIT} talkamatic/tala:master"
+            }
+        }
+
+        stage('push master') {
+            steps {
+                withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
+                    sh "echo ${pw} | docker login -u zigit --password-stdin"
+                }
+                sh "docker push talkamatic/tala:${env.GIT_COMMIT}"
+                sh "docker push talkamatic/tala:master"
+            }
+        }
+
+        stage('install') {
+            steps {
+                sh ". venv/bin/activate; pip install --editable ./tala"
+
+                sh ". venv/bin/activate; pip install -r tala/dev-requirements.txt"
+            }
+        }
+
+        stage('test') {
+            failFast true
+            parallel {
+                stage('check code') {
+                    steps {
+                        sh ". venv/bin/activate; cd tala; flake8 ."
+                    }
+                }
+
+                stage('lint') {
+                    steps {
+                        sh ". venv/bin/activate; cd tala; pylint tala"
+                    }
+                }
+
+                stage('unit test') {
+                    steps {
+                        sh ". venv/bin/activate; cd tala; py.test tala"
+                    }
+                }
+
+                stage('integration test') {
+                    steps {
+                        sh ". venv/bin/activate; cd tala; py.test integration_tests"
+                    }
+                }
+            }
+        }
+
+        stage('push candidate') {
+            steps {
+                withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
+                    sh "echo ${pw} | docker login -u zigit --password-stdin"
+                }
+                sh "docker tag talkamatic/tala:${env.GIT_COMMIT} talkamatic/tala:candidate"
+                sh "docker push talkamatic/tala:candidate"
+            }
+        }
+    }
+}
