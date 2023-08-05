@@ -1,0 +1,117 @@
+Metadata-Version: 2.1
+Name: bricknil
+Version: 0.9.2
+Summary: Control LEGO(tm) BluetoothLE Hubs, Motors, and Sensors using Async Python
+Home-page: https://virantha.github.io/bricknil
+Author: Virantha N. Ekanayake
+Author-email: virantha@gmail.com
+License: ASL 2.0
+Platform: UNKNOWN
+Requires-Dist: pyyaml
+Requires-Dist: curio
+Requires-Dist: bluebrick-Adafruit-BluefruitLE (>=0.9.12)
+Requires-Dist: bricknil-bleak ; sys_platform != "darwin"
+Requires-Dist: pyobjc ; sys_platform == "darwin"
+
+BrickNil - Control LEGO Bluetooth Sensors and Motors with Python
+=================================================================
+
+|image_pypi| |image_downloads| |image_license| |passing| |quality| |Coverage Status|
+
+.. |image_pypi| image:: https://img.shields.io/pypi/v/bricknil.svg
+   :target: https://pypi.python.org/pypi/bricknil
+.. |image_downloads| image:: https://img.shields.io/pypi/dd/bricknil.svg
+.. |image_license| image:: https://img.shields.io/pypi/l/bricknil.svg
+   :target: https://www.apache.org/licenses/LICENSE-2.0
+.. |passing| image:: https://scrutinizer-ci.com/g/virantha/bricknil/badges/build.png?b=master
+.. |quality| image:: https://scrutinizer-ci.com/g/virantha/bricknil/badges/quality-score.png?b=master
+   :target: https://scrutinizer-ci.com/g/virantha/bricknil
+.. |Coverage Status| image:: https://img.shields.io/coveralls/github/virantha/bricknil.svg
+   :target: https://coveralls.io/r/virantha/bricknil
+
+.. |reg|    unicode:: U+000AE .. REGISTERED SIGN
+
+BrickNil [*]_ provides an easy way to connect to and program LEGO\ |reg|
+Bluetooth hubs (including the PoweredUp Passenger Train 60197_ and Cargo Train 60198_ sets, and the Lego
+Duplo Steam Train 10874_ and Cargo Train 10875_ ) using Python on OS X and
+Linux.  This work was inspired by this EuroBricks_ thread, and the NodeJS Powered-Up_
+library. Unlike the official apps available from LEGO, BrickNil allows you to control multiple
+hubs with a single program, which lets you easily scale to programming large interactive systems.
+
+BrickNil requires modern Python (designed and tested for 3.7) and uses asynchronous
+event programming built on top of the Curio_ async library.  As an aside, the choice of
+async library is fairly arbitrary; and enabling another library such as asyncio or Trio
+should be straightforward.
+
+An example BrickNil program for controlling the Train motor speed is shown below:
+
+.. code-block:: python
+
+   from curio import sleep
+   from bricknil import attach, start
+   from bricknil.hub import PoweredUpHub
+   from bricknil.sensor import TrainMotor
+
+   @attach(TrainMotor, name='motor')
+   class Train(PoweredUpHub):
+
+       async def run(self):
+           for i in range(2):  # Repeat this control two times
+               await self.motor.ramp_speed(80,5000) # Ramp speed to 80 over 5 seconds
+               await sleep(6)
+               await self.motor.ramp_speed(0,1000)  # Brake to 0 over 1 second
+               await sleep(2)
+
+   async def system():
+       train = Train('My train')
+
+   if __name__ == '__main__':
+       start(system)
+
+
+* Free and open-source software: ASL2 license
+* Documentation: http://virantha.github.io/bricknil
+* Source: https://github.com/virantha/bricknil
+
+.. [*] BrickNil's name comes from the word "Nil" (නිල්) in Sinhala_ which means Blue (as in Bluetooth)
+
+.. _Sinhala: https://en.wikipedia.org/wiki/Sinhalese_language
+.. _60197: https://www.amazon.com/gp/product/B07CC37F63/ref=as_li_tl?ie=UTF8&tag=virantha-20&camp=1789&creative=9325&linkCode=as2&creativeASIN=B07CC37F63
+.. _60198: https://www.amazon.com/gp/product/B07C39LCZ9/ref=as_li_tl?ie=UTF8&tag=virantha-20&camp=1789&creative=9325&linkCode=as2&creativeASIN=B07C39LCZ9
+.. _10874: https://www.amazon.com/gp/product/B07BK6M2WC/ref=as_li_tl?ie=UTF8&tag=virantha-20&camp=1789&creative=9325&linkCode=as2&creativeASIN=B07BK6M2WC
+.. _10875: https://www.amazon.com/gp/product/B07BK6KQR6/ref=as_li_tl?ie=UTF8&tag=virantha-20&camp=1789&creative=9325&linkCode=as2&creativeASIN=B07BK6KQR6
+.. _Boost: https://www.amazon.com/gp/product/B06Y6JCTKH/ref=as_li_tl?ie=UTF8&tag=virantha-20&camp=1789&creative=9325&linkCode=as2&creativeASIN=B06Y6JCTKH
+
+Features
+########
+
+* Supports the following LEGO\ |reg| Bluetooth systems:
+   * PoweredUp hubs for trains 60197_, 60198_
+   * Duplo trains 10874_ and 10875_
+   * PoweredUp remote
+   * Boost_ Move hub
+* Supports the following actuators/sensors:
+   * Internal motors
+   * Train motors
+   * Hub LED color
+   * Boost vision sensor (color, distance)
+   * Boost internal tilt/orientation/accelerometer
+   * Boost external motor
+   * External light
+   * Hub buttons
+   * Wedo external motor
+   * Wedo tiltand motion sensors
+* Fully supports Python asynchronous keywords and coroutines
+   * Allows expressive concurrent programming using async/await syntax
+   * The current implementation uses the async library Curio_ by David Beazley
+* Cross-platform
+   * Uses the Adafruit Bluefruit BluetoothLE library for Mac OS X
+   * Uses the Bleak Bluetooth library for Linux and Win10; also tested on Raspberry Pi.
+
+
+.. _Curio: http://curio.readthedocs.io
+.. _EuroBricks: https://www.eurobricks.com/forum/index.php?/forums/topic/162288-powered-up-a-tear-down/
+.. _Powered-Up: https://github.com/nathankellenicki/node-poweredup
+.. _Bleak: https://github.com/hbldh/bleak
+
+
