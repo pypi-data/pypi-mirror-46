@@ -1,0 +1,3 @@
+# DANA - Domain-Agnostic Networked Applications framework
+
+DANA is a simple, elegant framework designed to minimize developer time needed to provide common functionality in a client/server applications. Its goal is to abstract typically desired functionality into building blocks and expose these through easy to understand configuration. Ultimately, a power user with understanding of basic understanding of web service calls and SQL should be able to enhance the application independently, for example, by adding new reports. Additional back-end functionality can be provided through web services. Front-ends can be designed in any language as long as they interpret the DANA client configuration and render it into a UI.
