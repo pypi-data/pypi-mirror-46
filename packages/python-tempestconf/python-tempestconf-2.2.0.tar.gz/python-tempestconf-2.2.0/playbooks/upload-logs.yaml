@@ -1,0 +1,32 @@
+- hosts: all
+  tasks:
+    - name: Create tempest directory in /tmp/logs
+      file:
+        path: /tmp/logs/tempest
+        state: directory
+      become: true
+
+    - name: Copying tempest logs and config to /tmp/logs/tempest
+      copy:
+        src: "{{ item }}"
+        dest: /tmp/logs/tempest
+        remote_src: true
+      with_items:
+        - /opt/stack/tempest/etc/tempest.conf
+        - /opt/stack/tempest/tempest.log
+        - /etc/openstack/accounts.yaml
+      ignore_errors: true
+      become: true
+
+    - name: Upload logs
+      synchronize:
+        src: '/tmp/logs'
+        dest: '{{ zuul.executor.log_root }}'
+        mode: pull
+        copy_links: true
+        verify_host: true
+        rsync_opts:
+          - --include=/logs/**
+          - --include=*/
+          - --exclude=*
+          - --prune-empty-dirs
