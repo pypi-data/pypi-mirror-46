@@ -1,0 +1,106 @@
+language: python
+dist: xenial
+python:
+- 3.6
+services:
+- postgresql
+- redis-server
+stages:
+- lint
+- test
+- deploy
+
+jobs:
+  include:
+  - stage: lint
+    script: pre-commit run -a
+  - stage: test
+    before_script:
+    - psql -c 'create database pacifica_metadata;' -U postgres
+    - psql -c 'create database pacifica_uniqueid;' -U postgres
+    - psql -c 'create database pacifica_cartd;' -U postgres
+    - psql -c 'create database pacifica_ingest;' -U postgres
+    - psql -c 'create database pacifica_notify;' -U postgres
+    - psql -c 'create database pacifica_dispatcher;' -U postgres
+    - export VOLUME_PATH="/tmp/ingest"
+    - export METADATA_CPCONFIG="$PWD/travis/metadata/server.conf"
+    - export METADATA_CONFIG="$PWD/travis/metadata/config.ini"
+    - export POLICY_CPCONFIG="$PWD/travis/policy/server.conf"
+    - export UNIQUEID_CPCONFIG="$PWD/travis/uniqueid/server.conf"
+    - export UNIQUEID_CONFIG="$PWD/travis/uniqueid/config.ini"
+    - export INGEST_CPCONFIG="$PWD/travis/ingest/server.conf"
+    - export INGEST_CONFIG="$PWD/travis/ingest/config.ini"
+    - export CARTD_CPCONFIG="$PWD/travis/cartd/server.conf"
+    - export CARTD_CONFIG="$PWD/travis/cartd/config.ini"
+    - export ARCHIVEINTERFACE_CPCONFIG="$PWD/travis/archivei/server.conf"
+    - export ARCHIVEINTERFACE_CONFIG="$PWD/travis/archivei/config.ini"
+    - export NOTIFICATIONS_CPCONFIG="$PWD/travis/notify/server.conf"
+    - export NOTIFICATIONS_CONFIG="$PWD/travis/notify/config.ini"
+    - pacifica-metadata-cmd dbsync
+    - pacifica-cartd-cmd dbsync
+    - pacifica-uniqueid-cmd dbsync
+    - pacifica-ingest-cmd dbsync
+    - pacifica-notifications-cmd dbsync
+    - pacifica-metadata & echo $! > metadata.pid
+    - pacifica-archiveinterface & echo $! > archivei.pid
+    - pacifica-uniqueid & echo $! > uniqueid.pid
+    - pacifica-cartd & echo $! > cartd.pid
+    - celery -A pacifica.cartd.tasks worker --loglevel=info & echo $! > cartd-celery.pid
+    - pacifica-ingest & echo $! > ingest.pid
+    - celery -A pacifica.ingest.tasks worker --loglevel=info & echo $! > ingest-celery.pid
+    - pacifica-notifications & echo $! > notify.pid
+    - celery -A pacifica.notifications.tasks worker --loglevel=info & echo $! > notify-celery.pid
+    - |
+      MAX_TRIES=60
+      HTTP_CODE=$(curl -sL -w "%{http_code}\\n" localhost:8121/keys -o /dev/null || true)
+      while [[ $HTTP_CODE != 200 && $MAX_TRIES > 0 ]] ; do
+        sleep 1
+        HTTP_CODE=$(curl -sL -w "%{http_code}\\n" localhost:8121/keys -o /dev/null || true)
+        MAX_TRIES=$(( MAX_TRIES - 1 ))
+      done
+    - |
+      TOP_DIR=$PWD
+      MD_TEMP=$(mktemp -d)
+      VERSION=$(pip show pacifica-metadata | grep Version: | awk '{ print $2 }')
+      git clone https://github.com/pacifica/pacifica-metadata.git ${MD_TEMP}
+      pushd ${MD_TEMP}
+      git checkout v${VERSION}
+      python tests/test_files/loadit_test.py
+      popd
+    - pacifica-policy & echo $! > policy.pid
+    - |
+      curl -X PUT -H 'Last-Modified: Sun, 06 Nov 1994 08:49:37 GMT' --upload-file README.md http://127.0.0.1:8080/103
+      curl -X PUT -H 'Last-Modified: Sun, 06 Nov 1994 08:49:37 GMT' --upload-file README.md http://127.0.0.1:8080/104
+      readme_size=$(stat -c '%s' README.md)
+      readme_sha1=$(sha1sum README.md | awk '{ print $1 }')
+      echo '{ "hashsum": "'$readme_sha1'", "hashtype": "sha1", "size": '$readme_size'}' > /tmp/file-104-update.json
+      curl -X POST -H 'content-type: application/json' -T /tmp/file-104-update.json 'http://localhost:8121/files?_id=103'
+      curl -X POST -H 'content-type: application/json' -T /tmp/file-104-update.json 'http://localhost:8121/files?_id=104'
+    script:
+    - pip install .
+    - export DATABASE_URL=postgres://postgres:@127.0.0.1:5432/pacifica_dispatcher
+    - export BROKER_URL=redis://127.0.0.1:6379/0
+    - cd tests
+    - coverage run --include='*/site-packages/pacifica/dispatcher/*' -p -m celery -A receiver_test worker -c 1 -P solo -l info &
+    - coverage run --include='*/site-packages/pacifica/dispatcher/*' -m pytest -xv
+    - celery -A receiver_test control shutdown || true
+    - coverage combine -a .coverage*
+    - coverage report -m --fail-under 100
+  - stage: deploy
+    services: []
+    language: python
+    before_install: skip
+    script: skip
+    python: 3.6
+    deploy:
+      skip_cleanup: true
+      provider: pypi
+      user: dmlb2000
+      distributions: sdist bdist_wheel
+      password:
+        secure: ig70TaXbJ+4N3X9KYxTb0VbUckqPXhHjgOWZtMLfhAw7GdE4BGqBk01YH23GTXwWOe3FDItLUjkvYMHEs7D2xeYlb6NXT07ews4nWBq3XxZ2NSuDcQCHyQ0KAeY2MeKm7hMv/pGeHYWtnozgNckQ2Aqaty8IE72Go93kUGHY7UaiGt8yy4hi5X0b1NJFEybBf0BSA8yvPxyTSCIhhkWKAwheABDa4MmJootuVpeNVzSwfWnguHsnv6U2ZEAMJcOIQAeEIUMiOxIIkFS0Hv1vdeKuaSJdmrLXLXV/tezaEC7o+Ajb1nsBqaZUiCf0ZfUS1MeEiyzA40JNHkszKsN0GnxpzYVuWql4u7YaWkyOcU9Pgd/os0aCBw0e18W4p8qtuHqiGKtpTUxEgeWFG9WfbJOchfcDVo7VI/GZ2viNmIPUnbVi4cp2Rd4btNdrhyG80eLnntME0QoVYRDOL+xvkkp6ShQ7yT/LS6S9pHS/zGtnGnj/mfuzsJNmkwWIdOmUFFILfqBzVDwHlkrrRjESq9IohkU84rPxSodkVB9K4Ky3kX1mErQM+rOtl7Cg+FLaf/h/r+QLCczonJSrvpmsiCb4kp+LG/1mlZztK3nEXcAlTTRgiKYSgfROaRQdRBBwl9pRDmS9fIGgiq9kX8KZKnyOnKDXeyk85bBvseT67+s=
+      on:
+        tags: true
+install:
+- pip install -r requirements-dev.txt
+- pip install 'celery[redis]'
