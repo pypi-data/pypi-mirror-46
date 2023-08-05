@@ -1,0 +1,6 @@
+MODEL = 'model'
+IDENTIFIER = 'identifier'
+BUILD_TIME = 'build_time'
+STATS = 'stats'
+BUILD_DURATION = 'build_duration'
+MEMORY_USAGE = 'memory_usage'
