@@ -1,0 +1,137 @@
+language: python
+dist: xenial
+services:
+- postgresql
+- elasticsearch
+cache:
+  directories:
+  - $HOME/.cache/pre-commit
+stages:
+- lint
+- test
+- test-migration
+- test-docker
+- deploy
+env:
+  NOTIFICATIONS_URL: http://127.0.0.1:8080
+  PEEWEE_URL: postgres://postgres:@localhost/pacifica_metadata
+".script": &1
+- pip install pacifica-metadata==0.3.1 'elasticsearch<7'
+- export METADATA_CPCONFIG="$PWD/server.conf"
+- export PEEWEE_URL="postgres://postgres:@localhost/pacifica_metadata_upgrade"
+- pacifica-metadata-cmd dbsync
+- >
+  pushd $(mktemp -d);
+  pacifica-metadata --stop-after-a-moment & METADATA_PID=$!;
+  curl -Lo data.zip https://github.com/pacifica/pacifica-metadata/archive/v0.3.1.zip;
+  unzip data.zip; pushd pacifica-metadata-0.3.1;
+  curl --connect-timeout 10 localhost:8121/users;
+  python tests/test_files/loadit_test.py; wait $METADATA_PID;
+  popd; popd; sudo service elasticsearch stop;
+- cd tests
+- pip install ..
+- >
+  coverage run --include='*/site-packages/pacifica/metadata/*' core/cmd_test.py dbchk --equal;
+  ret_val=$?;
+  if [[ $ret_val == 0 ]] ; then exit -1; fi;
+- >
+  coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbchk;
+  ret_val=$?;
+  if [[ $ret_val == 0 ]] ; then exit -1; fi;
+- coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbsync;
+- coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbchk;
+- coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbchk --equal;
+- >
+  export PEEWEE_URL="sqliteext:///db.sqlite3";
+  coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbsync;
+  export PEEWEE_URL="postgres://postgres:@localhost/pacifica_metadata";
+- coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbsync;
+- coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbsync;
+- coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbchk;
+- coverage run --include='*/site-packages/pacifica/metadata/*' -a -m pytest -xv orm core
+- coverage run --include='*/site-packages/pacifica/metadata/*' -a -m pytest -xv rest
+- coverage report -m --fail-under 100
+".before_script": &2
+- psql -c 'create database pacifica_metadata;' -U postgres
+- psql -c 'create database pacifica_metadata_upgrade;' -U postgres
+- pushd tests; python cherrypy_catch_test.py & echo $! > cherrypy-catch.pid; popd;
+jobs:
+  include:
+  - stage: lint
+    python: 3.6
+    script: pre-commit run -a
+  - python: 2.7
+    script: pre-commit run -a
+  - stage: test
+    script: *1
+    before_script: *2
+    python: 3.6
+  - script: *1
+    before_script: *2
+    python: 2.7
+  - stage: test-migration
+    python: 3.6
+    script: >
+      curl -o apgdiff.zip https://www.apgdiff.com/download/apgdiff-2.4-bin.zip;
+      unzip apgdiff.zip;
+      psql -c 'create database pacifica_metadata;' -U postgres;
+      psql -c 'create database pacifica_metadata_upgrade;' -U postgres;
+      pip install pacifica-metadata==0.3.1 'elasticsearch<7';
+      export PEEWEE_URL="postgres://postgres:@localhost/pacifica_metadata_upgrade";
+      pacifica-metadata-cmd dbsync;
+      pip install .;
+      pacifica-metadata-cmd dbsync;
+      export PEEWEE_URL="postgres://postgres:@localhost/pacifica_metadata";
+      pacifica-metadata-cmd dbsync;
+      pg_dump -U postgres -f orig_schema.dump.sql pacifica_metadata;
+      pg_dump -U postgres -f update_schema.dump.sql pacifica_metadata_upgrade;
+      java -jar apgdiff-2.4/apgdiff-2.4.jar update_schema.dump.sql orig_schema.dump.sql;
+      if [[ $(java -jar apgdiff-2.4/apgdiff-2.4.jar update_schema.dump.sql orig_schema.dump.sql | wc -l) -gt 0 ]] ; then exit -1; fi
+  - stage: test-docker
+    sudo: required
+    python: 3.6
+    services:
+    - docker
+    script: >
+      docker-compose build --pull;
+      docker-compose up -d;
+      MAX_TRIES=60;
+      HTTP_CODE=$(curl -sL -w "%{http_code}\\n" localhost:8121/keys -o /dev/null || true);
+      while [[ $HTTP_CODE != 200 && $MAX_TRIES > 0 ]] ; do
+        sleep 1;
+        HTTP_CODE=$(curl -sL -w "%{http_code}\\n" localhost:8121/keys -o /dev/null || true);
+        MAX_TRIES=$(( MAX_TRIES - 1 ));
+      done;
+      pip install .;
+      cd tests; python test_files/loadit_test.py
+  - stage: deploy
+    services: []
+    language: python
+    before_install: skip
+    script: skip
+    python: 3.6
+    deploy:
+      skip_cleanup: true
+      provider: pypi
+      user: dmlb2000
+      distributions: sdist bdist_wheel
+      password:
+        secure: QldhKXUmkWsrHuI0JLEmN65A5nwC2JqG4r80BwmAyAVYSJ3OOX3a91S0N30hUL3/BZp12+0VUwyLYYfwFvOGx5lymkmjLQXtgT/tUFHnyci1JPsBK3KmSNixqGzRQGvtuiSVutXmuD5+pAR2RoZ0NcPUPwZ8wZ/Xqgq6YdSO7EpqT607F+eV8lOZzamMkrZ2qESf17w3KmCbzwNupiGUyWBd2SuPCgQS9K8hjwye0oPijSUsqTTkHKr5hEsmdv1eUbLAGZzoEMZyyXYpSsIu0X6DBZRt1k5m9XEw2wQlVeNeayPlgva/QlswzcUbdCZUpAKcaTm8X2pzSfYdzX3VksqyGHHeC93HiHZBLkVlqa4H1aHJPLJRZp0kvadq1DQWO1rh8gWl/QhKiqDk8J4KqsFaoW8aFK+x0YANJXitQJ5xQve85QY/d+M9hHPgkawHbhkssbVLAjzLgvUpbvcRgghmZ6/Aafo74KXuxfAtp4xThEYXT0zoVzULgVHYMWJFNeLLvimvjRozgbC98mqr5lFxhQG9vmTX5hB/AcljisdOzHrPftyZPvSFMqgdiJjqcHrf5uuVBP5JAxM7PKqCHXTtxzTgEi58H/CFzAf1/2Vnh07nN31/5IdNwttonzb2EdbToz3ReCIf8roQGnt/hhNi9UiupOe9cFvXoWCWmZk=
+      on:
+        tags: true
+  - services: []
+    language: python
+    before_install: skip
+    script: skip
+    python: 2.7
+    deploy:
+      skip_cleanup: true
+      provider: pypi
+      user: dmlb2000
+      distributions: bdist_wheel
+      password:
+        secure: QldhKXUmkWsrHuI0JLEmN65A5nwC2JqG4r80BwmAyAVYSJ3OOX3a91S0N30hUL3/BZp12+0VUwyLYYfwFvOGx5lymkmjLQXtgT/tUFHnyci1JPsBK3KmSNixqGzRQGvtuiSVutXmuD5+pAR2RoZ0NcPUPwZ8wZ/Xqgq6YdSO7EpqT607F+eV8lOZzamMkrZ2qESf17w3KmCbzwNupiGUyWBd2SuPCgQS9K8hjwye0oPijSUsqTTkHKr5hEsmdv1eUbLAGZzoEMZyyXYpSsIu0X6DBZRt1k5m9XEw2wQlVeNeayPlgva/QlswzcUbdCZUpAKcaTm8X2pzSfYdzX3VksqyGHHeC93HiHZBLkVlqa4H1aHJPLJRZp0kvadq1DQWO1rh8gWl/QhKiqDk8J4KqsFaoW8aFK+x0YANJXitQJ5xQve85QY/d+M9hHPgkawHbhkssbVLAjzLgvUpbvcRgghmZ6/Aafo74KXuxfAtp4xThEYXT0zoVzULgVHYMWJFNeLLvimvjRozgbC98mqr5lFxhQG9vmTX5hB/AcljisdOzHrPftyZPvSFMqgdiJjqcHrf5uuVBP5JAxM7PKqCHXTtxzTgEi58H/CFzAf1/2Vnh07nN31/5IdNwttonzb2EdbToz3ReCIf8roQGnt/hhNi9UiupOe9cFvXoWCWmZk=
+      on:
+        tags: true
+install:
+- pip install -r requirements-dev.txt

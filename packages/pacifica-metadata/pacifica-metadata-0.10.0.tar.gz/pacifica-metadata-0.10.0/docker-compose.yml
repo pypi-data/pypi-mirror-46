@@ -1,0 +1,24 @@
+version: '2'
+
+services:
+  metadatadb:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: metadata
+      POSTGRES_DB: pacifica_metadata
+      POSTGRES_USER: pacifica
+
+  metadataserver:
+    build:
+      context: .
+    links:
+      - metadatadb:postgres
+    ports:
+      - 8121:8121
+    environment:
+      PEEWEE_DATABASE: pacifica_metadata
+      PEEWEE_USER: pacifica
+      PEEWEE_ADDR: postgres
+      PEEWEE_PORT: 5432
+      PEEWEE_PROTO: postgres
+      PEEWEE_PASS: metadata
