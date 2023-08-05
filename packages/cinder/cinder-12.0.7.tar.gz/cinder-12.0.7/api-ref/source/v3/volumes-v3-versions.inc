@@ -1,0 +1,36 @@
+.. -*- rst -*-
+
+API versions
+============
+
+
+Show API v3 details
+~~~~~~~~~~~~~~~~~~~
+
+.. rest_method::  GET /v3/
+
+Shows details for Block Storage API v3.
+
+
+Normal response codes: 200
+
+Error response codes: 403
+
+
+Request
+-------
+
+Response Parameters
+-------------------
+
+.. rest_parameters:: parameters.yaml
+
+   - location: location
+
+Response Example
+----------------
+
+.. literalinclude:: ./samples/version-show-response.json
+   :language: javascript
+
+

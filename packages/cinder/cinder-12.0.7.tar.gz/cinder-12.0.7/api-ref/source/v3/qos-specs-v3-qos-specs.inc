@@ -1,0 +1,326 @@
+.. -*- rst -*-
+
+Quality of service (QoS) specifications (qos-specs)
+===================================================
+
+Administrators only, depending on policy settings.
+
+Creates, lists, shows details for, associates, disassociates, sets
+keys, unsets keys, and deletes quality of service (QoS)
+specifications.
+
+
+Disassociate a QoS specification from all associations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rest_method::  GET /v3/{project_id}/qos-specs/{qos_id}/disassociate_all
+
+Disassociates a QoS specification from all associations.
+
+Normal response codes: 202
+
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - project_id: project_id_path
+   - qos_id: qos_id
+
+
+Unset keys in a QoS specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rest_method::  PUT /v3/{project_id}/qos-specs/{qos_id}/delete_keys
+
+Unsets keys in a QoS specification.
+
+
+Normal response codes: 200
+
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - project_id: project_id_path
+   - qos_id: qos_id
+   - keys: keys
+
+Request Example
+---------------
+
+.. literalinclude:: ./samples/qos-unset-request.json
+   :language: javascript
+
+
+Get all associations for a QoS specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rest_method::  GET /v3/{project_id}/qos-specs/{qos_id}/associations
+
+Lists all associations for a QoS specification.
+
+
+Normal response codes: 200
+
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - project_id: project_id_path
+   - qos_id: qos_id
+
+
+Response
+--------
+
+.. rest_parameters:: parameters.yaml
+
+   - qos_specs: qos_specs
+   - specs: specs
+   - consumer: consumer_1
+   - name: name_4
+   - id: id_3
+   - links: links_2
+
+
+Response Example
+----------------
+
+.. literalinclude:: ./samples/qos-show-response.json
+   :language: javascript
+
+
+Associate QoS specification with a volume type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rest_method::  GET /v3/{project_id}/qos-specs/{qos_id}/associate
+
+Associates a QoS specification with a volume type.
+
+Normal response codes: 202
+
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - project_id: project_id_path
+   - qos_id: qos_id
+   - vol_type_id: vol_type_id_query
+
+
+Disassociate QoS specification from a volume type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rest_method::  GET /v3/{project_id}/qos-specs/{qos_id}/disassociate
+
+Disassociates a QoS specification from a volume type.
+
+Normal response codes: 202
+
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - project_id: project_id_path
+   - qos_id: qos_id
+   - vol_type_id: vol_type_id_query
+
+
+Show a QoS specification details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rest_method::  GET /v3/{project_id}/qos-specs/{qos_id}
+
+Shows details for a QoS specification.
+
+
+Normal response codes: 200
+
+Error response codes: Request Entity Too Large(413), badMethod(405),
+itemNotFound(404), forbidden(403), unauthorized(401), badRequest(400),
+serviceUnavailable(503)
+
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - project_id: project_id_path
+   - qos_id: qos_id
+
+
+Response Parameters
+-------------------
+
+.. rest_parameters:: parameters.yaml
+
+   - qos_specs: qos_specs
+   - specs: specs
+   - consumer: consumer
+   - name: name_4
+   - id: id_3
+   - links: links_2
+
+
+Response Example
+----------------
+
+.. literalinclude:: ./samples/qos-show-response.json
+   :language: javascript
+
+
+Set keys in a QoS specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rest_method::  PUT /v3/{project_id}/qos-specs/{qos_id}
+
+Sets keys in a QoS specification.
+
+
+Normal response codes: 200
+
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - project_id: project_id_path
+   - qos_id: qos_id
+   - qos_specs: qos_specs
+
+Request Example
+---------------
+
+.. literalinclude:: ./samples/qos-update-request.json
+   :language: javascript
+
+Response
+--------
+
+.. rest_parameters:: parameters.yaml
+
+   - qos_specs: qos_specs
+
+
+Response Example
+----------------
+
+.. literalinclude:: ./samples/qos-update-response.json
+   :language: javascript
+
+
+Delete a QoS specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rest_method::  DELETE /v3/{project_id}/qos-specs/{qos_id}
+
+Deletes a QoS specification.
+
+Normal response codes: 202
+
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - project_id: project_id_path
+   - qos_id: qos_id
+   - force: force_3
+
+
+Create a QoS specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rest_method::  POST /v3/{project_id}/qos-specs
+
+Creates a QoS specification.
+
+Specify one or more key and value pairs in the request body.
+
+Normal response codes: 202
+
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - project_id: project_id_path
+   - qos_specs: qos_specs
+   - name: name_4
+
+Request Example
+---------------
+
+.. literalinclude:: ./samples/qos-create-request.json
+   :language: javascript
+
+
+
+Response Parameters
+-------------------
+
+.. rest_parameters:: parameters.yaml
+
+   - qos_specs: qos_specs
+   - name: name_4
+   - links: links_2
+   - id: id_3
+   - consumer: consumer
+   - specs: specs
+
+
+List QoS Specifications
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rest_method::  GET /v3/{project_id}/qos-specs
+
+Lists quality of service (QoS) specifications.
+
+
+Normal response codes: 200
+
+Error response codes: 300
+
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - project_id: project_id_path
+   - sort: sort
+   - limit: limit
+   - marker: marker
+
+
+Response Parameters
+-------------------
+
+.. rest_parameters:: parameters.yaml
+
+   - qos_specs: qos_specs
+   - specs: specs
+   - consumer: consumer
+   - id: id_3
+   - name: name_4
+
+
+Response Example
+----------------
+
+.. literalinclude:: ./samples/qos-list-response.json
+   :language: javascript
