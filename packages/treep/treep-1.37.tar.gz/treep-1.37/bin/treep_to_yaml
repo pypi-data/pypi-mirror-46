@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+
+import os
+from treep import files
+from treep import list_git_repos
+
+def run():
+
+    path = os.getcwd()
+    workspace = path+os.sep+"workspace"
+
+    if not os.path.isdir(workspace):
+        print ("\nfailed to find a 'workspace' subdirectory in current directory\n")
+        return
+
+    statuses = list_git_repos.get_statuses(workspace)    
+
+    return files.generate_yaml_configuration_files(path,statuses)
+    
+
+if __name__ == "__main__":
+
+    files = run()
+
+    if files is not None:
+
+        print("\ngenerated files:")
+        for f in files:
+            print("\t"+f)
+        print("\nchange extension to '.yaml' for usage\n")
