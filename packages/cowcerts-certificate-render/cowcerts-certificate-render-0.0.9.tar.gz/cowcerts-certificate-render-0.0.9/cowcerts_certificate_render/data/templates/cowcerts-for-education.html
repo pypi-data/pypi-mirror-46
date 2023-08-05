@@ -1,0 +1,227 @@
+{% set data = namespace() %}
+
+{% set claims = signature.endorsements | map(attribute="claim") | list %}
+
+{# Find recipient claim #}
+{% for claim in claims %}
+{% if "RecipientClaim" in claim.type %}
+{% set data.recipient = claim %}
+{% endif %}
+{% endfor %}
+
+{# Check if official #}
+{% set official = officialValidation is defined %}
+<html lang="ca_AD">
+<head>
+    <style>
+        * {
+            text-align: center;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            width: 100%;
+            background-color: #174a7c;
+        }
+
+        div.main {
+            width: 100%;
+            font-family: sans-serif;
+            background-color: white;
+            margin: 5em auto 0;
+            padding: 1em 0;
+            border-radius: 1em;
+        }
+
+        div.certificate {
+            width: 100%;
+        }
+
+        div.alert {
+            width: 100%;
+            background-color: lightsalmon;
+            text-align: center;
+            padding: 0.5em;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 1080px) {
+            div.main {
+                width: 80%;
+            }
+        }
+
+        dd, dt {
+            margin: 0;
+            padding: 0;
+            border: 0;
+        }
+
+        dt {
+            font-weight: bold;
+            font-size: 1.15em;
+            margin-bottom: 0.4em;
+        }
+
+        dd {
+            margin-bottom: 1em;
+        }
+
+        table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        table .logos {
+            margin-bottom: 1.5em;
+        }
+
+        table .logos img {
+            height: 4em;
+        }
+
+        table .signatureLines img {
+            height: 4em;
+        }
+
+        table .signatureLines .name {
+            font-size: 1.15em;
+            font-weight: bold;
+        }
+
+        p.legal {
+            padding: 1em;
+        }
+
+        p.badge-description {
+            padding: 0 5em;
+        }
+    </style>
+    <title>{{ badge.name }}</title>
+</head>
+<body>
+<div class="main">
+    <div class="alert" id="alert-blockcerts">
+        <h2>Atenció</h2>
+        <h3>Les dades que visualitza poden no ésser verídiques.</h3>
+        <h4>Usi el <a href="http://titols.ad">verificador oficial</a> per a validar completament el certificat.</h4>
+        <p class="details">
+            El certificat que està visualitzant a través de <i>Blockcerts</i> no
+            valida automàticament la identitat de la entitat emisora del
+            certificate ni la identitat del receptor del certificat. Tampoc
+            ofereix altra informació addicional com el Suplement Europeu al
+            Diploma si escau.
+        </p>
+    </div>
+    <div class="certificate">
+        {# Badge #}
+        <h1>{{ badge.name }}</h1>
+        <p class="badge-description">{{ badge.description }}</p>
+
+        {# Recipient #}
+        <dl>
+            {% if data.recipient is defined %}
+            <dt>En/Na</dt>
+            <dd>{{ data.recipient.givenName }} {{ data.recipient.familyName }}</dd>
+            {% elif recipientProfile.name is defined %}
+            <dt>En/Na</dt>
+            <dd>{{ recipientProfile.name }}</dd>
+            {% else %}
+            <dt>Tipus d'identitat</dt>
+            <dd>{{ recipient.type }}</dd>
+
+            <dt>Identitat</dt>
+            <dd>{{ recipient.identity }}</dd>
+
+            <dt>Ofuscada</dt>
+            <dd>{{ recipient.hashed }}</dd>
+
+            {% if recipient.salt is defined %}
+            <dt><i>Salt</i></dt>
+            <dd>{{ recipient.salt }}</dd>
+            {% endif %}
+            {% endif %}
+
+            {# Recipient Claim #}
+            {% if data.recipient is defined %}
+            <dt>Nascut/uda:</dt>
+            <dd>{{ data.recipient.birthdate }}</dd>
+
+            <dt>A</dt>
+            <dd>{{ data.recipient.nationality }}</dd>
+            {% endif %}
+
+            {# Formalization #}
+            {% if official %}
+            <dt>Registre oficial de títols</dt>
+            <dd>{{ officialValidation.claim.registryCode }}</dd>
+            {% endif %}
+        </dl>
+
+        <table>
+            {# Logos #}
+            <tr class="logos">
+                {% if official %}
+                <td>
+                    {% if officialValidation.issuer.image is defined %}
+                    <img
+                            alt="{{ officialValidation.issuer.name }}"
+                            src="{{ officialValidation.issuer.image }}">
+                    {% else %}
+                    {{ officialValidation.issuer.name }}
+                    {% endif %}
+                </td>
+                {% endif %}
+                <td>
+                    {% if badge.issuer.image is defined %}
+                    <img
+                            alt="{{ badge.issuer.name }}"
+                            src="{{ badge.issuer.image }}">
+                    {% else %}
+                    {{ badge.issuer.name }}
+                    {% endif %}
+                </td>
+            </tr>
+            {# Signature lines #}
+            <tr class="signatureLines">
+                {% if official %}
+                <td>
+                    {% if officialValidation.claim.ministrySignature.image is
+                    defined %}
+                    <img
+                            alt="{{ officialValidation.claim.ministrySignature.name }}"
+                            src="{{ officialValidation.claim.ministrySignature.image }}"><br>
+                    {% endif %}
+                    <span class="name">{{ officialValidation.claim.ministrySignature.name }}</span><br>
+                    <span class="job">{{ officialValidation.claim.ministrySignature.jobTitle }}</span>
+                </td>
+                {% endif %}
+                {% if signatureLines is defined %}
+                {% for signatureLine in signatureLines %}
+                <td>
+                    {% if signatureLine.image is defined %}
+                    <img
+                            alt="{{ signatureLine.name }}"
+                            src="{{ signatureLine.image }}"><br>
+                    {% endif %}
+                    <span class="name">{{ signatureLine.name }}</span><br>
+                    <span class="job">{{ signatureLine.jobTitle }}</span>
+                </td>
+                {% endfor %}
+                {% endif %}
+            </tr>
+        </table>
+
+        {# Legal text #}
+        {% if badge.legalText is defined %}
+        <br>
+        <p class="legal">{{ badge.legalText }}</p>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>
