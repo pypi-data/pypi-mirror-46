@@ -1,0 +1,115 @@
+Metadata-Version: 2.1
+Name: pylogfloat
+Version: 0.1.4
+Summary: A numeric type for Python storing floats in log space for increased precision, allowing positive and negative float computations (arithmetic and logical operations)
+Home-page: https://bsennblad@bitbucket.org/bsennblad/pylogfloat.git
+Author: Bengt Sennblad
+Author-email: bengt.sennblad@scilifelab.com
+License: MIT
+Platform: UNKNOWN
+Requires-Dist: numpy
+
+================
+Class PyLogFloat
+================
+
+The PyLogFloat class transforms any float (positive or negative) in
+linear space into log_space and allows standard arithetic and logical
+operations in in linear space to be performed between two PyLogFloats.
+
+Internally a float ``f`` is stored as follows:
+
+- the (natural) log of ``|f|`` is stored as in a numpy.float64 variable, ``p``
+- the sign of ``f`` ('-', '+' or '0') are stored in a variable (-1, +1, 0) variable, ``sign``
+
+By storing the ``sign`` separately, both positive and negative floats can
+be stored in a pyLogFloat. Notice that a ``sign=0`` corresponds to the
+case where ``f =0``.
+
+Arithmetic operators
+--------------------
+
+The following arithmetic operators are implemented::
+
+  +=
+  -=
+  *=
+  /=
+  +
+  -
+  *
+  /
+
+Multiplication and division in linear space simply becomes addition
+and subtraction in log space.  To implement linear space addition, the
+standard approach applying the ``log1p`` function is used. A
+conditional use of ``log1p`` or ``exp1m`` is used for log value
+subtractions, following *Mächler, M. Accurately Computing log(1 − exp(−
+|a|)) Assessed by the Rmpfr package Cran, The Comprehensive R Archive
+Network*.
+
+The internal ``sign`` variable is taken into account when performing
+arithmetic operations. For example, in a multiplication between PyLogFloats ``a``
+and ``b``, corresponding to a positive float and a negative float,
+respectively, the resulting PyLogFloat has::
+
+  result.p = a.p + b.p
+  result.sign = a.sign * b.sign
+
+Other operators are treated correspondingly (addition and subtraction
+becomes somewhat more involved).
+
+
+Logical operators
+-----------------
+
+The following arithmetic operators are implemented::
+
+  <=
+  >=
+  <
+  >
+
+In logical operations between PyLogfloats ``a`` and ``b``, the
+internal sign variable is first compared (-1 < 0 < +1).
+
+If the ``a.sign == b.sign``:
+
+- ``a.sign == 0 <=> equality``
+- ``a.sign > 0, return a.p [operator] b.p``
+- ``a.sing <0, return !(a.p [operator] b.p)``
+
+Other functions
+---------------
+
+Power operators (``lplf**p``, where plf is a pylogfloat and p is a
+float or int) are implemented::
+
+  **= (equiv ipow(self, p))
+  ** (equiv pow(self, p))
+
+Logarithms and exponents of PyLogFloat are implemented, both as
+inplace (e.g., ``ilog``) and standard that is returning the result of
+the operation (e.g., ``log``)::
+
+  ilog(self)
+  log(self
+  iexp(self)
+  exp(self)
+
+**All functions and operators, except the power operator, are
+implemented to only work with PyLogFloats. The power operator
+always has a PyLogFloat base variable and a float or int power
+variable.**
+
+
+===============================================
+PLEASE NOTE THAT THIS IS STILL WORK IN PROGRESS
+===============================================
+
+While a rudimentary test file is included, the class is still largely
+untested.  Further functions may or may not be implemeted, e.g., a
+factorial function may be of interest. As could, in certain instances,
+automatic conversion of arguments to PyLogFloats.
+
+
