@@ -1,0 +1,33 @@
+dist: xenial
+sudo: required
+services:
+- docker
+cache:
+  directories:
+    - $HOME/.cache/go-build
+    - $HOME/cached-deps
+language: python
+python:
+  - '2.7'
+  - '3.4'
+  - '3.5'
+  - '3.6'
+  - '3.7'
+env:
+  global:
+    - PATH=$HOME/cached-deps:$PATH
+
+matrix:
+  include:
+    - python: 3.7
+      env: TOXENV=flake8
+    - python: 3.7
+      env: TOXENV=examples
+
+install:
+- make ci-install
+before_script:
+- make ci-setup
+script:
+- make proto
+- tox
