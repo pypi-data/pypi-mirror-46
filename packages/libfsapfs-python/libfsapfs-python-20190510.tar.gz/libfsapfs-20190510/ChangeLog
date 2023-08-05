@@ -1,0 +1,77 @@
+TODO
+* B-tree
+** Validate (expected) btree level to detect loops - added maximum recursion depth for now
+* Validate checksum
+** B-tree node
+** Container key bag
+** Volume key bag
+** Reaper
+** Object map
+** Space manager
+* Container superblock read file IO handle add block size support
+* use container data block vector in read file IO handle
+** Volume superblock
+** Container map
+** Container key bag?
+* Handle file size of 0, mapped file size does not support 0 ?
+* Container data handle add decryption support and use it to read container key bag?
+* add snapshot support
+
+library:
+* check if data block vector allocated size matches size of file extents
+* get_extent function, check inode flags and set extent is sparse flag
+* expose directory entry added time
+
+* improve format support
+** check for more compression methods
+** Add resource fork support
+** read zlib compressed resource fork data footer
+** Check deflate compressed files edge case where first byte is 0x#f
+
+* change container read bootstap as advised in documentation
+** read backup container superblocks
+
+* API
+** separate internal external attribute descriptor and API external descriptor
+** Add function to provide volume size
+** Add function to provide volume date and time values
+
+* optimization
+** read inode and extended attributes at once
+** cache uncompressed blocks
+
+* clean up / restructure
+** refactor libfsapfs_encryption_aes_key_unwrap to use encryption context?
+
+Python bindings:
+* add extents object?
+* add extended_attribute object
+
+Tools:
+* fsapfsinfo tool
+** add volume selection via GUID in path
+** prompt user for password or recovery password when needed
+** print extended attribute values
+** handle \r in filename
+** print hardlinks for -E option?
+** "-E all" instead of using next_object_identifier walk leaf nodes
+* fsapfsmount tool
+** prompt user for password or recovery password when needed
+** make symbolic links an absolute path which accounts for mount point
+** add owner and group identifier support?
+** add support for all volumes
+** add volume selection support
+** add extended attributes support
+** does fuse override file types such as socket?
+** dokan add symbolic link support
+
+Tests:
+* add tests for container_key_bag
+* add tests for volume_key_bag
+* add tests for key_encrypted_key
+* add tests for Unicode filenames
+
+20180907
+* see `git log' for more recent change log
+* Initial version based on libfsrefs and libfsntfs
+
