@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+#
+# Copyright (C) Jens Kasten <jens@kasten-edv.de>. All Rights Reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
+# 
+
+
+import argparse
+
+import firefox_shm
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--verbose", default=False, action="store_true",
+        help="make script noisily")
+    parser.add_argument("-b", "--backup", default=False, action="store_true",
+            help="created a copy in ~/.mozilla/firefox/ from current"
+                 " selected profile with suffix .archive")
+    parser.add_argument("-c", "--create", default=False, action="store_true",
+        help="move the current profile, and created the shm directory, "
+             "and copy current selected profile, and symlink it")
+    parser.add_argument("-s", "--sync", default=False, action="store_true",
+        help="syncing the temporary profile the local profile")
+    parser.add_argument("-r", "--restore", default=False, action="store_true",
+        help="deleting the temporary profile and move archive profile "
+             "current profile")
+    parser.add_argument("-p", "--profile", nargs="?",
+        help="select one of available profile")
+
+    args = parser.parse_args()
+  
+    p = firefox_shm.ProfileConfig(args.profile)
+    if args.verbose:
+        p.set_log_level()
+    p.read()
+    profile_path = p.path(p.default())
+
+    if not profile_path:
+        raise RuntimeError("Could not get profile path.")
+
+    pa = firefox_shm.ProfileArchive()
+    if args.verbose:
+        pa.set_log_level()
+    pa.set_runtime_vars(profile_path)
+    
+    if args.create:
+        pa.move_profile_to_new()
+        pa.copy_profile_to_shm()
+        pa.link_shm_profile()
+    
+    if args.sync:
+        pa.sync_profile()
+
+    if args.backup:
+        pa.backup_profile()
+
+    if args.restore:
+        pa.restore_profile()
+
+
+if __name__ == "__main__":
+    main()
