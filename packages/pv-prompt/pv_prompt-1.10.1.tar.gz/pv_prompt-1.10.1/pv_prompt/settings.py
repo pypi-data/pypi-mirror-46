@@ -1,0 +1,2 @@
+ATTR_VERBOSITY = "verbosity"
+GLOBALS = {ATTR_VERBOSITY: False}
