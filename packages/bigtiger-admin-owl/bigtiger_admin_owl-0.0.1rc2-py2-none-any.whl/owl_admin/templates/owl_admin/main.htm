@@ -1,0 +1,220 @@
+{% extends "owl_admin/base.htm" %}
+{% load static %}
+{% block head %}
+<style type="text/css">
+body {
+    background-color: #ffffff;
+}
+
+.box {
+    margin-bottom: 0px;
+}
+
+.box_title {
+    background: #e6e9eb;
+    color: #46505c;
+    font-family: gotham, Hiragino Sans GB, STHeiti, Microsoft Yahei, helvetica, arial, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    height: 38px;
+    line-height: 38px;
+    text-indent: 10px;
+    border-left: 3px solid #4285f4;
+}
+
+.box_content {
+    margin-top: 1px;
+}
+
+.box_title {
+    position: relative;
+}
+
+.box_title .btns {
+    position: absolute;
+    right: 10px;
+    top: 0px;
+}
+
+.box_title .btn {
+    margin-right: 10px;
+}
+
+.searchWrapper {
+    position: relative;
+    border-left: 3px solid #34a853;
+}
+
+.search {
+    padding: 8px 10px;
+    margin-bottom: 1px;
+}
+
+.gridWrapper {
+    overflow: hidden;
+    overflow-x: auto;
+}
+
+a.detail {
+    color: #4D90FE;
+}
+
+a.detail:hover {
+    text-decoration: underline;
+}
+
+.container-fluid {}
+
+.gridWrapper {}
+
+.btns .btn {
+    display: none;
+}
+
+.red {
+    color: red;
+}
+</style>
+{% endblock %}
+{% block body %}
+<div id="resize" class="viewFramework viewFramework-sidebar-hide">
+    <div class="viewFramework-head">
+        <div class="head-data">
+            <div class="head-data-logo">
+                <a class="imglogo pointer skinlogo" style="width:215px; height:60px;" href="/main/">
+                    <img class="maillogo" id="imglogo" src="https://rescdn.qqmail.com/zh_CN/htmledition/images/logo/logo_28_01e9c5d.gif">
+                </a>
+                <div class="user">
+                    <div style="margin-top:1px;">
+                        <b>{{ user.user_name }}</b><span>&lt;{{ user.login_name }}&gt;</span><br>
+                        <div class="header_nav">
+                            {% for item in root_menu.childs %}
+                            {% if forloop.counter == 2 %} | {% endif %}
+                            <a href="#nav?m={{ item.id }}">{{ item.menu_name }}</a>
+                            <span>{% if not forloop.last and not forloop.first %} - {% endif %}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="head-data-help">
+                <div class="help pull-right">
+                    <p><a href="/feedback/">意见反馈</a> | <a href="/modify_pwd/">修改密码</a> | <a href="/logout/">退出</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="topline_height" id="sepLineTd">
+        <div class="topline">
+            <div class="toplineimg left" id="imgLine"></div>
+        </div>
+    </div>
+    <div class="fdbody bodybgbt"></div>
+    <div class="viewFramework-body">
+        <div class="viewFramework-sidebar newskinbody">
+            <div class="sidebar-content">
+                <div class="sidebar-inner">
+                    <div class="navTopBar">
+                        <div class="navTopBar-inner"></div>
+                    </div>
+                    <div class="navMidBar" style="margin-top: 1px">
+                        <div class="navMidBar-inner">
+                        </div>
+                    </div>
+                    <div id="navBottomBar" class="navbottom"></div>
+                </div>
+            </div>
+        </div>
+        <div class="viewFramework-product" id="main_content">
+            <div class="viewFramework-product-navbar">
+                <div class="product-nav-stage product-nav-stage-main">
+                    <div class="product-nav-scene product-nav-main-scene">
+                    </div>
+                    <div class="product-nav-scene product-nav-sub-scene">
+                        <div class="product-nav-title"></div>
+                        <div class="product-nav-list">
+                            <ul></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="viewFramework-product-body">
+                <div class="product">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block bottom_script %}
+<script src="/static/owl_admin/scripts/owl.js"></script>
+
+<script type="text/javascript">
+var app = app || {};
+app.ui = {
+    header_height: 70,
+    box_title: 38,
+    main_content_padding: [5, 8, 5, 8]
+};
+
+var owlMenu = new OwlMenu({{ menusJson }});
+var owlProduct = new OwlProduct();
+var owlSidebar = new OwlSidebar();
+
+var router = new OwlRouter(function(menuId, event, isNav) {
+    if (isNav === false) {
+        var homeMenu = owlMenu.getHomeMenu();
+        if (homeMenu !== null) {
+            window.location.hash = "#nav?m=" + homeMenu.id;  
+        }
+        return;
+    }
+
+    var menuItem = owlMenu.getMenu(menuId);
+    var mainItem = null;
+
+    if (menuItem.depth === 1) {
+        mainItem = menuItem;
+    } else {
+        mainItem = owlMenu.getTopMenu(menuId);
+    }
+
+    if (mainItem == menuItem) {
+        if (mainItem.childs === undefined) {
+            owlProduct.link(mainItem);
+            owlSidebar.hide();
+        } else if (mainItem.fast_url) {
+            var fastMenuItem = owlMenu.getMenuByUrl(mainItem.fast_url);
+            owlSidebar.full(mainItem);
+            owlProduct.link(fastMenuItem);
+            owlSidebar.selected(fastMenuItem);
+        } else if (mainItem.remark) {
+            owlSidebar.full(mainItem);
+            owlProduct.summary(mainItem);
+        } else {
+            owlSidebar.full(mainItem);
+            owlProduct.link(mainItem.childs[0]);
+        }
+        owlProduct.nav.hide();
+    } else if (menuItem.depth == 4) {
+        var parentMenuItem = owlMenu.getMenu(menuItem.parent_id);
+        owlSidebar.full(mainItem);
+        owlSidebar.selected(parentMenuItem);
+        owlProduct.nav.show(parentMenuItem.menu_name, parentMenuItem.childs, menuItem);
+        owlProduct.link(menuItem);
+    } else if (menuItem.depth == 3 && menuItem.childs !== undefined) {
+        owlSidebar.full(mainItem);
+        var selMenuItem = owlMenu.getMenuByUrl(menuItem.menu_url);
+        owlSidebar.selected(menuItem);
+        owlProduct.nav.show(menuItem.menu_name, menuItem.childs, selMenuItem);
+        owlProduct.link(menuItem);
+    } else {
+        owlSidebar.full(mainItem);
+        owlProduct.nav.hide();
+        owlSidebar.selected(menuItem);
+        owlProduct.link(menuItem);
+    }
+});
+</script>
+{% endblock %}
