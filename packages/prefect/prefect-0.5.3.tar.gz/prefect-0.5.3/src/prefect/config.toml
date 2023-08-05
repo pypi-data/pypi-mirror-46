@@ -1,0 +1,80 @@
+# the location of the user's config file
+user_config_path = "$HOME/.prefect/config.toml"
+
+# debug mode
+debug = false
+
+
+[cloud]
+# the Prefect Server address
+api = "http://api-staging.prefect.io"
+graphql = "${cloud.api}/graphql/alpha"
+log = "${cloud.api}/log"
+result_handler = "${cloud.api}/result-handler"
+use_local_secrets = true
+heartbeat_interval = 30.0
+
+
+[logging]
+# The logging level: NOTSET, DEBUG, INFO, WARNING, ERROR, or CRITICAL
+level = "INFO"
+
+# The log format
+format = "[%(asctime)s] %(levelname)s - %(name)s | %(message)s"
+
+# Send logs to Prefect Cloud
+log_to_cloud = false
+
+
+[flows]
+# If true, edges are checked for cycles as soon as they are added to the flow. If false,
+# cycles are only checked when tasks are sorted (for example, when running or
+# serializing the flow). Defaults to false because it can affect the performance of
+# large flows.
+eager_edge_validation = false
+# If true, `flow.run` will run on schedule by default.
+# If false, only a single execution will occur (no retries, etc.)
+run_on_schedule = true
+
+
+[tasks]
+
+    [tasks.defaults]
+
+    # whether all tasks should checkpoint their outputs
+    checkpoint = false
+
+    # the number of times tasks retry before they fail.
+    # false indicates that tasks should never retry (equivalent to max_retries = 0)
+    max_retries = false
+
+    # the amount of time tasks should wait before retrying, in seconds.
+    # false indicates that tasks have no default value (users must specify one to set it)
+    retry_delay = false
+
+
+[engine]
+
+    [engine.executor]
+
+    # the default executor, specified using a full path
+    default_class = "prefect.engine.executors.SynchronousExecutor"
+
+        [engine.executor.dask]
+        # the default scheduler address for the DaskExecutor. Set to "local" to configure
+        # a LocalCluster
+        address = "local"
+        # whether to use multiprocessing or not (only applied if address is "local")
+        local_processes = false
+
+    [engine.flow_runner]
+    # the default flow runner, specified using a full path
+    default_class = "prefect.engine.flow_runner.FlowRunner"
+
+    [engine.result_handler]
+    # the default task runner, specified using a full path
+    default_class = "prefect.engine.cloud.CloudResultHandler"
+
+    [engine.task_runner]
+    # the default task runner, specified using a full path
+    default_class = "prefect.engine.task_runner.TaskRunner"
