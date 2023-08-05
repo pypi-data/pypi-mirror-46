@@ -1,0 +1,373 @@
+Metadata-Version: 2.1
+Name: veriusapigateway
+Version: 0.0.20
+Summary: API Gateway for accessing VeriUs Web Services.
+Home-page: https://bitbucket.org/veriusai/veriusapigateway/
+Author: İlke Elvan
+Author-email: ilke.elvan@verius.com.tr
+License: UNKNOWN
+Description: # PROJECT DESCRIPTION
+        
+        A Gateway for VeriUs Text Mining API.
+        Version: 0.0.20-beta (Anything on this document is subject to change.)
+        ---
+        
+        ## Authentication
+        
+        VeriUs Text API’s uses "API KEY"s to authenticate incoming requests.
+        You should pass in your "API KEY" while creating the VeriUsAPI Object.
+        
+        ###### INFO
+        
+        - You must replace **“$API_KEY”** with your **“API KEY”**.
+        - Since our services are constantly get updated results in this page may or may not represent actual values.
+        
+        ---
+        ## Installation and Importation
+        
+        ```
+        $ pip install requests
+        $ pip install veriusapigateway
+        $ python3
+        from veriusapigateway import VeriUsAPIGateway
+        VeriUsAPI = VeriUsAPIGateway("$API_KEY")
+        ```
+        
+        ---
+        ## Text Similarity
+        
+        **Estimate the degree of similarity between two texts**
+        
+        **Usage:**
+        
+        ```
+        text1 = "Artificial intelligence (AI), the ability of a digital computer or computer-controlled robot to perform tasks commonly associated with intelligent beings."
+        text2 = "AI (artificial intelligence) is the simulation of human intelligence processes by machines, especially computer systems."
+        result = VeriUsAPI.get_text_similarity(text1, text2)
+        print(result)
+        0.5679123042313889
+        ```
+        
+        ---
+        ## Semantic Text Similarity
+        
+        **Estimate the degree of semantic similarity between two texts**
+        
+        **Usage:**
+        
+        ```
+        text1 = "Yapay zeka (AI), bir dijital bilgisayarın veya bilgisayar kontrollü robotun, akıllı varlıklar ile yaygın olarak ilişkili görevleri gerçekleştirme kabiliyetidir."
+        text2 = "Yapay zeka, insan zekası süreçlerinin makineler, özellikle bilgisayar sistemleri ile simülasyonudur."
+        result = VeriUsAPI.get_semantic_similarity(text1, text2)
+        print(result)
+        0.8897541234782312
+        ```
+        
+        ---
+        ## Language Detection
+        
+        **Detect the language of a text.**
+        
+        **Usage:**
+        
+        ```
+        text = "Yapay zeka (AI), bir dijital bilgisayarın veya bilgisayar kontrollü robotun, akıllı varlıklar ile yaygın olarak ilişkili görevleri gerçekleştirme kabiliyetidir."
+        result = VeriUsAPI.get_language(text)
+        print(result)
+        tr
+        ```
+        
+        ---
+        ## Part of Speech Tagger
+        
+        **Assign parts of speech to each word, such as noun, verb, adjective, etc.**
+        
+        **Usage:**
+        
+        ```
+        text = "Yapay zeka (AI), bir dijital bilgisayarın veya bilgisayar kontrollü robotun, akıllı varlıklar ile yaygın olarak ilişkili görevleri gerçekleştirme kabiliyetidir."
+        result = VeriUsAPI.get_part_of_speech_tags(text)
+        ['(Yapay', 'Adjective'), ('zeka', 'Noun'), ('(', 'Punctuation'), ('AI', 'Noun'), (')', 'Punctuation'), (',', 'Punctuation'), ('bir', 'Determiner'),
+        ('dijital', 'Noun'), ('bilgisayarın', 'Noun'), ('veya', 'Conjunction'), ('bilgisayar', 'Noun'), ('kontrollü', 'Adjective'), ('robotun', 'Noun'),
+        ('akıllı', 'Adjective'), ('varlıklar', 'Noun'), ('ile', 'Postp'), ('yaygın', 'Adjective'), ('olarak', 'Adverb'), ('ilişkili', 'Noun'),
+        ('görevleri', 'Noun'), ('gerçekleştirme', 'Verb'), ('kabiliyetidir', 'Verb')]
+        ```
+        
+        ---
+        ## Abusive Content Detection
+        
+        **Check if a sentence is abusive or not.**
+        
+        **Usage:**
+        
+        ```
+        text = "Yapay zeka (AI), bir dijital bilgisayarın veya bilgisayar kontrollü robotun, akıllı varlıklar ile yaygın olarak ilişkili görevleri gerçekleştirme kabiliyetidir."
+        result = VeriUsAPI.get_abusive(text)
+        print(result)
+        Non-abusive
+        ```
+        
+        ---
+        ## Text Summarization
+        
+        **Summarize with the major points of the original document.**
+        
+        **Usage:**
+        
+        ```
+        text = "Bir kedi varmış, çok yalnızmış.  Çünkü kedi, annesini ve babasını kaybetmiş.Her gün yollarda gezermiş aç aç. Çöplükte yaşarmış. Bir gün bir evin yanından geçerken bir çocuğa rastlamış. Çocuk kediyi 2-3 dakika sevdikten sonra onu evine götürmüş, kedi ise hiç bir şey dememiş çünkü kedi hiç  Olamaz çünkü onun bir ailesi var demiş. Ancak çocuk ısrar etmiş ve babasını ikna etmiş. Çocuk da mutluymuş kedi  de. Kediyi beslemeye başlamışlar. 1 sene geçtikten sonra kedinin annesi ve babası ortaya çıkmış. Yavrularını bulmak için çabalamışlar ve sonunda bulmuşlar. Kedi ilk önce gitmek istememiş fakat annesi babası olduğunu anlayınca hemen onların yanına gitmiş. Çocuk ağlamaya başlamış.-Anladım baba, mutlu mutlu yaşasınlar, demiş. Kedi ve ailesi yola çıkmışlar, iyi bir hayata yeniden başlamışlar."
+        result = VeriUsAPI.get_summary(text)
+        print(result)
+        Çocuk kediyi 2-3 dakika sevdikten sonra onu evine götürmüş, kedi ise hiç bir şey dememiş çünkü kedi hiç Olamaz çünkü onun bir ailesi var demiş. Çocuk da mutluymuş kedi de.
+        ```
+        
+        ---
+        ## Keyword Extraction
+        
+        **Identify terms that best decribe the subject of a document.**
+        
+        **Usage:**
+        
+        ```
+        text = "Carl Sagan, Dünya dışında akıllı hayatın araştırılmasından yanaydı. Bilim dünyasını, Dünya dışı akıllı yaşam formlarından gelen sinyalleri dinlemek için büyük radyo-teleskopları kullanmaya sevk etmiştir. Diğer gezegenlere sondalar gönderilmesi gerektiğini savunmuştur. Carl Sagan, 12 yıl boyunca Icarus dergisinin editörlüğünü yapmıştır. Planetary Society nin kurucularındandır. Carl Sagan, SETI Enstitüsü nün yönetim kurulunun bir üyesiydi."
+        result = VeriUsAPI.get_keywords(text)
+        print(result)
+        Carl Sagan Akıllı
+        ```
+        
+        ---
+        ## Entity Extraction
+        
+        **Identify relevant nouns (people, places and organizations) that are mentioned in a text.**
+        
+        **Usage:**
+        
+        ```
+        text = "Merhaba ben Ahmet, nasılsınız?"
+        result = VeriUsAPI.get_named_entitites(text)
+        print(result)
+        [('Merhaba', 'O'), ('ben', 'O'), ('Ahmet', 'B-PERSON'), (',', 'O'), ('nasılsınız', 'O'), ('?', 'O')]
+        ```
+        
+        ---
+        ## Distorted Language Detection
+        
+        **A fun project to detect distorted language spoken by the white collar.**
+        
+        **Usage:**
+        
+        ```
+        text = "Gelecek hafta için bir toplantı assign edip brainstorming yapalım ve bir an önce bu konuda aksiyon alalım çünkü deadline yaklaşıyor."
+        result = VeriUsAPI.get_distorted(text)
+        print(result)
+        0.9901372301239035
+        ```
+        
+        ---
+        ## Intent Detection
+        
+        **Determine the expressed intent of given text.**
+        
+        **Usage:**
+        
+        ```
+        text = "Merhaba banka hesabı açmak istiyorum yardımcı olabilir misiniz?"
+        result = VeriUsAPI.get_intent(text)
+        print(result)
+        QUERY
+        ```
+        
+        ---
+        ## News Classification
+        
+        **Classify the subject of the given short news**
+        
+        **Usage:**
+        
+        ```
+        text = "Ayrım duvarına 'Filistinli cesur kız' Temimi'nin resmini çizen 2 İtalyan aktivist, İsrail güvenlik güçleri tarafından gözaltına alındı"
+        result = VeriUsAPI.get_news_class(text)
+        print(result)
+        PLANET
+        ```
+        
+        ---
+        ## Normalization
+        
+        **Normalize a given sentence to its proper written form**
+        
+        **Usage:**
+        
+        ```
+        text = "@dida bi yere gitcem büttttttüüüünnnnn insanlar hür, haysiyet ve haklari bakimindan e$it doğarlaaaar."
+        result = VeriUsAPI.get_normal(text)
+        print(result)
+        @mention[@dida] bir yere gideceğim bütün insanlar hür, haysiyet ve hakları bakımından eşit doğarlar.
+        ```
+        
+        ---
+        ## Deasciifier
+        
+        **Replace ascii characters with Turkish characters**
+        
+        **Usage:**
+        
+        ```
+        text = "Dun yolda bir kedi gordum, cok sevımlıydı. Hemen alıp cantama koydum ve eve getırdım."
+        result = VeriUsAPI.get_deasciified(text)
+        print(result)
+        Dün yolda bir kedi gördüm, çok sevimliydi. Hemen alıp çantama koydum ve eve getirdim.
+        ```
+        
+        ---
+        ## Morphological Analysis
+        
+        **Decompose a given text to its morphogical characteristics**
+        
+        **Usage:**
+        
+        ```
+        text = "Bütün insanlar hür , haysiyet ve haklar bakımından eşit doğarlar ."
+        result = VeriUsAPI.get_morphology(text)
+        print(result)
+        [[bütün:Adj] bütün:Adj, [insan:Noun] insan:Noun+lar:A3pl, [hür:Adj] hür:Adj, [,:Punc] ,:Punc, [haysiyet:Noun] haysiyet:Noun+A3sg, [ve:Conj] ve:Conj, [hak:Noun] hak:Noun+lar:A3pl, [bakım:Noun] bakım:Noun+A3sg+ı:P3sg+ndan:Abl, [eşit:Adj] eşit:Adj, [doğmak:Verb] doğ:Verb+ar:Aor+lar:A3pl, [.:Punc] .:Punc]
+        ```
+        
+        ---
+        ## Sexual Content Detection
+        
+        **An aggressive service to detect sexual content**
+        
+        **Usage:**
+        
+        ```
+        text = "Senden her yerin gözükecek şekilde fotoğraf istiyorum."
+        result = VeriUsAPI.get_sexual(text)
+        print(result)
+        SEXUAL
+        ```
+        
+        ---
+        ## Gibberish Detection
+        
+        **Detect whether words in a sentence are meaningful or not**
+        
+        **Usage:**
+        
+        ```
+        text = "RÖHAEHÖHEY. Gülmeyi unuttuk be Hüseyin."
+        result = VeriUsAPI.get_gibberish(text)
+        print(result)
+        GIBBERISH
+        ```
+        
+        ---
+        ## Sentence Tokenizer
+        
+        **Decompose a given text to its sentences**
+        
+        **Usage:**
+        
+        ```
+        text = "Geçen gün o geldi ama neden geldi hala belli değil."
+        result = VeriUsAPI.get_sentence_tokens(text)
+        print(result)
+        ['Geçen gün o geldi', 'ama neden geldi', 'hala belli değil']
+        ```
+        
+        
+        ---
+        ## Sentiment Classification
+        
+        **Determine whether a text is positive or negative**
+        
+        **Usage:**
+        
+        ```
+        text = "Bu ürünü hiç beğenmedim, iade etmek istiyorum."
+        result = VeriUsAPI.get_sentiment(text)
+        print(result)
+        NEGATIVE
+        ```
+        
+        
+        ---
+        ## Arabic Sentiment Classification
+        
+        **Determine whether a text is positive or negative**
+        
+        **Usage:**
+        
+        ```
+        text = "Bu ürünü hiç beğenmedim, iade etmek istiyorum."
+        result = VeriUsAPI.get_arabic_sentiment(text)
+        print(result)
+        NEGATIVE
+        ```
+        
+        
+        ---
+        ## Arabic News Classification
+        
+        **Classify the subject of the given news**
+        
+        **Usage:**
+        
+        ```
+        text = "Bu ürünü hiç beğenmedim, iade etmek istiyorum."
+        result = VeriUsAPI.get_arabic_news_class(text)
+        print(result)
+        NEGATIVE
+        ```
+        
+        
+        ---
+        ## Arabic Text Summarization
+        
+        **Summarize with the major points of the original document in Arabic**
+        
+        **Usage:**
+        
+        ```
+        text = "كانت حادثة استهداف موكب رئيس الوزراء الفلسطيني، رامي الحمد الله، في قطاع غزة خلال شهر مارس/ آذار الماضي، صادمة للشارع الفلسطيني، وأصابت جهد تحقيق المصالحة الداخلية في مقتل، لا سيما بعدما تلاها من اتهام السلطة الفلسطينية المباشر لحركة حماس بوقوفها خلف الحادث .وجاءت الزيارة في حينه بعد إتمام اتفاق بين حركتي فتح وحماس وبحضور الجانب المصري في القاهرة في أكتوبر / تشرين الأول من عام 2017، والذي نص على تسليم حكومة الوفاق مهامها في وزارات ومؤسسات قطاع غزة، وتسليم المعابر لأمن السلطة الفلسطينية. أعقاب ذلك الاتفاق كانت حكومة الوفاق قد أعلنت حلها قضية رواتب عشرات الآلاف من الموظفين الذين عُينوا بعد تولي حركة حماس الحكم في غزة، من موازنتها لعام 2018، وأعلنت الحكومة الفلسطينية أن حركة حماس أعاقت تمكين حكومة الوفاق في غزة. هدد زعيم حركة فتح، رئيس السلطة الفلسطينية، محمود عباس، في الشهر ذاته، باتخاذ مزيد من الإجراءات القانونية والمالية ضد حركة حماس ما لم تلتزم الأخيرة باتفاقيات المصالحة المتعاقبة، وتُمكن حكومة الوفاق من عملها في القطاع بشكل كامل وفعل حركة حماس فأكدت أنها سلمت بالفعل السيطرة الكاملة لحكومة الوفاق، والمعابر لأمن السلطة الفلسطينية، موجهة الاتهام لحركة فتح والسلطة الفلسطينية بالمماطلة في رفع ما وصفته بعقوباتها عن قطاع غزة. وقال القيادي في حركة حماس, أحمد يوسف لبي بي سي نحن التزمنا بكل ما علينا لتمكين حكومة الوفاق، وطرحنا إمكانية وجود طرف ثالث مكون إما من الإطار القيادي الفلسطيني المؤقت أو وفد من المصريين، للإقامة في قطاع غزة وليحكموا على مسألة التمكين من عدمها وبالمواصفات التي ترضي حركتي فتح وحماس.. التمكين موجود وهناك استحقاقات وذمم مالية للموظفين في عنق الحكومة يجب التعامل معها لضمان هذا التمكين أيضا، الحكومة وفتح في رام الله لديهم اعتراضات ويبدو أنهم غير راغبين بالقدوم وتحمل المسؤولية في قطاع غزة، فهم يواصلون التهرب ووضع الاشتراطات على حركة حماس"
+        result = VeriUsAPI.get_arabic_summary(text)
+        print(result)
+        كانت حادثة استهداف موكب رئيس الوزراء الفلسطيني، رامي الحمد الله، في قطاع غزة خلال شهر مارس/ آذار الماضي، صادمة للشارع الفلسطيني، وأصابت جهد تحقيق المصالحة الداخلية في مقتل، لا سيما بعدما تلاها من اتهام السلطة الفلسطينية المباشر لحركة حماس بوقوفها خلف الحادث .وجاءت الزيارة في حينه بعد إتمام اتفاق بين حركتي فتح وحماس وبحضور الجانب المصري في القاهرة في أكتوبر / تشرين الأول من عام 2017، والذي نص على تسليم حكومة الوفاق مهامها في وزارات ومؤسسات قطاع غزة، وتسليم المعابر لأمن السلطة الفلسطينية.
+        ```
+        
+        
+        
+        ---
+        ## Arabic Keyword Extraction
+        
+        **Identify terms that best describe the subject of a document in Arabic**
+        
+        **Usage:**
+        
+        ```
+        text = "كانت حادثة استهداف موكب رئيس الوزراء الفلسطيني، رامي الحمد الله، في قطاع غزة خلال شهر مارس/ آذار الماضي، صادمة للشارع الفلسطيني، وأصابت جهد تحقيق المصالحة الداخلية في مقتل، لا سيما بعدما تلاها من اتهام السلطة الفلسطينية المباشر لحركة حماس بوقوفها خلف الحادث .وجاءت الزيارة في حينه بعد إتمام اتفاق بين حركتي فتح وحماس وبحضور الجانب المصري في القاهرة في أكتوبر / تشرين الأول من عام 2017، والذي نص على تسليم حكومة الوفاق مهامها في وزارات ومؤسسات قطاع غزة، وتسليم المعابر لأمن السلطة الفلسطينية. أعقاب ذلك الاتفاق كانت حكومة الوفاق قد أعلنت حلها قضية رواتب عشرات الآلاف من الموظفين الذين عُينوا بعد تولي حركة حماس الحكم في غزة، من موازنتها لعام 2018، وأعلنت الحكومة الفلسطينية أن حركة حماس أعاقت تمكين حكومة الوفاق في غزة. هدد زعيم حركة فتح، رئيس السلطة الفلسطينية، محمود عباس، في الشهر ذاته، باتخاذ مزيد من الإجراءات القانونية والمالية ضد حركة حماس ما لم تلتزم الأخيرة باتفاقيات المصالحة المتعاقبة، وتُمكن حكومة الوفاق من عملها في القطاع بشكل كامل وفعل حركة حماس فأكدت أنها سلمت بالفعل السيطرة الكاملة لحكومة الوفاق، والمعابر لأمن السلطة الفلسطينية، موجهة الاتهام لحركة فتح والسلطة الفلسطينية بالمماطلة في رفع ما وصفته بعقوباتها عن قطاع غزة. وقال القيادي في حركة حماس, أحمد يوسف لبي بي سي نحن التزمنا بكل ما علينا لتمكين حكومة الوفاق، وطرحنا إمكانية وجود طرف ثالث مكون إما من الإطار القيادي الفلسطيني المؤقت أو وفد من المصريين، للإقامة في قطاع غزة وليحكموا على مسألة التمكين من عدمها وبالمواصفات التي ترضي حركتي فتح وحماس.. التمكين موجود وهناك استحقاقات وذمم مالية للموظفين في عنق الحكومة يجب التعامل معها لضمان هذا التمكين أيضا، الحكومة وفتح في رام الله لديهم اعتراضات ويبدو أنهم غير راغبين بالقدوم وتحمل المسؤولية في قطاع غزة، فهم يواصلون التهرب ووضع الاشتراطات على حركة حماس"
+        result = VeriUsAPI.get_arabic_keywords(text)
+        print(result)
+        حكومة حركة لحرك حماس الفلسطيني حكوم وفاق حرك فتح حماس وأعلن حكومة تمكين لتمكين التمكين السلط فلسطينية المصالحة وفعل بالفعل والسلطة غزة والمالية مالية الله رئيس حينه الحكم الحمد أحمد بعدم لاها بالقدوم حمل التهرب وضع ذ اتخاذ أعلنت عدم
+        ```
+        
+        
+        ---
+        ## Turkish Stemmer
+        
+        **Find roots of given words in a sentence**
+        
+        **Usage:**
+        
+        ```
+        text = "Büyük haberlerle geldim sana."
+        result = VeriUsAPI.get_stem(text)
+        print(result)
+        Büyük haber gel sen .
+        ```
+        
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
