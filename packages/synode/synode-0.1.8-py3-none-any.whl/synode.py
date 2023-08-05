@@ -1,0 +1,44 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import print_function, unicode_literals
+
+import sys
+import abc
+import pickle
+
+if sys.version_info >= (3, 0):
+    Object = abc.ABCMeta("Object", (object,), {})
+
+else:
+    Object = abc.ABCMeta("Object".encode("utf-8"), (object,), {})
+
+class Node(Object):
+    """Syntax node Python library for programming languages
+
+"""
+
+    def __init__(self, node, uppernode, **kwargs):
+
+        self.nodename = self.__class__.__name__
+        self.uppernode = uppernode
+        self.subnodes = []
+        self.nodetypes = []
+
+        self.construct(node)
+
+    @abc.abstractmethod
+    def construct(self, node):
+        pass
+
+    def add_nodetype(self, nodetype):
+        self.nodetypes.append(nodetype)
+
+    def add_subnode(self, node):
+        subnode = self.__class__(node, self)
+        self.subnodes.append(subnode)
+        return subnode
+
+    def write(self, output):
+
+        with open(output, "wb") as f:
+            pickle.dump(self, f)
