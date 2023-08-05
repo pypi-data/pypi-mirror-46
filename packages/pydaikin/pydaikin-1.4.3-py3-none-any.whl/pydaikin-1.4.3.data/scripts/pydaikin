@@ -1,0 +1,104 @@
+#!python
+
+import argparse
+import asyncio
+
+import pydaikin.appliance as appliance
+import pydaikin.discovery as discovery
+
+
+def list_all_devices():
+    for dev in discovery.get_devices():
+        print("%18s: %s" % (dev['ip'], dev['name']))
+
+
+parser = argparse.ArgumentParser(description='Daikin wireless interface.')
+
+group = parser.add_mutually_exclusive_group(required=True)
+
+group.add_argument(
+    'device',
+    metavar='dev',
+    nargs='?',
+    help='device, either ip or common name')
+
+group.add_argument(
+    '-l', '--list', action='store_true', help='list all the devices found')
+
+parser.add_argument(
+    '-a',
+    '--all',
+    action='store_true',
+    help='show all the values available for the device')
+
+settings = parser.add_argument_group('device settings',
+                                     'Modify paramaters of a device')
+
+settings.add_argument(
+    '-m',
+    '--mode',
+    choices=appliance.daikin_values('mode'),
+    help='set working mode')
+
+settings.add_argument('-t', '--temp', type=int, help='set target temperature')
+
+settings.add_argument('-y', '--humidity', type=int, help='set target humidity')
+
+settings.add_argument(
+    '-f',
+    '--fan',
+    choices=appliance.daikin_values('f_rate'),
+    help='set fan speed')
+
+settings.add_argument(
+    '-d',
+    '--direction',
+    choices=appliance.daikin_values('f_dir'),
+    help='set fan movement')
+
+settings.add_argument(
+    '-w',
+    '--away',
+    choices=appliance.daikin_values('en_hol'),
+    help='set away mode')
+
+args = parser.parse_args()
+
+if args.list:
+    list_all_devices()
+
+else:
+    settings = {}
+
+    if args.mode:
+        settings.update({"mode": args.mode})
+
+    if args.temp:
+        settings.update({"stemp": str(args.temp)})
+
+    if args.humidity:
+        settings.update({"shum": str(args.humidity)})
+
+    if args.fan:
+        settings.update({"f_rate": args.fan})
+
+    if args.direction:
+        settings.update({"f_dir": args.direction})
+
+    if args.away:
+        settings.update({"en_hol": args.away})
+
+    if args.all:
+        only_summary = False
+    else:
+        only_summary = True
+
+    loop = asyncio.get_event_loop()
+    e = appliance.Appliance(args.device)
+    loop.run_until_complete(e.init())
+
+    if settings == {}:
+        e.show_values(only_summary)
+
+    else:
+        loop.run_until_complete(e.set(settings))
