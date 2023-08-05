@@ -1,0 +1,159 @@
+# Welcome to Geoformat
+
+## Introduction
+
+Geoformat is GDAL / OGR  overlayer wiht MIT licence.
+The library aim is to simplify loading and OGR 'DataSource' and 'Layer' manipulations.
+Until now this library is in Alpha mode. This means that for the moment the structure of this library is not
+full oriented object compatible.
+
+## Installation
+
+
+```sh
+$ pip install geoformat
+```
+
+## Basic manipulations
+
+
+
+### Geoformat structure
+
+![Strucutre of Geoformat](https://framagit.org/Guilhain/Geoformat/raw/master/images/geoformat.png)
+
+### Open a geocontainer
+
+A container is an equivalent to folder or a database containing one or several geolayer.
+
+```py
+import geoformat
+
+commune_path = 'data/FRANCE_IGN/COMMUNE_2016_MPO_L93.shp'
+gare_path = 'data/FRANCE_IGN/GARES_PT_L93.shp'
+
+layer_list = [commune_path, gare_path]
+
+geocontainer = geoformat.ogr_layers_to_geocontainer(layer_list)
+
+print(geocontainer['layers'].keys())
+
+# >>>dict_keys(['COMMUNE_2016_MPO_L93', 'GARES_PT_L93'])
+```
+
+### Open a geolayer
+
+A geolayer is an equivalent to a file or a table in database containing one or several features with attibutes and/or
+geometry.
+
+```py
+import geoformat
+
+departement_path = 'data/FRANCE_IGN/DEPARTEMENT_2016_L93.shp'
+
+geolayer = geoformat.ogr_layer_to_geolayer(departement_path)
+
+print(len(geolayer['features']))
+
+# >>>96
+```
+
+
+### Print data geolayer
+
+Sometime it can be uselful to print in terminal geolayer's attributes.
+
+```py
+import geoformat
+
+region_path = 'data/FRANCE_IGN/REGION_2016_L93.shp'
+
+geolayer = geoformat.ogr_layer_to_geolayer(region_path)
+
+for line in geoformat.print_features_data_table(geolayer):
+    print(line)
+    
+### >>>
++--------+-------------------------------------+------------+----------+------------+
+| i_feat | NOM_REG                             | POPULATION | CODE_REG | SUPERFICIE |
++========+=====================================+============+==========+============+
+| 0      | AUVERGNE-RHONE-ALPES                | None       | 84       | None       |
+| 1      | CENTRE-VAL DE LOIRE                 | None       | 24       | None       |
+| 2      | PAYS DE LA LOIRE                    | None       | 52       | None       |
+| 3      | NORMANDIE                           | None       | 28       | None       |
+| 4      | ALSACE-CHAMPAGNE-ARDENNE-LORRAINE   | None       | 44       | None       |
+| 5      | PROVENCE-ALPES-COTE D'AZUR          | None       | 93       | None       |
+| 6      | LANGUEDOC-ROUSSILLON-MIDI-PYRENEES  | None       | 76       | None       |
+| 7      | ILE-DE-FRANCE                       | None       | 11       | None       |
+| 8      | AQUITAINE-LIMOUSIN-POITOU-CHARENTES | None       | 75       | None       |
+| 9      | CORSE                               | None       | 94       | None       |
+| 10     | BOURGOGNE-FRANCHE-COMTE             | None       | 27       | None       |
+| 11     | BRETAGNE                            | None       | 53       | None       |
+| 12     | NORD-PAS-DE-CALAIS-PICARDIE         | None       | 32       | None       |
+
+
+```
+
+### Change geolayer coordinate reference system [CRS]
+
+It can be usefull to change the projection for a layer.  In this example we will transform a geolayer in projection Lambert93 [EPSG:2154] to coordinates system WGS84 [EPSG:4326].
+
+```py
+import geoformat
+
+region_path = 'data/FRANCE_IGN/REGION_2016_L93.shp'
+
+geolayer = geoformat.ogr_layer_to_geolayer(region_path)
+
+geolayer = geoformat.reproject_geolayer(geolayer, out_crs=4326)
+
+print(geolayer['metadata']['geometry_ref']['crs'])
+
+# >>>4326
+
+```
+
+
+### Write geolayer in a OGR compatible GIS file
+
+You can obviously convert a geolayer in a compatible OGR file format.
+In this case ye put a geolayer in 'ESRi SHAPEFILE' format and we create a new file in 'GEOJSON' (we add a reprojection because geojson should be in WGS84 coordinates system).
+
+```py
+import geoformat
+
+gares_shp_path = 'data/FRANCE_IGN/GARES_L93.shp'
+gares_geojson_path =  'data/FRANCE_IGN/GARES_L93.geojson'
+
+geolayer = geoformat.ogr_layer_to_geolayer(gares_shp_path)
+
+geolayer = geoformat.reproject_geolayer(geolayer, out_crs=4326)
+
+geoformat.geolayer_to_ogr_layer(geolayer, gares_geojson_path, 'GEOJSON')
+
+```
+
+### Write a container in OGR compatible dataSource
+
+Like geolayer you can write a geoformat container in a folder or a GRG compatible datasource.
+Here we have a geocontainer with a lot of layers and we want to save all of this in an other folder (but it can be also a 'POSTGRESQL' database).
+
+```py
+import geoformat
+
+# INPUT
+commune_path = 'data/FRANCE_IGN/COMMUNE_2016_MPO_L93.shp'
+gare_path = 'data/FRANCE_IGN/GARES_PT_L93.shp'
+
+# OUTPUT
+output_folder = 'data/'
+
+layer_list = [commune_path, gare_path]
+
+geocontainer = geoformat.ogr_layers_to_geocontainer(layer_list)
+
+geoformat.geocontainer_to_ogr_format(geocontainer, output_folder, 'kml')
+
+```
+
+
