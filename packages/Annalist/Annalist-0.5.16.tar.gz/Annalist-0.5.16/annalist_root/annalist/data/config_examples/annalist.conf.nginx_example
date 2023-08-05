@@ -1,0 +1,71 @@
+# Example Nginx server configuration file for Annalist proxying from port 80.
+#
+# Create a suitably edited version of this file as
+#     /etc/nginx/sites-available/annalist.conf
+# and create a symlink to it from 
+#     /etc/nginx/sites-enabled/annalist.conf
+# e.g.
+#     ln -s /etc/nginx/sites-available/annalist.conf /etc/nginx/sites-enabled/
+# (use -f if link already exists.)
+#
+# Setting up `letsencrypt` with `certbot` certificate should update this file
+# with details for HTTPS access (e.g. see annalist-bionic.conf.nginx)
+
+# @@ Change "annalist.example.org" below to your local Annalist server virtual host name
+# @@ If necessary, change `/var/www/html` below to an appropriate web document directory
+# @@ If necessary, change `/home/annalist/annalist_site/` below to the 
+#    Annalist site data base directory.
+# @@ If necessary, change `:8000` below to the port served by Annalist
+
+# vim commands:
+#     s/annalist.example.org/@@@/
+#     &
+#     %s/annalist.example.net/@@@/g
+
+server {
+    server_name annalist.example.org;
+
+    # Non-proxy content
+    location / {
+        root /var/www/html;
+        index index.html index.htm;
+    }
+
+    # serve static files
+    location ~ ^/(static)/  {
+      root /home/annalist/annalist_site/;
+      expires 1h;
+    }
+
+    # Proxy content matching
+    location ~ /(annalist|admin) {
+        proxy_pass http://localhost:8000;
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_set_header X-Real-IP       $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Host            $http_host;  # https://serverfault.com/a/87059 
+                                                      # (see comments too)
+        proxy_set_header X-Forwarded-proto $scheme;
+    }
+
+    # Expect certbot to add something like this:
+    # listen [::]:443 ssl ipv6only=on;
+    # listen 443 ssl;
+    # ssl_certificate /etc/letsencrypt/live/annalist.example.org/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/annalist.example.org/privkey.pem;
+    # include /etc/letsencrypt/options-ssl-nginx.conf;
+    # ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+server {
+    server_name annalist.example.org;
+    listen 80;
+    listen [::]:80;
+    # Expect certbot to add something like this:
+    # if ($host = annalist.example.org) {
+    #     return 301 https://$host$request_uri;
+    # }
+    # return 404;
+}
+
