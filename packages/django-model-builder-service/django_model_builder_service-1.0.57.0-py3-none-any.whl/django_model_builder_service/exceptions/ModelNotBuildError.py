@@ -1,0 +1,2 @@
+class ModelNotBuildError(Exception):
+    pass
