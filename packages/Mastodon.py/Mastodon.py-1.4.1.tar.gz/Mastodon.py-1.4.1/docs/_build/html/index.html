@@ -1,0 +1,2214 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Mastodon.py &#8212; Mastodon.py 1.4.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.4.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-mastodon">
+<span id="mastodon-py"></span><h1>Mastodon.py<a class="headerlink" href="#module-mastodon" title="Permalink to this headline">¶</a></h1>
+<p>Register your app! This only needs to be done once. Uncomment the code and substitute in your information:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mastodon</span> <span class="kn">import</span> <span class="n">Mastodon</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Mastodon.create_app(</span>
+<span class="sd">     &#39;pytooterapp&#39;,</span>
+<span class="sd">     api_base_url = &#39;https://mastodon.social&#39;,</span>
+<span class="sd">     to_file = &#39;pytooter_clientcred.secret&#39;</span>
+<span class="sd">)</span>
+<span class="sd">&#39;&#39;&#39;</span>
+</pre></div>
+</div>
+<p>Then login. This can be done every time, or you can use the persisted information:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mastodon</span> <span class="kn">import</span> <span class="n">Mastodon</span>
+
+<span class="n">mastodon</span> <span class="o">=</span> <span class="n">Mastodon</span><span class="p">(</span>
+    <span class="n">client_id</span> <span class="o">=</span> <span class="s1">&#39;pytooter_clientcred.secret&#39;</span><span class="p">,</span>
+    <span class="n">api_base_url</span> <span class="o">=</span> <span class="s1">&#39;https://mastodon.social&#39;</span>
+<span class="p">)</span>
+<span class="n">mastodon</span><span class="o">.</span><span class="n">log_in</span><span class="p">(</span>
+    <span class="s1">&#39;my_login_email@example.com&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;incrediblygoodpassword&#39;</span><span class="p">,</span>
+    <span class="n">to_file</span> <span class="o">=</span> <span class="s1">&#39;pytooter_usercred.secret&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>To post, create an actual API instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mastodon</span> <span class="kn">import</span> <span class="n">Mastodon</span>
+
+<span class="n">mastodon</span> <span class="o">=</span> <span class="n">Mastodon</span><span class="p">(</span>
+    <span class="n">access_token</span> <span class="o">=</span> <span class="s1">&#39;pytooter_usercred.secret&#39;</span><span class="p">,</span>
+    <span class="n">api_base_url</span> <span class="o">=</span> <span class="s1">&#39;https://mastodon.social&#39;</span>
+<span class="p">)</span>
+<span class="n">mastodon</span><span class="o">.</span><span class="n">toot</span><span class="p">(</span><span class="s1">&#39;Tooting from python using #mastodonpy !&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="https://github.com/tootsuite/mastodon">Mastodon</a> is an ActivityPub and OStatus based twitter-like federated social
+network node. It has an API that allows you to interact with its
+every aspect. This is a simple python wrapper for that api, provided
+as a single python module. By default, it talks to the
+<a class="reference external" href="http://mastodon.social/">Mastodon flagship instance</a>, but it can be set to talk to any
+node running Mastodon by setting <cite>api_base_url</cite> when creating the
+api object (or creating an app).</p>
+<p>Mastodon.py aims to implement the complete public Mastodon API. As
+of this time, it is feature complete for Mastodon version 2.8.2. Pleromas
+Mastodon API layer, while not an official target, should also be basically
+compatible, and Mastodon.py does make some allowances for behaviour that isn’t
+strictly like Mastodons.</p>
+<div class="section" id="a-note-about-rate-limits">
+<h2>A note about rate limits<a class="headerlink" href="#a-note-about-rate-limits" title="Permalink to this headline">¶</a></h2>
+<p>Mastodons API rate limits per user account. By default, the limit is 300 requests
+per 5 minute time slot. This can differ from instance to instance and is subject to change.
+Mastodon.py has three modes for dealing with rate limiting that you can pass to
+the constructor, “throw”, “wait” and “pace”, “wait” being the default.</p>
+<p>In “throw” mode, Mastodon.py makes no attempt to stick to rate limits. When
+a request hits the rate limit, it simply throws a <cite>MastodonRateLimitError</cite>. This is
+for applications that need to handle all rate limiting themselves (i.e. interactive apps),
+or applications wanting to use Mastodon.py in a multi-threaded context (“wait” and “pace”
+modes are not thread safe).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Rate limit information is available on the <cite>Mastodon</cite> object for applications that
+implement their own rate limit handling.</p>
+<dl class="attribute">
+<dt id="mastodon.Mastodon.ratelimit_remaining">
+<code class="descclassname">Mastodon.</code><code class="descname">ratelimit_remaining</code><a class="headerlink" href="#mastodon.Mastodon.ratelimit_remaining" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of requests allowed until the next reset.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mastodon.Mastodon.ratelimit_reset">
+<code class="descclassname">Mastodon.</code><code class="descname">ratelimit_reset</code><a class="headerlink" href="#mastodon.Mastodon.ratelimit_reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time at which the rate limit will next be reset, as a POSIX timestamp.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mastodon.Mastodon.ratelimit_limit">
+<code class="descclassname">Mastodon.</code><code class="descname">ratelimit_limit</code><a class="headerlink" href="#mastodon.Mastodon.ratelimit_limit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total number of requests allowed between resets. Typically 300.</p>
+</dd></dl>
+
+<dl class="last attribute">
+<dt id="mastodon.Mastodon.ratelimit_lastcall">
+<code class="descclassname">Mastodon.</code><code class="descname">ratelimit_lastcall</code><a class="headerlink" href="#mastodon.Mastodon.ratelimit_lastcall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time at which these values have last been seen and updated, as a POSIX timestamp.</p>
+</dd></dl>
+
+</div>
+<p>In “wait” mode, once a request hits the rate limit, Mastodon.py will wait until
+the rate limit resets and then try again, until the request succeeds or an error
+is encountered. This mode is for applications that would rather just not worry about rate limits
+much, don’t poll the api all that often, and are okay with a call sometimes just taking
+a while.</p>
+<p>In “pace” mode, Mastodon.py will delay each new request after the first one such that,
+if requests were to continue at the same rate, only a certain fraction (set in the
+constructor as <cite>ratelimit_pacefactor</cite>) of the rate limit will be used up. The fraction can
+be (and by default, is) greater than one. If the rate limit is hit, “pace” behaves like
+“wait”. This mode is probably the most advanced one and allows you to just poll in
+a loop without ever sleeping at all yourself. It is for applications that would rather
+just pretend there is no such thing as a rate limit and are fine with sometimes not
+being very interactive.</p>
+<p>In addition to the per-user limit, there is a per-IP limit of 7500 requests per 5
+minute time slot, and tighter limits on logins. Mastodon.py does not make any effort
+to respect these.</p>
+<p>If your application requires many hits to endpoints that are available without logging
+in, do consider using Mastodon.py without authenticating to get the full per-IP limit.</p>
+</div>
+<div class="section" id="a-note-about-pagination">
+<h2>A note about pagination<a class="headerlink" href="#a-note-about-pagination" title="Permalink to this headline">¶</a></h2>
+<p>Many of Mastodons API endpoints are paginated. What this means is that if you request
+data from them, you might not get all the data at once - instead, you might only get the
+first few results.</p>
+<p>All endpoints that are paginated have four parameters: since_id, max_id, min_id and
+limit. since_id allows you to specify the smallest id you want in the returned data, but
+you will still always get the newest data, so if there are too many statuses between
+the newest one and since_id, some will not be returned. min_id, on the other hand, gives
+you statuses with that minimum id and newer, starting at the given id. max_id, similarly,
+allows you to specify the largest id you want. By specifying either min_id or max_id
+(generally, only one, not both) of them you can go through pages forwards and backwards.</p>
+<p>limit allows you to specify how many results you would like returned. Note that an
+instance may choose to return less results than you requested - by default, Mastodon
+will return no more than 40 statues and no more than 80 accounts no matter how high
+you set the limit.</p>
+<p>The responses returned by paginated endpoints contain a “link” header that specifies
+which parameters to use to get the next and previous pages. Mastodon.py parses these
+and stores them (if present) in the first (for the previous page) and last (for the
+next page) item of the returned list as _pagination_prev and _pagination_next. They
+are accessible only via attribute-style access. Note that this means that if you
+want to persist pagination info with your data, you’ll have to take care of that
+manually (or persist objects, not just dicts).</p>
+<p>There are convenience functions available for fetching the previous and next page of
+a paginated request as well as for fetching all pages starting from a first page.</p>
+</div>
+<div class="section" id="two-notes-about-ids">
+<h2>Two notes about IDs<a class="headerlink" href="#two-notes-about-ids" title="Permalink to this headline">¶</a></h2>
+<p>Mastodons API uses IDs in several places: User IDs, Toot IDs, …</p>
+<p>While debugging, it might be tempting to copy-paste in IDs from the
+web interface into your code. This will not work, as the IDs on the web
+interface and in the URLs are not the same as the IDs used internally
+in the API, so don’t do that.</p>
+<div class="section" id="id-unpacking">
+<h3>ID unpacking<a class="headerlink" href="#id-unpacking" title="Permalink to this headline">¶</a></h3>
+<p>Wherever Mastodon.py expects an ID as a parameter, you can also pass a
+dict that contains an id - this means that, for example, instead of writing</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">status_post</span><span class="p">(</span><span class="s2">&quot;@somebody wow!&quot;</span><span class="p">,</span> <span class="n">in_reply_to_id</span> <span class="o">=</span> <span class="n">toot</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>you can also just write</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">status_post</span><span class="p">(</span><span class="s2">&quot;@somebody wow!&quot;</span><span class="p">,</span> <span class="n">in_reply_to_id</span> <span class="o">=</span> <span class="n">toot</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and everything will work as intended.</p>
+</div>
+</div>
+<div class="section" id="error-handling">
+<h2>Error handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h2>
+<p>When Mastodon.py encounters an error, it will raise an exception, generally with
+some text included to tell you what went wrong.</p>
+<p>The base class that all mastodon exceptions inherit from is <cite>MastodonError</cite>.
+If you are only interested in the fact an error was raised somewhere in
+Mastodon.py, and not the details, this is the exception you can catch.</p>
+<p><cite>MastodonIllegalArgumentError</cite> is generally a programming problem - you asked the
+API to do something obviously invalid (i.e. specify a privacy option that does
+not exist).</p>
+<p><cite>MastodonFileNotFoundError</cite> and <cite>MastodonNetworkError</cite> are IO errors - could be you
+specified a wrong URL, could be the internet is down or your hard drive is
+dying. They inherit from <cite>MastodonIOError</cite>, for easy catching. There is a sub-error
+of <cite>MastodonNetworkError</cite>, <cite>MastodonReadTimeout</cite>, which is thrown when a streaming
+API stream times out during reading.</p>
+<p><cite>MastodonAPIError</cite> is an error returned from the Mastodon instance - the server
+has decided it can’t fullfill your request (i.e. you requested info on a user that
+does not exist). It is further split into <cite>MastodonNotFoundError</cite> (API returned 404)
+and <cite>MastodonUnauthorizedError</cite> (API returned 401). Different error codes might exist,
+but are not currently handled separately.</p>
+<p><cite>MastodonMalformedEventError</cite> is raised when a streaming API listener receives an
+invalid event. There have been reports that this can sometimes happen after prolonged
+operation due to an upstream problem in the requests/urllib libraries.</p>
+<p><cite>MastodonRatelimitError</cite> is raised when you hit an API rate limit. You should try
+again after a while (see the rate limiting section above).</p>
+<p><cite>MastodonServerError</cite> is raised when the server throws an internal error, likely due
+to server misconfiguration.</p>
+<p><cite>MastodonVersionError</cite> is raised when a version check for an API call fails.</p>
+</div>
+<div class="section" id="return-values">
+<h2>Return values<a class="headerlink" href="#return-values" title="Permalink to this headline">¶</a></h2>
+<p>Unless otherwise specified, all data is returned as python dictionaries, matching
+the JSON format used by the API. Dates returned by the API are in ISO 8601 format
+and are parsed into python datetime objects.</p>
+<p>To make access easier, the dictionaries returned are wrapped by a class that adds
+read-only attributes for all dict values - this means that, for example, instead of
+writing</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">description</span> <span class="o">=</span> <span class="n">mastodon</span><span class="o">.</span><span class="n">account_verify_credentials</span><span class="p">()[</span><span class="s2">&quot;source&quot;</span><span class="p">][</span><span class="s2">&quot;note&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>you can also just write</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">description</span> <span class="o">=</span> <span class="n">mastodon</span><span class="o">.</span><span class="n">account_verify_credentials</span><span class="p">()</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">note</span>
+</pre></div>
+</div>
+<p>and everything will work as intended. The class used for this is exposed as
+<cite>AttribAccessDict</cite>.</p>
+<div class="section" id="user-dicts">
+<h3>User dicts<a class="headerlink" href="#user-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="user-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">account</span><span class="p">(</span><span class="o">&lt;</span><span class="n">numerical</span> <span class="nb">id</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="c1"># Returns the following dictionary:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># Same as &lt;numerical id&gt;</span>
+    <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="c1"># The username (what you @ them with)</span>
+    <span class="s1">&#39;acct&#39;</span><span class="p">:</span> <span class="c1"># The user&#39;s account name as username@domain (@domain omitted for local users)</span>
+    <span class="s1">&#39;display_name&#39;</span><span class="p">:</span> <span class="c1"># The user&#39;s display name</span>
+    <span class="s1">&#39;locked&#39;</span><span class="p">:</span> <span class="c1"># Denotes whether the account can be followed without a follow request</span>
+    <span class="s1">&#39;created_at&#39;</span><span class="p">:</span> <span class="c1"># Account creation time</span>
+    <span class="s1">&#39;following_count&#39;</span><span class="p">:</span> <span class="c1"># How many people they follow</span>
+    <span class="s1">&#39;followers_count&#39;</span><span class="p">:</span> <span class="c1"># How many followers they have</span>
+    <span class="s1">&#39;statuses_count&#39;</span><span class="p">:</span> <span class="c1"># How many statuses they have</span>
+    <span class="s1">&#39;note&#39;</span><span class="p">:</span> <span class="c1"># Their bio</span>
+    <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="c1"># Their URL; usually &#39;https://mastodon.social/users/&lt;acct&gt;&#39;</span>
+    <span class="s1">&#39;avatar&#39;</span><span class="p">:</span> <span class="c1"># URL for their avatar, can be animated</span>
+    <span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="c1"># URL for their header image, can be animated</span>
+    <span class="s1">&#39;avatar_static&#39;</span><span class="p">:</span> <span class="c1"># URL for their avatar, never animated</span>
+    <span class="s1">&#39;header_static&#39;</span><span class="p">:</span> <span class="c1"># URL for their header image, never animated</span>
+    <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="c1"># Additional information - only present for user dict returned</span>
+              <span class="c1"># from account_verify_credentials()</span>
+    <span class="s1">&#39;moved_to_account&#39;</span><span class="p">:</span> <span class="c1"># If set, an account dict of the account this user has</span>
+                        <span class="c1"># set up as their moved-to address.</span>
+    <span class="s1">&#39;bot&#39;</span><span class="p">:</span> <span class="c1"># Boolean indicating whether this account is automated.</span>
+    <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="c1"># List of up to four dicts with free-form &#39;name&#39; and &#39;value&#39; profile info.</span>
+<span class="p">}</span>
+
+<span class="n">mastodon</span><span class="o">.</span><span class="n">account_verify_credentials</span><span class="p">()[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span>
+<span class="c1"># Returns the following dictionary:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;privacy&#39;</span><span class="p">:</span> <span class="c1"># The users default visibility setting (&quot;private&quot;, &quot;unlisted&quot; or &quot;public&quot;)</span>
+    <span class="s1">&#39;sensitive&#39;</span><span class="p">:</span> <span class="c1"># Denotes whether user media should be marked sensitive by default</span>
+    <span class="s1">&#39;note&#39;</span><span class="p">:</span> <span class="c1"># Plain text version of the users bio</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="toot-dicts">
+<h3>Toot dicts<a class="headerlink" href="#toot-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="toot-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">toot</span><span class="p">(</span><span class="s2">&quot;Hello from Python&quot;</span><span class="p">)</span>
+<span class="c1"># Returns the following dictionary:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># Numerical id of this toot</span>
+    <span class="s1">&#39;uri&#39;</span><span class="p">:</span> <span class="c1"># Descriptor for the toot</span>
+        <span class="c1"># EG &#39;tag:mastodon.social,2016-11-25:objectId=&lt;id&gt;:objectType=Status&#39;</span>
+    <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="c1"># URL of the toot</span>
+    <span class="s1">&#39;account&#39;</span><span class="p">:</span> <span class="c1"># User dict for the account which posted the status</span>
+    <span class="s1">&#39;in_reply_to_id&#39;</span><span class="p">:</span> <span class="c1"># Numerical id of the toot this toot is in response to</span>
+    <span class="s1">&#39;in_reply_to_account_id&#39;</span><span class="p">:</span> <span class="c1"># Numerical id of the account this toot is in response to</span>
+    <span class="s1">&#39;reblog&#39;</span><span class="p">:</span> <span class="c1"># Denotes whether the toot is a reblog. If so, set to the original toot dict.</span>
+    <span class="s1">&#39;content&#39;</span><span class="p">:</span> <span class="c1"># Content of the toot, as HTML: &#39;&lt;p&gt;Hello from Python&lt;/p&gt;&#39;</span>
+    <span class="s1">&#39;created_at&#39;</span><span class="p">:</span> <span class="c1"># Creation time</span>
+    <span class="s1">&#39;reblogs_count&#39;</span><span class="p">:</span> <span class="c1"># Number of reblogs</span>
+    <span class="s1">&#39;favourites_count&#39;</span><span class="p">:</span> <span class="c1"># Number of favourites</span>
+    <span class="s1">&#39;reblogged&#39;</span><span class="p">:</span> <span class="c1"># Denotes whether the logged in user has boosted this toot</span>
+    <span class="s1">&#39;favourited&#39;</span><span class="p">:</span> <span class="c1"># Denotes whether the logged in user has favourited this toot</span>
+    <span class="s1">&#39;sensitive&#39;</span><span class="p">:</span> <span class="c1"># Denotes whether media attachments to the toot are marked sensitive</span>
+    <span class="s1">&#39;spoiler_text&#39;</span><span class="p">:</span> <span class="c1"># Warning text that should be displayed before the toot content</span>
+    <span class="s1">&#39;visibility&#39;</span><span class="p">:</span> <span class="c1"># Toot visibility (&#39;public&#39;, &#39;unlisted&#39;, &#39;private&#39;, or &#39;direct&#39;)</span>
+    <span class="s1">&#39;mentions&#39;</span><span class="p">:</span> <span class="c1"># A list of users dicts mentioned in the toot, as Mention dicts</span>
+    <span class="s1">&#39;media_attachments&#39;</span><span class="p">:</span> <span class="c1"># A list of media dicts of attached files</span>
+    <span class="s1">&#39;emojis&#39;</span><span class="p">:</span> <span class="c1"># A list of custom emojis used in the toot, as Emoji dicts</span>
+    <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="c1"># A list of hashtag used in the toot, as Hashtag dicts</span>
+    <span class="s1">&#39;application&#39;</span><span class="p">:</span> <span class="c1"># Application dict for the client used to post the toot (Does not federate</span>
+                   <span class="c1"># and is therefore always None for remote toots, can also be None for</span>
+                   <span class="c1"># local toots for some legacy applications).</span>
+    <span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="c1"># The language of the toot, if specified by the server,</span>
+                <span class="c1"># as ISO 639-1 (two-letter) language code.</span>
+    <span class="s1">&#39;muted&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting whether the user has muted this status by</span>
+             <span class="c1"># way of conversation muting</span>
+    <span class="s1">&#39;pinned&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting whether or not the status is currently pinned for the</span>
+              <span class="c1"># associated account.</span>
+    <span class="s1">&#39;replies_count&#39;</span><span class="p">:</span> <span class="c1"># The number of replies to this status.</span>
+    <span class="s1">&#39;card&#39;</span><span class="p">:</span> <span class="c1"># A preview card for links from the status, if present at time of delivery,</span>
+            <span class="c1"># as card dict.</span>
+    <span class="s1">&#39;poll&#39;</span><span class="p">:</span> <span class="c1"># A poll dict if a poll is attached to this status.</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="mention-dicts">
+<h3>Mention dicts<a class="headerlink" href="#mention-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="mention-dict"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="c1"># Mentioned users profile URL (potentially remote)</span>
+    <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="c1"># Mentioned users user name (not including domain)</span>
+    <span class="s1">&#39;acct&#39;</span><span class="p">:</span> <span class="c1"># Mentioned users account name (including domain)</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># Mentioned users (local) account ID</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="scheduled-toot-dicts">
+<h3>Scheduled toot dicts<a class="headerlink" href="#scheduled-toot-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="scheduled-toot-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">status_post</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">scheduled_at</span><span class="o">=</span><span class="n">the_future</span><span class="p">)</span>
+<span class="c1"># Returns the following dictionary:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># Scheduled toot ID (note: Not the id of the toot once it gets posted!)</span>
+    <span class="s1">&#39;scheduled_at&#39;</span><span class="p">:</span> <span class="c1"># datetime object describing when the toot is to be posted</span>
+    <span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="c1"># Parameters for the scheduled toot, specifically</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="c1"># Toot text</span>
+        <span class="s1">&#39;in_reply_to_id&#39;</span><span class="p">:</span> <span class="c1"># ID of the toot this one is a reply to</span>
+        <span class="s1">&#39;media_ids&#39;</span><span class="p">:</span> <span class="c1"># IDs of media attached to this toot</span>
+        <span class="s1">&#39;sensitive&#39;</span><span class="p">:</span> <span class="c1"># Whether this toot is sensitive or not</span>
+        <span class="s1">&#39;visibility&#39;</span><span class="p">:</span> <span class="c1"># Visibility of the toot</span>
+        <span class="s1">&#39;idempotency&#39;</span><span class="p">:</span> <span class="c1"># Idempotency key for the scheduled toot</span>
+        <span class="s1">&#39;scheduled_at&#39;</span><span class="p">:</span> <span class="c1"># Present, but generally &quot;None&quot;</span>
+        <span class="s1">&#39;spoiler_text&#39;</span><span class="p">:</span> <span class="c1"># CW text for this toot</span>
+        <span class="s1">&#39;application_id&#39;</span><span class="p">:</span> <span class="c1"># ID of the application that scheduled the toot</span>
+        <span class="s1">&#39;poll&#39;</span><span class="p">:</span> <span class="c1"># Poll parameters, as a poll dict</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;media_attachments&#39;</span><span class="p">:</span> <span class="c1"># Array of media dicts for the attachments to the scheduled toot</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="poll-dicts">
+<h3>Poll dicts<a class="headerlink" href="#poll-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="poll-dict"><div class="highlight"><pre><span></span><span class="c1"># Returns the following dictionary:</span>
+<span class="n">mastodon</span><span class="o">.</span><span class="n">poll</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># The polls ID</span>
+    <span class="s1">&#39;expires_at&#39;</span><span class="p">:</span> <span class="c1"># The time at which the poll is set to expire</span>
+    <span class="s1">&#39;expired&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting whether you can still vote in this poll</span>
+    <span class="s1">&#39;multiple&#39;</span><span class="p">:</span> <span class="c1"># Boolean indicating whether it is allowed to vote for more than one option</span>
+    <span class="s1">&#39;votes_count&#39;</span><span class="p">:</span> <span class="c1"># Total number of votes cast in this poll</span>
+    <span class="s1">&#39;voted&#39;</span><span class="p">:</span> <span class="c1"># Boolean indicating whether the logged-in user has already voted in this poll</span>
+    <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="c1"># The poll options as a list of dicts, each option with a title and a</span>
+               <span class="c1"># votes_count field. votes_count can be None if the poll creator has</span>
+               <span class="c1"># chosen to hide vote totals until the poll expires and it hasn&#39;t yet.</span>
+    <span class="s1">&#39;emojis&#39;</span><span class="p">:</span> <span class="c1"># List of emoji dicts for all emoji used in answer strings</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="conversation-dicts">
+<h3>Conversation dicts<a class="headerlink" href="#conversation-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="conversation-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">conversations</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c1"># Returns the following dictionary:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># The ID of this conversation object</span>
+    <span class="s1">&#39;unread&#39;</span><span class="p">:</span> <span class="c1"># Boolean indicating whether this conversation has yet to be</span>
+              <span class="c1"># read by the user</span>
+    <span class="s1">&#39;accounts&#39;</span><span class="p">:</span> <span class="c1"># List of accounts (other than the logged-in account) that</span>
+                <span class="c1"># are part of this conversation</span>
+    <span class="s1">&#39;last_status&#39;</span><span class="p">:</span> <span class="c1"># The newest status in this conversation</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="hashtag-dicts">
+<h3>Hashtag dicts<a class="headerlink" href="#hashtag-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="hashtag-dict"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="c1"># Hashtag name (not including the #)</span>
+    <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="c1"># Hashtag URL (can be remote)</span>
+    <span class="s1">&#39;history&#39;</span><span class="p">:</span> <span class="c1"># List of usage history dicts for up to 7 days. Not present in statuses.</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="hashtag-usage-history-dicts">
+<h3>Hashtag usage history dicts<a class="headerlink" href="#hashtag-usage-history-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="hashtag-usage-history-dict"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;day&#39;</span><span class="p">:</span> <span class="c1"># Date of the day this history dict is for</span>
+    <span class="s1">&#39;uses&#39;</span><span class="p">:</span> <span class="c1"># Number of statuses using this hashtag on that day</span>
+    <span class="s1">&#39;accounts&#39;</span><span class="p">:</span> <span class="c1"># Number of accounts using this hashtag in at least one status on that day</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="emoji-dicts">
+<h3>Emoji dicts<a class="headerlink" href="#emoji-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="emoji-dict"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;shortcode&#39;</span><span class="p">:</span> <span class="c1"># Emoji shortcode, without surrounding colons</span>
+    <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="c1"># URL for the emoji image, can be animated</span>
+    <span class="s1">&#39;static_url&#39;</span><span class="p">:</span> <span class="c1"># URL for the emoji image, never animated</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="application-dicts">
+<h3>Application dicts<a class="headerlink" href="#application-dicts" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div></div></blockquote>
+<div class="highlight-python" id="application-dict"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="c1"># The applications name</span>
+    <span class="s1">&#39;website&#39;</span><span class="p">:</span> <span class="c1"># The applications website</span>
+    <span class="s1">&#39;vapid_key&#39;</span><span class="p">:</span> <span class="c1"># A vapid key that can be used in web applications</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="relationship-dicts">
+<h3>Relationship dicts<a class="headerlink" href="#relationship-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="relationship-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">account_follow</span><span class="p">(</span><span class="o">&lt;</span><span class="n">numerical</span> <span class="nb">id</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="c1"># Returns the following dictionary:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># Numerical id (same one as &lt;numerical id&gt;)</span>
+    <span class="s1">&#39;following&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting whether the logged-in user follows the specified user</span>
+    <span class="s1">&#39;followed_by&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting whether the specified user follows the logged-in user</span>
+    <span class="s1">&#39;blocking&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting whether the logged-in user has blocked the specified user</span>
+    <span class="s1">&#39;muting&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting whether the logged-in user has muted the specified user</span>
+    <span class="s1">&#39;muting_notifications&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting wheter the logged-in user has muted notifications</span>
+                            <span class="c1"># related to the specified user</span>
+    <span class="s1">&#39;requested&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting whether the logged-in user has sent the specified</span>
+                 <span class="c1"># user a follow request</span>
+    <span class="s1">&#39;domain_blocking&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting whether the logged-in user has blocked the</span>
+                       <span class="c1"># specified users domain</span>
+    <span class="s1">&#39;showing_reblogs&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting whether the specified users reblogs show up on the</span>
+                       <span class="c1"># logged-in users Timeline</span>
+    <span class="s1">&#39;endorsed&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting wheter the specified user is being endorsed / featured by the</span>
+                <span class="c1"># logged-in user</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="filter-dicts">
+<h3>Filter dicts<a class="headerlink" href="#filter-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="filter-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">account_follow</span><span class="p">(</span><span class="o">&lt;</span><span class="n">numerical</span> <span class="nb">id</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="c1"># Returns the following dictionary:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># Numerical id of the filter</span>
+    <span class="s1">&#39;phrase&#39;</span><span class="p">:</span> <span class="c1"># Filtered keyword or phrase</span>
+    <span class="s1">&#39;context&#39;</span><span class="p">:</span> <span class="c1"># List of places where the filters are applied (&#39;home&#39;, &#39;notifications&#39;, &#39;public&#39;, &#39;thread&#39;)</span>
+    <span class="s1">&#39;expires_at&#39;</span><span class="p">:</span> <span class="c1"># Expiry date for the filter</span>
+    <span class="s1">&#39;irreversible&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting if this filter is executed server-side</span>
+                    <span class="c1"># or if it should be ran client-side.</span>
+    <span class="s1">&#39;whole_word&#39;</span><span class="p">:</span> <span class="c1"># Boolean denoting whether this filter can match partial words</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="notification-dicts">
+<h3>Notification dicts<a class="headerlink" href="#notification-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="notification-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">notifications</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c1"># Returns the following dictionary:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># id of the notification</span>
+    <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="c1"># &quot;mention&quot;, &quot;reblog&quot;, &quot;favourite&quot; or &quot;follow&quot;</span>
+    <span class="s1">&#39;created_at&#39;</span><span class="p">:</span> <span class="c1"># The time the notification was created</span>
+    <span class="s1">&#39;account&#39;</span><span class="p">:</span> <span class="c1"># User dict of the user from whom the notification originates</span>
+    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="c1"># In case of &quot;mention&quot;, the mentioning status</span>
+              <span class="c1"># In case of reblog / favourite, the reblogged / favourited status</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="context-dicts">
+<h3>Context dicts<a class="headerlink" href="#context-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="context-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">status_context</span><span class="p">(</span><span class="o">&lt;</span><span class="n">numerical</span> <span class="nb">id</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="c1"># Returns the following dictionary:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;ancestors&#39;</span><span class="p">:</span> <span class="c1"># A list of toot dicts</span>
+    <span class="s1">&#39;descendants&#39;</span><span class="p">:</span> <span class="c1"># A list of toot dicts</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="list-dicts">
+<h3>List dicts<a class="headerlink" href="#list-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="list-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="o">&lt;</span><span class="n">numerical</span> <span class="nb">id</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="c1"># Returns the following dictionary:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># id of the list</span>
+    <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="c1"># title of the list</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="media-dicts">
+<h3>Media dicts<a class="headerlink" href="#media-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="media-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">media_post</span><span class="p">(</span><span class="s2">&quot;image.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;image/jpeg&quot;</span><span class="p">)</span>
+<span class="c1"># Returns the following dictionary:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># The ID of the attachment.</span>
+    <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="c1"># Media type: &#39;image&#39;, &#39;video&#39;, &#39;gifv&#39; or &#39;unknown&#39;.</span>
+    <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="c1"># The URL for the image in the local cache</span>
+    <span class="s1">&#39;remote_url&#39;</span><span class="p">:</span> <span class="c1"># The remote URL for the media (if the image is from a remote instance)</span>
+    <span class="s1">&#39;preview_url&#39;</span><span class="p">:</span> <span class="c1"># The URL for the media preview</span>
+    <span class="s1">&#39;text_url&#39;</span><span class="p">:</span> <span class="c1"># The display text for the media (what shows up in toots)</span>
+    <span class="s1">&#39;meta&#39;</span><span class="p">:</span> <span class="c1"># Dictionary of two image metadata dicts (see below),</span>
+            <span class="c1"># &#39;original&#39; and &#39;small&#39; (preview). Either may be empty.</span>
+            <span class="c1"># May additionally contain an &quot;fps&quot; field giving a videos frames per second (possibly</span>
+            <span class="c1"># rounded), and a &quot;length&quot; field giving a videos length in a human-readable format.</span>
+            <span class="c1"># Note that a video may have an image as preview.</span>
+            <span class="c1"># May also contain a &#39;focus&#39; dict.</span>
+    <span class="s1">&#39;blurhash&#39;</span><span class="p">:</span> <span class="c1"># The blurhash for the image, used for preview / placeholder generation</span>
+<span class="p">}</span>
+
+<span class="c1"># Metadata dicts (image) - all fields are optional:</span>
+<span class="p">{</span>
+   <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="c1"># Width of the image in pixels</span>
+   <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="c1"># Height of the image in pixels</span>
+   <span class="s1">&#39;aspect&#39;</span><span class="p">:</span> <span class="c1"># Aspect ratio of the image as a floating point number</span>
+   <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="c1"># Textual representation of the image size in pixels, e.g. &#39;800x600&#39;</span>
+<span class="p">}</span>
+
+<span class="c1"># Metadata dicts (video, gifv) - all fields are optional:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="c1"># Width of the video in pixels</span>
+    <span class="s1">&#39;heigh&#39;</span><span class="p">:</span> <span class="c1"># Height of the video in pixels</span>
+    <span class="s1">&#39;frame_rate&#39;</span><span class="p">:</span> <span class="c1"># Exact frame rate of the video in frames per second.</span>
+                  <span class="c1"># Can be an integer fraction (i.e. &quot;20/7&quot;)</span>
+    <span class="s1">&#39;duration&#39;</span><span class="p">:</span> <span class="c1"># Duration of the video in seconds</span>
+    <span class="s1">&#39;bitrate&#39;</span><span class="p">:</span> <span class="c1"># Average bit-rate of the video in bytes per second</span>
+<span class="p">}</span>
+
+<span class="c1"># Focus Metadata dict:</span>
+<span class="p">{</span>
+    <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">Focus</span> <span class="n">point</span> <span class="n">x</span> <span class="n">coordinate</span> <span class="p">(</span><span class="n">between</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">Focus</span> <span class="n">point</span> <span class="n">x</span> <span class="n">coordinate</span> <span class="p">(</span><span class="n">between</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="card-dicts">
+<h3>Card dicts<a class="headerlink" href="#card-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="card-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">status_card</span><span class="p">(</span><span class="o">&lt;</span><span class="n">numerical</span> <span class="nb">id</span><span class="o">&gt;</span><span class="p">):</span>
+<span class="c1"># Returns the following dictionary</span>
+<span class="p">{</span>
+    <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="c1"># The URL of the card.</span>
+    <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="c1"># The title of the card.</span>
+    <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="c1"># The description of the card.</span>
+    <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="c1"># Embed type: &#39;link&#39;, &#39;photo&#39;, &#39;video&#39;, or &#39;rich&#39;</span>
+    <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="c1"># (optional) The image associated with the card.</span>
+
+    <span class="c1"># OEmbed data (all optional):</span>
+    <span class="s1">&#39;author_name&#39;</span><span class="p">:</span> <span class="c1"># Name of the embedded contents author</span>
+    <span class="s1">&#39;author_url&#39;</span><span class="p">:</span> <span class="c1"># URL pointing to the embedded contents author</span>
+    <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="c1"># Description of the embedded content</span>
+    <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="c1"># Width of the embedded object</span>
+    <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="c1"># Height of the embedded object</span>
+    <span class="s1">&#39;html&#39;</span><span class="p">:</span> <span class="c1"># HTML string of the embed</span>
+    <span class="s1">&#39;provider_name&#39;</span><span class="p">:</span> <span class="c1"># Name of the provider from which the embed originates</span>
+    <span class="s1">&#39;provider_url&#39;</span><span class="p">:</span> <span class="c1"># URL pointing to the embeds provider</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="search-result-dicts">
+<h3>Search result dicts<a class="headerlink" href="#search-result-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="search-result-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;&lt;query&gt;&quot;</span><span class="p">)</span>
+<span class="c1"># Returns the following dictionary</span>
+<span class="p">{</span>
+    <span class="s1">&#39;accounts&#39;</span><span class="p">:</span> <span class="c1"># List of account dicts resulting from the query</span>
+    <span class="s1">&#39;hashtags&#39;</span><span class="p">:</span> <span class="c1"># List of hashtag dicts resulting from the query</span>
+    <span class="s1">&#39;statuses&#39;</span><span class="p">:</span> <span class="c1"># List of toot dicts resulting from the query</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="instance-dicts">
+<h3>Instance dicts<a class="headerlink" href="#instance-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="instance-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+<span class="c1"># Returns the following dictionary</span>
+<span class="p">{</span>
+    <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="c1"># A brief instance description set by the admin</span>
+    <span class="s1">&#39;email&#39;</span><span class="p">:</span> <span class="c1"># The admin contact e-mail</span>
+    <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="c1"># The instances title</span>
+    <span class="s1">&#39;uri&#39;</span><span class="p">:</span> <span class="c1"># The instances URL</span>
+    <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="c1"># The instances mastodon version</span>
+    <span class="s1">&#39;urls&#39;</span><span class="p">:</span> <span class="c1"># Additional URLs dict, presently only &#39;streaming_api&#39; with the</span>
+            <span class="c1"># stream websocket address.</span>
+    <span class="s1">&#39;stats: # A dictionary containing three stats, user_count (number of local users),</span>
+            <span class="c1"># status_count (number of local statuses) and domain_count (number of known</span>
+            <span class="c1"># instance domains other than this one).</span>
+    <span class="s1">&#39;contact_account&#39;</span><span class="p">:</span> <span class="c1"># Account dict of the primary contact for the instance.</span>
+    <span class="s1">&#39;languages&#39;</span><span class="p">:</span> <span class="c1"># Array of ISO 639-1 (two-letter) language codes the instance</span>
+                 <span class="c1"># has chosen to advertise.</span>
+    <span class="s1">&#39;registrations&#39;</span><span class="p">:</span> <span class="c1"># Boolean indication whether registrations on this instance are open</span>
+                     <span class="c1"># (True) or not (False).</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="activity-dicts">
+<h3>Activity dicts<a class="headerlink" href="#activity-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="activity-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">instance_activity</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c1"># Returns the following dictionary</span>
+<span class="p">{</span>
+    <span class="s1">&#39;week&#39;</span><span class="p">:</span> <span class="c1"># Date of the first day of the week the stats were collected for</span>
+    <span class="s1">&#39;logins&#39;</span><span class="p">:</span> <span class="c1"># Number of users that logged in that week</span>
+    <span class="s1">&#39;registrations&#39;</span><span class="p">:</span> <span class="c1"># Number of new users that week</span>
+    <span class="s1">&#39;statuses&#39;</span><span class="p">:</span> <span class="c1"># Number of statuses posted that week</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="report-dicts">
+<h3>Report dicts<a class="headerlink" href="#report-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="report-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">reports</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c1"># Returns the following dictionary</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># Numerical id of the report</span>
+    <span class="s1">&#39;action_taken&#39;</span><span class="p">:</span> <span class="c1"># True if a moderator or admin has processed the</span>
+                    <span class="c1"># report, False otherwise. Note that no indication as to</span>
+                    <span class="c1"># what action was taken is given and that an admin simply</span>
+                    <span class="c1"># marking the report as processed and not doing anything else</span>
+                    <span class="c1"># will set this field to True. Note also that now that there</span>
+                    <span class="c1"># is no way to get any updated report lists, this will</span>
+                    <span class="c1"># always be false.</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="push-subscription-dicts">
+<h3>Push subscription dicts<a class="headerlink" href="#push-subscription-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="push-subscription-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">push_subscription</span><span class="p">()</span>
+<span class="c1"># Returns the following dictionary</span>
+<span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="c1"># Numerical id of the push subscription</span>
+    <span class="s1">&#39;endpoint&#39;</span><span class="p">:</span> <span class="c1"># Endpoint URL for the subscription</span>
+    <span class="s1">&#39;server_key&#39;</span><span class="p">:</span> <span class="c1"># Server pubkey used for signature verification</span>
+    <span class="s1">&#39;alerts&#39;</span><span class="p">:</span> <span class="c1"># Subscribed events - dict that may contain keys &#39;follow&#39;,</span>
+              <span class="c1"># &#39;favourite&#39;, &#39;reblog&#39; and &#39;mention&#39;, with value True</span>
+              <span class="c1"># if webpushes have been requested for those events.</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="push-notification-dicts">
+<h3>Push notification dicts<a class="headerlink" href="#push-notification-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="push-notification-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">push_subscription_decrypt_push</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Returns the following dictionary</span>
+<span class="p">{</span>
+    <span class="s1">&#39;access_token&#39;</span><span class="p">:</span> <span class="c1"># Access token that can be used to access the API as the</span>
+                    <span class="c1"># notified user</span>
+    <span class="s1">&#39;body&#39;</span><span class="p">:</span> <span class="c1"># Text body of the notification</span>
+    <span class="s1">&#39;icon&#39;</span><span class="p">:</span> <span class="c1"># URL to an icon for the notification</span>
+    <span class="s1">&#39;notification_id&#39;</span><span class="p">:</span> <span class="c1"># ID that can be passed to notification() to get the full</span>
+                       <span class="c1"># notification object,</span>
+    <span class="s1">&#39;notification_type&#39;</span><span class="p">:</span> <span class="c1"># &#39;mention&#39;, &#39;reblog&#39;, &#39;follow&#39; or &#39;favourite&#39;</span>
+    <span class="s1">&#39;preferred_locale&#39;</span><span class="p">:</span> <span class="c1"># The users preferred locale</span>
+    <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="c1"># Title for the notification</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="preference-dicts">
+<h3>Preference dicts<a class="headerlink" href="#preference-dicts" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python" id="preference-dict"><div class="highlight"><pre><span></span><span class="n">mastodon</span><span class="o">.</span><span class="n">preferences</span><span class="p">()</span>
+<span class="c1"># Returns the following dictionary</span>
+<span class="p">{</span>
+    <span class="s1">&#39;posting:default:visibility&#39;</span><span class="p">:</span> <span class="c1"># The default visibility setting for the users posts,</span>
+                                  <span class="c1"># as a string</span>
+    <span class="s1">&#39;posting:default:sensitive&#39;</span><span class="p">:</span> <span class="c1"># Boolean indicating whether the users uploads should</span>
+                                 <span class="c1"># be marked sensitive by default</span>
+    <span class="s1">&#39;posting:default:language&#39;</span><span class="p">:</span> <span class="c1"># The users default post language, if set (None if not)</span>
+    <span class="s1">&#39;reading:expand:media&#39;</span><span class="p">:</span> <span class="c1"># How the user wishes to be shown sensitive media. Can be</span>
+                            <span class="c1"># &#39;default&#39; (hide if sensitive), &#39;hide_all&#39; or &#39;show_all&#39;</span>
+    <span class="s1">&#39;reading:expand:spoilers&#39;</span><span class="p">:</span> <span class="c1"># Boolean indicating whether the user wishes to expand</span>
+                               <span class="c1"># content warnings by default</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="app-registration-and-user-authentication">
+<h2>App registration and user authentication<a class="headerlink" href="#app-registration-and-user-authentication" title="Permalink to this headline">¶</a></h2>
+<p>Before you can use the mastodon API, you have to register your
+application (which gets you a client key and client secret)
+and then log in (which gets you an access token). These functions
+allow you to do those things. Additionally, it is also possible
+to programmatically register a new user.</p>
+<p>For convenience, once you have a client id, secret and access token,
+you can simply pass them to the constructor of the class, too!</p>
+<p>Note that while it is perfectly reasonable to log back in whenever
+your app starts, registering a new application on every
+startup is not, so don’t do that - instead, register an application
+once, and then persist your client id and secret. A convenient method
+for this is provided by the functions dealing with registering the app,
+logging in and the Mastodon classes constructor.</p>
+<p>To talk to an instance different from the flagship instance, specify
+the api_base_url (usually, just the URL of the instance, i.e.
+<a class="reference external" href="https://mastodon.social/">https://mastodon.social/</a> for the flagship instance). If no protocol
+is specified, Mastodon.py defaults to https.</p>
+<dl class="staticmethod">
+<dt id="mastodon.Mastodon.create_app">
+<em class="property">static </em><code class="descclassname">Mastodon.</code><code class="descname">create_app</code><span class="sig-paren">(</span><em>client_name, scopes=['read', 'write', 'follow', 'push'], redirect_uris=None, website=None, to_file=None, api_base_url='https://mastodon.social', request_timeout=300, session=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.create_app"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.create_app" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new app with given <cite>client_name</cite> and <cite>scopes</cite> (The basic scropse are “read”, “write”, “follow” and “push” 
+- more granular scopes are available, please refere to Mastodon documentation for which).</p>
+<p>Specify <cite>redirect_uris</cite> if you want users to be redirected to a certain page after authenticating in an oauth flow.
+You can specify multiple URLs by passing a list. Note that if you wish to use OAuth authentication with redirects,
+the redirect URI must be one of the URLs specified here.</p>
+<p>Specify <cite>to_file</cite> to persist your apps info to a file so you can use them in the constructor.
+Specify <cite>api_base_url</cite> if you want to register an app on an instance different from the flagship one.        
+Specify <cite>website</cite> to give a website for your app.</p>
+<p>Specify <cite>session</cite> with a requests.Session for it to be used instead of the deafult. This can be
+used to, amongst other things, adjust proxy or ssl certificate settings.</p>
+<p>Presently, app registration is open by default, but this is not guaranteed to be the case for all
+future mastodon instances or even the flagship instance in the future.</p>
+<p>Returns <cite>client_id</cite> and <cite>client_secret</cite>, both as strings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.__init__">
+<code class="descclassname">Mastodon.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>client_id=None</em>, <em>client_secret=None</em>, <em>access_token=None</em>, <em>api_base_url='https://mastodon.social'</em>, <em>debug_requests=False</em>, <em>ratelimit_method='wait'</em>, <em>ratelimit_pacefactor=1.1</em>, <em>request_timeout=300</em>, <em>mastodon_version=None</em>, <em>version_check_mode='created'</em>, <em>session=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new API wrapper instance based on the given <cite>client_secret</cite> and <cite>client_id</cite>. If you
+give a <cite>client_id</cite> and it is not a file, you must also give a secret. If you specify an
+<cite>access_token</cite> then you don’t need to specify a <cite>client_id</cite>. It is allowed to specify
+neither - in this case, you will be restricted to only using endpoints that do not
+require authentication.</p>
+<p>You can also specify an <cite>access_token</cite>, directly or as a file (as written by <a class="reference internal" href="#log-in">log_in()</a>).</p>
+<p>Mastodon.py can try to respect rate limits in several ways, controlled by <cite>ratelimit_method</cite>.
+“throw” makes functions throw a <cite>MastodonRatelimitError</cite> when the rate
+limit is hit. “wait” mode will, once the limit is hit, wait and retry the request as soon
+as the rate limit resets, until it succeeds. “pace” works like throw, but tries to wait in
+between calls so that the limit is generally not hit (How hard it tries to not hit the rate
+limit can be controlled by ratelimit_pacefactor). The default setting is “wait”. Note that
+even in “wait” and “pace” mode, requests can still fail due to network or other problems! Also
+note that “pace” and “wait” are NOT thread safe.</p>
+<p>Specify <cite>api_base_url</cite> if you wish to talk to an instance other than the flagship one.
+If a file is given as <cite>client_id</cite>, client ID and secret are read from that file.</p>
+<p>By default, a timeout of 300 seconds is used for all requests. If you wish to change this,
+pass the desired timeout (in seconds) as <cite>request_timeout</cite>.</p>
+<p>For fine-tuned control over the requests object use <cite>session</cite> with a requests.Session.</p>
+<p>The <cite>mastodon_version</cite> parameter can be used to specify the version of Mastodon that Mastodon.py will
+expect to be installed on the server. The function will throw an error if an unparseable 
+Version is specified. If no version is specified, Mastodon.py will set <cite>mastodon_version</cite> to the 
+detected version.</p>
+<p>The version check mode can be set to “created” (the default behaviour), “changed” or “none”. If set to 
+“created”, Mastodon.py will throw an error if the version of Mastodon it is connected to is too old
+to have an endpoint. If it is set to “changed”, it will throw an error if the endpoints behaviour has
+changed after the version of Mastodon that is connected has been released. If it is set to “none”,
+version checking is disabled.</p>
+</dd></dl>
+
+<span class="target" id="log-in"></span><dl class="method">
+<dt id="mastodon.Mastodon.log_in">
+<code class="descclassname">Mastodon.</code><code class="descname">log_in</code><span class="sig-paren">(</span><em>username=None, password=None, code=None, redirect_uri='urn:ietf:wg:oauth:2.0:oob', refresh_token=None, scopes=['read', 'write', 'follow', 'push'], to_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.log_in"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.log_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the access token for a user.</p>
+<p>The username is the e-mail used to log in into mastodon.</p>
+<p>Can persist access token to file <cite>to_file</cite>, to be used in the constructor.</p>
+<p>Handles password and OAuth-based authorization.</p>
+<p>Will throw a <cite>MastodonIllegalArgumentError</cite> if the OAuth or the
+username / password credentials given are incorrect, and
+<cite>MastodonAPIError</cite> if all of the requested scopes were not granted.</p>
+<p>For OAuth2, obtain a code via having your user go to the url returned by 
+<a class="reference internal" href="#auth-request-url">auth_request_url()</a> and pass it as the code parameter. In this case,
+make sure to also pass the same redirect_uri parameter as you used when
+generating the auth request URL.</p>
+<p>Returns the access token as a string.</p>
+</dd></dl>
+
+<span class="target" id="auth-request-url"></span><dl class="method">
+<dt id="mastodon.Mastodon.auth_request_url">
+<code class="descclassname">Mastodon.</code><code class="descname">auth_request_url</code><span class="sig-paren">(</span><em>client_id=None, redirect_uris='urn:ietf:wg:oauth:2.0:oob', scopes=['read', 'write', 'follow', 'push'], force_login=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.auth_request_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.auth_request_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the url that a client needs to request an oauth grant from the server.</p>
+<p>To log in with oauth, send your user to this URL. The user will then log in and
+get a code which you can pass to log_in.</p>
+<p>scopes are as in <a class="reference internal" href="#log-in">log_in()</a>, redirect_uris is where the user should be redirected to
+after authentication. Note that redirect_uris must be one of the URLs given during
+app registration. When using <a class="reference external" href="urn:ietf:wg:oauth:2.0:oob">urn:ietf:wg:oauth:2.0:oob</a>, the code is simply displayed,
+otherwise it is added to the given URL as the “code” request parameter.</p>
+<p>Pass force_login if you want the user to always log in even when already logged
+into web mastodon (i.e. when registering multiple different accounts in an app).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.create_account">
+<code class="descclassname">Mastodon.</code><code class="descname">create_account</code><span class="sig-paren">(</span><em>username, password, email, agreement=False, locale='en', scopes=['read', 'write', 'follow', 'push'], to_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.create_account"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.create_account" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new user account with the given username, password and email. “agreement”
+must be set to true (after showing the user the instances user agreement and having
+them agree to it), “locale” specifies the language for the confirmation e-mail as an
+ISO 639-1 (two-letter) language code.</p>
+<p>Does not require an access token, but does require a client grant.</p>
+<p>By default, this method is rate-limited by IP to 5 requests per 30 minutes.</p>
+<p>Returns an access token (just like log_in), which it can also persist to to_file,
+and sets it internally so that the user is now logged in. Note that this token 
+can only be used after the user has confirmed their e-mail.</p>
+<p><em>Added: Mastodon v2.7.0, last changed: Mastodon v2.7.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="versioning">
+<h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this headline">¶</a></h2>
+<p>Mastodon.py will check if a certain endpoint is available before doing API
+calls. By default, it checks against the version of Mastodon retrieved on
+init(), or the version you specified. Mastodon.py can be set (in the
+constructor) to either check if an endpoint is available at all (this is the
+default) or to check if the endpoint is available and behaves as in the newest
+Mastodon version (with regards to parameters as well as return values).
+Version checking can also be disabled altogether. If a version check fails,
+Mastodon.py throws a <cite>MastodonVersionError</cite>.</p>
+<p>With the following functions, you can make Mastodon.py re-check the server
+version or explicitly determine if a specific minimum Version is available.
+Long-running applications that aim to support multiple Mastodon versions
+should do this from time to time in case a server they are running against
+updated.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.retrieve_mastodon_version">
+<code class="descclassname">Mastodon.</code><code class="descname">retrieve_mastodon_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.retrieve_mastodon_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.retrieve_mastodon_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine installed mastodon version and set major, minor and patch (not including RC info) accordingly.</p>
+<p>Returns the version string, possibly including rc info.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.verify_minimum_version">
+<code class="descclassname">Mastodon.</code><code class="descname">verify_minimum_version</code><span class="sig-paren">(</span><em>version_str</em>, <em>cached=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.verify_minimum_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.verify_minimum_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update version info from server and verify that at least the specified version is present.</p>
+<p>If you specify “cached”, the version info update part is skipped.</p>
+<p>Returns True if version requirement is satisfied, False if not.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-instances">
+<h2>Reading data: Instances<a class="headerlink" href="#reading-data-instances" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to fetch information associated with the
+current instance.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.instance">
+<code class="descclassname">Mastodon.</code><code class="descname">instance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.instance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve basic information about the instance, including the URI and administrative contact email.</p>
+<p>Does not require authentication.</p>
+<p>Returns an <a class="reference internal" href="#instance-dict">instance dict</a>.</p>
+<p><em>Added: Mastodon v1.1.0, last changed: Mastodon v2.3.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.instance_activity">
+<code class="descclassname">Mastodon.</code><code class="descname">instance_activity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.instance_activity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.instance_activity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve activity stats about the instance. May be disabled by the instance administrator - throws
+a MastodonNotFoundError in that case.</p>
+<p>Activity is returned for 12 weeks going back from the current week.</p>
+<p>Returns a list <a class="reference internal" href="#activity-dicts">activity dicts</a>.</p>
+<p><em>Added: Mastodon v2.1.2, last changed: Mastodon v2.1.2</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.instance_peers">
+<code class="descclassname">Mastodon.</code><code class="descname">instance_peers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.instance_peers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.instance_peers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the instances that this instance knows about. May be disabled by the instance administrator - throws
+a MastodonNotFoundError in that case.</p>
+<p>Returns a list of URL strings.</p>
+<p><em>Added: Mastodon v2.1.2, last changed: Mastodon v2.1.2</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-timelines">
+<h2>Reading data: Timelines<a class="headerlink" href="#reading-data-timelines" title="Permalink to this headline">¶</a></h2>
+<p>This function allows you to access the timelines a logged in
+user could see, as well as hashtag timelines and the public (federated)
+and local timelines.</p>
+<span class="target" id="timeline"></span><dl class="method">
+<dt id="mastodon.Mastodon.timeline">
+<code class="descclassname">Mastodon.</code><code class="descname">timeline</code><span class="sig-paren">(</span><em>timeline='home'</em>, <em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.timeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.timeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch statuses, most recent ones first. <cite>timeline</cite> can be ‘home’, ‘local’, ‘public’,
+‘tag/hashtag’ or ‘list/id’. See the following functions documentation for what those do.
+Local hashtag timelines are supported via the <a class="reference internal" href="#timeline-hashtag">timeline_hashtag()</a> function.</p>
+<p>The default timeline is the “home” timeline.</p>
+<p>Media only queries are supported via the <a class="reference internal" href="#timeline-public">timeline_public()</a> and <a class="reference internal" href="#timeline-hashtag">timeline_hashtag()</a> functions.</p>
+<p>Returns a list of <a class="reference internal" href="#toot-dicts">toot dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.timeline_home">
+<code class="descclassname">Mastodon.</code><code class="descname">timeline_home</code><span class="sig-paren">(</span><em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.timeline_home"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.timeline_home" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the logged-in users home timeline (i.e. followed users and self).</p>
+<p>Returns a list of <a class="reference internal" href="#toot-dicts">toot dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.timeline_local">
+<code class="descclassname">Mastodon.</code><code class="descname">timeline_local</code><span class="sig-paren">(</span><em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.timeline_local"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.timeline_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches the local / instance-wide timeline, not including replies.</p>
+<p>Returns a list of <a class="reference internal" href="#toot-dicts">toot dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+<span class="target" id="timeline-public"></span><dl class="method">
+<dt id="mastodon.Mastodon.timeline_public">
+<code class="descclassname">Mastodon.</code><code class="descname">timeline_public</code><span class="sig-paren">(</span><em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em>, <em>only_media=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.timeline_public"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.timeline_public" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches the public / visible-network timeline, not including replies.</p>
+<p>Set <cite>only_media</cite> to True to retrieve only statuses with media attachments.</p>
+<p>Returns a list of <a class="reference internal" href="#toot-dicts">toot dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+<span class="target" id="timeline-hashtag"></span><dl class="method">
+<dt id="mastodon.Mastodon.timeline_hashtag">
+<code class="descclassname">Mastodon.</code><code class="descname">timeline_hashtag</code><span class="sig-paren">(</span><em>hashtag</em>, <em>local=False</em>, <em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em>, <em>only_media=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.timeline_hashtag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.timeline_hashtag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a timeline of toots with a given hashtag. The hashtag parameter
+should not contain the leading #.</p>
+<p>Set <cite>local</cite> to True to retrieve only instance-local tagged posts.
+Set <cite>only_media</cite> to True to retrieve only statuses with media attachments.</p>
+<p>Returns a list of <a class="reference internal" href="#toot-dicts">toot dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.timeline_list">
+<code class="descclassname">Mastodon.</code><code class="descname">timeline_list</code><span class="sig-paren">(</span><em>id</em>, <em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.timeline_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.timeline_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches a timeline containing all the toots by users in a given list.</p>
+<p>Returns a list of <a class="reference internal" href="#toot-dicts">toot dicts</a>.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.conversations">
+<code class="descclassname">Mastodon.</code><code class="descname">conversations</code><span class="sig-paren">(</span><em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.conversations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.conversations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches a users conversations.</p>
+<p>Returns a list of <a class="reference internal" href="#conversation-dicts">conversation dicts</a>.</p>
+<p><em>Added: Mastodon v2.6.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-statuses">
+<h2>Reading data: Statuses<a class="headerlink" href="#reading-data-statuses" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to get information about single statuses.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.status">
+<code class="descclassname">Mastodon.</code><code class="descname">status</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch information about a single toot.</p>
+<p>Does not require authentication for publicly visible statuses.</p>
+<p>Returns a <a class="reference internal" href="#toot-dict">toot dict</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.0.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_context">
+<code class="descclassname">Mastodon.</code><code class="descname">status_context</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_context"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_context" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch information about ancestors and descendants of a toot.</p>
+<p>Does not require authentication for publicly visible statuses.</p>
+<p>Returns a <a class="reference internal" href="#context-dict">context dict</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v1.0.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_reblogged_by">
+<code class="descclassname">Mastodon.</code><code class="descname">status_reblogged_by</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_reblogged_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_reblogged_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a list of users that have reblogged a status.</p>
+<p>Does not require authentication for publicly visible statuses.</p>
+<p>Returns a list of <a class="reference internal" href="#user-dicts">user dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_favourited_by">
+<code class="descclassname">Mastodon.</code><code class="descname">status_favourited_by</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_favourited_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_favourited_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a list of users that have favourited a status.</p>
+<p>Does not require authentication for publicly visible statuses.</p>
+<p>Returns a list of <a class="reference internal" href="#user-dicts">user dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_card">
+<code class="descclassname">Mastodon.</code><code class="descname">status_card</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_card"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_card" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a card associated with a status. A card describes an object (such as an
+external video or link) embedded into a status.</p>
+<p>Does not require authentication for publicly visible statuses.</p>
+<p>Returns a <a class="reference internal" href="#card-dict">card dict</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v1.0.0</em></p>
+</dd></dl>
+
+<div class="section" id="reading-data-scheduled-statuses">
+<h3>Reading data: Scheduled statuses<a class="headerlink" href="#reading-data-scheduled-statuses" title="Permalink to this headline">¶</a></h3>
+<p>These functions allow you to get information about scheduled statuses.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.scheduled_statuses">
+<code class="descclassname">Mastodon.</code><code class="descname">scheduled_statuses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.scheduled_statuses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.scheduled_statuses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a list of scheduled statuses</p>
+<p>Returns a list of <a class="reference internal" href="#scheduled-toot-dicts">scheduled toot dicts</a>.</p>
+<p><em>Added: Mastodon v2.7.0, last changed: Mastodon v2.7.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.scheduled_status">
+<code class="descclassname">Mastodon.</code><code class="descname">scheduled_status</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.scheduled_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.scheduled_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch information about the scheduled status with the given id.</p>
+<p>Returns a <a class="reference internal" href="#scheduled-toot-dict">scheduled toot dict</a>.</p>
+<p><em>Added: Mastodon v2.7.0, last changed: Mastodon v2.7.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-polls">
+<h3>Reading data: Polls<a class="headerlink" href="#reading-data-polls" title="Permalink to this headline">¶</a></h3>
+<p>This function allows you to get and refresh information about polls.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.poll">
+<code class="descclassname">Mastodon.</code><code class="descname">poll</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.poll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.poll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch information about the poll with the given id</p>
+<p>Returns a <a class="reference internal" href="#poll-dict">poll dict</a>.</p>
+<p><em>Added: Mastodon v2.8.0, last changed: Mastodon v2.8.0</em></p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="reading-data-notifications">
+<h2>Reading data: Notifications<a class="headerlink" href="#reading-data-notifications" title="Permalink to this headline">¶</a></h2>
+<p>This function allows you to get information about a users notifications.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.notifications">
+<code class="descclassname">Mastodon.</code><code class="descname">notifications</code><span class="sig-paren">(</span><em>id=None</em>, <em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.notifications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.notifications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch notifications (mentions, favourites, reblogs, follows) for the logged-in
+user.</p>
+<p>Can be passed an <cite>id</cite> to fetch a single notification.</p>
+<p>Returns a list of <a class="reference internal" href="#notification-dicts">notification dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-accounts">
+<h2>Reading data: Accounts<a class="headerlink" href="#reading-data-accounts" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to get information about accounts and
+their relationships.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.account">
+<code class="descclassname">Mastodon.</code><code class="descname">account</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch account information by user <cite>id</cite>.</p>
+<p>Does not require authentication.</p>
+<p>Returns a <a class="reference internal" href="#user-dict">user dict</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v1.0.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_verify_credentials">
+<code class="descclassname">Mastodon.</code><code class="descname">account_verify_credentials</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_verify_credentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_verify_credentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch logged-in user’s account information.</p>
+<p>Returns a <a class="reference internal" href="#user-dict">user dict</a> (Starting from 2.1.0, with an additional “source” field).</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_statuses">
+<code class="descclassname">Mastodon.</code><code class="descname">account_statuses</code><span class="sig-paren">(</span><em>id</em>, <em>only_media=False</em>, <em>pinned=False</em>, <em>exclude_replies=False</em>, <em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_statuses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_statuses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch statuses by user <cite>id</cite>. Same options as <a class="reference internal" href="#timeline">timeline()</a> are permitted.
+Returned toots are from the perspective of the logged-in user, i.e.
+all statuses visible to the logged-in user (including DMs) are
+included.</p>
+<p>If <cite>only_media</cite> is set, return only statuses with media attachments.
+If <cite>pinned</cite> is set, return only statuses that have been pinned. Note that 
+as of Mastodon 2.1.0, this only works properly for instance-local users.
+If <cite>exclude_replies</cite> is set, filter out all statuses that are replies.</p>
+<p>Does not require authentication.</p>
+<p>Returns a list of <a class="reference internal" href="#toot-dicts">toot dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.7.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_following">
+<code class="descclassname">Mastodon.</code><code class="descname">account_following</code><span class="sig-paren">(</span><em>id</em>, <em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_following"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_following" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch users the given user is following.</p>
+<p>Returns a list of <a class="reference internal" href="#user-dicts">user dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_followers">
+<code class="descclassname">Mastodon.</code><code class="descname">account_followers</code><span class="sig-paren">(</span><em>id</em>, <em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_followers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_followers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch users the given user is followed by.</p>
+<p>Returns a list of <a class="reference internal" href="#user-dicts">user dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_relationships">
+<code class="descclassname">Mastodon.</code><code class="descname">account_relationships</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_relationships"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_relationships" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch relationship (following, followed_by, blocking, follow requested) of 
+the logged in user to a given account. <cite>id</cite> can be a list.</p>
+<p>Returns a list of <a class="reference internal" href="#relationship-dicts">relationship dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v1.4.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_search">
+<code class="descclassname">Mastodon.</code><code class="descname">account_search</code><span class="sig-paren">(</span><em>q</em>, <em>limit=None</em>, <em>following=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch matching accounts. Will lookup an account remotely if the search term is
+in the <a class="reference external" href="mailto:username&#37;&#52;&#48;domain">username<span>&#64;</span>domain</a> format and not yet in the database. Set <cite>following</cite> to
+True to limit the search to users the logged-in user follows.</p>
+<p>Returns a list of <a class="reference internal" href="#user-dicts">user dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.3.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-keyword-filters">
+<h2>Reading data: Keyword filters<a class="headerlink" href="#reading-data-keyword-filters" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to get information about keyword filters.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.filters">
+<code class="descclassname">Mastodon.</code><code class="descname">filters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.filters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch all of the logged-in users filters.</p>
+<p>Returns a list of <a class="reference internal" href="#filter-dicts">filter dicts</a>. Not paginated.</p>
+<p><em>Added: Mastodon v2.4.3, last changed: Mastodon v2.4.3</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.filter">
+<code class="descclassname">Mastodon.</code><code class="descname">filter</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches information about the filter with the specified <cite>id</cite>.</p>
+<p>Returns a <a class="reference internal" href="#filter-dict">filter dict</a>.</p>
+<p><em>Added: Mastodon v2.4.3, last changed: Mastodon v2.4.3</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.filters_apply">
+<code class="descclassname">Mastodon.</code><code class="descname">filters_apply</code><span class="sig-paren">(</span><em>objects</em>, <em>filters</em>, <em>context</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.filters_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.filters_apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function: Applies a list of filters to a list of either statuses 
+or notifications and returns only those matched by none. This function will
+apply all filters that match the context provided in <cite>context</cite>, i.e.
+if you want to apply only notification-relevant filters, specify
+‘notifications’. Valid contexts are ‘home’, ‘notifications’, ‘public’ and ‘thread’.</p>
+<p><em>Added: Mastodon v2.4.3, last changed: Mastodon v2.4.3</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-follow-suggestions">
+<h2>Reading data: Follow suggestions<a class="headerlink" href="#reading-data-follow-suggestions" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.suggestions">
+<code class="descclassname">Mastodon.</code><code class="descname">suggestions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.suggestions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.suggestions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch follow suggestions for the logged-in user.</p>
+<p>Returns a list of <a class="reference internal" href="#user-dicts">user dicts</a>.</p>
+<p><em>Added: Mastodon v2.4.3, last changed: Mastodon v2.4.3</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-lists">
+<h2>Reading data: Lists<a class="headerlink" href="#reading-data-lists" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to view information about lists.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.lists">
+<code class="descclassname">Mastodon.</code><code class="descname">lists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.lists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.lists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a list of all the Lists by the logged-in user.</p>
+<p>Returns a list of <a class="reference internal" href="#list-dicts">list dicts</a>.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.list">
+<code class="descclassname">Mastodon.</code><code class="descname">list</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch info about a specific list.</p>
+<p>Returns a <a class="reference internal" href="#list-dict">list dict</a>.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.list_accounts">
+<code class="descclassname">Mastodon.</code><code class="descname">list_accounts</code><span class="sig-paren">(</span><em>id</em>, <em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.list_accounts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.list_accounts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the accounts that are on the given list. A <cite>limit</cite> of 0 can
+be specified to get all accounts without pagination.</p>
+<p>Returns a list of <a class="reference internal" href="#user-dicts">user dicts</a>.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-follows">
+<h2>Reading data: Follows<a class="headerlink" href="#reading-data-follows" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="reading-data-favourites">
+<h2>Reading data: Favourites<a class="headerlink" href="#reading-data-favourites" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.favourites">
+<code class="descclassname">Mastodon.</code><code class="descname">favourites</code><span class="sig-paren">(</span><em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.favourites"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.favourites" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the logged-in user’s favourited statuses.</p>
+<p>Returns a list of <a class="reference internal" href="#toot-dicts">toot dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-follow-requests">
+<h2>Reading data: Follow requests<a class="headerlink" href="#reading-data-follow-requests" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.follow_requests">
+<code class="descclassname">Mastodon.</code><code class="descname">follow_requests</code><span class="sig-paren">(</span><em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.follow_requests"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.follow_requests" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the logged-in user’s incoming follow requests.</p>
+<p>Returns a list of <a class="reference internal" href="#user-dicts">user dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-searching">
+<h2>Reading data: Searching<a class="headerlink" href="#reading-data-searching" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.search">
+<code class="descclassname">Mastodon.</code><code class="descname">search</code><span class="sig-paren">(</span><em>q</em>, <em>resolve=True</em>, <em>result_type=None</em>, <em>account_id=None</em>, <em>offset=None</em>, <em>min_id=None</em>, <em>max_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch matching hashtags, accounts and statuses. Will perform webfinger
+lookups if resolve is True. Full-text search is only enabled if
+the instance supports it, and is restricted to statuses the logged-in
+user wrote or was mentioned in.</p>
+<p><cite>result_type</cite> can be one of “accounts”, “hashtags” or “statuses”, to only
+search for that type of object.</p>
+<p>Specify <cite>account_id</cite> to only get results from the account with that id.</p>
+<p><cite>offset</cite>, <cite>min_id</cite> and <cite>max_id</cite> can be used to paginate.</p>
+<p>Will use search_v1 (no tag dicts in return values) on Mastodon versions before 
+2.4.1), search_v2 otherwise. Parameters other than resolve are only available
+on Mastodon 2.8.0 or above - this function will throw a MastodonVersionError
+if you try to use them on versions before that. Note that the cached version
+number will be used for this to avoid uneccesary requests.</p>
+<p>Returns a <a class="reference internal" href="#search-result-dict">search result dict</a>, with tags as <a class="reference internal" href="#hashtag-dicts">hashtag dicts</a>.</p>
+<p><em>Added: Mastodon v1.1.0, last changed: Mastodon v2.8.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.search_v2">
+<code class="descclassname">Mastodon.</code><code class="descname">search_v2</code><span class="sig-paren">(</span><em>q</em>, <em>resolve=True</em>, <em>result_type=None</em>, <em>account_id=None</em>, <em>offset=None</em>, <em>min_id=None</em>, <em>max_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.search_v2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.search_v2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identical to <cite>search_v1()</cite>, except in that it returns tags as
+<a class="reference internal" href="#hashtag-dicts">hashtag dicts</a>, has more parameters, and resolves by default.</p>
+<p>Returns a <a class="reference internal" href="#search-result-dict">search result dict</a>.</p>
+<p><em>Added: Mastodon v2.4.1, last changed: Mastodon v2.8.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-mutes-and-blocks">
+<h2>Reading data: Mutes and blocks<a class="headerlink" href="#reading-data-mutes-and-blocks" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to get information about accounts that are
+muted or blocked by the logged in user.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.mutes">
+<code class="descclassname">Mastodon.</code><code class="descname">mutes</code><span class="sig-paren">(</span><em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.mutes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.mutes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a list of users muted by the logged-in user.</p>
+<p>Returns a list of <a class="reference internal" href="#user-dicts">user dicts</a>.</p>
+<p><em>Added: Mastodon v1.1.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.blocks">
+<code class="descclassname">Mastodon.</code><code class="descname">blocks</code><span class="sig-paren">(</span><em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.blocks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.blocks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a list of users blocked by the logged-in user.</p>
+<p>Returns a list of <a class="reference internal" href="#user-dicts">user dicts</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-reports-removed-in-2-5-0">
+<h2>Reading data: Reports (REMOVED IN 2.5.0)<a class="headerlink" href="#reading-data-reports-removed-in-2-5-0" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.reports">
+<code class="descclassname">Mastodon.</code><code class="descname">reports</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.reports"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.reports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch a list of reports made by the logged-in user.</p>
+<p>Returns a list of <a class="reference internal" href="#report-dicts">report dicts</a>.</p>
+<p>Warning: This method has now finally been removed, and will not 
+work on mastodon versions 2.5.0 and above.</p>
+<p><em>Added: Mastodon v1.1.0, last changed: Mastodon v1.1.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-domain-blocks">
+<h2>Reading data: Domain blocks<a class="headerlink" href="#reading-data-domain-blocks" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.domain_blocks">
+<code class="descclassname">Mastodon.</code><code class="descname">domain_blocks</code><span class="sig-paren">(</span><em>max_id=None</em>, <em>min_id=None</em>, <em>since_id=None</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.domain_blocks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.domain_blocks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the logged-in user’s blocked domains.</p>
+<p>Returns a list of blocked domain URLs (as strings, without protocol specifier).</p>
+<p><em>Added: Mastodon v1.4.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-emoji">
+<h2>Reading data: Emoji<a class="headerlink" href="#reading-data-emoji" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.custom_emojis">
+<code class="descclassname">Mastodon.</code><code class="descname">custom_emojis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.custom_emojis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.custom_emojis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the list of custom emoji the instance has installed.</p>
+<p>Does not require authentication.</p>
+<p>Returns a list of <a class="reference internal" href="#emoji-dicts">emoji dicts</a>.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-apps">
+<h2>Reading data: Apps<a class="headerlink" href="#reading-data-apps" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.app_verify_credentials">
+<code class="descclassname">Mastodon.</code><code class="descname">app_verify_credentials</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.app_verify_credentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.app_verify_credentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch information about the current application.</p>
+<p>Returns an <a class="reference internal" href="#application-dict">application dict</a>.</p>
+<p><em>Added: Mastodon v2.0.0, last changed: Mastodon v2.7.2</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-endorsements">
+<h2>Reading data: Endorsements<a class="headerlink" href="#reading-data-endorsements" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.endorsements">
+<code class="descclassname">Mastodon.</code><code class="descname">endorsements</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.endorsements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.endorsements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch list of users endorsemed by the logged-in user.</p>
+<p>Returns a list of <a class="reference internal" href="#user-dicts">user dicts</a>.</p>
+<p><em>Added: Mastodon v2.5.0, last changed: Mastodon v2.5.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="reading-data-preferences">
+<h2>Reading data: Preferences<a class="headerlink" href="#reading-data-preferences" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.preferences">
+<code class="descclassname">Mastodon.</code><code class="descname">preferences</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.preferences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.preferences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the users preferences, which can be used to set some default options.
+As of 2.8.0, apps can only fetch, not update preferences.</p>
+<p>Returns a <a class="reference internal" href="#preference-dict">preference dict</a>.</p>
+<p><em>Added: Mastodon v2.8.0, last changed: Mastodon v2.8.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="writing-data-statuses">
+<h2>Writing data: Statuses<a class="headerlink" href="#writing-data-statuses" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to post statuses to Mastodon and to
+interact with already posted statuses.</p>
+<span class="target" id="status-post"></span><dl class="method">
+<dt id="mastodon.Mastodon.status_post">
+<code class="descclassname">Mastodon.</code><code class="descname">status_post</code><span class="sig-paren">(</span><em>status</em>, <em>in_reply_to_id=None</em>, <em>media_ids=None</em>, <em>sensitive=False</em>, <em>visibility=None</em>, <em>spoiler_text=None</em>, <em>language=None</em>, <em>idempotency_key=None</em>, <em>content_type=None</em>, <em>scheduled_at=None</em>, <em>poll=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Post a status. Can optionally be in reply to another status and contain
+media.</p>
+<p><cite>media_ids</cite> should be a list. (If it’s not, the function will turn it
+into one.) It can contain up to four pieces of media (uploaded via 
+<a class="reference internal" href="#media-post">media_post()</a>). <cite>media_ids</cite> can also be the <a class="reference internal" href="#media-dicts">media dicts</a> returned 
+by <a class="reference internal" href="#media-post">media_post()</a> - they are unpacked automatically.</p>
+<p>The <cite>sensitive</cite> boolean decides whether or not media attached to the post
+should be marked as sensitive, which hides it by default on the Mastodon
+web front-end.</p>
+<p>The visibility parameter is a string value and accepts any of:
+‘direct’ - post will be visible only to mentioned users
+‘private’ - post will be visible only to followers
+‘unlisted’ - post will be public but not appear on the public timeline
+‘public’ - post will be public</p>
+<p>If not passed in, visibility defaults to match the current account’s
+default-privacy setting (starting with Mastodon version 1.6) or its
+locked setting - private if the account is locked, public otherwise
+(for Mastodon versions lower than 1.6).</p>
+<p>The <cite>spoiler_text</cite> parameter is a string to be shown as a warning before
+the text of the status.  If no text is passed in, no warning will be
+displayed.</p>
+<p>Specify <cite>language</cite> to override automatic language detection. The parameter
+accepts all valid ISO 639-2 language codes.</p>
+<p>You can set <cite>idempotency_key</cite> to a value to uniquely identify an attempt
+at posting a status. Even if you call this function more than once,
+if you call it with the same <cite>idempotency_key</cite>, only one status will
+be created.</p>
+<p>Pass a datetime as <cite>scheduled_at</cite> to schedule the toot for a specific time
+(the time must be at least 5 minutes into the future). If this is passed,
+status_post returns a <a class="reference internal" href="#scheduled-toot-dict">scheduled toot dict</a> instead.</p>
+<p>Pass <cite>poll</cite> to attach a poll to the status. An appropriate object can be
+constructed using <a class="reference internal" href="#make-poll">make_poll()</a> . Note that as of Mastodon version
+2.8.2, you can only have either media or a poll attached, not both at 
+the same time.</p>
+<p>Specify <cite>content_type</cite> to set the content type of your post on Pleroma.
+It accepts ‘text/plain’ (default), ‘text/markdown’, and ‘text/html’.
+This parameter is not supported on Mastodon servers, but will be
+safely ignored if set.</p>
+<p>Returns a <a class="reference internal" href="#toot-dict">toot dict</a> with the new status.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.8.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_reply">
+<code class="descclassname">Mastodon.</code><code class="descname">status_reply</code><span class="sig-paren">(</span><em>to_status</em>, <em>status</em>, <em>media_ids=None</em>, <em>sensitive=False</em>, <em>visibility=None</em>, <em>spoiler_text=None</em>, <em>language=None</em>, <em>idempotency_key=None</em>, <em>content_type=None</em>, <em>scheduled_at=None</em>, <em>poll=None</em>, <em>untag=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_reply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_reply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function - acts like status_post, but prepends the name of all
+the users that are being replied to to the status text and retains
+CW and visibility if not explicitly overridden.</p>
+<p>Set <cite>untag</cite> to True if you want the reply to only go to the user you
+are replying to, removing every other mentioned user from the
+conversation.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.8.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.toot">
+<code class="descclassname">Mastodon.</code><code class="descname">toot</code><span class="sig-paren">(</span><em>status</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.toot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.toot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Synonym for <a class="reference internal" href="#status-post">status_post()</a> that only takes the status text as input.</p>
+<p>Usage in production code is not recommended.</p>
+<p>Returns a <a class="reference internal" href="#toot-dict">toot dict</a> with the new status.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.8.0</em></p>
+</dd></dl>
+
+<span class="target" id="make-poll"></span><dl class="method">
+<dt id="mastodon.Mastodon.make_poll">
+<code class="descclassname">Mastodon.</code><code class="descname">make_poll</code><span class="sig-paren">(</span><em>options</em>, <em>expires_in</em>, <em>multiple=False</em>, <em>hide_totals=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.make_poll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.make_poll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a poll object that can be passed as the <cite>poll</cite> option when posting a status.</p>
+<p>options is an array of strings with the poll options (Maximum, by default: 4),
+expires_in is the time in seconds for which the poll should be open.
+Set multiple to True to allow people to choose more than one answer. Set
+hide_totals to True to hide the results of the poll until it has expired.</p>
+<p><em>Added: Mastodon v2.8.0, last changed: Mastodon v2.8.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_reblog">
+<code class="descclassname">Mastodon.</code><code class="descname">status_reblog</code><span class="sig-paren">(</span><em>id</em>, <em>visibility=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_reblog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_reblog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reblog / boost a status.</p>
+<p>The visibility parameter functions the same as in <a class="reference internal" href="#status-post">status_post()</a> and
+allows you to reduce the visibility of a reblogged status.</p>
+<p>Returns a <a class="reference internal" href="#toot-dict">toot dict</a> with a new status that wraps around the reblogged one.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.0.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_unreblog">
+<code class="descclassname">Mastodon.</code><code class="descname">status_unreblog</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_unreblog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_unreblog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Un-reblog a status.</p>
+<p>Returns a <a class="reference internal" href="#toot-dict">toot dict</a> with the status that used to be reblogged.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.0.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_favourite">
+<code class="descclassname">Mastodon.</code><code class="descname">status_favourite</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_favourite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_favourite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Favourite a status.</p>
+<p>Returns a <a class="reference internal" href="#toot-dict">toot dict</a> with the favourited status.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.0.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_unfavourite">
+<code class="descclassname">Mastodon.</code><code class="descname">status_unfavourite</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_unfavourite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_unfavourite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Un-favourite a status.</p>
+<p>Returns a <a class="reference internal" href="#toot-dict">toot dict</a> with the un-favourited status.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.0.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_mute">
+<code class="descclassname">Mastodon.</code><code class="descname">status_mute</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_mute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_mute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mute notifications for a status.</p>
+<p>Returns a <a class="reference internal" href="#toot-dict">toot dict</a> with the now muted status</p>
+<p><em>Added: Mastodon v1.4.0, last changed: Mastodon v2.0.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_unmute">
+<code class="descclassname">Mastodon.</code><code class="descname">status_unmute</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_unmute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_unmute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unmute notifications for a status.</p>
+<p>Returns a <a class="reference internal" href="#toot-dict">toot dict</a> with the status that used to be muted.</p>
+<p><em>Added: Mastodon v1.4.0, last changed: Mastodon v2.0.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_pin">
+<code class="descclassname">Mastodon.</code><code class="descname">status_pin</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_pin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_pin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pin a status for the logged-in user.</p>
+<p>Returns a <a class="reference internal" href="#toot-dict">toot dict</a> with the now pinned status</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_unpin">
+<code class="descclassname">Mastodon.</code><code class="descname">status_unpin</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_unpin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_unpin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unpin a pinned status for the logged-in user.</p>
+<p>Returns a <a class="reference internal" href="#toot-dict">toot dict</a> with the status that used to be pinned.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.status_delete">
+<code class="descclassname">Mastodon.</code><code class="descname">status_delete</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.status_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.status_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a status</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v1.0.0</em></p>
+</dd></dl>
+
+<div class="section" id="writing-data-scheduled-statuses">
+<h3>Writing data: Scheduled statuses<a class="headerlink" href="#writing-data-scheduled-statuses" title="Permalink to this headline">¶</a></h3>
+<p>Mastodon allows you to schedule statuses (using <a class="reference internal" href="#status-post">status_post()</a>.
+The functions in this section allow you to update or delete thusly
+scheduled statuses.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.scheduled_status_update">
+<code class="descclassname">Mastodon.</code><code class="descname">scheduled_status_update</code><span class="sig-paren">(</span><em>id</em>, <em>scheduled_at</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.scheduled_status_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.scheduled_status_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the scheduled time of a scheduled status.</p>
+<p>New time must be at least 5 minutes into the future.</p>
+<p>Returns a <a class="reference internal" href="#scheduled-toot-dict">scheduled toot dict</a></p>
+<p><em>Added: Mastodon v2.7.0, last changed: Mastodon v2.7.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.scheduled_status_delete">
+<code class="descclassname">Mastodon.</code><code class="descname">scheduled_status_delete</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.scheduled_status_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.scheduled_status_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes a scheduled status.</p>
+<p><em>Added: Mastodon v2.7.0, last changed: Mastodon v2.7.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="writing-data-polls">
+<h3>Writing data: Polls<a class="headerlink" href="#writing-data-polls" title="Permalink to this headline">¶</a></h3>
+<p>This function allows you to vote in polls.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.poll_vote">
+<code class="descclassname">Mastodon.</code><code class="descname">poll_vote</code><span class="sig-paren">(</span><em>id</em>, <em>choices</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.poll_vote"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.poll_vote" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vote in the given poll.</p>
+<p><cite>choices</cite> is the index of the choice you wish to register a vote for 
+(i.e. its index in the corresponding polls <cite>options</cite> field. In case 
+of a poll that allows selection of more than one option, a list of
+indices can be passed.</p>
+<p>You can only submit choices for any given poll once in case of
+single-option polls, or only once per option in case of multi-option
+polls.</p>
+<p>Returns the updated <a class="reference internal" href="#poll-dict">poll dict</a></p>
+<p><em>Added: Mastodon v2.8.0, last changed: Mastodon v2.8.0</em></p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="writing-data-notifications">
+<h2>Writing data: Notifications<a class="headerlink" href="#writing-data-notifications" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to clear all or some notifications.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.notifications_clear">
+<code class="descclassname">Mastodon.</code><code class="descname">notifications_clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.notifications_clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.notifications_clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear out a users notifications</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v1.0.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.notifications_dismiss">
+<code class="descclassname">Mastodon.</code><code class="descname">notifications_dismiss</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.notifications_dismiss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.notifications_dismiss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes a single notification</p>
+<p><em>Added: Mastodon v1.3.0, last changed: Mastodon v1.3.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="writing-data-conversations">
+<h2>Writing data: Conversations<a class="headerlink" href="#writing-data-conversations" title="Permalink to this headline">¶</a></h2>
+<p>This function allows you to mark conversations read.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.conversations_read">
+<code class="descclassname">Mastodon.</code><code class="descname">conversations_read</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.conversations_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.conversations_read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Marks a single conversation as read.</p>
+<p>Returns the updated <a class="reference internal" href="#conversation-dict">conversation dict</a>.</p>
+<p>WARNING: This method is currently not documented in the official API and
+might therefore be unstable.</p>
+<p><em>Added: Mastodon v2.6.0, last changed: Mastodon v2.6.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="writing-data-accounts">
+<h2>Writing data: Accounts<a class="headerlink" href="#writing-data-accounts" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to interact with other accounts: To (un)follow and
+(un)block.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.account_follow">
+<code class="descclassname">Mastodon.</code><code class="descname">account_follow</code><span class="sig-paren">(</span><em>id</em>, <em>reblogs=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_follow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_follow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Follow a user.</p>
+<p>Set <cite>reblogs</cite> to False to hide boosts by the followed user.</p>
+<p>Returns a <a class="reference internal" href="#relationship-dict">relationship dict</a> containing the updated relationship to the user.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.4.3</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.follows">
+<code class="descclassname">Mastodon.</code><code class="descname">follows</code><span class="sig-paren">(</span><em>uri</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.follows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.follows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Follow a remote user by uri (<a class="reference external" href="mailto:username&#37;&#52;&#48;domain">username<span>&#64;</span>domain</a>).</p>
+<p>Returns a <a class="reference internal" href="#user-dict">user dict</a>.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_unfollow">
+<code class="descclassname">Mastodon.</code><code class="descname">account_unfollow</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_unfollow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_unfollow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unfollow a user.</p>
+<p>Returns a <a class="reference internal" href="#relationship-dict">relationship dict</a> containing the updated relationship to the user.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v1.4.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_block">
+<code class="descclassname">Mastodon.</code><code class="descname">account_block</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Block a user.</p>
+<p>Returns a <a class="reference internal" href="#relationship-dict">relationship dict</a> containing the updated relationship to the user.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v1.4.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_unblock">
+<code class="descclassname">Mastodon.</code><code class="descname">account_unblock</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_unblock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_unblock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unblock a user.</p>
+<p>Returns a <a class="reference internal" href="#relationship-dict">relationship dict</a> containing the updated relationship to the user.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v1.4.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_mute">
+<code class="descclassname">Mastodon.</code><code class="descname">account_mute</code><span class="sig-paren">(</span><em>id</em>, <em>notifications=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_mute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_mute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mute a user.</p>
+<p>Set <cite>notifications</cite> to False to receive notifications even though the user is
+muted from timelines.</p>
+<p>Returns a <a class="reference internal" href="#relationship-dict">relationship dict</a> containing the updated relationship to the user.</p>
+<p><em>Added: Mastodon v1.1.0, last changed: Mastodon v2.4.3</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_unmute">
+<code class="descclassname">Mastodon.</code><code class="descname">account_unmute</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_unmute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_unmute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unmute a user.</p>
+<p>Returns a <a class="reference internal" href="#relationship-dict">relationship dict</a> containing the updated relationship to the user.</p>
+<p><em>Added: Mastodon v1.1.0, last changed: Mastodon v1.4.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_pin">
+<code class="descclassname">Mastodon.</code><code class="descname">account_pin</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_pin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_pin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pin / endorse a user.</p>
+<p>Returns a <a class="reference internal" href="#relationship-dict">relationship dict</a> containing the updated relationship to the user.</p>
+<p><em>Added: Mastodon v2.5.0, last changed: Mastodon v2.5.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_unpin">
+<code class="descclassname">Mastodon.</code><code class="descname">account_unpin</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_unpin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_unpin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unpin / un-endorse a user.</p>
+<p>Returns a <a class="reference internal" href="#relationship-dict">relationship dict</a> containing the updated relationship to the user.</p>
+<p><em>Added: Mastodon v2.5.0, last changed: Mastodon v2.5.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.account_update_credentials">
+<code class="descclassname">Mastodon.</code><code class="descname">account_update_credentials</code><span class="sig-paren">(</span><em>display_name=None</em>, <em>note=None</em>, <em>avatar=None</em>, <em>avatar_mime_type=None</em>, <em>header=None</em>, <em>header_mime_type=None</em>, <em>locked=None</em>, <em>fields=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.account_update_credentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.account_update_credentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the profile for the currently logged-in user.</p>
+<p>‘note’ is the user’s bio.</p>
+<p>‘avatar’ and ‘header’ are images. As with media uploads, it is possible to either
+pass image data and a mime type, or a filename of an image file, for either.</p>
+<p>‘locked’ specifies whether the user needs to manually approve follow requests.</p>
+<p>‘fields’ can be a list of up to four name-value pairs (specified as tuples) to 
+appear as semi-structured information in the users profile.</p>
+<p>Returns the updated <cite>user dict</cite> of the logged-in user.</p>
+<p><em>Added: Mastodon v1.1.1, last changed: Mastodon v2.4.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="writing-data-keyword-filters">
+<h2>Writing data: Keyword filters<a class="headerlink" href="#writing-data-keyword-filters" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to manipulate keyword filters.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.filter_create">
+<code class="descclassname">Mastodon.</code><code class="descname">filter_create</code><span class="sig-paren">(</span><em>phrase</em>, <em>context</em>, <em>irreversible=False</em>, <em>whole_word=True</em>, <em>expires_in=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.filter_create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.filter_create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new keyword filter. <cite>phrase</cite> is the phrase that should be
+filtered out, <cite>context</cite> specifies from where to filter the keywords.
+Valid contexts are ‘home’, ‘notifications’, ‘public’ and ‘thread’.</p>
+<p>Set <cite>irreversible</cite> to True if you want the filter to just delete statuses
+server side. This works only for the ‘home’ and ‘notifications’ contexts.</p>
+<p>Set <cite>whole_word</cite> to False if you want to allow filter matches to
+start or end within a word, not only at word boundaries.</p>
+<p>Set <cite>expires_in</cite> to specify for how many seconds the filter should be
+kept around.</p>
+<p>Returns the <a class="reference internal" href="#filter-dict">filter dict</a> of the newly created filter.</p>
+<p><em>Added: Mastodon v2.4.3, last changed: Mastodon v2.4.3</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.filter_update">
+<code class="descclassname">Mastodon.</code><code class="descname">filter_update</code><span class="sig-paren">(</span><em>id</em>, <em>phrase=None</em>, <em>context=None</em>, <em>irreversible=None</em>, <em>whole_word=None</em>, <em>expires_in=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.filter_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.filter_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the filter with the given <cite>id</cite>. Parameters are the same
+as in <cite>filter_create()</cite>.</p>
+<p>Returns the <a class="reference internal" href="#filter-dict">filter dict</a> of the updated filter.</p>
+<p><em>Added: Mastodon v2.4.3, last changed: Mastodon v2.4.3</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.filter_delete">
+<code class="descclassname">Mastodon.</code><code class="descname">filter_delete</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.filter_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.filter_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the filter with the given <cite>id</cite>.</p>
+<p><em>Added: Mastodon v2.4.3, last changed: Mastodon v2.4.3</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="writing-data-follow-suggestions">
+<h2>Writing data: Follow suggestions<a class="headerlink" href="#writing-data-follow-suggestions" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.suggestion_delete">
+<code class="descclassname">Mastodon.</code><code class="descname">suggestion_delete</code><span class="sig-paren">(</span><em>account_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.suggestion_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.suggestion_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the user with the given <cite>account_id</cite> from the follow suggestions.</p>
+<p><em>Added: Mastodon v2.4.3, last changed: Mastodon v2.4.3</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="writing-data-lists">
+<h2>Writing data: Lists<a class="headerlink" href="#writing-data-lists" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to create, maintain and delete lists.</p>
+<p>When creating lists, note that a user can only
+have a maximum of 50 lists.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.list_create">
+<code class="descclassname">Mastodon.</code><code class="descname">list_create</code><span class="sig-paren">(</span><em>title</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.list_create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.list_create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new list with the given <cite>title</cite>.</p>
+<p>Returns the <a class="reference internal" href="#list-dict">list dict</a> of the created list.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.list_update">
+<code class="descclassname">Mastodon.</code><code class="descname">list_update</code><span class="sig-paren">(</span><em>id</em>, <em>title</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.list_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.list_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update info about a list, where “info” is really the lists <cite>title</cite>.</p>
+<p>Returns the <a class="reference internal" href="#list-dict">list dict</a> of the modified list.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.list_delete">
+<code class="descclassname">Mastodon.</code><code class="descname">list_delete</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.list_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.list_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a list.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.list_accounts_add">
+<code class="descclassname">Mastodon.</code><code class="descname">list_accounts_add</code><span class="sig-paren">(</span><em>id</em>, <em>account_ids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.list_accounts_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.list_accounts_add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the account(s) given in <cite>account_ids</cite> to the list.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.list_accounts_delete">
+<code class="descclassname">Mastodon.</code><code class="descname">list_accounts_delete</code><span class="sig-paren">(</span><em>id</em>, <em>account_ids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.list_accounts_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.list_accounts_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the account(s) given in <cite>account_ids</cite> from the list.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="writing-data-follow-requests">
+<h2>Writing data: Follow requests<a class="headerlink" href="#writing-data-follow-requests" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to accept or reject incoming follow requests.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.follow_request_authorize">
+<code class="descclassname">Mastodon.</code><code class="descname">follow_request_authorize</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.follow_request_authorize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.follow_request_authorize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accept an incoming follow request.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v1.0.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.follow_request_reject">
+<code class="descclassname">Mastodon.</code><code class="descname">follow_request_reject</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.follow_request_reject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.follow_request_reject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reject an incoming follow request.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v1.0.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="writing-data-media">
+<h2>Writing data: Media<a class="headerlink" href="#writing-data-media" title="Permalink to this headline">¶</a></h2>
+<p>This function allows you to upload media to Mastodon. The returned
+media IDs (Up to 4 at the same time) can then be used with post_status
+to attach media to statuses.</p>
+<span class="target" id="media-post"></span><dl class="method">
+<dt id="mastodon.Mastodon.media_post">
+<code class="descclassname">Mastodon.</code><code class="descname">media_post</code><span class="sig-paren">(</span><em>media_file</em>, <em>mime_type=None</em>, <em>description=None</em>, <em>focus=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.media_post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.media_post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Post an image. <cite>media_file</cite> can either be image data or
+a file name. If image data is passed directly, the mime
+type has to be specified manually, otherwise, it is
+determined from the file name. <cite>focus</cite> should be a tuple
+of floats between -1 and 1, giving the x and y coordinates
+of the images focus point for cropping (with the origin being the images
+center).</p>
+<p>Throws a <cite>MastodonIllegalArgumentError</cite> if the mime type of the
+passed data or file can not be determined properly.</p>
+<p>Returns a <a class="reference internal" href="#media-dict">media dict</a>. This contains the id that can be used in
+status_post to attach the media file to a toot.</p>
+<p><em>Added: Mastodon v1.0.0, last changed: Mastodon v2.3.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.media_update">
+<code class="descclassname">Mastodon.</code><code class="descname">media_update</code><span class="sig-paren">(</span><em>id</em>, <em>description=None</em>, <em>focus=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.media_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.media_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the metadata of the media file with the given <cite>id</cite>. <cite>description</cite> and 
+<cite>focus</cite> are as in <a class="reference internal" href="#media-post">media_post()</a> .</p>
+<p>Returns the updated <a class="reference internal" href="#media-dict">media dict</a>.</p>
+<p><em>Added: Mastodon v2.3.0, last changed: Mastodon v2.3.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="writing-data-reports">
+<h2>Writing data: Reports<a class="headerlink" href="#writing-data-reports" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="mastodon.Mastodon.report">
+<code class="descclassname">Mastodon.</code><code class="descname">report</code><span class="sig-paren">(</span><em>account_id</em>, <em>status_ids=None</em>, <em>comment=None</em>, <em>forward=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report statuses to the instances administrators.</p>
+<p>Accepts a list of toot IDs associated with the report, and a comment.</p>
+<p>Set forward to True to forward a report of a remote user to that users
+instance as well as sending it to the instance local administrators.</p>
+<p>Returns a <a class="reference internal" href="#report-dict">report dict</a>.</p>
+<p><em>Added: Mastodon v1.1.0, last changed: Mastodon v2.5.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="writing-data-domain-blocks">
+<h2>Writing data: Domain blocks<a class="headerlink" href="#writing-data-domain-blocks" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to block and unblock all statuses from a domain
+for the logged-in user.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.domain_block">
+<code class="descclassname">Mastodon.</code><code class="descname">domain_block</code><span class="sig-paren">(</span><em>domain=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.domain_block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.domain_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a block for all statuses originating from the specified domain for the logged-in user.</p>
+<p><em>Added: Mastodon v1.4.0, last changed: Mastodon v1.4.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.domain_unblock">
+<code class="descclassname">Mastodon.</code><code class="descname">domain_unblock</code><span class="sig-paren">(</span><em>domain=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.domain_unblock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.domain_unblock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a domain block for the logged-in user.</p>
+<p><em>Added: Mastodon v1.4.0, last changed: Mastodon v1.4.0</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="pagination">
+<h2>Pagination<a class="headerlink" href="#pagination" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow for convenient retrieval of paginated data.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.fetch_next">
+<code class="descclassname">Mastodon.</code><code class="descname">fetch_next</code><span class="sig-paren">(</span><em>previous_page</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.fetch_next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.fetch_next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches the next page of results of a paginated request. Pass in the
+previous page in its entirety, or the pagination information dict
+returned as a part of that pages last status (‘_pagination_next’).</p>
+<p>Returns the next page or None if no further data is available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.fetch_previous">
+<code class="descclassname">Mastodon.</code><code class="descname">fetch_previous</code><span class="sig-paren">(</span><em>next_page</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.fetch_previous"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.fetch_previous" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches the previous page of results of a paginated request. Pass in the
+previous page in its entirety, or the pagination information dict
+returned as a part of that pages first status (‘_pagination_prev’).</p>
+<p>Returns the previous page or None if no further data is available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.fetch_remaining">
+<code class="descclassname">Mastodon.</code><code class="descname">fetch_remaining</code><span class="sig-paren">(</span><em>first_page</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.fetch_remaining"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.fetch_remaining" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches all the remaining pages of a paginated request starting from a
+first page and returns the entire set of results (including the first page
+that was passed in) as a big list.</p>
+<p>Be careful, as this might generate a lot of requests, depending on what you are
+fetching, and might cause you to run into rate limits very quickly.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="blurhash-decoding">
+<h2>Blurhash decoding<a class="headerlink" href="#blurhash-decoding" title="Permalink to this headline">¶</a></h2>
+<p>This function allows for easy basic decoding of blurhash strings to images.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.decode_blurhash">
+<code class="descclassname">Mastodon.</code><code class="descname">decode_blurhash</code><span class="sig-paren">(</span><em>media_dict</em>, <em>out_size=(16</em>, <em>16)</em>, <em>size_per_component=True</em>, <em>return_linear=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.decode_blurhash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.decode_blurhash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic media-dict blurhash decoding.</p>
+<p>out_size is the desired result size in pixels, either absolute or per blurhash
+component (this is the default).</p>
+<p>By default, this function will return the image as linear RGB, ready for further
+scaling operations. If you want to display the image directly, set return_linear 
+to False.</p>
+<p>Returns the decoded blurhash image as a three-dimensional list: [height][width][3],
+with the last dimension being RGB colours.</p>
+<p>For further info and tips for advanced usage, refer to the documentation for the
+blurhash module: <a class="reference external" href="https://github.com/halcy/blurhash-python">https://github.com/halcy/blurhash-python</a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="streaming">
+<h2>Streaming<a class="headerlink" href="#streaming" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow access to the streaming API.</p>
+<p>If <cite>async</cite> is False, these  methods block forever (or until an error is encountered).</p>
+<p>If <cite>async</cite> is True, the listener will listen on another thread and these methods
+will return a handle corresponding to the open connection. If, in addition, <cite>async_reconnect</cite> is True,
+the thread will attempt to reconnect to the streaming API if any errors are encountered, waiting
+<cite>async_reconnect_wait_sec</cite> seconds between reconnection attempts. Note that no effort is made
+to “catch up” - events created while the connection is broken will not be received. If you need to make
+sure to get absolutely all notifications / deletes / toots, you will have to do that manually, e.g.
+using the <cite>on_abort</cite> handler to fill in events since the last received one and then reconnecting.</p>
+<p>The connection may be closed at any time by calling the handles close() method. The
+current status of the handler thread can be checked with the handles is_alive() function,
+and the streaming status can be checked by calling is_receiving().</p>
+<p>The streaming functions take instances of <cite>StreamListener</cite> as the <cite>listener</cite> parameter.
+A <cite>CallbackStreamListener</cite> class that allows you to specify function callbacks
+directly is included for convenience.</p>
+<p>When in not-async mode or async mode without async_reconnect, the stream functions may raise
+various exceptions: <cite>MastodonMalformedEventError</cite> if a received event cannot be parsed and
+<cite>MastodonNetworkError</cite> if any connection problems occur.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.stream_user">
+<code class="descclassname">Mastodon.</code><code class="descname">stream_user</code><span class="sig-paren">(</span><em>listener</em>, <em>run_async=False</em>, <em>timeout=300</em>, <em>reconnect_async=False</em>, <em>reconnect_async_wait_sec=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.stream_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.stream_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Streams events that are relevant to the authorized user, i.e. home
+timeline and notifications.</p>
+<p><em>Added: Mastodon v1.1.0, last changed: Mastodon v1.4.2</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.stream_public">
+<code class="descclassname">Mastodon.</code><code class="descname">stream_public</code><span class="sig-paren">(</span><em>listener</em>, <em>run_async=False</em>, <em>timeout=300</em>, <em>reconnect_async=False</em>, <em>reconnect_async_wait_sec=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.stream_public"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.stream_public" title="Permalink to this definition">¶</a></dt>
+<dd><p>Streams public events.</p>
+<p><em>Added: Mastodon v1.1.0, last changed: Mastodon v1.4.2</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.stream_local">
+<code class="descclassname">Mastodon.</code><code class="descname">stream_local</code><span class="sig-paren">(</span><em>listener</em>, <em>run_async=False</em>, <em>timeout=300</em>, <em>reconnect_async=False</em>, <em>reconnect_async_wait_sec=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.stream_local"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.stream_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Streams local public events.</p>
+<p><em>Added: Mastodon v1.1.0, last changed: Mastodon v1.4.2</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.stream_hashtag">
+<code class="descclassname">Mastodon.</code><code class="descname">stream_hashtag</code><span class="sig-paren">(</span><em>tag</em>, <em>listener</em>, <em>run_async=False</em>, <em>timeout=300</em>, <em>reconnect_async=False</em>, <em>reconnect_async_wait_sec=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.stream_hashtag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.stream_hashtag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stream for all public statuses for the hashtag ‘tag’ seen by the connected
+instance.</p>
+<p><em>Added: Mastodon v1.1.0, last changed: Mastodon v1.4.2</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.stream_list">
+<code class="descclassname">Mastodon.</code><code class="descname">stream_list</code><span class="sig-paren">(</span><em>id</em>, <em>listener</em>, <em>run_async=False</em>, <em>timeout=300</em>, <em>reconnect_async=False</em>, <em>reconnect_async_wait_sec=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.stream_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.stream_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stream events for the current user, restricted to accounts on the given
+list.</p>
+<p><em>Added: Mastodon v2.1.0, last changed: Mastodon v2.1.0</em></p>
+</dd></dl>
+
+<div class="section" id="streamlistener">
+<h3>StreamListener<a class="headerlink" href="#streamlistener" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="mastodon.StreamListener">
+<em class="property">class </em><code class="descclassname">mastodon.</code><code class="descname">StreamListener</code><a class="reference internal" href="_modules/mastodon/streaming.html#StreamListener"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.StreamListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callbacks for the streaming API. Create a subclass, override the on_xxx
+methods for the kinds of events you’re interested in, then pass an instance
+of your subclass to Mastodon.user_stream(), Mastodon.public_stream(), or
+Mastodon.hashtag_stream().</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.StreamListener.on_update">
+<code class="descclassname">StreamListener.</code><code class="descname">on_update</code><span class="sig-paren">(</span><em>status</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/streaming.html#StreamListener.on_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.StreamListener.on_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>A new status has appeared! ‘status’ is the parsed JSON dictionary
+describing the status.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.StreamListener.on_notification">
+<code class="descclassname">StreamListener.</code><code class="descname">on_notification</code><span class="sig-paren">(</span><em>notification</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/streaming.html#StreamListener.on_notification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.StreamListener.on_notification" title="Permalink to this definition">¶</a></dt>
+<dd><p>A new notification. ‘notification’ is the parsed JSON dictionary
+describing the notification.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.StreamListener.on_delete">
+<code class="descclassname">StreamListener.</code><code class="descname">on_delete</code><span class="sig-paren">(</span><em>status_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/streaming.html#StreamListener.on_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.StreamListener.on_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>A status has been deleted. status_id is the status’ integer ID.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.StreamListener.on_conversation">
+<code class="descclassname">StreamListener.</code><code class="descname">on_conversation</code><span class="sig-paren">(</span><em>conversation</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/streaming.html#StreamListener.on_conversation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.StreamListener.on_conversation" title="Permalink to this definition">¶</a></dt>
+<dd><p>A direct message (in the direct stream) has been received. conversation
+contains the resulting conversation dict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.StreamListener.on_abort">
+<code class="descclassname">StreamListener.</code><code class="descname">on_abort</code><span class="sig-paren">(</span><em>err</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/streaming.html#StreamListener.on_abort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.StreamListener.on_abort" title="Permalink to this definition">¶</a></dt>
+<dd><p>There was a connection error, read timeout or other error fatal to
+the streaming connection. The exception object about to be raised
+is passed to this function for reference.</p>
+<p>Note that the exception will be raised properly once you return from this
+function, so if you are using this handler to reconnect, either never
+return or start a thread and then catch and ignore the exception.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.StreamListener.handle_heartbeat">
+<code class="descclassname">StreamListener.</code><code class="descname">handle_heartbeat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/streaming.html#StreamListener.handle_heartbeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.StreamListener.handle_heartbeat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The server has sent us a keep-alive message. This callback may be
+useful to carry out periodic housekeeping tasks, or just to confirm
+that the connection is still open.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="callbackstreamlistener">
+<h3>CallbackStreamListener<a class="headerlink" href="#callbackstreamlistener" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="mastodon.CallbackStreamListener">
+<em class="property">class </em><code class="descclassname">mastodon.</code><code class="descname">CallbackStreamListener</code><span class="sig-paren">(</span><em>update_handler=None</em>, <em>local_update_handler=None</em>, <em>delete_handler=None</em>, <em>notification_handler=None</em>, <em>conversation_handler=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/streaming.html#CallbackStreamListener"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.CallbackStreamListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple callback stream handler class.
+Can optionally additionally send local update events to a separate handler.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="push-subscriptions">
+<h2>Push subscriptions<a class="headerlink" href="#push-subscriptions" title="Permalink to this headline">¶</a></h2>
+<p>These functions allow you to manage webpush subscriptions and to decrypt received
+pushes. Note that the intended setup is not mastodon pushing directly to a users client -
+the push endpoint should usually be a relay server that then takes care of delivering the
+(encrypted) push to the end user via some mechanism, where it can then be decrypted and
+displayed.</p>
+<p>Mastodon allows an application to have one webpush subscription per user at a time.</p>
+<dl class="method">
+<dt id="mastodon.Mastodon.push_subscription">
+<code class="descclassname">Mastodon.</code><code class="descname">push_subscription</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.push_subscription"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.push_subscription" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the current push subscription the logged-in user has for this app.</p>
+<p>Returns a <a class="reference internal" href="#push-subscription-dict">push subscription dict</a>.</p>
+<p><em>Added: Mastodon v2.4.0, last changed: Mastodon v2.4.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.push_subscription_set">
+<code class="descclassname">Mastodon.</code><code class="descname">push_subscription_set</code><span class="sig-paren">(</span><em>endpoint</em>, <em>encrypt_params</em>, <em>follow_events=None</em>, <em>favourite_events=None</em>, <em>reblog_events=None</em>, <em>mention_events=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.push_subscription_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.push_subscription_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up or modifies the push subscription the logged-in user has for this app.</p>
+<p><cite>endpoint</cite> is the endpoint URL mastodon should call for pushes. Note that mastodon
+requires https for this URL. <cite>encrypt_params</cite> is a dict with key parameters that allow
+the server to encrypt data for you: A public key <cite>pubkey</cite> and a shared secret <cite>auth</cite>.
+You can generate this as well as the corresponding private key using the 
+<a class="reference internal" href="#push-subscription-generate-keys">push_subscription_generate_keys()</a> function.</p>
+<p>The rest of the parameters controls what kind of events you wish to subscribe to.</p>
+<p>Returns a <a class="reference internal" href="#push-subscription-dict">push subscription dict</a>.</p>
+<p><em>Added: Mastodon v2.4.0, last changed: Mastodon v2.4.0</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.push_subscription_update">
+<code class="descclassname">Mastodon.</code><code class="descname">push_subscription_update</code><span class="sig-paren">(</span><em>follow_events=None</em>, <em>favourite_events=None</em>, <em>reblog_events=None</em>, <em>mention_events=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.push_subscription_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.push_subscription_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modifies what kind of events the app wishes to subscribe to.</p>
+<p>Returns the updated <a class="reference internal" href="#push-subscription-dict">push subscription dict</a>.</p>
+<p><em>Added: Mastodon v2.4.0, last changed: Mastodon v2.4.0</em></p>
+</dd></dl>
+
+<span class="target" id="push-subscription-generate-keys"></span><dl class="method">
+<dt id="mastodon.Mastodon.push_subscription_generate_keys">
+<code class="descclassname">Mastodon.</code><code class="descname">push_subscription_generate_keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.push_subscription_generate_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.push_subscription_generate_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a private key, public key and shared secret for use in webpush subscriptions.</p>
+<p>Returns two dicts: One with the private key and shared secret and another with the 
+public key and shared secret.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mastodon.Mastodon.push_subscription_decrypt_push">
+<code class="descclassname">Mastodon.</code><code class="descname">push_subscription_decrypt_push</code><span class="sig-paren">(</span><em>data</em>, <em>decrypt_params</em>, <em>encryption_header</em>, <em>crypto_key_header</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mastodon/Mastodon.html#Mastodon.push_subscription_decrypt_push"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mastodon.Mastodon.push_subscription_decrypt_push" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrypts <cite>data</cite> received in a webpush request. Requires the private key dict 
+from <a class="reference internal" href="#push-subscription-generate-keys">push_subscription_generate_keys()</a> (<cite>decrypt_params</cite>) as well as the 
+Encryption and server Crypto-Key headers from the received webpush</p>
+<p>Returns the decoded webpush as a <a class="reference internal" href="#push-notification-dict">push notification dict</a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="acknowledgements">
+<h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline">¶</a></h2>
+<p>Mastodon.py contains work by a large amount of contributors, many of which have
+put significant work into making it a better library. You can find some information
+about who helped with which particular feature or fix in the changelog.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Mastodon.py</a><ul>
+<li><a class="reference internal" href="#a-note-about-rate-limits">A note about rate limits</a></li>
+<li><a class="reference internal" href="#a-note-about-pagination">A note about pagination</a></li>
+<li><a class="reference internal" href="#two-notes-about-ids">Two notes about IDs</a><ul>
+<li><a class="reference internal" href="#id-unpacking">ID unpacking</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#error-handling">Error handling</a></li>
+<li><a class="reference internal" href="#return-values">Return values</a><ul>
+<li><a class="reference internal" href="#user-dicts">User dicts</a></li>
+<li><a class="reference internal" href="#toot-dicts">Toot dicts</a></li>
+<li><a class="reference internal" href="#mention-dicts">Mention dicts</a></li>
+<li><a class="reference internal" href="#scheduled-toot-dicts">Scheduled toot dicts</a></li>
+<li><a class="reference internal" href="#poll-dicts">Poll dicts</a></li>
+<li><a class="reference internal" href="#conversation-dicts">Conversation dicts</a></li>
+<li><a class="reference internal" href="#hashtag-dicts">Hashtag dicts</a></li>
+<li><a class="reference internal" href="#hashtag-usage-history-dicts">Hashtag usage history dicts</a></li>
+<li><a class="reference internal" href="#emoji-dicts">Emoji dicts</a></li>
+<li><a class="reference internal" href="#application-dicts">Application dicts</a></li>
+<li><a class="reference internal" href="#relationship-dicts">Relationship dicts</a></li>
+<li><a class="reference internal" href="#filter-dicts">Filter dicts</a></li>
+<li><a class="reference internal" href="#notification-dicts">Notification dicts</a></li>
+<li><a class="reference internal" href="#context-dicts">Context dicts</a></li>
+<li><a class="reference internal" href="#list-dicts">List dicts</a></li>
+<li><a class="reference internal" href="#media-dicts">Media dicts</a></li>
+<li><a class="reference internal" href="#card-dicts">Card dicts</a></li>
+<li><a class="reference internal" href="#search-result-dicts">Search result dicts</a></li>
+<li><a class="reference internal" href="#instance-dicts">Instance dicts</a></li>
+<li><a class="reference internal" href="#activity-dicts">Activity dicts</a></li>
+<li><a class="reference internal" href="#report-dicts">Report dicts</a></li>
+<li><a class="reference internal" href="#push-subscription-dicts">Push subscription dicts</a></li>
+<li><a class="reference internal" href="#push-notification-dicts">Push notification dicts</a></li>
+<li><a class="reference internal" href="#preference-dicts">Preference dicts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#app-registration-and-user-authentication">App registration and user authentication</a></li>
+<li><a class="reference internal" href="#versioning">Versioning</a></li>
+<li><a class="reference internal" href="#reading-data-instances">Reading data: Instances</a></li>
+<li><a class="reference internal" href="#reading-data-timelines">Reading data: Timelines</a></li>
+<li><a class="reference internal" href="#reading-data-statuses">Reading data: Statuses</a><ul>
+<li><a class="reference internal" href="#reading-data-scheduled-statuses">Reading data: Scheduled statuses</a></li>
+<li><a class="reference internal" href="#reading-data-polls">Reading data: Polls</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#reading-data-notifications">Reading data: Notifications</a></li>
+<li><a class="reference internal" href="#reading-data-accounts">Reading data: Accounts</a></li>
+<li><a class="reference internal" href="#reading-data-keyword-filters">Reading data: Keyword filters</a></li>
+<li><a class="reference internal" href="#reading-data-follow-suggestions">Reading data: Follow suggestions</a></li>
+<li><a class="reference internal" href="#reading-data-lists">Reading data: Lists</a></li>
+<li><a class="reference internal" href="#reading-data-follows">Reading data: Follows</a></li>
+<li><a class="reference internal" href="#reading-data-favourites">Reading data: Favourites</a></li>
+<li><a class="reference internal" href="#reading-data-follow-requests">Reading data: Follow requests</a></li>
+<li><a class="reference internal" href="#reading-data-searching">Reading data: Searching</a></li>
+<li><a class="reference internal" href="#reading-data-mutes-and-blocks">Reading data: Mutes and blocks</a></li>
+<li><a class="reference internal" href="#reading-data-reports-removed-in-2-5-0">Reading data: Reports (REMOVED IN 2.5.0)</a></li>
+<li><a class="reference internal" href="#reading-data-domain-blocks">Reading data: Domain blocks</a></li>
+<li><a class="reference internal" href="#reading-data-emoji">Reading data: Emoji</a></li>
+<li><a class="reference internal" href="#reading-data-apps">Reading data: Apps</a></li>
+<li><a class="reference internal" href="#reading-data-endorsements">Reading data: Endorsements</a></li>
+<li><a class="reference internal" href="#reading-data-preferences">Reading data: Preferences</a></li>
+<li><a class="reference internal" href="#writing-data-statuses">Writing data: Statuses</a><ul>
+<li><a class="reference internal" href="#writing-data-scheduled-statuses">Writing data: Scheduled statuses</a></li>
+<li><a class="reference internal" href="#writing-data-polls">Writing data: Polls</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#writing-data-notifications">Writing data: Notifications</a></li>
+<li><a class="reference internal" href="#writing-data-conversations">Writing data: Conversations</a></li>
+<li><a class="reference internal" href="#writing-data-accounts">Writing data: Accounts</a></li>
+<li><a class="reference internal" href="#writing-data-keyword-filters">Writing data: Keyword filters</a></li>
+<li><a class="reference internal" href="#writing-data-follow-suggestions">Writing data: Follow suggestions</a></li>
+<li><a class="reference internal" href="#writing-data-lists">Writing data: Lists</a></li>
+<li><a class="reference internal" href="#writing-data-follow-requests">Writing data: Follow requests</a></li>
+<li><a class="reference internal" href="#writing-data-media">Writing data: Media</a></li>
+<li><a class="reference internal" href="#writing-data-reports">Writing data: Reports</a></li>
+<li><a class="reference internal" href="#writing-data-domain-blocks">Writing data: Domain blocks</a></li>
+<li><a class="reference internal" href="#pagination">Pagination</a></li>
+<li><a class="reference internal" href="#blurhash-decoding">Blurhash decoding</a></li>
+<li><a class="reference internal" href="#streaming">Streaming</a><ul>
+<li><a class="reference internal" href="#streamlistener">StreamListener</a></li>
+<li><a class="reference internal" href="#callbackstreamlistener">CallbackStreamListener</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#push-subscriptions">Push subscriptions</a></li>
+<li><a class="reference internal" href="#acknowledgements">Acknowledgements</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016-2018, Lorenz Diener.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

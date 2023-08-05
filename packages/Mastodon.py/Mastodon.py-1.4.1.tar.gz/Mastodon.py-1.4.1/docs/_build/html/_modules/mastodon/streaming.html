@@ -1,0 +1,272 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>mastodon.streaming &#8212; Mastodon.py 1.4.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.4.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for mastodon.streaming</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Handlers for the Streaming API:</span>
+<span class="sd">https://github.com/tootsuite/mastodon/blob/master/docs/Using-the-API/Streaming-API.md</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">mastodon</span> <span class="k">import</span> <span class="n">Mastodon</span>
+<span class="kn">from</span> <span class="nn">mastodon.Mastodon</span> <span class="k">import</span> <span class="n">MastodonMalformedEventError</span><span class="p">,</span> <span class="n">MastodonNetworkError</span><span class="p">,</span> <span class="n">MastodonReadTimeout</span>
+<span class="kn">from</span> <span class="nn">requests.exceptions</span> <span class="k">import</span> <span class="n">ChunkedEncodingError</span><span class="p">,</span> <span class="n">ReadTimeout</span>
+
+<div class="viewcode-block" id="StreamListener"><a class="viewcode-back" href="../../index.html#mastodon.StreamListener">[docs]</a><span class="k">class</span> <span class="nc">StreamListener</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Callbacks for the streaming API. Create a subclass, override the on_xxx</span>
+<span class="sd">    methods for the kinds of events you&#39;re interested in, then pass an instance</span>
+<span class="sd">    of your subclass to Mastodon.user_stream(), Mastodon.public_stream(), or</span>
+<span class="sd">    Mastodon.hashtag_stream().&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="StreamListener.on_update"><a class="viewcode-back" href="../../index.html#mastodon.StreamListener.on_update">[docs]</a>    <span class="k">def</span> <span class="nf">on_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A new status has appeared! &#39;status&#39; is the parsed JSON dictionary</span>
+<span class="sd">        describing the status.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="StreamListener.on_notification"><a class="viewcode-back" href="../../index.html#mastodon.StreamListener.on_notification">[docs]</a>    <span class="k">def</span> <span class="nf">on_notification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">notification</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A new notification. &#39;notification&#39; is the parsed JSON dictionary</span>
+<span class="sd">        describing the notification.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="StreamListener.on_abort"><a class="viewcode-back" href="../../index.html#mastodon.StreamListener.on_abort">[docs]</a>    <span class="k">def</span> <span class="nf">on_abort</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">err</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;There was a connection error, read timeout or other error fatal to</span>
+<span class="sd">        the streaming connection. The exception object about to be raised</span>
+<span class="sd">        is passed to this function for reference.</span>
+<span class="sd">        </span>
+<span class="sd">        Note that the exception will be raised properly once you return from this</span>
+<span class="sd">        function, so if you are using this handler to reconnect, either never</span>
+<span class="sd">        return or start a thread and then catch and ignore the exception.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="StreamListener.on_delete"><a class="viewcode-back" href="../../index.html#mastodon.StreamListener.on_delete">[docs]</a>    <span class="k">def</span> <span class="nf">on_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A status has been deleted. status_id is the status&#39; integer ID.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="StreamListener.on_conversation"><a class="viewcode-back" href="../../index.html#mastodon.StreamListener.on_conversation">[docs]</a>    <span class="k">def</span> <span class="nf">on_conversation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conversation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A direct message (in the direct stream) has been received. conversation</span>
+<span class="sd">        contains the resulting conversation dict.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="StreamListener.handle_heartbeat"><a class="viewcode-back" href="../../index.html#mastodon.StreamListener.handle_heartbeat">[docs]</a>    <span class="k">def</span> <span class="nf">handle_heartbeat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The server has sent us a keep-alive message. This callback may be</span>
+<span class="sd">        useful to carry out periodic housekeeping tasks, or just to confirm</span>
+<span class="sd">        that the connection is still open.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+    
+    <span class="k">def</span> <span class="nf">handle_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles a stream of events from the Mastodon server. When each event</span>
+<span class="sd">        is received, the corresponding .on_[name]() method is called.</span>
+
+<span class="sd">        response; a requests response object with the open stream for reading.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">line_buffer</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">chunk</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">chunk_part</span> <span class="ow">in</span> <span class="n">chunk</span><span class="p">:</span>
+                        <span class="n">chunk_part</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">([</span><span class="n">chunk_part</span><span class="p">])</span>
+                        <span class="k">if</span> <span class="n">chunk_part</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">line</span> <span class="o">=</span> <span class="n">line_buffer</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+                            <span class="k">except</span> <span class="ne">UnicodeDecodeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                                <span class="n">exception</span> <span class="o">=</span> <span class="n">MastodonMalformedEventError</span><span class="p">(</span><span class="s2">&quot;Malformed UTF-8&quot;</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">on_abort</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
+                                <span class="n">six</span><span class="o">.</span><span class="n">raise_from</span><span class="p">(</span>
+                                    <span class="n">exception</span><span class="p">,</span>
+                                    <span class="n">err</span>
+                                <span class="p">)</span>
+                            <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+                                <span class="n">event</span> <span class="o">=</span> <span class="p">{}</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_line</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+                            <span class="n">line_buffer</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">line_buffer</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">chunk_part</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ChunkedEncodingError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">exception</span> <span class="o">=</span> <span class="n">MastodonNetworkError</span><span class="p">(</span><span class="s2">&quot;Server ceased communication.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_abort</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
+            <span class="n">six</span><span class="o">.</span><span class="n">raise_from</span><span class="p">(</span>
+                <span class="n">exception</span><span class="p">,</span>
+                <span class="n">err</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">MastodonReadTimeout</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">exception</span> <span class="o">=</span> <span class="n">MastodonReadTimeout</span><span class="p">(</span><span class="s2">&quot;Timed out while reading from server.&quot;</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_abort</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
+            <span class="n">six</span><span class="o">.</span><span class="n">raise_from</span><span class="p">(</span>
+                <span class="n">exception</span><span class="p">,</span>
+                <span class="n">err</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_parse_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle_heartbeat</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">exception</span> <span class="o">=</span> <span class="n">MastodonMalformedEventError</span><span class="p">(</span><span class="s2">&quot;Malformed event.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_abort</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">exception</span>
+            <span class="c1"># According to the MDN spec, repeating the &#39;data&#39; key</span>
+            <span class="c1"># represents a newline(!)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">event</span><span class="p">:</span>
+                <span class="n">event</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">event</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">event</span>
+    
+    <span class="k">def</span> <span class="nf">_dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;event&#39;</span><span class="p">]</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">object_hook</span> <span class="o">=</span> <span class="n">Mastodon</span><span class="o">.</span><span class="n">_Mastodon__json_hooks</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">exception</span> <span class="o">=</span> <span class="n">MastodonMalformedEventError</span><span class="p">(</span><span class="s1">&#39;Missing field&#39;</span><span class="p">,</span> <span class="n">err</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">event</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_abort</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
+            <span class="n">six</span><span class="o">.</span><span class="n">raise_from</span><span class="p">(</span>
+                <span class="n">exception</span><span class="p">,</span>
+                <span class="n">err</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="c1"># py2: plain ValueError</span>
+            <span class="c1"># py3: json.JSONDecodeError, a subclass of ValueError</span>
+            <span class="n">exception</span> <span class="o">=</span> <span class="n">MastodonMalformedEventError</span><span class="p">(</span><span class="s1">&#39;Bad JSON&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_abort</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
+            <span class="n">six</span><span class="o">.</span><span class="n">raise_from</span><span class="p">(</span>
+                <span class="n">exception</span><span class="p">,</span>
+                <span class="n">err</span>
+            <span class="p">)</span>
+           
+        <span class="n">handler_name</span> <span class="o">=</span> <span class="s1">&#39;on_&#39;</span> <span class="o">+</span> <span class="n">name</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">handler</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler_name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">exception</span> <span class="o">=</span> <span class="n">MastodonMalformedEventError</span><span class="p">(</span><span class="s1">&#39;Bad event type&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_abort</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
+            <span class="n">six</span><span class="o">.</span><span class="n">raise_from</span><span class="p">(</span>
+               <span class="n">exception</span><span class="p">,</span>
+               <span class="n">err</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">handler</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CallbackStreamListener"><a class="viewcode-back" href="../../index.html#mastodon.CallbackStreamListener">[docs]</a><span class="k">class</span> <span class="nc">CallbackStreamListener</span><span class="p">(</span><span class="n">StreamListener</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple callback stream handler class.</span>
+<span class="sd">    Can optionally additionally send local update events to a separate handler.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_handler</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_update_handler</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">delete_handler</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">notification_handler</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">conversation_handler</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CallbackStreamListener</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_handler</span> <span class="o">=</span> <span class="n">update_handler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_update_handler</span> <span class="o">=</span> <span class="n">local_update_handler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete_handler</span> <span class="o">=</span> <span class="n">delete_handler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notification_handler</span> <span class="o">=</span> <span class="n">notification_handler</span>
+        
+    <span class="k">def</span> <span class="nf">on_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_handler</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_handler</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_update_handler</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">status</span><span class="p">[</span><span class="s2">&quot;account&quot;</span><span class="p">][</span><span class="s2">&quot;acct&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">local_update_handler</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">six</span><span class="o">.</span><span class="n">raise_from</span><span class="p">(</span>
+               <span class="n">MastodonMalformedEventError</span><span class="p">(</span><span class="s1">&#39;received bad update&#39;</span><span class="p">,</span> <span class="n">status</span><span class="p">),</span>
+               <span class="n">err</span>
+            <span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">on_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deleted_id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">delete_handler</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">delete_handler</span><span class="p">(</span><span class="n">deleted_id</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">on_notification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">notification</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">notification_handler</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">notification_handler</span><span class="p">(</span><span class="n">notification</span><span class="p">)</span>
+            
+    <span class="k">def</span> <span class="nf">on_conversation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conversation</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conversation_handler</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conversation_handler</span><span class="p">(</span><span class="n">conversation</span><span class="p">)</span>            </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016-2018, Lorenz Diener.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
