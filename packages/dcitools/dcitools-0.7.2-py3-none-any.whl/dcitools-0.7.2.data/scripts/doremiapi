@@ -1,0 +1,249 @@
+#!python
+# -*- coding: utf-8 -*-
+# vim: ai ts=4 sts=4 et sw=4 nu
+"""
+(c) 2014 Ronan Delacroix
+Doremi DCP2000 API Utility - Main File
+:author: Ronan Delacroix
+"""
+import sys
+import socket
+import os
+import argparse
+import six
+import dcitools
+import dcitools.devices.doremi.snmp as doremi_snmp
+import dcitools.devices.doremi.server as doremi_server
+import dcitools.devices.doremi.cli as doremi_cli
+import dcitools.devices.doremi.requests as requests
+
+import tbx.log
+import tbx.text
+tbx.log.configure_logging_to_screen()
+
+
+def execute(address, key, args, port=11730, format="text", debug=False):
+    """
+    Contact a Doremi Server API and execute a command, retrieve the result and display it.
+
+    address: Address of the server
+
+    key: Command key
+
+    port: Port of the server
+
+    format: Format of the output. Value can be 'text', 'json', 'xml', or even 'html'.
+
+    debug: Debug mode.
+
+    args: Command parameters
+
+    """
+    tbx.log.configure_logging_to_screen(debug)
+
+    if not requests.get_by_name(key):
+        sys.stderr.write("Message key '{}' is unknown.".format(key))
+        sys.stderr.flush()
+        exit(1)
+
+    try:
+        server = doremi_server.DoremiServer(address, port=port, debug=debug)
+    except socket.error as e:
+        print("ERROR while connecting to %s:%s (%s)" % (address, port, e))
+        print("Exiting...")
+        exit(1)
+
+    result = server.command(key, *args)
+
+    result = tbx.text.pretty_render(result, format=format, indent=1)
+
+    print(result)
+    exit(0)
+
+
+def list():
+    """
+    List available DCP2000 Command Keys
+    """
+    print("""
+    Available DCP2000 commands are :
+    """)
+    print('\t - ' + '\n\t - '.join(requests.index_by_name.keys()))
+    print("""
+    Type :
+        > doremiapi execute <IP> GetCPLList
+    """)
+    exit(0)
+
+
+def cli(address, port=11730, format='text', debug=False):
+    """
+    Command Line Interface mode.
+
+    Allows you to connect to a server and enter CLI mode. You can then type the commands you want.
+
+    address: Address of the server
+
+    port: Port of the server
+
+    debug: Debug mode
+    """
+    tbx.log.configure_logging_to_screen(debug)
+
+    try:
+        interpreter = doremi_cli.CLI(address, port, debug=debug, format=format)
+    except socket.error as e:
+        print("ERROR while connecting to %s:%s (%s)" % (address, port, e))
+        print("Exiting...")
+        exit(1)
+
+    try:
+        interpreter.cmdloop()
+    except socket.error as e:
+        print("ERROR while connecting to %s:%s (%s)" % (address, port, e))
+        print("Exiting...")
+        exit(1)
+    except KeyboardInterrupt:
+        print("\nExiting Doremi API CLI.")
+    exit(0)
+
+
+def http(address, port=11730, http_bind='0.0.0.0', http_port=8087, debug=False):
+    """
+    HTTP Restful API proxy server.
+
+    Allows you to create a HTTP Restful API server to proxy commands to a Doremi. You can then send the commands you want through http.
+
+    address: Address of the server
+
+    port: Port of the server
+
+    debug: Debug mode
+    """
+    tbx.log.configure_logging_to_screen(debug)
+
+    import bottle
+    import dcitools.devices.doremi.http as http
+    from json import JSONEncoder, dumps as jsonify
+
+    api = http.HTTPProxy(address=address, port=port, debug=debug)
+
+    myApp = bottle.Bottle()
+    myApp.install(bottle.JSONPlugin(json_dumps=lambda s: jsonify(s, cls=http.MyJsonEncoder)))
+
+    http.routeapp(myApp, api)
+
+    myApp.run(host=http_bind, port=http_port, debug=debug)
+
+    exit(0)
+    
+
+def snmplist():
+    """
+    List available SNMP Command Keys
+    """
+    print("""
+    Available SNMP commands are :
+    """)
+    print('\t - ' + '\n\t - '.join(doremi_snmp.SNMP_COMMANDS.keys()))
+    print('\t - All (get all keys and print them)')
+    print("""
+    Type :
+        > doremiapi snmp <IP> Firmware
+    Or :
+        > doremiapi snmp <IP> All
+    """)
+    exit(0)
+
+
+def snmp(address, key):
+    """
+    SNMP commands mode.
+
+    address: Address of the server
+
+    key: Key of the command
+    """
+
+    if key.lower() == "all":
+        for k in doremi_snmp.SNMP_COMMANDS:
+            print("{} : {}".format(k, doremi_snmp.SNMP_COMMANDS[k](address)))
+        return
+
+    if not (key in doremi_snmp.SNMP_COMMANDS):
+        print("SNMP Key '{}' is unknown.".format(key))
+        return
+
+    print(doremi_snmp.SNMP_COMMANDS[key](address))
+
+    exit(0)
+
+
+def version():
+    """
+    Display the version number
+    """
+    try:
+        print(open(os.path.join(os.path.dirname(os.path.abspath(dcitools.__file__)), '..', 'VERSION.txt')).read().strip())
+    except:
+        print('Error - Unable to retrieve version number...')
+        exit(1)
+    exit(0)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="""Doremi API Command Launcher""", epilog='"Be strong, be good. But have a glass of wine first."')
+
+    parsers = parser.add_subparsers(title="Commands")
+    if six.PY3:
+        execute_parser = parsers.add_parser('execute', aliases=['x'], help="Execute a Doremi API command.")
+    else:
+        execute_parser = parsers.add_parser('execute', help="Execute a Doremi API command.")
+
+    execute_parser.add_argument('address', help='Address of the Doremi server.')
+    execute_parser.add_argument('key',  help='Command name/key of the Doremi server.')
+    execute_parser.add_argument('args', nargs='*', help='Command parameters...')
+    execute_parser.add_argument('--port', type=int, default=11730, help='port to connect the DCP2000.')
+    execute_parser.add_argument('--format', choices=['text', 'xml', 'json', 'html'], default='text', help='Format to display the response.')
+    execute_parser.add_argument('--debug',  action='store_true', help='Enable Debugging Output.')
+    execute_parser.set_defaults(func=execute)
+
+    list_parser = parsers.add_parser('list', help="List available Doremi API commands.")
+    list_parser.set_defaults(func=list)
+
+    snmp_parser = parsers.add_parser('snmp', help="Execute an SNMP command.")
+    snmp_parser.add_argument('address', help='Address of the Doremi server.')
+    snmp_parser.add_argument('key', help='SNMP key.')
+    snmp_parser.set_defaults(func=snmp)
+
+    snmplist_parser = parsers.add_parser('snmplist', help="List available SNMP commands.")
+    snmplist_parser.set_defaults(func=snmplist)
+
+    cli_parser = parsers.add_parser('cli', help="Command Line Interface to Doremi API.")
+    cli_parser.add_argument('address', help='Address of the Doremi server.')
+    cli_parser.add_argument('--port', type=int, default=11730, help='Port to connect the Doremi server.')
+    cli_parser.add_argument('--format', choices=['text', 'xml', 'json', 'html'], help='Format to display the response.')
+    cli_parser.add_argument('--debug',  action='store_true', help='Enable Debugging Output.')
+    cli_parser.set_defaults(func=cli)
+
+    http_parser = parsers.add_parser('http', help="HTTP Restul API proxy to Doremi API.")
+    http_parser.add_argument('address', help='Address of the Doremi server.')
+    http_parser.add_argument('--port', type=int, default=11730, help='Port to connect the Doremi server.')
+    http_parser.add_argument('--debug',  action='store_true', help='Enable Debugging Output.')
+    http_parser.add_argument('--http-bind', default='0.0.0.0', help='HTTP bind address for serving API.')
+    http_parser.add_argument('--http-port', default=8087, help='HTTP Port for serving API.')
+    http_parser.set_defaults(func=http)
+
+    version_parser = parsers.add_parser('version', help="Display the version of the dcitools library.")
+    version_parser.set_defaults(func=version)
+
+    args = vars(parser.parse_args())
+    if 'func' in args:
+        func = args.pop('func')
+        func(**args)
+    else:
+        parser.print_help()
+    exit(0)
+
+if __name__ == "__main__":
+    main()
