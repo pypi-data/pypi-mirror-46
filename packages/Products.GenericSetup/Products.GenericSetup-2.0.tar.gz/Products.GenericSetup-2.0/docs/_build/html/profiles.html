@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>About Profiles &#8212; Products.GenericSetup 2.0b6.dev0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changelog" href="CHANGES.html" />
+    <link rel="prev" title="How-to: Writing setup handlers for Products.GenericSetup" href="handlers.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="CHANGES.html" title="Changelog"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="handlers.html" title="How-to: Writing setup handlers for Products.GenericSetup"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Products.GenericSetup 2.0b6.dev0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="about-profiles">
+<span id="id1"></span><h1>About Profiles<a class="headerlink" href="#about-profiles" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">GenericSetup</span></code> uses two different kinds of profiles:  a <a class="reference internal" href="glossary.html#term-base-profile"><span class="xref std std-term">base
+profile</span></a> captures the entire state of the site, while an <a class="reference internal" href="glossary.html#term-extension-profile"><span class="xref std std-term">extension
+profile</span></a> represents an add-on / delta to be applied to the site’s
+configuration.</p>
+</div>
+<div class="section" id="registering-profiles">
+<h2>Registering Profiles<a class="headerlink" href="#registering-profiles" title="Permalink to this headline">¶</a></h2>
+<p>By convention profiles are stored in a <code class="docutils literal notranslate"><span class="pre">profiles</span></code> directory within a
+Zope product. They have to be registered explicitly using either the
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Products.GenericSetup.profile_registry.registerProfile()</span></code> API or the
+equivalent <code class="docutils literal notranslate"><span class="pre">genericsetup:registerProfile</span></code> ZCML directive.</p>
+<p>Here is example ZCML for a Zope product, <code class="docutils literal notranslate"><span class="pre">MyProduct</span></code>, which extends
+another product, <code class="docutils literal notranslate"><span class="pre">BaseProduct</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">genericsetup</span><span class="p">:</span><span class="n">registerProfile</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;install&quot;</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Install MyProduct Extension&quot;</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Adds local settings necessary for MyProduct.&quot;</span>
+    <span class="n">provides</span><span class="o">=</span><span class="s2">&quot;Products.GenericSetup.interfaces.EXTENSION&quot;</span>
+    <span class="k">for</span><span class="o">=</span><span class="s2">&quot;Products.BaseProduct.interfaces.IBaseRoot&quot;</span>
+    <span class="o">/&gt;</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Products.GenericSetup.zcml.IRegisterProfileDirective</span></code> defines
+the API for this directive.</p>
+</div>
+<p>Alternatively, profiles can be registered by calling the
+<code class="xref py py-func docutils literal notranslate"><span class="pre">Products.GenericSetup.profile_registry.registerProfile()</span></code> API.</p>
+<p>Here is the code for the same example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">Products.BaseProduct.interfaces</span> <span class="k">import</span> <span class="n">IBaseRoot</span>
+<span class="kn">from</span> <span class="nn">Products.GenericSetup</span> <span class="k">import</span> <span class="n">EXTENSION</span>
+<span class="kn">from</span> <span class="nn">Products.GenericSetup</span> <span class="k">import</span> <span class="n">profile_registry</span>
+
+<span class="n">profile_registry</span><span class="o">.</span><span class="n">registerProfile</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;install&#39;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Install MyProduct Extension&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Adds local settings necessary for MyProduct.&#39;</span><span class="p">,</span>
+        <span class="n">path</span><span class="o">=</span><span class="s1">&#39;profiles/install&#39;</span><span class="p">,</span>
+        <span class="n">product</span><span class="o">=</span><span class="s1">&#39;Products.MyProduct&#39;</span><span class="p">,</span>
+        <span class="n">profile_type</span><span class="o">=</span><span class="n">EXTENSION</span><span class="p">,</span>
+        <span class="n">for_</span><span class="o">=</span><span class="n">IBaseRoot</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>See IProfileRegistry.registerProfile for further details.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Using this API for product initialization is deprecated.</p>
+</div>
+</div>
+<div class="section" id="update-directives">
+<h2>Update Directives<a class="headerlink" href="#update-directives" title="Permalink to this headline">¶</a></h2>
+<p>For some XML elements there are additional attributes and values to
+specify update directives. They are only useful for extension profiles and
+you will never see them in snapshots and exports.</p>
+<p>The following directives are generally useful for container elements and
+implemented by some setup handlers. Products using GenericSetup can also
+implement other update directives.</p>
+<p><code class="docutils literal notranslate"><span class="pre">id=&quot;*&quot;</span></code> wildcard</p>
+<blockquote>
+<div><p>Updates all existing items in the container with the same settings.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">remove</span></code></p>
+<blockquote>
+<div><p>Removes the specified item if it exists.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">insert-before</span></code> and <code class="docutils literal notranslate"><span class="pre">insert-after</span></code></p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">insert-before</span></code> and <code class="docutils literal notranslate"><span class="pre">insert-after</span></code> specify the position of a new
+item relative to an existing item. If they are omitted or not valid,
+items are appended. You can also use <code class="docutils literal notranslate"><span class="pre">*</span></code> as wildcard. This will
+insert the new item at the top (before all existing items) or the
+bottom (after all existing items). If an item with the given ID exists
+already, it is moved to the specified position. This directive makes
+only sense for ordered containers.</p>
+</div></blockquote>
+</div>
+<div class="section" id="other-special-directives">
+<h2>Other Special Directives<a class="headerlink" href="#other-special-directives" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">purge</span></code></p>
+<blockquote>
+<div><p>By default existing settings are purged before applying settings from
+base profiles. Extension profiles are applied in update mode. This
+directive overrides the default behavior. If True the existing settings
+of the current object are always purged, if False they are not purged.</p>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">About Profiles</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#registering-profiles">Registering Profiles</a></li>
+<li><a class="reference internal" href="#update-directives">Update Directives</a></li>
+<li><a class="reference internal" href="#other-special-directives">Other Special Directives</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="handlers.html"
+                        title="previous chapter">How-to: Writing setup handlers for <code class="docutils literal notranslate"><span class="pre">Products.GenericSetup</span></code></a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="CHANGES.html"
+                        title="next chapter">Changelog</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/profiles.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="CHANGES.html" title="Changelog"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="handlers.html" title="How-to: Writing setup handlers for Products.GenericSetup"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Products.GenericSetup 2.0b6.dev0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2008-2017, Zope CMF Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.1.
+    </div>
+  </body>
+</html>
