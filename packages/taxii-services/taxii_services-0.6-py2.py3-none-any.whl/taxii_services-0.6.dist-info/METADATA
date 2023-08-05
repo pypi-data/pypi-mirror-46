@@ -1,0 +1,146 @@
+Metadata-Version: 2.1
+Name: taxii-services
+Version: 0.6
+Summary: Django TAXII installable app & utilities for creating TAXII Django Web Apps.
+Home-page: http://taxii.mitre.org/
+Author: Mark Davidson
+Author-email: mdavidson@mitre.org
+License: UNKNOWN
+Keywords: taxii django taxii_services django-taxii-services
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Security
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Requires-Dist: Django (>=1.11.19)
+Requires-Dist: libtaxii (>=1.1.105)
+Requires-Dist: lxml (>=2.2.3)
+Requires-Dist: python-dateutil (>=1.4.1)
+Provides-Extra: docs
+Requires-Dist: Sphinx (==1.3.1) ; extra == 'docs'
+Requires-Dist: sphinx-rtd-theme (==0.1.8) ; extra == 'docs'
+Provides-Extra: test
+Requires-Dist: tox (==1.6.1) ; extra == 'test'
+
+django-taxii-services
+=====================
+
+Please Note:
+------------
+
+This library is no longer maintained. If you need an open source TAXII 1.X
+implementation, please see  `this list of other libraries <https://wiki.oasis-open.org/cti/Open%20Source%20Projects>`__.
+
+:Source: https://github.com/TAXIIProject/django-taxii-services
+:Documentation: http://taxii-services.readthedocs.io
+:Information: http://taxiiproject.github.io/
+:Download: https://pypi.python.org/pypi/taxii-services
+
+|travis badge| |landscape.io badge| |version badge| |downloads badge|
+
+.. |travis badge| image:: https://api.travis-ci.org/TAXIIProject/django-taxii-services.svg?branch=master
+   :target: https://travis-ci.org/TAXIIProject/django-taxii-services
+   :alt: Build Status
+.. |landscape.io badge| image:: https://landscape.io/github/TAXIIProject/django-taxii-services/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/TAXIIProject/django-taxii-services/master
+   :alt: Code Health
+.. |version badge| image:: https://img.shields.io/pypi/v/taxii-services.svg?maxAge=3600
+   :target: https://pypi.python.org/pypi/taxii-services/
+.. |downloads badge| image:: https://img.shields.io/pypi/dm/taxii-services.svg?maxAge=3600
+   :target: https://pypi.python.org/pypi/taxii-services/
+
+Overview
+--------
+
+django-taxii-services is an installable Django app that enables
+application developers to rapidly create TAXII Applications that cover
+any aspect of TAXII 1.0 and TAXII 1.1. Key aspects of
+django-taxii-services include:
+
+-  Reusable - You can install it
+-  Extensible - You can extend (almost) any aspect of
+   django-taxii-services to perform your custom application logic
+-  Complete - Covers 100% of TAXII 1.0 and TAXII 1.1 (this is more of a
+   goal, at the moment)
+-  Easy - Always a subjective term, but django-taxii-services aims to be
+   easy to use.
+
+If you see anything you'd like to ask a question on, please open an issue on
+GitHub or contact the TAXII Team at taxii@mitre.org.
+
+Using django-taxii-services
+---------------------------
+
+Create your own Django project, install django-taxii-services, and
+modify your settings.py to add ``taxii_services`` (e.g.,):
+
+.. code:: python
+
+    INSTALLED_APPS = (
+        ...
+        'taxii_services',
+    )
+
+    MIDDLEWARE_CLASSES = (
+        ...
+        'taxii_services.middleware.StatusMessageExceptionMiddleware'
+    )
+
+    # Add a logger if you'd like
+    LOGGING = {
+        ...
+        'loggers': {
+            ...
+            'taxii_services': {
+                'handlers': ['normal','stdout'],
+                'level': LOG_LEVEL,
+                'propagate': True,
+            },
+        }
+    }
+
+Some Key Features
+-----------------
+
+(This section is kind of a brain dump and should eventually be moved to
+readthedocs when it matures)
+
+-  exceptions.StatusMessageException /
+   middleware.StatusMessageExceptionMiddleware - These, when used
+   together, allow developers to raise a StatusMessageException()
+   anywhere and have the server automagically create a StatusMessage in
+   response (might be a TAXII 1.0 or 1.1 Status Message depending on the
+   request). If you have
+   ``taxii_services.middleware.StatusMessageExceptionMiddleware`` in
+   your MIDDLEWARAE\_CLASSES, you can just
+   ``raise taxii_services.exceptions.StatusMessageException( ... )``
+   from anywhere and have django-taxii-services send back a
+   StatusMessage.
+
+-  Register your own message handler - use
+   taxii\_services.management.register\_message\_handler()
+
+-  Some convenience methods:
+-  taxii\_services.register\_admins - Register some/all admins to the
+   Django admin interface
+-  taxii\_services.register\_message\_handlers - Register some/all
+   built-in message handlers
+
+Dependencies
+------------
+
+TODO: Document the dependencies
+
+Feedback
+--------
+
+Please provide feedback and/or comments on open issues to taxii@mitre.org.
+
+License
+-------
+
+For license information, see the LICENSE.txt file.
+
+
