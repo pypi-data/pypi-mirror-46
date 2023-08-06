@@ -1,0 +1,1 @@
+from comicepub.comicepub import ComicEpub
