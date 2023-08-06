@@ -1,0 +1,228 @@
+
+
+.. django_tidyfields documentation master file, created by startproject.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+=================================================
+Welcome to django_tidyfields's documentation!
+=================================================
+
+:Version: 1.1.0
+:Source: https://gitlab.routh.io/open-source/python/django_tidyfields
+:Keywords: ``django`` ``lxml`` ``input`` ``html`` ``fields``
+:PythonVersion: 3.6+
+
+|build-status| |requirements| |coverage|
+
+|python-versions| |django-versions| |pypi-version| |pypi-downloads|
+
+Sanitise HTML input from API Endpoints or Views
+
+.. contents::
+
+.. section-numbering::
+
+Features
+========
+
+* Leverages the power of ``lxml`` to filter model fields
+* Supports input from any source as the filtering is triggered by model save
+
+Installation
+============
+
+Requirements
+------------
+
+* Python 3.6 or above
+* setuptools 30.3.0 or above
+* Django 2.0 or above
+
+
+Install
+-------
+
+Install ``django_tidyfields`` via ``pip``:
+
+.. code-block:: bash
+
+   pip install django-tidyfields
+
+Add Django TidyFields to ``INSTALLED_APPS``:
+
+.. code-block:: python
+
+   INSTALLED_APPS = [
+       # ...
+       'django_tidyfields',
+       # ...
+   ]
+
+Configure
+---------
+
+These fields pass the expected arguments for `lxml.html.clean.Cleaner` class through to the `Cleaner` instance directly. We will try to
+keep the docs in line with the latest integrated lxml version, however these parameters are subject to change based on the
+development of lxml. More on `https://lxml.de <https://lxml.de/api/lxml.html.clean.Cleaner-class.html>`_
+
+
+
+Usage
+=====
+
+Django TidyFields subclass the Django TextField and CharField classes, and take any parameters available to them.
+
+You can optionally configure the field globally in your Django Settings:
+
+.. code-block:: python
+
+   """
+   Empty dict example, showing all parameters available, at their defaults.
+   """
+   TIDYFIELDS = {
+       'processing_instructions': True,
+       'javascript': True,
+       'comments': True,
+       'style': True,
+       'allow_tags': [],
+       'remove_unknown_tags': False,
+       'kill_tags': ['script', 'style'],
+       'safe_attrs_only': True,
+       'safe_attrs': [],
+       'add_nofollow': True,
+       'scripts': True,
+       'inline_style': None,
+       'links': True,
+       'meta': True,
+       'page_structure': True,
+       'embedded': True,
+       'frames': True,
+       'forms': True,
+       'annoying_tags': True,
+       'remove_tags': None,
+       'host_whitelist': [],
+       'whitelist_tags': {}
+   }
+
+
+And you can override specific parameters for each model that uses Django TidyFields. Parameters not set here will inherit from
+the global settings or from `lxml.html.clean.Cleaner` itself. Review the `lxml documentation <https://lxml.de/lxmlhtml.html#cleaning-up-html>`_
+for the bleach default arguments.
+
+``models.py``:
+
+.. code-block:: python
+
+   """
+   A minimal Models.py usage example
+   """
+
+   from django.db.models import Model
+   from django_tidyfields.fields import TidyTextField, TidyCharField
+
+   class UserSubmission(Model):
+       title = TidyCharField()
+       description = TidyTextField()
+       body = TidyTextField()
+
+
+Advanced Usage
+==============
+
+Django TidyFields can be used however you like, but we recommend that your global defaults be a minimum
+allowed set of tags, or simply be setup to strip everything. If your project only allows HTML tags in certain
+TextFields for example, it implies that you'll have a number of CharFields and TextFields where you want HTML
+to be stripped out.
+
+You can define allowed tags when defining a field directly in the model, however you may also define addition
+defaults with unique variable names in your Django Settings, and use that var on any TextField that allows those
+tags. The fields check to see if any arguments are set in the `field_args` parameter, and only overrides the
+default arguments if you've passed the same argument again. So you can use additive and subtractive magic to
+simplify your code as much as possible. Just remember the Wizards Second Rule! (Especially when using subtractive
+magic)
+
+    | “The Second Rule is that the greatest harm can result from the best intentions.  It sounds a paradox, but kindness and good intentions can be an insidious path to destruction. Sometimes doing what seems right is wrong and can cause harm.  The only counter to it is knowledge, wisdom, forethought, and understanding the First Rule.  Even then, that is not always enough.”
+    |
+    | *-- Zedd Zu'l Zorander*
+    | *Stone of Tears, Terry Goodkind*
+
+An Additive example
+-------------------
+
+``settings.py``:
+
+.. code-block:: python
+
+   """
+   Default dict that strips all HTML, with a permissive dict for certain fields.
+   """
+   TIDYFIELDS = {
+       'processing_instructions': True,
+       'javascript': True,
+       'comments': True,
+       'style': True,
+       'allow_tags': [''],
+       'remove_unknown_tags': False,
+       'kill_tags': ['script', 'style'],
+       'safe_attrs_only': True,
+       'safe_attrs': [''],
+       'add_nofollow': True
+   }
+
+   PERMISSIVE_TIDYFIELDS = {
+       'allow_tags': ['b', 'em', 'i', 'strong', 'span', 'p', 'pagebreak'],
+       'safe_attrs': ['style'],
+       'style': False
+   }
+
+``models.py``:
+
+.. code-block:: python
+
+   """
+   A models.py usage example with Additive magic
+   """
+
+   from django.db.models import Model
+   from django.conf import settings
+   from django_tidyfields.fields import TidyTextField, TidyCharField
+
+   class UserSubmission(Model):
+       title = TidyCharField()
+       description = TidyTextField()
+       body = TidyTextField(field_args=settings.PERMISSIVE_TIDYFIELDS)
+
+History
+=======
+
+This module was originally named Django-Bleachfields and was intended to be a spiritual successor to the now defunct django-bleachfield module. An alpha version had been uploaded to Pypi, however it has been pulled in favour of this module. During initial testing it was found that ``bleach`` only removes tags, the developers considering removal of the code within them being a concern of beutifying HTML rather than a security concern. It was found that this opened the door for some of the more creative XSS filter attacks. As a result, ``lxml`` was chosen to replace ``bleach`` in this module as it allows the complete removal of specified tags and their content.
+
+Testing
+=======
+
+This module is tested to ensure it does not strip allowed HTML or CSS, but that it does strip XSS attacks or leaves them inert. Nearly 30 attacks from the `OWASP XSS Filter Evasion cheat sheet <https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet>`_ are tested. More will be added in the next version.
+
+Disclaimer: Allowing javascript will compromise the XSS filtering. Do so with utmost caution and only give such priveledges to trusted persons.
+
+
+.. |build-status| image:: https://gitlab.routh.io/open-source/python/django_tidyfields/badges/master/pipeline.svg
+    :target: https://gitlab.routh.io/open-source/python/django_tidyfields/commits/master
+
+.. |requirements| image:: https://requires.io/enterprise/Routhinator/django_tidyfields/requirements.svg?branch=master
+    :target: https://requires.io/enterprise/Routhinator/django_tidyfields/requirements/?branch=master
+    :alt: Requirements status
+
+.. |coverage| image:: https://gitlab.routh.io/open-source/python/django_tidyfields/badges/master/coverage.svg
+    :target: http://open-source.pages.routh.io/python/django_tidyfields/
+    :alt: Coverage status
+
+.. |python-versions| image:: https://img.shields.io/pypi/pyversions/django_tidyfields.svg
+
+.. |django-versions| image:: https://img.shields.io/pypi/djversions/django_tidyfields.svg
+
+.. |pypi-version| image:: https://img.shields.io/pypi/v/django_tidyfields.svg
+    :target: https://pypi.org/project/django-tidyfields/
+
+.. |pypi-downloads| image:: https://pepy.tech/badge/django-tidyfields
+    :target: https://pepy.tech/project/django-tidyfields
