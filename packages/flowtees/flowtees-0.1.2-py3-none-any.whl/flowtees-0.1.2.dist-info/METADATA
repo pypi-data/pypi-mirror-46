@@ -1,0 +1,74 @@
+Metadata-Version: 2.1
+Name: flowtees
+Version: 0.1.2
+Summary: This tool provides support in the conversion process of converting AtlasKit Flow components to TypeScript. It takes the trivial work out of the conversion.
+Home-page: https://bitbucket.org/patrickcylai/flowtees/src/master/
+Author: Patrick Lai
+Author-email: plai@atlassian.com
+License: MIT
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: Topic :: Software Development
+Requires-Python: >=3.5
+Description-Content-Type: text/markdown
+Requires-Dist: Click
+Requires-Dist: colorama
+
+# FlowTees
+
+## Purpose
+
+This tool provides support in the conversion process of converting AtlasKit Flow components to TypeScript. It takes the trivial work out of the conversion. These are just floaties to help you but won't totally convert your component.
+
+## Features
+
+-   Renames files to `tsx/ts`
+-   Ignores `node_modules`
+-   Removing flow decorators (`@flow`, `$StringLitteral`, `$FlowFixMe`)
+-   Remove `type` keyword from exports and imports
+-   Renames `type` keyword to `interface` keyword when applicable and can handle `extends`
+-   Configures `package.json` and creates `tsconfig.json` files
+
+## Usage
+
+[![asciicast](https://asciinema.org/a/246271.svg)](https://asciinema.org/a/246271)
+
+FlowTees is a command line application, called `flowtees`, the application is used before beginning the conversion process. It assumes that no work has been started on the component yet.
+
+To begin, run the following command:
+
+```
+$ flowtees [directory/to/component]
+```
+
+**e.g.** say you are converting the `select` component, then the command would look like this:
+
+```
+$ flowtees ~/src/atlaskit-mk-2/packages/core/select
+```
+
+The program will begin analyzing the `js` files in the directory and do a dry run to find only compatible files to convert. The compatible files will be listed in _green_ while incompatible files will be shown in _red_.
+
+After processing the files, you will get a prompt asking whether you want to also include the build config files for TS. This helps to create the appropriate `tsconfig.json` files in the component directory and also modify the the `package.json` file so it points to the correct `index.ts` file.
+
+## Installation
+
+If you only have Python3 installed on your computer then the following command will install the program:
+
+```
+$ pip install flowtees
+```
+
+If you have both Python2 and Python3 installed then the following command will be more suitable:
+
+```
+$ pip3 install flowtees
+```
+
+
