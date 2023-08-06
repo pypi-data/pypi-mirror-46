@@ -1,0 +1,17 @@
+import setuptools
+setuptools.setup(name='Easy_GRID',
+      version='0.0.01',
+      description='A GUI for field segmentation',
+      url='https://github.com/Zhiwu-Zhang-Lab/James_Git',
+      author='James Chen',
+      author_email='chun-peng.chen@wsu.edu',
+      license='MIT',
+      packages=setuptools.find_packages(),
+      install_requires=['numpy',
+                        'pandas>=0.19.2',
+                        'sklearn',
+                        'scipy',
+                        'opencv-python',
+                        'gdal',
+                        'PyQt5',
+                        'tqdm'])
