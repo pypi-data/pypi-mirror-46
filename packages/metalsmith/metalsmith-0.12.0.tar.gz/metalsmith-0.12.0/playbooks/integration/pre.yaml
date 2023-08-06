@@ -1,0 +1,24 @@
+---
+- hosts: all
+  roles:
+    - run-devstack
+
+  tasks:
+    - set_fact:
+        metalsmith_src_dir: '{{ ansible_user_dir }}/src/opendev.org/openstack'
+
+    - name: Install requirements for metalsmith
+      pip:
+        requirements: "{{ metalsmith_src_dir }}/metalsmith/requirements.txt"
+        extra_args: -c {{ metalsmith_src_dir }}/requirements/upper-constraints.txt
+      become: true
+      vars:
+        ansible_python_interpreter: /usr/bin/{{ metalsmith_python | default('python') }}
+
+    - name: Install metalsmith
+      pip:
+        name: "{{ metalsmith_src_dir }}/metalsmith"
+        editable: true
+      become: true
+      vars:
+        ansible_python_interpreter: /usr/bin/{{ metalsmith_python | default('python') }}
