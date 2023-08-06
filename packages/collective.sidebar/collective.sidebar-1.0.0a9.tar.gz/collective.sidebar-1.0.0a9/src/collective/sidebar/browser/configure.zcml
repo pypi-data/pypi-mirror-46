@@ -1,0 +1,44 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="collective.sidebar">
+
+  <include package="z3c.jbot" file="meta.zcml" />
+
+  <browser:jbot
+      directory="overrides"
+      layer="collective.sidebar.interfaces.ICollectiveSidebarLayer"
+      />
+
+  <browser:resourceDirectory
+      directory="static"
+      name="collective.sidebar"
+      />
+
+  <browser:viewlet
+      name="sidebar"
+      manager="plone.app.layout.viewlets.interfaces.IMainNavigation"
+      layer="collective.sidebar.interfaces.ICollectiveSidebarLayer"
+      class=".sidebar.SidebarViewlet"
+      permission="zope2.View"
+      />
+
+  <browser:viewlet
+      name="cover"
+      manager="plone.app.layout.viewlets.interfaces.IPortalTop"
+      layer="collective.sidebar.interfaces.ICollectiveSidebarLayer"
+      class=".sidebar.CoverViewlet"
+      permission="zope2.View"
+      />
+
+  <!-- AJAX -->
+
+  <browser:page
+      name="navData"
+      for="*"
+      class=".sidebar.SidebarAJAX"
+      permission="zope2.View"
+      />
+
+</configure>
