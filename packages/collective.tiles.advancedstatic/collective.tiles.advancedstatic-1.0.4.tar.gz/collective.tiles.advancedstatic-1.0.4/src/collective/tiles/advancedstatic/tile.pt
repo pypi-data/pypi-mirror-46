@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      i18n:domain="collective.tiles.advancedstatic">
+
+<body>
+    <div tal:attributes="class view/portlet_class"
+         tal:define="title view/data/title|nothing;
+                     img_style view/img_style;
+                     tile_link view/tile_link|nothing;
+                     text view/data/text|nothing;
+                     footer view/data/footer;
+                     target_attr view/data/target_attr;
+                     link_target python: target_attr and '_blank' or '_self'">
+        <div class="tile-container">
+        <!-- HEADER -->
+        <h2 class="tileTitle"
+            tal:condition="python: title or img_style">
+            <div class="header-bg"
+                 tal:condition="img_style"
+                 tal:attributes="style img_style"/>
+            <a class="ast-title-link"
+               tal:attributes="href tile_link; target link_target"
+               tal:omit-tag="not:tile_link">
+                <span class="ast_title" tal:content="title" />
+            </a>
+        </h2>
+        <!-- BODY -->
+        <div class="tile-text tileBody"
+             tal:condition="text"
+             tal:content="structure text/output" />
+        <!-- FOOTER -->
+        <div class="tile-footer tileFooter" tal:condition="footer">
+            <a class="ast-footer-link"
+               tal:attributes="href tile_link; target link_target"
+               tal:omit-tag="not:tile_link">
+                <span class="ast-footer" tal:content="footer" />
+            </a>
+        </div>
+        </div>
+    </div>
+</body>
+</html>
