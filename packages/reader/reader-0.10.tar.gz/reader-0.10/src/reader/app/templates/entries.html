@@ -1,0 +1,135 @@
+{% extends "layout.html" %}
+
+{% import "macros.html" as macros %}
+
+{% block page_title %}{% if feed %}Entries for {{ macros.feed_title(feed) }}{% else %}Entries{% endif %}{% endblock %}
+{% block main_title %}{% if feed %}Entries for {{ macros.feed_title(feed) }}{% else %}Entries{% endif %}{% endblock %}
+
+
+{% block body %}
+
+<div id="update-entries">
+<ul class="controls">
+
+{{ macros.radio_links('show', [
+    ('unread', none),
+    ('read', none),
+    ('all', none),
+], 'unread', '.entries') }}
+
+{{ macros.radio_links('has-enclosures', [
+    ('yes', none),
+    ('no', none),
+    (none, "don't care"),
+], none, '.entries', 'has enclosures') }}
+
+{% if feed %}
+{% set next = url_for('.entries', **request.args) %}
+
+{% if current_what != 'read' %}
+{{- macros.confirm_button('.form_api', 'mark-all-as-read', 'mark all as read', leave_disabled=true, next=next, context={'feed-url': feed.url, 'entry-id': entries_data | tojson}) -}}
+{% endif %}
+{% if current_what != 'unread' %}
+{{- macros.confirm_button('.form_api', 'mark-all-as-unread', 'mark all as unread', leave_disabled=true, next=next, context={'feed-url': feed.url, 'entry-id': entries_data | tojson}) -}}
+{% endif %}
+
+{{ macros.confirm_button('.form_api', 'delete-feed', 'delete feed', leave_disabled=true, next=url_for('.entries'), context={'feed-url': feed.url}) }}
+
+{{ macros.text_input_button('.form_api', 'update-feed-title', 'update feed title', 'feed-title', 'feed title', leave_disabled=true, next=next, context={'feed-url': feed.url}) }}
+
+{% endif %}
+
+{% for message in get_flashed_messages_by_prefix(
+    'mark-all-as-read',
+    'mark-all-as-unread',
+    'delete-feed',
+    'update-feed-title',
+) %}
+<li class="error">{{ message }}
+{% endfor %}
+
+</ul>
+
+
+</div>
+
+
+{% for entry in entries %}
+{% set feed = entry.feed %}
+
+<div id="entry-{{ loop.index }}" class="entry">
+
+<h2><a href="{{ entry.link }}">
+{%- if entry.title and entry.title.strip() -%}
+{{ entry.title | safe }}
+{%- else -%}
+untitled
+{%- endif -%}
+</a>
+</h2>
+
+<ul class="controls">
+
+<li><a href="{{ url_for('.entries', feed=feed.url) }}">{{ macros.feed_title(feed) }}</a>
+<li>
+    {%- set published = entry.published or entry.updated -%}
+    <span title="{{ published }}">{{ published | humanize_naturaltime }}</span>
+
+{% set next = url_for('.entries', **request.args) + '#entry-' + ((loop.index if not loop.last else loop.index - 1) | string) %}
+{% set context = {'feed-url': feed.url, 'entry-id': entry.id} %}
+
+{% if entry.read %}
+{{ macros.simple_button('.form_api', 'mark-as-unread', 'mark as unread', leave_disabled=true, next=next, context=context) }}
+{% else %}
+{{ macros.simple_button('.form_api', 'mark-as-read', 'mark as read', leave_disabled=true, next=next, context=context) }}
+{% endif %}
+
+{% for message in get_flashed_messages_by_prefix(
+    ('mark-as-read', feed.url, entry.id),
+    ('mark-as-unread', feed.url, entry.id),
+) %}
+<li class="error">{{ message }}
+{% endfor %}
+
+</ul>
+
+
+
+{% if entry.summary %}
+<p>{{ entry.summary | striptags | truncate }}</p>
+{% elif entry.content %}
+    {% set content = (
+        ( entry.content | selectattr('type', 'equalto', 'text/html') | first )
+        or
+        ( entry.content | selectattr('type', 'equalto', 'text/xhtml') | first )
+        or
+        ( entry.content | selectattr('type', 'equalto', 'text/plain') | first )
+    ) %}
+    {% if content %}
+    <p>{{ content.value | striptags | truncate }}</p>
+    {% endif %}
+{% endif %}
+
+
+{% if entry.enclosures %}
+<ul>
+
+{% for enclosure in entry.enclosures %}
+
+<li>
+<a href="{{ enclosure.href }}">{{ enclosure.href.split('/')[-1].split('?')[0] }}</a>
+<small><a href="{{ enclosure | enclosure_tags(entry) }}">with tags</a> {{ enclosure.type }}</small>
+</li>
+
+{% endfor %}
+</ul>
+{% endif %}
+
+</div>
+
+{% else %}
+<p>no {% if current_what != 'all' %}{{ current_what }} {% endif %}entries for this feed</p>
+{% endfor %}
+
+{% endblock %}
+
