@@ -1,0 +1,122 @@
+﻿# ibm-apidocs-cli
+![Status](https://img.shields.io/badge/status-beta-yellow.svg)
+[![Latest Stable Version](https://img.shields.io/pypi/v/ibm-apidocs-cli.svg)](https://pypi.python.org/pypi/ibm-apidocs-cli)
+
+This tool allows users to generate the api documentation.
+
+## Installation
+
+To install, use `pip` or `easy_install`:
+
+```bash
+pip install -U ibm-apidocs-cli
+```
+
+or
+
+```bash
+easy_install -U ibm-apidocs-cli
+```
+
+Install the [Frontmatter generator](https://github.ibm.com/cloud-doc-build/frontmatter-generator)
+
+```
+The front-matter generator repository should be accessible to enable the call to app.js.
+The repository should be cloned or downloaded to the machine where the ibm-apidocs-cli command will be run.
+The command uses an argument "--frontmatter" where you will need to specify the full path to the apps.js file.
+```
+
+Install the [SDK generator](https://github.ibm.com/CloudEngineering/openapi-sdkgen/releases)
+
+```
+The OpenAPI SDK Code Generator should be accessible to enable the call to openapi-sdkgen.jar.
+You do not need to clone or download the full repository and build the project.
+It is much easier to use the pre-built installer under releases and install it on the machine where
+the ibm-apidocs-cli command will be run. The command uses an argument "--sdk-generator" where you will
+need to specify the full path to the openapi-sdkgen.jar file.  Instructions for installing the pre-built
+installer are in the openapi-sdkgen README.md file under the section Using a pre-built installer.
+```
+
+Clone or create a [cloud-api-docs](https://github.ibm.com/cloud-api-docs) repo
+
+```
+The build process requires access to the directory containing the `apiref-index.json` file and the
+front matter configuration file (typically `<openapi>-config.json`) for the cloud-api-docs repo
+used to publish the API documentation.
+```
+
+## Usage
+
+```
+ibm-apidocs-cli --help
+```
+```
+usage: ibm-apidocs-cli [-h] -i <openapi_file> -a <apidocs_path> -c <config_file>
+                       [--frontmatter <frontmatter_path>] 
+                       [--templates <templates_path>]
+                       [--sdk-generator <sdk_generator_path>] 
+                       [--output_folder <output_path>]
+                       [--keep_sdk] [--verbose] [--version]
+
+Generate the apidocs files.
+
+Required arguments:
+  -i <openapi_file>, --openapi <openapi_file>
+                        The input OpenAPI specification file path or url.
+  -a <apidocs_path>, --apidocs <apidocs_path>
+                        The path to the cloud-api-docs repository or other directory
+                        containing `apiref-index.json` and front matter config file.
+  -c <config_file>, --config <config_file>
+                        File name of front matter config file (e.g.
+                        `assistant-v1-config.json`). You can optionally specify
+                        the full path to the config file; if you do not include
+                        the path, the file is assumed to be in the `apidocs`
+                        directory.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --frontmatter <frontmatter_path>
+                        Path to the directory containing the frontmatter generator
+                        `app.js` file.
+  --templates <templates_path>
+                        Path to the directory containing custom frontmatter templates.
+  --sdk_generator <sdk_generator_path>
+                        Path to the directory containing the SDK generator JAR file.
+  --output_folder output_folder
+                        The target directory for generated files.
+  --keep_sdk            Preserve the temp directory containing generated SDK artifacts.
+                        Useful for debugging purposes.
+  --no_update           Use front-matter config file as-is without updating SDK versions.
+  --verbose             verbose flag
+  --version             show program's version number and exit
+
+
+```
+```
+Example command: (At this time full pathnames are necessary to execute the command)
+All the generated apidocs and artifacts from the command will be written to the target output folder
+
+ibm-apidocs-cli --openapi '/Users/my_user/Documents/GitHub/api-apidocs-cli/test/resources/config/assistant-openapi3-v1.json' \
+                --config '/Users/my_user/Documents/GitHub/api-apidocs-cli/test/resources/config/test-input-config.yaml' \
+                --output_folder '/Users/my_user/Documents/GitHub/api-apidocs-cli/test/target' \
+                --frontmatter '/Users/my_user/Documents/GitHub/frontmatter-generator' \
+                --sdk_generator '/Users/my_user/Documents/Release/openapi-sdkgen/lib'
+```
+
+
+## Python version
+
+✅ Tested on Python 2.7, 3.4, 3.5, and 3.6.
+
+## Contributing
+
+See [CONTRIBUTING.md][CONTRIBUTING].
+
+## License
+
+MIT
+
+[ibm_cloud]: https://cloud.ibm.com
+[responses]: https://github.com/getsentry/responses
+[requests]: http://docs.python-requests.org/en/latest/
+[CONTRIBUTING]: ./CONTRIBUTING.md
