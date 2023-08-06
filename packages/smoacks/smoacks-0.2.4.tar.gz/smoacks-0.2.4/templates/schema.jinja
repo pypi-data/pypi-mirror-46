@@ -1,0 +1,186 @@
+openapi: 3.0.0
+info:
+  version: 0.1.0
+  title: Multimode User Authentication for Microservices
+paths:
+  /shutdown:
+    post:
+      description: |
+        Allows for clean server shutdown.
+      tags:
+        - Test Utilities
+      responses:
+        '200':
+          description: Server successfully shut down
+        '404':
+          description: User not authorized to shut down server
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: ShutdownKey
+              properties:
+                key:
+                  type: string
+        description: Unique application key to allow shutdown
+tags:
+  - name: Authentication
+    description: APIs associated with application authentication
+servers:
+  - url: /api/v1
+    description: Local development server
+components:
+  parameters:
+    search_text:
+      in: query
+      name: search_text
+      required: false
+      description: String to filter search with
+      schema:
+        type: string
+        maxLength: 40
+  schemas:
+    Error:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Unique identifier for error message
+        text:
+          type: string
+          description: Default english error message
+        error_code:
+          type: integer
+          description: Error code (equivalent to HTTP status code)
+    Group:
+      type: object
+      x-smoacks-create: Group
+      x-smoacks-test-data: False
+      x-smoacks-relationships:
+        users:
+          table: UserMember
+          field: group
+      description: Group of users
+      properties:
+        group_id:
+          type: string
+          x-smoacks-model-id: true
+          description: Unique group identifier
+          readOnly: True
+          minLength: 12
+          maxLength: 40
+          format: uuid
+          example: b5665877-f9ee-4074-a38b-39219cde6b70
+        name:
+          type: string
+          description: Description of the group
+          minLength: 4
+          maxLength: 80
+          example: app-users
+          x-smoacks-search-field: True
+    UserMember:
+      type: object
+      x-smoacks-create: UserMember
+      x-smoacks-test-data: False
+      x-smoacks-relationships:
+        user:
+          table: User
+          field: groups
+        group:
+          table: Group
+          field: users
+      description: Membership of user in a group
+      properties:
+        user_id:
+          type: string
+          x-smoacks-model-id: true
+          x-smoacks-foreign-key: User.user_id
+          description: Unique user identifier
+          readOnly: True
+          minLength: 12
+          maxLength: 40
+          format: uuid
+          example: b5665877-f9ee-4074-a38b-39219cde6b67
+        group_id:
+          type: string
+          x-smoacks-model-id: true
+          x-smoacks-foreign-key: Group.group_id
+          description: Unique group identifier
+          readOnly: True
+          minLength: 12
+          maxLength: 40
+          format: uuid
+          example: b5665877-f9ee-4074-a38b-39219cde6b70
+        is_owner:
+          type: boolean
+          description: Indicates if the user is the owner of this group
+          example: false
+        is_admin:
+          type: boolean
+          description: Indicates if the user is an administrator of this group
+          example: false
+    User:
+      type: object
+      x-smoacks-create: User
+      x-smoacks-test-data: False
+      x-smoacks-relationships:
+        groups:
+          table: UserMember
+          field: user
+      description: User
+      required:
+        - username
+      properties:
+        user_id:
+          type: string
+          x-smoacks-model-id: true
+          description: Unique user identifier
+          readOnly: True
+          minLength: 12
+          maxLength: 40
+          format: uuid
+          example: b5665877-f9ee-4074-a38b-39219cde6b67
+        username:
+          type: string
+          description: Login user name
+          minLength: 4
+          maxLength: 32
+          example: 'testing'
+        email:
+          type: string
+          description: Email address
+          pattern: ^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$
+          minLength: 4
+          maxLength: 80
+          example: 'testing@wittlesouth.com'
+        first_name:
+          type: string
+          description: First Name
+          minLength: 2
+          maxLength: 80
+          example: 'Tester'
+        full_name:
+          type: string
+          description: Full Name
+          minLength: 5
+          maxLength: 120
+          example: 'Tester, Unit X'
+          x-smoacks-search-field: True
+        last_name:
+          type: string
+          description: Last Name
+          minLength: 2
+          maxLength: 80
+          example: 'Unit'
+        phone:
+          type: string
+          description: Phone number
+          nullable: true
+          minLength: 10
+          maxLength: 20
+          example: '+1 (919) 999-9999'
+        preferences:
+          description: User Preferences
+          type: object
+          example: {'color': 'red'}
