@@ -1,0 +1,104 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'questions_index' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ content_title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span12">
+            {% include 'surveys/helpers/tabs.html' with active='questions' survey=survey %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="span3">
+            {% include 'questions/helpers/kinds.html' with active=kind|lower %}
+        </div>
+
+        <div class="question-admin span9">
+            <form method="post" action="{{ action_url }}" class="well" enctype="multipart/form-data">
+                {% csrf_token %}
+                <fieldset class="question">
+                    <legend>{% trans 'Question' %}</legend>
+                    <div class="inner">
+                        {% include 'votebase/helpers/form.html' %}
+                    </div><!-- /.inner -->
+                </fieldset>
+
+                {% if formset %}
+                    <div class="options row {{ kind|lower }}">
+                        <fieldset>
+                            <div class="clearfix">
+                                <legend class="span8 pull-right">{% trans 'Row options' %}</legend>
+                            </div>
+
+                            {{ formset.management_form }}
+
+                            <div class="content clearfix">
+                                {% for form in formset %}
+                                    <div class="wrapper clearfix">
+                                        <div class="marker span1"></div>
+
+                                        <div class="span8 pull-right">
+                                            <div class="formset-item">
+                                                <div class="inner">
+                                                    {% include 'votebase/helpers/form.html' with form=form %}
+                                                </div><!-- /.formset-item -->
+                                            </div><!-- /.formset-item -->
+                                        </div>
+                                    </div><!-- /.wrapper -->
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+                        <div class="span8 pull-right">
+                            <input type="submit" class="btn btn-warning add-row" value="{% trans 'Add row option' %}" name="add_option">
+                        </div>
+
+                    </div>
+                {% endif %}
+
+                {% if formset_columns %}
+                    <div class="options row {{ kind|lower }}">
+                        <fieldset>
+                            <div class="clearfix">
+                                <legend class="span8 pull-right">{% trans 'Column options' %}</legend>
+                            </div>
+
+                            {{ formset_columns.management_form }}
+
+                            <div class="content clearfix">
+                                {% for form in formset_columns %}
+                                    <div class="wrapper clearfix">
+                                        <div class="marker span1"></div>
+
+                                        <div class="span8 pull-right">
+                                            <div class="formset-item">
+                                                <div class="inner">
+                                                    {% include 'votebase/helpers/form.html' with form=form %}
+                                                </div><!-- /.formset-item -->
+                                            </div><!-- /.formset-item -->
+                                        </div>
+                                    </div><!-- /.wrapper -->
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+                        <div class="span8 pull-right">
+                            <input type="submit" class="btn btn-warning add-column" value="{% trans 'Add column option' %}" name="add_column">
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="form-actions">
+                    <input type="submit" class="btn btn-primary pull-right" value="{% if submit_label %}{{ submit_label }}{% else %}{% trans 'Submit' %}{% endif %}" />
+                    <a href="{% url 'questions_index' survey.pk %}" class="btn first pull-right">{% trans 'Cancel' %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

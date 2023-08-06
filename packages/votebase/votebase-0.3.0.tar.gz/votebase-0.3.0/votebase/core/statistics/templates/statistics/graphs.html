@@ -1,0 +1,122 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n graph_extras staticfiles %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'questions_index' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='statistics' %}{% endblock %}
+{% block subtitle %}{% trans 'Survey statistics' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with survey=survey %}{% endblock %}
+
+{% block js %}
+    {% if object_list %}
+        <script type="text/javascript" src="{{ protocol }}{{ host }}{% static 'votebase/js/ajax_graphs.js' %}"></script>
+        <script type="text/javascript" src="{{ protocol }}{{ host }}{% static 'votebase/js/export_to_pdf.js' %}"></script>
+        <script type="text/javascript">$(function(){export_to_pdf('{{ protocol }}{{ host }}{% url 'statistics_export_pdf' survey.pk %}', 'table.table')});</script>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <!-- SEGMENTS ? -->
+        {% if survey.round_set.all.count > 1 %}
+            <!-- SEGMENTS ! -->
+            <div class="span3">
+                {% include 'surveys/helpers/rounds.html' with rounds=survey.round_set.all round=round url='statistics_graphs_round' total_url='statistics_graphs' reversed=1 %}
+            </div>
+            <div class="span9">
+        {% else %}
+            <!-- NO SEGMENTS -->
+            <div class="span12">
+            {% if object_list %}{% endif %}
+        {% endif %}
+
+        {% if not object_list %}
+            {% trans 'There is no question in this survey. Create some.' %}
+        {% else %}
+            {% if survey.voter_set.count > request.user.get_profile.get_voters_limit %}
+                <div class="statistics-voters-limit">
+                    {% blocktrans with survey.voter_set.count as voters_count and request.user.get_profile.get_voters_limit as package_voters_limit and request.user.get_profile.get_package_display as package %}
+                        You have {{ voters_count }} voters in this survey, but
+                        your voter limit per survey is <span class="limit">{{ package_voters_limit }}</span> ({{ package }} package).
+                    {% endblocktrans %}
+                    <a href="{% url 'pricing' %}">{% trans 'View pricing'%}</a>
+                </div>
+            {% endif %}
+
+            <!-- CATEGORIES -->
+            {% if statistics_categories %}
+                <div class="statistics-categories">
+                    <h3 class="subtitle">{% trans 'Average result of categories' %}</h3>
+                    {% for cstats in statistics_categories %}
+                        <div class="statistics-item">
+                            <div class="category">
+                                <span class="title">{{ cstats.category }}</span>
+                                <span class="percent">{{ cstats.percent|floatformat:"2" }}%</span>
+                                <span class="count-questions">{% trans 'Count of questions' %}: {{ cstats.count_questions }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div><!-- ./statistics-categories -->
+            {% endif %}
+
+            <!-- QUESTIONS -->
+            <div class="statistics-list">
+                {% if statistics_categories %}<h3 class="subtitle">{% trans 'Questions' %}</h3>{% endif %}
+
+                <div class="ajax-loader">{% trans 'Loading, please wait.' %}</div>
+
+                <table class="table">
+                    <tbody>
+                    {% for question in object_list %}
+                        <tr class="{{ question.kind|lower }}">
+                            <td class="counter">{{ forloop.counter}}.</td>
+
+                            <td class="title">
+                                {% if survey.round_set.all.count == 1 or not round %}
+                                    <a href="{% url question|statistics_graph_url:"total" question.pk %}">
+                                        {% autoescape off %}{{ question.title|striptags|truncatechars:190 }}{% endautoescape %}
+                                        {% if question.is_required %}<span class="required">*</span>{% endif %}
+                                    </a>
+                                {% else %}
+                                    <a href="{% url question|statistics_graph_url:"round" question.pk round.pk %}">
+                                        {% autoescape off %}{{ question.title|striptags|truncatechars:190 }}{% endautoescape %}
+                                        {% if question.is_required %}<span class="required">*</span>{% endif %}
+                                    </a>
+                                {% endif %}
+                            </td>
+
+                            <td class="actions">
+                                {% if survey.round_set.all.count == 1 or not round %}
+                                    <a href="{% url question|statistics_graph_url:"total" question.pk %}" class="btn btn-info">{{ survey }}</a>
+                                {% else %}
+                                    <a href="{% url question|statistics_graph_url:"round" question.pk round.pk %}"class="btn btn-info">{{ round }}</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div><!-- ./statistics-list -->
+
+            <!-- SHARE AND EXPORT -->
+            <div class="share_and_export row center">
+                {% if show_export_pdf_btn %}
+                    <a id="statistics_export_pdf" href="#" class="btn btn-primary">{% trans 'Export to .pdf' %}</a><br><br>
+                {% endif %}
+
+                {% if survey.round_set.all.count == 1 or not round %}
+                    {% trans 'You can share these survey statistics via public URL:' %}<br>
+                    <a href="{{ survey.get_absolute_statistics_url }}">{{ protocol }}{{ host }}{{ survey.get_absolute_statistics_url }}</a><br>
+                {% else %}
+                    {% trans 'You can share these segment statistics via public URL:' %}<br>
+                    <a href="{{ round.get_absolute_statistics_url }}">{{ protocol }}{{ host }}{{ round.get_absolute_statistics_url }}</a><br>
+                {% endif %}
+            </div><!-- ./share_and_export -->
+
+        {% endif %}
+        </div>
+    </div>
+{% endblock %}

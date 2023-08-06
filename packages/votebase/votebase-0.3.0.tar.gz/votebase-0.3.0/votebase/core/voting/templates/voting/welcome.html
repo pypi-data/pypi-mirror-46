@@ -1,0 +1,29 @@
+{% extends 'votebase/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}{{ survey.title }}{% endblock %}
+
+{% if survey.css %}
+    {% block css %}<style>{{ survey.css }}</style>{% endblock %}
+{% endif %}
+
+{% block content %}
+    <div class="row">
+        <div class="span12">
+            {% if survey.preface %}
+                <div class="well">
+                    {% autoescape off %}{{ survey.preface }}{% endautoescape %}
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'voting_welcome' round.pk %}">
+                {% csrf_token %}
+
+                <div class="form-actions">
+                    <input type="submit" class="btn btn-primary" value="{% trans 'Start' %}">
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n staticfiles utils_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}{{ survey.title }}{% endblock %}
+{% block content_title_extra %}{% endblock %}
+{% block subtitle %}{% if round %}{{ round }}{% endif %}{% endblock %}
+{% block subtitle_extra %}{% endblock %}
+
+{% block body_class %}infographics-hash{% endblock %}
+
+{% block js %}
+    {% if object_list %}
+        {#                <script type="text/javascript" src="{{ protocol }}{{ host }}{% static 'votebase/js/ajax_graphs.js' %}"></script>#}
+        <script type="text/javascript" src="{{ protocol }}{{ host }}{% static 'votebase/js/export_to_pdf.js' %}"></script>
+        <script type="text/javascript">$(function(){export_to_pdf('{{ protocol }}{{ host }}{% url 'statistics_export_pdf' survey.pk %}', '.statistics-list')});</script>
+        {% include 'statistics/helpers/infographics_js.html' %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span12 statistics-list">
+        {% if not object_list %}
+            {% trans 'There is no question in this survey. Create some.' %}
+        {% else %}
+            <div class="ajax-loader">{% trans 'Loading, please wait.' %}</div>
+
+            <div class="total_voters">
+                <span class="text">{% trans 'Total voters' %}:</span> <span class="number">{{ object_list|length }}</span>
+            </div>
+
+            {# voters #}
+            <div class="well statistics-item voters">
+                <div class="clearfix header">
+                    <div class="title">{% trans 'Count of respondents' %}</div>
+                </div>
+                <div id="data-voters" style="height: 250px;"></div>
+            </div>
+
+            {# total voters #}
+            <div class="well statistics-item voters-total">
+                <div class="clearfix header">
+                    <div class="title">{% trans 'Total count of respondents' %}</div>
+                </div>
+                <div id="data-voters-total" style="height: 250px;"></div>
+            </div>
+
+            {# voting duration #}
+            <div class="well statistics-item voting-duration">
+                <div class="clearfix header">
+                    <div class="title">{% trans 'Voting duration' %} ({% trans 'in minutes' %})</div>
+                </div>
+                <div id="data-voting-duration" style="height: 250px;"></div>
+            </div>
+
+            {# gender #}
+            <div class="well statistics-item gender">
+                <div class="clearfix header">
+                    <div class="title">{% trans 'Gender' %}</div>
+                </div>
+                <div id="data-gender"></div>
+            </div>
+
+            {# age #}
+            <div class="well statistics-item age">
+                <div class="clearfix header">
+                    <div class="title">{% trans 'Age' %}</div>
+                </div>
+                <div id="data-age" style="height: 250px;"></div>
+            </div>
+
+            {% if survey.is_quiz %}
+                {# quiz result #}
+                <div class="well statistics-item quiz-result">
+                    <div class="clearfix header">
+                        <div class="title">{% trans 'Quiz result' %}</div>
+                    </div>
+                    <div id="data-quiz-result" style="height: 250px;"></div>
+                </div>
+
+                {# quiz result by age #}
+                <div class="well statistics-item quiz-result-by-age">
+                    <div class="clearfix header">
+                        <div class="title">{% trans 'Average quiz result by age' %}</div>
+                    </div>
+                    <div id="data-quiz-result-by-age" style="height: 250px;"></div>
+                </div>
+            {% endif %}
+        {% endif %}
+        </div>
+    </div>
+{% endblock %}

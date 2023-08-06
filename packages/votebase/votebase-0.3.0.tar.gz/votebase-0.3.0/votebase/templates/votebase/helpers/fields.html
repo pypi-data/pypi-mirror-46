@@ -1,0 +1,74 @@
+{% load utils i18n %}
+
+{% for field in fields %}
+    {% if field.is_hidden %}
+        {{ field }}
+    {% else %}
+        <div class="control-group clearfix {{ field.name|lower }} {{ field.field.widget|klass|lower }} {% if field.errors %}error{% endif %}">            
+            {% if field.field.widget|klass == 'CheckboxInput'%}
+                <div class="controls">
+                    {% if field.label %}
+                        <label class="checkbox" for="{% if form.prefix %}id_{{ form.prefix}}-{{ field.name }}{% else %}id_{{ field.name }}{% endif %}">
+                            {{ field }}
+                            {% if field.field.required %}<span class="required">*</span>{% endif %}
+                            {{ field.label }}
+
+                            {% if field.help_text %}
+                                <a class="help-block" data-content="{{ field.help_text }}" title="{{ field.label }}">
+                                    {% trans 'Display help text' %}
+                                </a><!-- /.help-block -->
+                            {% endif %}
+                        </label>
+                    {% endif %}
+
+                    {% if field.errors %}
+                        <span class="help-inline">
+                            <span class="inner">
+                                {% for error in field.errors %}
+                                    <span class="line">
+                                        <span class="cell">{{ error|escape }}</span><!-- /.cell -->
+                                    </span><!-- /.line -->
+                                {% endfor %}
+                            </span><!-- /.inner -->
+                        </span>
+                    {% endif %}
+                </div><!-- /.controls -->
+            {% else %}
+                {% if field.label %}
+                    <label class="control-label" for="{% if form.prefix %}id_{{ form.prefix}}-{{ field.name }}{% else %}id_{{ field.name }}{% endif %}">
+                        {% if field.field.required %}<span class="required">*</span>{% endif %}
+                        {{ field.label }}
+                    </label>
+                {% endif %}
+
+                <div class="controls">
+                    <div class="{% if field.field.widget.attrs.append %}input-append{% endif %}">
+                        {{ field }}
+
+                        {% if field.field.widget.attrs.append %}
+                            <span class="add-on{% if field.field.widget.attrs.append_class %} {{ field.field.widget.attrs.append_class}}{% endif %}">{{ field.field.widget.attrs.append }}</span>
+                        {% endif %}
+
+                        {% if field.help_text %}
+                            <a class="help-block" data-content="{{ field.help_text }}" title="{{ field.label }}">
+                                {% trans 'Display help text' %}
+                            </a><!-- /.help-block -->
+                        {% endif %}
+                    </div>
+
+                    {% if field.errors %}
+                        <span class="help-inline">
+                            <ul class="inner">
+                                {% for error in field.errors %}
+                                    <li class="line">
+                                        <span class="cell">{{ error|escape }}</span><!-- /.cell -->
+                                    </li><!-- /.line -->
+                                {% endfor %}
+                            </ul><!-- /.inner -->
+                        </span>
+                    {% endif %}
+                </div><!-- /.controls -->
+            {% endif %}
+        </div>
+    {% endif %}
+{% endfor %}

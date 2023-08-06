@@ -1,0 +1,49 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n question_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'surveys_index' %}" class="back">{% trans 'Back' %}</a>
+    <form method="post" action="{% url 'surveys_update' survey.pk %}">
+        {% csrf_token %}
+        <input type="text" value="{{ survey.title }}" name="title" placeholder="{% trans 'Your new survey' %}"required="required" class="survey-title span9">
+    </form>    
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' %}{% endblock %}
+{% block subtitle %}{% trans 'Preview' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with active='preview' survey=survey %}{% endblock %}
+
+{% block content %}
+    <div class="voting row" data-survey-id="{{ survey.pk }}">
+        <div class="span12">
+            {% if survey.preface %}
+                <div class="well preface">
+                    {% autoescape off %}{{ survey.preface }}{% endautoescape %} &larr; <a href="{% url 'surveys_settings_general' survey.pk %}">{% trans 'Change preface' %}</a>
+                </div>
+            {% endif %}
+            <form>
+                {% if question_forms %}
+                    {% for form in question_forms %}
+                        <div class="well" data-question-id="{{ form.question.pk }}">
+                            {% include 'votebase/helpers/form.html' %}
+                            {% if not forloop.last %}
+                                <hr>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    {% for question in questions %}
+                        <div class="well" data-question-id="{{ form.question.pk }}">
+                            {% get_voting_form question forloop.counter %}
+                        </div>
+                        {% if not forloop.last %}
+                            <hr>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </form>
+            <a class="btn btn-primary btn-continue" href="{% url 'surveys_share' survey.pk %}">{% trans 'Continue' %}</a>
+        </div>
+    </div>
+{% endblock %}

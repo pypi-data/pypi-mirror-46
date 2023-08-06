@@ -1,0 +1,49 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n question_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'statistics_graphs' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='statistics' %}{% endblock %}
+{% block subtitle %}{% trans 'Statistics' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with survey=survey %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span12">
+            <div class="statistics-item stars">
+                {% if question.category %}
+                    <div class="category">
+                        {{ question.category }}
+                    </div>
+                {% endif %}
+                <div class="well">
+                    <div class="clearfix header">
+                        <div class="title pull-left">{% question_label question %}</div>
+                        <div class="total pull-right">
+                            <span class="text">{% trans 'Total answers' %}:</span> <span class="number">{{ total_answers }}</span>
+                        </div>
+                    </div>
+
+                    <div class="option-list">
+                        <div class="option clearfix">
+                            <div class="stars clearfix">
+                                <p class="clearfix">
+                                    {% for option in question.option_set.all %}
+                                        <input type="radio" class="star required" disabled="disabled" {% if forloop.counter == average_int %}checked="checked"{% endif %}>
+                                    {% endfor %}
+                                    {% trans 'Average rating:' %} {{ average }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{{ export_url }}" class="btn btn-primary export span2">{% trans 'Export to .csv' %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n staticfiles utils_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'questions_index' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='statistics' %}{% endblock %}
+{% block subtitle %}{% trans 'Survey infographics' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with survey=survey %}{% endblock %}
+
+{% block js %}
+    {% if object_list %}
+        {#                    <script type="text/javascript" src="{{ protocol }}{{ host }}{% static 'votebase/js/ajax_graphs.js' %}"></script>#}
+        <script type="text/javascript" src="{{ protocol }}{{ host }}{% static 'votebase/js/export_to_pdf.js' %}"></script>
+        <script type="text/javascript">$(function(){export_to_pdf('{{ protocol }}{{ host }}{% url 'statistics_export_pdf' survey.pk %}', '.statistics-list')});</script>
+        {% include 'statistics/helpers/infographics_js.html' %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        {% if survey.round_set.all.count > 1 %}
+            <div class="span3">
+                {% include 'surveys/helpers/rounds.html' with rounds=survey.round_set.all round=round url='statistics_infographics_round' total_url='statistics_infographics' reversed=1 %}
+            </div>
+            <div class="span9">
+            {% if object_list %}<div class="ajax-loader">{% trans 'Loading, please wait.' %}</div>{% endif %}
+
+        {% else %}
+
+            <div class="span12">
+            {% if object_list %}<div class="ajax-loader">{% trans 'Loading, please wait.' %}</div>{% endif %}
+
+        {% endif %}
+
+            {% if not object_list %}
+                {% trans 'No voters found. Share your survey.' %}
+            {% else %}
+                <div class="statistics-list">
+                    {% if survey.voter_set.count > request.user.get_profile.get_voters_limit %}
+                        <div class="statistics-voters-limit">
+                            {% blocktrans with survey.voter_set.count as voters_count and request.user.get_profile.get_voters_limit as package_voters_limit and request.user.get_profile.get_package_display as package %}
+                                You have {{ voters_count }} voters in this survey, but
+                                your voter limit per survey is <span class="limit">{{ package_voters_limit }}</span> ({{ package }} package).
+                            {% endblocktrans %}
+                            <a href="{% url 'pricing' %}">{% trans 'View pricing'%}</a>
+                        </div>
+                    {% endif %}
+
+                    <div class="total_voters">
+                        <span class="text">{% trans 'Total voters' %}:</span> <span class="number">{{ object_list|length }}</span>
+                    </div>
+
+                    {# voters #}
+                    <div class="well statistics-item voters">
+                        <div class="clearfix header">
+                            <div class="title">{% trans 'Count' %}</div>
+                        </div>
+                        <div id="data-voters" style="height: 250px;"></div>
+                    </div>
+
+                    {# total voters #}
+                    <div class="well statistics-item voters-total">
+                        <div class="clearfix header">
+                            <div class="title">{% trans 'Total count' %}</div>
+                        </div>
+                        <div id="data-voters-total" style="height: 250px;"></div>
+                    </div>
+
+                    {# voting duration #}
+                    <div class="well statistics-item voting-duration">
+                        <div class="clearfix header">
+                            <div class="title">{% trans 'Voting duration' %} ({% trans 'in minutes' %})</div>
+                        </div>
+                        <div id="data-voting-duration" style="height: 250px;"></div>
+                    </div>
+
+                    {# gender #}
+                    <div class="well statistics-item gender">
+                        <div class="clearfix header">
+                            <div class="title">{% trans 'Gender' %}</div>
+                        </div>
+                        <div id="data-gender"></div>
+                    </div>
+
+                    {# age #}
+                    <div class="well statistics-item age">
+                        <div class="clearfix header">
+                            <div class="title">{% trans 'Age' %}</div>
+                        </div>
+                        <div id="data-age" style="height: 250px;"></div>
+                    </div>
+
+                    {% if survey.is_quiz %}
+                        {# quiz result #}
+                        <div class="well statistics-item quiz-result">
+                            <div class="clearfix header">
+                                <div class="title">{% trans 'Quiz result' %}</div>
+                            </div>
+                            <div id="data-quiz-result" style="height: 250px;"></div>
+                        </div>
+
+                        {# quiz result by age #}
+                        <div class="well statistics-item quiz-result-by-age">
+                            <div class="clearfix header">
+                                <div class="title">{% trans 'Average quiz result by age' %}</div>
+                            </div>
+                            <div id="data-quiz-result-by-age" style="height: 250px;"></div>
+                        </div>
+                    {% endif %}
+
+                </div><!-- ./statistics-list -->
+
+                <div class="share_and_export row center">
+                    {% if show_export_pdf_btn %}
+                        <a id="statistics_export_pdf" href="#" class="btn btn-primary">{% trans 'Export to .pdf' %}</a><br><br>
+                    {% endif %}
+
+                    {% if survey.round_set.all.count == 1 or not round %}
+                        {% trans 'You can share these survey statistics via public URL:' %}<br>
+                        <a href="{{ survey.get_absolute_infographics_url }}">{{ protocol }}{{ host }}{{ survey.get_absolute_infographics_url }}</a><br>
+                    {% else %}
+                        {% trans 'You can share these segment statistics via public URL:' %}<br>
+                        <a href="{{ round.get_absolute_infographics_url }}">{{ protocol }}{{ host }}{{ round.get_absolute_infographics_url }}</a><br>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

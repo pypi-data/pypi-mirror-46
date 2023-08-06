@@ -1,0 +1,31 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n %}
+
+{% block title %}{% trans 'Create segment' %}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'surveys_settings_segments' survey.pk %}" class="back">{% trans 'Back' %}</a>{% trans 'Create segment' %}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='advanced' %}{% endblock %}
+{% block subtitle %}{% trans 'Settings' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with active='advanced' survey=survey %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span3">
+            {% include 'surveys/helpers/settings_tabs.html' with active='segments' survey=survey reversed=1 %}
+        </div>
+
+        <div class="span9">
+            <form method="post" action="{% url 'surveys_create_round' survey.pk %}" class="form-horizontal well">
+                {% csrf_token %}
+                {% include 'votebase/helpers/form.html' %}
+
+                <div class="form-actions">
+                    <input type="submit" class="btn btn-primary" value="{% trans 'Create segment' %}" />
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
