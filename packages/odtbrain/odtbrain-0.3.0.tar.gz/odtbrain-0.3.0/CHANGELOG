@@ -1,0 +1,84 @@
+0.3.0
+ - feat: basic missing apple core correction (#6)
+ - docs: reordered 3D examples (decreasing importance)
+0.2.6
+ - fix: make phase unwrapping deterministic
+ - tests: remove one test of the 2D Fourier mapping algorithm due to
+   instabilities in using scipy.interpolate.griddata
+ - ref: use `empty_aligned` instead of deprecated `n_byte_align_empty`
+ - docs: add hint for windows users how to run the 3D examples
+0.2.5
+ - fix: reconstruction volume rotated by 180° due to floating point
+   inaccuracies (affects `backpropagate_3d_tilted`).
+0.2.4
+ - maintenance release
+0.2.3
+ - enh: employ slice-wise padding to reduce the memory usage (and
+   possibly the computation time) of
+   - basic 3D backpropagation algorithm (#7)
+   - 3D backpropagation with a tilted axis of rotation (#9)
+ - ref: replace asserts with raises (#8)
+ - ref: multiprocessing-based rotation does not anymore require
+   a variable (_shared_array) at the top level of the module; As a
+   result, multiprocessing-rotation should now also work on Windows.
+0.2.2
+ - docs: minor update and add changelog
+0.2.1
+ - fix: Allow sinogram data type other than complex128
+ - docs: Add example with experimental data (#3)
+ - ci: automated deployment with travis-ci
+0.2.0
+ - BREAKING CHANGES:
+   - Dropped support for Python 2
+   - Renamed `sum_2d` to `integrate_2d`
+ - Refactoring (#4, #5):
+   - Moved each reconstruction algorithm to a separate file
+   - Modified code to comply with PEP8
+   - Moved long doc strings from source to docs directory
+   - Migrate from unwrap to scikit-image
+   - Cleaned up example scripts
+ - Bugfixes:
+   - Mistake in "negative-modulo" method for determination of
+     2PI sinogram phase offsets
+0.1.8
+ - Updated documentation
+ - Cleaned up examples
+0.1.7
+ - Move documentation from GitHub to readthedocs.io
+ - Add universal wheel on PyPI
+ - Update tests on travis with new versions of NumPy
+0.1.6
+ - Bugfixes:
+  - size of reconstruction volume in z too large for cases where
+    the y-size is larger than the x-size of the sinogram images
+  - `backpropagate_3d_tilted` used wrong shape of projections
+  - 3D backpropagation methods did not use power-of-two padding size
+0.1.5
+ - Code optimization (speed, memory) with numexpr
+ - New keyword argument `save_memory` for 3D reconstruction
+   on machines with limited memory
+ - New keyword argument `copy` for 3D reconstruction to protect
+   input sinogram data.
+0.1.4
+ - The exponential term containing the distance between center
+   of rotation and detector `lD` is now multiplied with
+   the factor `M-1` instead of `M`. This is necessary,
+   because usually the scattered wave is normalized in both
+   amplitude and phase (`u_0`) and not only amplitude `a_0`
+ - Allow angles of shape (A,1) in `backpropagate_3d_tilted` 
+ - Set default value lD=0 for all reconstruction algorithms
+ - Improvement of documentation
+0.1.3
+ - Fixes for `backpropagate_3d_tilted` when `angles` are
+   points on the unit sphere:
+   - Make sure each point is normalized
+   - Correctly rotate each point w.r.t. `tilted_axis`
+0.1.2
+ - Added reconstruction algorithm for tilted axis of rotation
+0.1.1
+ - Support NumPy 1.10.
+ - Allow to weight backpropagation using keyword `weight_angles`
+ - Bugfix: backpropagate_3d with keyword `onlyreal=True` did not work
+ - Bugfix: sum_2d did not return correctly shaped array
+ - Code coverage is now 90%
+ - Added more examples to the documentation
