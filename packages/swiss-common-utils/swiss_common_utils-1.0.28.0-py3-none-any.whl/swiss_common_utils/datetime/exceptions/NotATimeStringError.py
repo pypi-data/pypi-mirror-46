@@ -1,0 +1,2 @@
+class NotATimeStringError(Exception):
+    pass
