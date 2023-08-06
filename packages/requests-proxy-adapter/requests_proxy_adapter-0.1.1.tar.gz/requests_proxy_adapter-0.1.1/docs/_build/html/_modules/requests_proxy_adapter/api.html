@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>requests_proxy_adapter.api &#8212; Requests Proxy Adapter 0.1.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for requests_proxy_adapter.api</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">requests_proxy_adapter.api</span>
+<span class="sd">~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">Set of Proxy Transport Adapters for module :mod:`requests`.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">requests</span> <span class="k">import</span> <span class="n">PreparedRequest</span>  <span class="c1"># noqa: F401</span>
+<span class="kn">from</span> <span class="nn">requests.adapters</span> <span class="k">import</span> <span class="n">HTTPAdapter</span>
+<span class="kn">from</span> <span class="nn">requests.exceptions</span> <span class="k">import</span> <span class="n">ProxyError</span>
+<span class="kn">from</span> <span class="nn">urllib3</span> <span class="k">import</span> <span class="n">Retry</span><span class="p">,</span> <span class="n">HTTPResponse</span>  <span class="c1"># noqa: F401</span>
+
+<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">PrivoxyError4Retry</span><span class="p">,</span> <span class="n">ForwardingFailedError</span><span class="p">,</span> <span class="n">NoServerDataError</span><span class="p">,</span> <span class="n">ConnectionTimeoutError</span><span class="p">,</span> <span class="n">PrivoxyError</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="PrivoxyAdapter"><a class="viewcode-back" href="../../requests_proxy_adapter.html#requests_proxy_adapter.api.PrivoxyAdapter">[docs]</a><span class="k">class</span> <span class="nc">PrivoxyAdapter</span><span class="p">(</span><span class="n">HTTPAdapter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The transport adapter for Requests to use Privoxy proxy-server with retries when backend errors occurred.</span>
+
+<span class="sd">    Implements Requests&#39;s :class:`HTTPAdapter` API.</span>
+
+<span class="sd">    If privoxy backend raises `500 Internal Privoxy Error` in suitable cases make `retries` number of internal</span>
+<span class="sd">    retries with delay of `retry_wait` seconds.</span>
+
+<span class="sd">    :param str proxy_url: Complete URL-address of Privoxy proxy instance (scheme, host &amp; port).</span>
+<span class="sd">    :param int retry_wait: (optional) Waiting in seconds before next retry if backend raise specified errors.</span>
+<span class="sd">        Default 1 second.</span>
+<span class="sd">    :param int retries: (optional) Maximum number of retries. Default 3 times.</span>
+<span class="sd">    :param kwargs: (optional) Arbitrary keyword arguments for parent class :class:`HTTPAdapter`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__attrs__</span> <span class="o">=</span> <span class="n">HTTPAdapter</span><span class="o">.</span><span class="n">__attrs__</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;_proxies&#39;</span><span class="p">,</span> <span class="s1">&#39;retry_wait&#39;</span><span class="p">,</span> <span class="s1">&#39;proxy_url&#39;</span><span class="p">,</span> <span class="s1">&#39;_retries&#39;</span><span class="p">,</span> <span class="s1">&#39;_count&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proxy_url</span><span class="p">,</span> <span class="n">retry_wait</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy_url</span> <span class="o">=</span> <span class="n">proxy_url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proxies</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;http&#39;</span><span class="p">:</span> <span class="n">proxy_url</span><span class="p">,</span> <span class="s1">&#39;https&#39;</span><span class="p">:</span> <span class="n">proxy_url</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">retry_wait</span> <span class="o">=</span> <span class="n">retry_wait</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_retries</span> <span class="o">=</span> <span class="n">retries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PrivoxyAdapter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PrivoxyAdapter.send"><a class="viewcode-back" href="../../requests_proxy_adapter.html#requests_proxy_adapter.api.PrivoxyAdapter.send">[docs]</a>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends :class:`PreparedRequest` object. Returns Response object.</span>
+
+<span class="sd">        Replace `proxies` in kwargs if present with adapter-initialised value.</span>
+
+<span class="sd">        :param args: Variable length argument list.</span>
+<span class="sd">        :param kwargs: Arbitrary keyword arguments.</span>
+<span class="sd">        :return: Response object</span>
+<span class="sd">        :rtype: :class:`Response`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;proxies&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">PrivoxyAdapter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">proxies</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_proxies</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">PrivoxyError4Retry</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retries</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">PrivoxyError</span><span class="p">(</span><span class="s2">&quot;Too many retries: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">retry_wait</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+
+<div class="viewcode-block" id="PrivoxyAdapter.build_response"><a class="viewcode-back" href="../../requests_proxy_adapter.html#requests_proxy_adapter.api.PrivoxyAdapter.build_response">[docs]</a>    <span class="k">def</span> <span class="nf">build_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">req</span><span class="p">,</span> <span class="n">resp</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Builds a :class:`Response &lt;requests.Response&gt;` object from a urllib3 response.</span>
+
+<span class="sd">        Build response are doing by parent class :class:`HTTPAdapter`. This code detect 500 in response status code and</span>
+<span class="sd">        search in text of response specific strings.</span>
+
+<span class="sd">        :param PreparedRequest req: The :class:`PreparedRequest` used to generate the response.</span>
+<span class="sd">        :param HTTPResponse resp: The urllib3 :class:`HTTPResponse` object.</span>
+<span class="sd">        :return: :class:`Response &lt;requests.Response&gt;` object</span>
+<span class="sd">        :rtype: :class:`Response &lt;requests.Response&gt;`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">PrivoxyAdapter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">build_response</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">resp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">500</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;500 Internal Privoxy Error&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;&lt;code&gt;forwarding-failed&lt;/code&gt;&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ForwardingFailedError</span>
+            <span class="k">if</span> <span class="s1">&#39;&lt;code&gt;no-server-data&lt;/code&gt;&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">raise</span> <span class="n">NoServerDataError</span>
+            <span class="k">if</span> <span class="s1">&#39;&lt;code&gt;connection-timeout&lt;/code&gt;&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">raise</span> <span class="n">ConnectionTimeoutError</span>
+            <span class="k">if</span> <span class="s1">&#39;&lt;title&gt;500 Internal Privoxy Error&lt;/title&gt;&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">raise</span> <span class="n">PrivoxyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">ProxyError</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">return</span> <span class="n">r</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;</span><span class="si">{class_name}</span><span class="s1"> url:</span><span class="si">{url}</span><span class="s1"> retry wait:</span><span class="si">{wait}</span><span class="s1"> s&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">class_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                                                                     <span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">proxy_url</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">retry_wait</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RetryPrivoxyAdapter"><a class="viewcode-back" href="../../requests_proxy_adapter.html#requests_proxy_adapter.api.RetryPrivoxyAdapter">[docs]</a><span class="k">class</span> <span class="nc">RetryPrivoxyAdapter</span><span class="p">(</span><span class="n">PrivoxyAdapter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The transport adapter for Requests to use Privoxy proxy-server with retries when backend errors occurred and</span>
+<span class="sd">    retries if errors occured on target site by :class:`Retry` module.</span>
+
+<span class="sd">    Implements Requests&#39;s :class:`HTTPAdapter` API. Extend class :class:`PrivoxyAdapter`</span>
+
+<span class="sd">    :param int retries: Total number of retries to allow. Takes precedence over other counts.</span>
+<span class="sd">    :param float backoff_factor: A backoff factor to apply between attempts after the second try (most errors are</span>
+<span class="sd">        resolved immediately by a second try without a delay).</span>
+<span class="sd">    :param set status_forcelist: A set of integer HTTP status codes that we should force a retry on.</span>
+<span class="sd">    :param args: Variable length argument list.</span>
+<span class="sd">    :param kwargs: Arbitrary keyword arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__attrs__</span> <span class="o">=</span> <span class="n">PrivoxyAdapter</span><span class="o">.</span><span class="n">__attrs__</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;retries&#39;</span><span class="p">,</span> <span class="s1">&#39;backoff_factor&#39;</span><span class="p">,</span> <span class="s1">&#39;status_forcelist&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">backoff_factor</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">status_forcelist</span><span class="o">=</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">504</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">retries</span> <span class="o">=</span> <span class="n">retries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backoff_factor</span> <span class="o">=</span> <span class="n">backoff_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_forcelist</span> <span class="o">=</span> <span class="n">status_forcelist</span>
+        <span class="n">retry</span> <span class="o">=</span> <span class="n">Retry</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">connect</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">backoff_factor</span><span class="o">=</span><span class="n">backoff_factor</span><span class="p">,</span>
+                      <span class="n">status_forcelist</span><span class="o">=</span><span class="n">status_forcelist</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RetryPrivoxyAdapter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="n">retry</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;</span><span class="si">{class_name}</span><span class="s1"> url:</span><span class="si">{url}</span><span class="s1"> retries:</span><span class="si">{retires}</span><span class="s1"> backoff factor:</span><span class="si">{backoff}</span><span class="s1"> retry wait:</span><span class="si">{wait}</span><span class="s1"> s &#39;</span> \
+               <span class="s1">&#39;status_forcelist:</span><span class="si">{statuses}</span><span class="s1">&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">class_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">proxy_url</span><span class="p">,</span>
+                                                     <span class="n">wait</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">retry_wait</span><span class="p">,</span> <span class="n">retires</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">retries</span><span class="p">,</span>
+                                                     <span class="n">backoff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backoff_factor</span><span class="p">,</span> <span class="n">statuses</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">status_forcelist</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Requests Proxy Adapter</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Requests Proxy Adapter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">requests_proxy_adapter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Alexey Shevchenko.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,40 @@
+# Config file for automatic testing at travis-ci.org
+# This file will be regenerated if you run travis_pypi_setup.py
+
+sudo: required
+
+services:
+  - docker
+
+dist: xenial   # required for Python >= 3.7
+language: python
+python:
+  - "3.8-dev"
+  - "3.7"
+  - "3.6"
+  - "3.5"
+  - "2.7"
+
+before_install:
+  - docker pull otetz/alpine-tor
+  - docker run -d --rm --name anonymizer -p 8118:8118 -e tors=1 -e privoxy=1 -e new_circuit_period=20 -e max_circuit_dirtiness=60 -e circuit_build_timeout=15 otetz/alpine-tor
+  - docker ps -a
+
+# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+install: pip install -U tox-travis
+
+# command to run tests, e.g. python setup.py test
+script: tox
+
+# After you create the Github repo and add it to Travis, run the
+# travis_pypi_setup.py script to finish PyPI deployment setup
+deploy:
+  provider: pypi
+  distributions: "sdist bdist_wheel"
+  user: Otetz
+  password:
+    secure: PLEASE_REPLACE_ME
+  skip_existing: true
+  on:
+    tags: true
+    repo: Otetz/requests_proxy_adapter

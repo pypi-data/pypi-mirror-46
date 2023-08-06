@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>requests_proxy_adapter package &#8212; Requests Proxy Adapter 0.1.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing" href="contributing.html" />
+    <link rel="prev" title="requests_proxy_adapter" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="requests-proxy-adapter-package">
+<h1>requests_proxy_adapter package<a class="headerlink" href="#requests-proxy-adapter-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-requests_proxy_adapter.api">
+<span id="requests-proxy-adapter-api-module"></span><h2>requests_proxy_adapter.api module<a class="headerlink" href="#module-requests_proxy_adapter.api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="requests-proxy-adapter-api">
+<h3>requests_proxy_adapter.api<a class="headerlink" href="#requests-proxy-adapter-api" title="Permalink to this headline">¶</a></h3>
+<p>Set of Proxy Transport Adapters for module <code class="xref py py-mod docutils literal notranslate"><span class="pre">requests</span></code>.</p>
+<dl class="class">
+<dt id="requests_proxy_adapter.api.PrivoxyAdapter">
+<em class="property">class </em><code class="descclassname">requests_proxy_adapter.api.</code><code class="descname">PrivoxyAdapter</code><span class="sig-paren">(</span><em>proxy_url</em>, <em>retry_wait=1</em>, <em>retries=3</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/requests_proxy_adapter/api.html#PrivoxyAdapter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#requests_proxy_adapter.api.PrivoxyAdapter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">requests.adapters.HTTPAdapter</span></code></p>
+<p>The transport adapter for Requests to use Privoxy proxy-server with retries when backend errors occurred.</p>
+<p>Implements Requests’s <code class="xref py py-class docutils literal notranslate"><span class="pre">HTTPAdapter</span></code> API.</p>
+<p>If privoxy backend raises <cite>500 Internal Privoxy Error</cite> in suitable cases make <cite>retries</cite> number of internal
+retries with delay of <cite>retry_wait</cite> seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>proxy_url</strong> (<em>str</em>) – Complete URL-address of Privoxy proxy instance (scheme, host &amp; port).</p></li>
+<li><p><strong>retry_wait</strong> (<em>int</em>) – (optional) Waiting in seconds before next retry if backend raise specified errors.
+Default 1 second.</p></li>
+<li><p><strong>retries</strong> (<em>int</em>) – (optional) Maximum number of retries. Default 3 times.</p></li>
+<li><p><strong>kwargs</strong> – (optional) Arbitrary keyword arguments for parent class <code class="xref py py-class docutils literal notranslate"><span class="pre">HTTPAdapter</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="requests_proxy_adapter.api.PrivoxyAdapter.build_response">
+<code class="descname">build_response</code><span class="sig-paren">(</span><em>req</em>, <em>resp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/requests_proxy_adapter/api.html#PrivoxyAdapter.build_response"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#requests_proxy_adapter.api.PrivoxyAdapter.build_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a <code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code> object from a urllib3 response.</p>
+<p>Build response are doing by parent class <code class="xref py py-class docutils literal notranslate"><span class="pre">HTTPAdapter</span></code>. This code detect 500 in response status code and
+search in text of response specific strings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>req</strong> (<em>PreparedRequest</em>) – The <code class="xref py py-class docutils literal notranslate"><span class="pre">PreparedRequest</span></code> used to generate the response.</p></li>
+<li><p><strong>resp</strong> (<em>HTTPResponse</em>) – The urllib3 <code class="xref py py-class docutils literal notranslate"><span class="pre">HTTPResponse</span></code> object.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code> object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="requests_proxy_adapter.api.PrivoxyAdapter.send">
+<code class="descname">send</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/requests_proxy_adapter/api.html#PrivoxyAdapter.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#requests_proxy_adapter.api.PrivoxyAdapter.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends <code class="xref py py-class docutils literal notranslate"><span class="pre">PreparedRequest</span></code> object. Returns Response object.</p>
+<p>Replace <cite>proxies</cite> in kwargs if present with adapter-initialised value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Variable length argument list.</p></li>
+<li><p><strong>kwargs</strong> – Arbitrary keyword arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Response object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="requests_proxy_adapter.api.RetryPrivoxyAdapter">
+<em class="property">class </em><code class="descclassname">requests_proxy_adapter.api.</code><code class="descname">RetryPrivoxyAdapter</code><span class="sig-paren">(</span><em>retries=3</em>, <em>backoff_factor=0.3</em>, <em>status_forcelist=(500</em>, <em>502</em>, <em>504)</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/requests_proxy_adapter/api.html#RetryPrivoxyAdapter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#requests_proxy_adapter.api.RetryPrivoxyAdapter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#requests_proxy_adapter.api.PrivoxyAdapter" title="requests_proxy_adapter.api.PrivoxyAdapter"><code class="xref py py-class docutils literal notranslate"><span class="pre">requests_proxy_adapter.api.PrivoxyAdapter</span></code></a></p>
+<p>The transport adapter for Requests to use Privoxy proxy-server with retries when backend errors occurred and
+retries if errors occured on target site by <code class="xref py py-class docutils literal notranslate"><span class="pre">Retry</span></code> module.</p>
+<p>Implements Requests’s <code class="xref py py-class docutils literal notranslate"><span class="pre">HTTPAdapter</span></code> API. Extend class <a class="reference internal" href="#requests_proxy_adapter.api.PrivoxyAdapter" title="requests_proxy_adapter.api.PrivoxyAdapter"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrivoxyAdapter</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>retries</strong> (<em>int</em>) – Total number of retries to allow. Takes precedence over other counts.</p></li>
+<li><p><strong>backoff_factor</strong> (<em>float</em>) – A backoff factor to apply between attempts after the second try (most errors are
+resolved immediately by a second try without a delay).</p></li>
+<li><p><strong>status_forcelist</strong> (<em>set</em>) – A set of integer HTTP status codes that we should force a retry on.</p></li>
+<li><p><strong>args</strong> – Variable length argument list.</p></li>
+<li><p><strong>kwargs</strong> – Arbitrary keyword arguments.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-requests_proxy_adapter.exceptions">
+<span id="requests-proxy-adapter-exceptions-module"></span><h2>requests_proxy_adapter.exceptions module<a class="headerlink" href="#module-requests_proxy_adapter.exceptions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="requests-proxy-adapter-exceptions">
+<h3>requests_proxy_adapter.exceptions<a class="headerlink" href="#requests-proxy-adapter-exceptions" title="Permalink to this headline">¶</a></h3>
+<p>This module contains the set of Requests Proxy Adapter’s exceptions.</p>
+<dl class="exception">
+<dt id="requests_proxy_adapter.exceptions.ConnectionTimeoutError">
+<em class="property">exception </em><code class="descclassname">requests_proxy_adapter.exceptions.</code><code class="descname">ConnectionTimeoutError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/requests_proxy_adapter/exceptions.html#ConnectionTimeoutError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#requests_proxy_adapter.exceptions.ConnectionTimeoutError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#requests_proxy_adapter.exceptions.PrivoxyError4Retry" title="requests_proxy_adapter.exceptions.PrivoxyError4Retry"><code class="xref py py-class docutils literal notranslate"><span class="pre">requests_proxy_adapter.exceptions.PrivoxyError4Retry</span></code></a></p>
+<p>Privoxy error response contains <cite>connection-timeout</cite> message.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="requests_proxy_adapter.exceptions.ForwardingFailedError">
+<em class="property">exception </em><code class="descclassname">requests_proxy_adapter.exceptions.</code><code class="descname">ForwardingFailedError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/requests_proxy_adapter/exceptions.html#ForwardingFailedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#requests_proxy_adapter.exceptions.ForwardingFailedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#requests_proxy_adapter.exceptions.PrivoxyError4Retry" title="requests_proxy_adapter.exceptions.PrivoxyError4Retry"><code class="xref py py-class docutils literal notranslate"><span class="pre">requests_proxy_adapter.exceptions.PrivoxyError4Retry</span></code></a></p>
+<p>Privoxy error response contains <cite>forwarding-failed</cite> message.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="requests_proxy_adapter.exceptions.NoServerDataError">
+<em class="property">exception </em><code class="descclassname">requests_proxy_adapter.exceptions.</code><code class="descname">NoServerDataError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/requests_proxy_adapter/exceptions.html#NoServerDataError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#requests_proxy_adapter.exceptions.NoServerDataError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#requests_proxy_adapter.exceptions.PrivoxyError4Retry" title="requests_proxy_adapter.exceptions.PrivoxyError4Retry"><code class="xref py py-class docutils literal notranslate"><span class="pre">requests_proxy_adapter.exceptions.PrivoxyError4Retry</span></code></a></p>
+<p>Privoxy error response contains <cite>no-server-data</cite> message.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="requests_proxy_adapter.exceptions.PrivoxyError">
+<em class="property">exception </em><code class="descclassname">requests_proxy_adapter.exceptions.</code><code class="descname">PrivoxyError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/requests_proxy_adapter/exceptions.html#PrivoxyError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#requests_proxy_adapter.exceptions.PrivoxyError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">requests.exceptions.ProxyError</span></code></p>
+<p>Base class for Privoxy-related exceptions.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="requests_proxy_adapter.exceptions.PrivoxyError4Retry">
+<em class="property">exception </em><code class="descclassname">requests_proxy_adapter.exceptions.</code><code class="descname">PrivoxyError4Retry</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/requests_proxy_adapter/exceptions.html#PrivoxyError4Retry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#requests_proxy_adapter.exceptions.PrivoxyError4Retry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#requests_proxy_adapter.exceptions.PrivoxyError" title="requests_proxy_adapter.exceptions.PrivoxyError"><code class="xref py py-class docutils literal notranslate"><span class="pre">requests_proxy_adapter.exceptions.PrivoxyError</span></code></a></p>
+<p>Base class for cases needed retrying request internally.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-requests_proxy_adapter.version">
+<span id="requests-proxy-adapter-version-module"></span><h2>requests_proxy_adapter.version module<a class="headerlink" href="#module-requests_proxy_adapter.version" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-requests_proxy_adapter">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-requests_proxy_adapter" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Requests Proxy Adapter</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Requests Proxy Adapter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">requests_proxy_adapter</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">requests_proxy_adapter package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">requests_proxy_adapter</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">requests_proxy_adapter</a></li>
+      <li>Next: <a href="contributing.html" title="next chapter">Contributing</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Alexey Shevchenko.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/requests_proxy_adapter.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
