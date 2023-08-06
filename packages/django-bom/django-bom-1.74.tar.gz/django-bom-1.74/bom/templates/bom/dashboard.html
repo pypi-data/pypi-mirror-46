@@ -1,0 +1,86 @@
+{% extends 'bom/bom-action-btn.html' %}
+
+{% load staticfiles %}
+
+{% block head-title %}Home{% endblock %}
+
+{% block title %}
+<link rel="stylesheet" type="text/css" href="{% static 'bom/style.css' %}" />
+{% if organization.name %}{{ organization.name }}'s {% elif user.first_name %}{{ user.first_name }}'s {% endif %}Parts List
+{% endblock %}
+
+{% block menu %}
+<li><a href="{% url 'bom:export-part-list' %}">Export</a></li>
+{% endblock%}
+
+{% block content %}
+<div class="row">
+    <div class="col s12">
+        <div class="input-field col s12">
+            <form id="searchForm" action="{% url 'bom:home' %}" method="get" enctype="multipart/form-data">
+                <div class="input-field">
+                    <i class="material-icons prefix">search</i>
+                    <input type="text" id="autocomplete-input" class="autocomplete" name="q">
+                    <label for="autocomplete-input">Find a part</label>
+                    <input type="submit" class="btn hidden" value="Search"/>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="part-list push-footer">
+    <div class="responsive-table-wrapper">
+        <table class="highlight part-list tight single-line">
+            <thead>
+                <tr>
+                    <th class="text-normal td-med">Part Number</th>
+                    <th class="text-normal td-large">Description</th> 
+                    <th class="text-normal td-small">Revision</th>
+                    <th class="text-normal td-med">Category</th>
+                    <th class="text-normal td-med">Manufacturer</th>
+                    <th class="text-normal td-med">MPN</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for part_rev in part_revs %}
+                <tr>
+                    <td class="text-normal td-med"><a href="{% url 'bom:part-info' part_id=part_rev.part.id %}">{{ part_rev.part.full_part_number }}</a></td>
+                    <td class="text-normal td-large">{{ part_rev.description }}</td>
+                    <td class="text-normal td-small">{{ part_rev.revision }}</td>
+                    <td class="text-normal td-small">{{ part_rev.part.number_class.name }}</td>
+                    <td class="text-normal td-small">{{ part_rev.part.primary_manufacturer_part.manufacturer.name }}</td>
+                    <td class="text-normal td-med">{{ part_rev.part.primary_manufacturer_part.manufacturer_part_number }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="99" style="text-align: center; padding: 5%;"><i>No parts found. To add your first part, click the red + button in the bottom right of your screen.</i></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Autocomplete -->
+<script>
+var data = JSON.parse('{{ autocomplete|safe }}');;
+$(document).ready(function(){
+    $('input.autocomplete').autocomplete({
+        data: data,
+        limit: 10, // The max amount of results that can be shown at once. Default: Infinity.
+        onAutocomplete: function(val) {
+            document.getElementById("searchForm").submit();
+        },
+        minLength: 1, // The minimum length of the input for the autocomplete to start. Default: 1.
+    });
+});
+</script>
+
+<!-- Floating Horizontal Scrollbar -->
+<script type="text/javascript" src="{% static 'bom/js/jquery.ba-floatingscrollbar.min.js' %}"></script>
+<script>
+$(function() {
+  $('.responsive-table-wrapper').floatingScrollbar();
+});
+</script>
+{% endblock %}

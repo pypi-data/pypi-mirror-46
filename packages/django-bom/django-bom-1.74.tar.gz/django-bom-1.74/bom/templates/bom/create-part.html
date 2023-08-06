@@ -1,0 +1,66 @@
+{% extends BASE_TEMPLATE %}
+
+{% load staticfiles %}
+{% load materializecss %}
+
+{% block head-title %}Create Part{% endblock %}
+
+{% block title %}
+<link rel="stylesheet" type="text/css" href="{% static 'bom/style.css' %}" />
+Create New Part
+{% endblock %}
+
+{% block menu %}
+<li><a href="{% url 'bom:home' %}">Cancel</a></li>
+{% endblock%}
+
+{% block content %}
+<div class="row">
+    <form name="seller" action="{% url 'bom:create-part' %}" method="post" class="col s12">
+    	<div class="row">
+            {% csrf_token %}
+            {{ part_form|materializecss:'m4 s12' }}
+		</div>
+    	<div class="row">
+            {% csrf_token %}
+            {{ part_change_history_form.non_field_errors }}
+            <div class="fieldWrapper">
+                {{ part_change_history_form.revision|materializecss:'m2 s12' }}
+            </div>
+            <div class="fieldWrapper">
+                {{ part_change_history_form.description|materializecss:'m10 s12' }}
+            </div>
+            <div class="fieldWrapper">
+                {{ part_change_history_form.attribute|materializecss:'m6 s12' }}
+            </div>
+            <div class="fieldWrapper">
+                {{ part_change_history_form.value|materializecss:'m6 s12' }}
+            </div>
+		</div>
+        <h2>Add a Manufacturer Part (optional)</h2>
+        <div class="row">
+            <div class="col s12">
+                <span>Skip this form if your part is a custom part. Leave the manufacturer field unselected if creating a new manufacturer.</span>
+            </div>
+        </div>
+    	<div class="row">
+            {% csrf_token %}
+            {{ manufacturer_part_form|materializecss:'m4 s12' }}
+            {{ manufacturer_form.non_field_errors }}
+            <div class="fieldWrapper">
+                {{ manufacturer_form.name.errors }}
+                <label for="{{ manufacturer_form.name.id_for_label }}">OR Create A New Manufacturer:</label>
+                {{ manufacturer_form.name|materializecss:'m4 s12' }}
+            </div>
+		</div>
+		<div class="row">
+	        <div class="col s6">
+                <a href="javascript:history.back()" class="waves-effect waves-light btn-flat grey-text lighten-1" style="margin-left: -16px;">Cancel</a>
+            </div>
+            <div class="col s6 right-align">
+	        	<button class="waves-effect waves-light btn green lighten-1" type="submit" name="action">Save</button>
+	    	</div>
+    	</div>
+    </form>
+</div>
+{% endblock %}
