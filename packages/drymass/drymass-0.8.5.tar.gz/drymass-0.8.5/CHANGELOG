@@ -1,0 +1,134 @@
+0.8.5
+ - docs: minor update
+0.8.4
+ - enh: bump dependencies on qpformat, qpimage, and qpsphere
+   - improved file format support
+   - improved speed of in-memory operations
+   - several other minor fixes
+ - docs: minor cleanup
+0.8.3
+ - enh: when using incomplete profile files, they are now merged with
+   (instead of overriding) existing profiles (drymass.cfg) in the
+   respective output directories (#27)
+ - docs: minor update
+0.8.2
+ - fix: pin scikit-image version to 0.14.0 because threshold_li has
+   changed (https://github.com/scikit-image/scikit-image/issues/3605)
+ - enh: implement "roi" configuration option "force" (#8)
+ - ref: replace default config values of `nan` with `None` (#13)
+ - ref: turn comments in definitions.py into real strings (#23)
+ - docs: add automation tutorial (usage of profiles and scripts) 
+0.8.1
+ - fix: replaced hack for plotting units with better solution due
+   to incompatibility with tight_layout in matplotilb 3.0.2
+0.8.0
+ - feat: implement profile management via `dm_profile` command and
+   allow to select profiles via the "--profile" command-line argument
+   in the command-line interface (#20)
+ - fix: if time is unknown, write "nan" instead of "0" to the output
+   statistics file
+ - ref: explicitly use row-column coordinates in skimage's regionprops
+   (bump skimage version to 0.14.1)
+0.7.3
+ - fix: do not create "_dm" results directory for root directory in
+   recursive analysis mode (#19)
+ - docs:
+   - add DryMass logo
+   - update software description
+0.7.2
+ - skipped
+0.7.1
+ - maintenance release
+0.7.0
+ - feat: support recursive analysis with the "--recursive" command-line
+   argument (#15)
+0.6.2
+ - fix: regression in 0.6.0 ImageJ cannot open compressed hyperstack data;
+   disabling compression for now (see #14) 
+0.6.1
+ - fix: MetaDataMissingError for some data types (qpformat 0.4.3)
+0.6.0
+ - fix: error when removing ROIs that overlap with two ROIs in the
+   background image
+ - feat: allow to exclude individual ROIs in drymass.cfg (#5)
+ - enh: improve error message verbosity
+ - enh: use compression for TIFF output
+ - enh: use new class for handling ROIs internally (#9)
+ - enh: start counting of ROIs and sensor images at 1 instead of 0 (#11)
+ - ref: handle 'None' values directly in config.ConfigFile
+0.5.0
+ - feat: automatically extract meta data from QPImage/QPSeries data
+   (qpformat 0.4.0)
+ - fix: setting "dist border px" to 0 still removed objects from border
+ - fix: scikit-image methods could not be used for "binary threshold"
+ - fix: set "image fix phase offset" to True by default, otherwise
+   objects in the background cause a false offset
+ - improvement: optimize CLI plots
+ - docs:
+   - update tutorials with new CLI plots
+   - add tutorial for background correction (#3)
+0.4.1:
+ - fix: extracted wrong phase image from SID4Bio data (qpformat 0.3.5) 
+0.4.0
+ - feat: ROI background correction supports masking of the
+   imaged object via the "amplitude mask sphere" and
+   "phase mask sphere" settings in the [bg] section.
+ - setup: support qpimage>=0.4.0
+ - tests: improve coverage
+ - docs: minor update (#7)
+0.3.3
+ - ci: automate PyPI release with travis-ci
+ - setup: bump versions of dependent packages
+0.3.2
+ - docs: update of introduction and minor changes
+0.3.1
+ - bump version because of regression fixed in qpformat 0.2.1
+ - feat: flush statistics file during writing
+0.3.0
+ - drop support for Python 3.5
+ - ref: background correction in convert.py uses background indices
+   starting at 0 while the CLI keeps using indices starting at 1
+ - fix: hologram keyword arguments were not used for background
+   correction
+ - fix: case where index-based background correction does not work
+ - feat: sphere analysis is picked up where left off in previous run
+ - command line interface:
+   - fix: allow white spaces for input data path argument
+   - fix: improve verbosity of status messages
+ - docs: add troubleshooting section
+0.2.0
+ - feat: reuse computed ROI data from previous runs
+ - ref: update [roi] configuration key names to reflect pixel units:
+   "dist border px", "exclude overlap px", "pad border px"
+ - fix: improve verbosity of error messages
+ - fix: config value "[roi] size variation" must be in interval [0,1]
+ - fix: handle ROIs with failed edge detection in "dm_analyze_sphere"
+0.1.4
+ - feat: add local thresholding step before segmentation
+ - fix: check number of qpimages in sensor_data.h5 during dm_convert
+ - fix: "exclude overlap" only used for background image
+ - fix: not possible to analyze phasics data folder when raw data
+   is present (qpformat 0.1.5)
+0.1.3
+ - automatically fix inverted ranges when loading "roi_slices.txt"
+ - remove "holo" section from drymass.cfg if not relevant
+ - allow user-defined ROI selection via "[roi] enabled = False"
+ - added hologram analysis parameter tuning (qpimage 0.1.6)
+ - added 2D model fitting to sphere analysis (qpsphere 0.1.4)
+ - fixed `cfg_funcs.int_or_str`
+0.1.2
+ - allow to disable sensor image tif export
+ - support input QPI data with different shapes
+ - fixed wrong assumption about definition of dry mass in cells
+   (water vs. intracellular salt solution)
+ - allow to use separate file or series index for background correction
+   with experimental data (#6)
+ - small visualization improvements
+0.1.1
+ - add file name to image identifier and update plotting (#4)
+ - renamed "object" to "identifier" in statistics output
+ - binary-based background correction (manual or automated threshold)
+ - allow to disable background correction with "[bg] enabled = False"
+ - ask for missing meta data keys in CLI only when they are required
+0.1.0
+ - initial release
