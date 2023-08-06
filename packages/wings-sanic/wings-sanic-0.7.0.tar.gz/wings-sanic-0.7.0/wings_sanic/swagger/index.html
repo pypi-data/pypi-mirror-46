@@ -1,0 +1,65 @@
+<!-- HTML for static distribution bundle build -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Swagger UI</title>
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.20.2/swagger-ui.css">
+    <link rel="icon" type="image/png" href="https://swagger.io/swagger/media/assets/swagger_fav.png" sizes="32x32"/>
+    <link rel="icon" type="image/png" href="https://swagger.io/swagger/media/assets/swagger_fav.png" sizes="16x16"/>
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+
+        *,
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            background: #fafafa;
+        }
+    </style>
+</head>
+
+<body>
+<div id="swagger-ui"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.20.2/swagger-ui-bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.20.2/swagger-ui-standalone-preset.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+<script>
+    window.onload = function () {
+        var url = window.location.toString().split("?")[0]+ 'group/';
+        console.log(axios);
+        axios.get(url)
+            .then(function (res) {
+                const ui = SwaggerUIBundle({
+                    urls: res['data'],
+                    dom_id: '#swagger-ui',
+                    deepLinking: true,
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIStandalonePreset
+                    ],
+                    plugins: [
+                        SwaggerUIBundle.plugins.DownloadUrl
+                    ],
+                    layout: "StandaloneLayout"
+                });
+                // End Swagger UI call region
+
+                window.ui = ui
+            })
+        // Begin Swagger UI call region
+
+    }
+</script>
+</body>
+</html>
