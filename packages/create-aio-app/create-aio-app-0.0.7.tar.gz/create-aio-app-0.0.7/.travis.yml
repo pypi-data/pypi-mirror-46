@@ -1,0 +1,38 @@
+language: python
+sudo: required
+
+services:
+  - docker
+
+python:
+  - '3.6'
+
+install:
+  - pip install --upgrade setuptools
+  - pip install -r requirements-dev.txt
+
+script:
+  - make flake
+  - make test
+
+before_script:
+  # Disable services enabled by default
+  # http://docs.travis-ci.com/user/database-setup/#MySQL
+  - sudo /etc/init.d/postgresql stop
+   # - sudo /etc/init.d/mysql stop
+
+cache: pip
+
+deploy:
+    provider: pypi
+    user: aio-libs-bot
+    distributions: sdist bdist_wheel
+    password:
+        # Encrypted with `travis encrypt -r aio-libs/create-aio-app --api-endpoint 'https://api.travis-ci.com/'`:
+        secure: >-
+          ktCdEw9PQO9orA7BmhCn71yOIPK3seomRkJi8+ea54lQsT8cCe+sKZgaXRTBwkcKnKqz11gQl7P11qPNLIWr4cNeVrF6RsDix5YFDxpfqy+x6IPNvpArhkB8/2u2SpFbjzTOh0jT2d4ucSUDV+axjSRPymHK+8lYEMKXucNrzsao8qrExpCMkVJA5rNKeLC537ZN53tVbhwYNih+LsGPXGTvoQoMSQPRk83NfselIper1bPwioUYzIaJCygrOKQKqs/nKOlygMFmPyg4uFoDBh3idG66r8Q9Zmt7DrCAaCxJyGFmjNYHkMzLLh8kl2VuXk+lREbmPDIfNEGzoAM4mX6Jd+LGNvbOOqntRYpW+K4A01qe+YnI142uA7tfxWl1qOqknb0bT6EXKq3iCB4ZXxLdukCcaBAUJP0ctj5wyVpcJ7TAst4SDKLYuZ06I+kx2n51HO5DsfuUQBvkKuMzAHXv0jxXcv8ez2ZS5kBpgQuemNm1NOsrWhtyWzvhlcD2+VMNaYNII63GvAUiwgO8QCf/JNaW12Fdp/nceVUhJWlsmfvQQ1erKqugtecrowh9XWTO5kx7CMrpZJCDdWXMoUMC7aRmJuYaSiz1xCHa44v6xFlMv7bv2UzelRbnpgolCCTzCGXnC6ozct58b/dtGiHKbPJ+cJSOjH513kxRSaM=
+    on:
+        tags: true
+        repo: aio-libs/create-aio-app
+        all_branches: true
+        python: 3.6
