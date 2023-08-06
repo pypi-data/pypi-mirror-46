@@ -1,0 +1,146 @@
+Metadata-Version: 1.1
+Name: fontcell
+Version: 1.4.7
+Summary: FOntCell - A software tool for automatic parallel computed fusion of ontologies
+Home-page: https://gitlab.com/jcabaulaporta/fontcell
+Author: Javier Cabau Laporta
+Author-email: jcabaulaporta@outlook.es
+License: LICENSE
+Description: #########
+        FOntCell
+        #########
+        FOntCell is a software module in Python for automatic computed fusion of ontologies.
+        The FOntCell module produces a fused ontology in OBO format and a circular representation of the fused ontology in a Directed Acyclic Graph (DAG) in an interactive HTML file.
+        
+        
+        Prerequisites
+        =============
+        
+        - Python3
+        
+        You can install python from the official repository official repository
+        
+        - pip3
+        
+        It is necessary to use pip3 to download FOntCell and use it with python3. You can install it using the command:
+        
+        ``sudo apt-get install python3-pip``
+        
+        
+        - TKinter
+        
+        Tkinter library is a dependecy that will not be installed during FOntCell installation.
+        If TKinter was not installed an error will raise during FOntCell importation.
+        You can install it using the command:
+        
+        ``sudo apt-get install python3-tk``
+        
+        - mpi.h
+        
+        Mpi.h is mpi4py dependency that may not be installed during mpi4py installation, and if not be there will raise an error.
+        Installing mpi.h with the command:
+        
+        ``sudo apt install libopenmpi-dev``
+        
+        And then, you can install manually mpi4py with the following command or install it automatically during FOntCell installation.
+        
+        ``sudo pip3 install mpi4py``
+        
+        
+        Downloading FOntCell
+        ====================
+        
+        FOntCell module is available at PyPI, you can install it using the command:
+        
+        ``sudo pip3 install FOntCell``
+        
+        How to run FOntCell
+        ===================
+        First, you hace to open python3 at bash giving the permissions using the following comand to bash command line:
+        
+        ``sudo python3``
+        
+        Second you can import FOntCell module by the command:
+        
+        ``import FOntCell``
+        
+        When python import the library you can use 3 commands:
+        
+        ``FOntCell.run('path/to/configuration_file.txt')`` For runing FOntCell test according with
+        
+        ``FOntCell.run_demo()`` For run the demo about fusing CELDA with Lifemap
+        
+        ``FOntCell.clean()`` Clean internal files from old test (recommended to use when it is performed a new fusion between others ontologies especially if you reuse one of the previous)
+        
+        ``where_I_am()`` Print the path where FOntCell is installed
+        
+        User Manual:
+        ============
+        After download and installing FOntCell using pip you have to create the following directories:
+        
+        -output_folder: named has you want and put them where you want.
+        
+        -input_folder: named has you want and put them where you want.
+        
+        Output_folder will be the directory where FOntCell put the differents results (the fused ontolgy, a html doc, figures, etc)
+        
+        At input_folder the user has to put the Configurations file, both ontologies, and the ontology_edit documents.
+        
+        Documents required at Input directory
+        =====================================
+        
+        - Configuration file
+        
+        The configuration file has to be the next arguments (a default configuration will add at the end of the document). This file will be in .txt format.
+        
+        *details at: https://gitlab.com/JavierCabau/fontcell/*
+        
+        - Ontology Edit File
+        
+        This documents allows the user to edit the ontology after parse in order to direct the ontology fusion.
+        The document must be in .txt file with the different orders for an authomatic processing.
+        
+        *details at: https://gitlab.com/JavierCabau/fontcell/*
+        
+        - Ontologies
+        
+        The ontologies that we want to fuse. The ontologies can be at .owl format (that requires a parse) or in a .ods format if we want to save the parse step.
+        
+        Attending that the first column correspond to 'father' and the second column 'his descendant'. If a class don not have descendant will be recognized if it is at father column (with no descendant) or only as a child of another class
+        
+        Documents found at output directory after fusion
+        ================================================
+        
+        - A .owl document
+        
+        This document is the resultant ontology of fusing both ontologies. The structure is the same as the ontology 1 (A) with the new classes added from ontology two at the top of ontology class section.
+        
+        - FOntCell_OntolgyA_OntologyB.html file
+        
+        This file shows information about the fusion. First we can see three interactive circular graph of ontology A, ontology B and the merged ontology. Also shows other information such: the different thresholds values and statistics about fusion.
+        This file also shows a direct link to the OBO formated merged ontology, and a representative image of type of node asignation between ontology A and B (a donut graph) and a image of an Euler-Venn diagram (using squares) about how the fusion has work.
+        
+        - Other .html and -png files
+        
+        These files are the incrusted at the FOntCell_OntologyA_OntologyB.html file. The .html files are all the different interactive circular graphs, and the .png are the Euler-Venn diagram and the donut graph.
+        
+        -Additional .txt files
+        
+        If one 'raw' ontology (start as .owl file) has more than one plausible roots (a node in a digraph without ascendant), two .txt file will be created:
+        
+        ontology_plausibles_roots.txt: The list of nodes (in the digraph, classes at ontology) without ascendant nodes. In the example of fusing cell development ontologies, only one root will be allowed (zyogote). The others has to be reconected using the edit-ontologies tools in FOntCell.
+        
+        ontology_with_various_roots.txt: In order to facilitate the task of search the correct node label for concatenate nodes to 'false root nodes', FOntCell creates this file with all the relations in a parent-son (graph edge) format.
+        
+        Error troubleshooting
+        =====================
+        If you have installed mpi4py or bigmpi4py (a requeriment for FOntCell) in a different conda enviroment where you install FOntCell the paralelization will not work well (all the process will run in a single processor). In this case, even FOntCell work fine, it can not paralelize.
+        
+        Running FOntCell will raise a problem if Graphviz was not properly installed. For a correct graphviz installation you can use the command:
+        
+        ``sudo apt-get install graphviz``
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
+Classifier: Operating System :: OS Independent
