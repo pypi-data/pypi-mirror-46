@@ -1,0 +1,30 @@
+---
+{% raw %}
+- hosts: all
+  strategy: linear
+  gather_facts: false
+
+  tasks:
+    - name: "[checking for passwords]"
+      set_fact:
+        ansible_become_pass: "{{ lookup('env','NSBL_SUDO_PASSWORD') }}"
+        ansible_ssh_pass: "{{ lookup('env', 'NSBL_SSH_PASSWORD') }}"
+      no_log: true
+      changed_when: false
+
+    - name: "[remove cached sudo credential]"
+      raw: 'sudo -k'
+      when: ansible_become_pass is defined and ansible_become_pass
+      ignore_errors: true
+
+    - name: "[testing sudo password]"
+      raw: 'sh -c "true"'
+      become: true
+      when: ansible_become_pass is defined and ansible_become_pass
+      changed_when: false
+
+    - name: "[setting other vars]"
+      set_fact:
+        __nsbl_run_pwd__: "{{ lookup('env', 'NSBL_RUN_PWD') }}"
+      changed_when: false
+{% endraw %}
