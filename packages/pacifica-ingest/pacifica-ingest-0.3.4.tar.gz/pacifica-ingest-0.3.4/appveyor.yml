@@ -1,0 +1,160 @@
+version: 0.1.{build}
+pull_requests:
+  do_not_increment_build_number: true
+
+services:
+- postgresql
+
+environment:
+  PGUSER: postgres
+  PGPASSWORD: Password12!
+  PGSQL_PATH: C:\Program Files\PostgreSQL\9.6
+  NOTIFICATIONS_URL: http://127.0.0.1:8080
+  PEEWEE_URL: postgres://postgres:Password12!@localhost/pacifica_metadata
+  ADMIN_USER_ID: 10
+  ARCHIVEINTERFACE_URL: http://127.0.0.1:9080
+  BROKER_URL: redis://127.0.0.1:6379/0
+  matrix:
+  - PYTHON: C:\Python27-x64
+  - PYTHON: C:\Python36-x64
+
+install:
+- ps: >
+    & "$env:PYTHON\python.exe" -m virtualenv C:\pacifica;
+    Invoke-WebRequest -Uri "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.5.zip" -OutFile "elasticsearch.zip";
+    Expand-Archive "elasticsearch.zip" -DestinationPath "C:\elasticsearch";
+    Start-Process C:\elasticsearch\elasticsearch-5.6.5\bin\elasticsearch;
+    nuget install redis-64 -excludeversion;
+    redis-64\tools\redis-server.exe --service-install;
+    redis-64\tools\redis-server.exe --service-start;
+    C:\pacifica\Scripts\activate.ps1;
+    python -m pip install --upgrade pip setuptools wheel;
+    python -m pip install -r requirements-dev.txt;
+    python -m pip install 'celery[eventlet]' eventlet redis;
+    echo "done";
+
+build: off
+
+before_test:
+- ps: >
+    $env:PATH = "${env:PGSQL_PATH}\bin;${env:PYTHON}\Scripts;${env:PATH}";
+    createdb pacifica_metadata;
+    createdb pacifica_ingest;
+    C:\pacifica\Scripts\activate.ps1;
+    $env:METADATA_CPCONFIG = "$PWD/travis/metadata/server.conf";
+    $env:POLICY_CPCONFIG = "$PWD/travis/policy/server.conf";
+    $env:UNIQUEID_CPCONFIG = "$PWD/travis/uniqueid/server.conf";
+    $env:UNIQUEID_CONFIG = "$PWD/travis/uniqueid/config.ini";
+    $env:ARCHIVEINTERFACE_CPCONFIG = "$PWD/travis/archivei/server.conf";
+    pacifica-metadata-cmd dbsync;
+    pacifica-uniqueid-cmd dbsync;
+    Start-Process C:\pacifica\Scripts\pacifica-metadata.exe -RedirectStandardError metadata-error.log -RedirectStandardOutput metadata-output.log;
+    Start-Process C:\pacifica\Scripts\pacifica-uniqueid.exe -RedirectStandardError uniqueid-error.log -RedirectStandardOutput uniqueid-output.log;
+    pushd tests/test_data;
+    cp metadata-files/good-md.json metadata.txt;
+    tar -cf good.tar metadata.txt data;
+    cp metadata-files/bad-project-md.json metadata.txt;
+    tar -cf bad-project.tar metadata.txt data;
+    cp metadata-files/bad-mimetype-md.json metadata.txt;
+    tar -cf bad-mimetype.tar metadata.txt data;
+    cp metadata-files/bad-hashsum-md.json metadata.txt;
+    tar -cf bad-hashsum.tar metadata.txt data;
+    cp metadata-files/bad-json-md.notjson metadata.txt;
+    tar -cf bad-json.tar metadata.txt data;
+    popd;
+    ls tests/test_data;
+    $MD_VERSION = `pip show pacifica-metadata | grep Version: | awk '{ print $2 }';
+    Invoke-WebRequest https://github.com/pacifica/pacifica-metadata/archive/v${MD_VERSION}.zip -OutFile pacifica-metadata.zip;
+    Expand-Archive pacifica-metadata.zip -DestinationPath C:\pacifica-metadata;
+    pushd C:\pacifica-metadata\pacifica-metadata-${MD_VERSION};
+    sleep 10; Invoke-WebRequest http://localhost:8121/users;
+    python tests\test_files\loadit_test.py;
+    Start-Process C:\pacifica\Scripts\python.exe -ArgumentList "tests\cherrypy_catch_test.py" -RedirectStandardError catch-error.log -RedirectStandardOutput catch-output.log;
+    popd;
+    Invoke-WebRequest 'http://localhost:8051/getid?range=1000&mode=file';
+
+
+test_script:
+- ps: >
+    $env:POLICY_CPCONFIG = "$PWD/travis/policy/server.conf";
+    $env:ARCHIVEINTERFACE_CPCONFIG = "$PWD/travis/archivei/server.conf";
+    $env:METADATA_URL = "http://127.0.0.1:8121";
+    $env:STATUS_URL = "http://127.0.0.1:8121/groups";
+    function error_and_dump([Boolean]$test_rc) {
+      if( ! $test_rc ) {
+        echo "================ Server Error ================";
+        cat server-error.log;
+        echo "================ Celery Error ================";
+        cat celery-error.log;
+        echo "================ Archive Error ================";
+        cat archive-error.log;
+        echo "================ Policy Error ================";
+        cat policy-error.log;
+        echo "================ Server Output ================";
+        cat server-output.log;
+        echo "================ Celery Output ================";
+        cat celery-output.log;
+        echo "================ Archive Output ================";
+        cat archive-output.log;
+        echo "================ Policy Output ================";
+        cat policy-output.log;
+        echo "================ End Logs ================";
+        exit $test_rc;
+      }
+    }
+    mkdir C:\tmp; mkdir C:\archive; C:\pacifica\Scripts\activate.ps1;
+    $env:PATH = "${env:PGSQL_PATH}\bin;${env:PATH}";
+    pre-commit run -a;
+    $env:INGEST_CPCONFIG = "$PWD/server.conf";
+    $env:INGEST_CONFIG = "$PWD/travis/apconfig.ini";
+    rm -r -Force tests\test_data\data; cd tests;
+    pip install pacifica-ingest==0.2.0;
+    python -c 'from pacifica.ingest.orm import database_setup; database_setup()';
+    pip install ..; git reset --hard;
+    echo "This command should fail";
+    coverage run --include='*/site-packages/pacifica/ingest/*' -m pacifica.ingest;
+    if ($LastExitCode -eq 0) { $host.SetShouldExit(-1); };
+    coverage run --include='*/site-packages/pacifica/ingest/*' -a cmd_test.py dbchk --equal;
+    if ($LastExitCode -eq 0) { $host.SetShouldExit(-1); };
+    coverage run --include='*/site-packages/pacifica/ingest/*' -a cmd_test.py dbchk;
+    if ($LastExitCode -eq 0) { $host.SetShouldExit(-1); };
+    coverage run --include='*/site-packages/pacifica/ingest/*' -a cmd_test.py dbsync;
+    dropdb pacifica_ingest;
+    createdb pacifica_ingest;
+    coverage run --include='*/site-packages/pacifica/ingest/*' -a cmd_test.py dbsync;
+    coverage run --include='*/site-packages/pacifica/ingest/*' -a cmd_test.py dbchk --equal;
+    coverage run --include='*/site-packages/pacifica/ingest/*' -a cmd_test.py dbchk;
+    Invoke-WebRequest 'http://127.0.0.1:8051/getid?mode=test&range=1';
+    Invoke-WebRequest 'http://127.0.0.1:8121/users?_id=10';
+    echo "============= Starting ArchiveInterface =============";
+    $arch_proc = Start-Process C:\pacifica\Scripts\pacifica-archiveinterface.exe -ArgumentList "--prefix C:\archive" -PassThru -RedirectStandardOutput archive-output.log -RedirectStandardError archive-error.log;
+    Invoke-WebRequest 'http://127.0.0.1:9080/1234';
+    echo "============= Starting Policy =============";
+    $policy_proc = Start-Process C:\pacifica\Scripts\pacifica-policy.exe -PassThru -RedirectStandardOutput policy-output.log -RedirectStandardError policy-error.log;
+    Invoke-WebRequest 'http://127.0.0.1:8181/status/users/by_id/dmlb2001';
+    echo "============= Starting Ingest Backend =============";
+    $back_proc = Start-Process C:\pacifica\Scripts\coverage.exe -ArgumentList 'run --include=*/site-packages/pacifica/ingest/* -p -m celery -A pacifica.ingest.tasks worker -l info -c 1 -P solo' -PassThru -RedirectStandardOutput celery-output.log -RedirectStandardError celery-error.log;
+    echo "============= Starting Ingest Frontend =============";
+    $front_proc = Start-Process C:\pacifica\Scripts\coverage.exe -ArgumentList 'run --include=*/site-packages/pacifica/ingest/* -p -m pacifica.ingest --stop-after-a-moment' -PassThru -RedirectStandardOutput server-output.log -RedirectStandardError server-error.log;
+    echo foo > C:\tmp\foo.txt;
+    ls C:\pacifica\Scripts;
+    Invoke-WebRequest 'http://127.0.0.1:8066/get_state?job_id=1';
+    coverage run --include="*/site-packages/pacifica/ingest/*" -p -m pytest -xv ingest_test.py upload_test.py utils_test.py move_test.py;
+    error_and_dump $?;
+    $policy_proc.Kill();
+    $policy_proc | Wait-Process;
+    pytest -xv upload_badpolicy_test.py;
+    error_and_dump $?;
+    $policy_proc = Start-Process C:\pacifica\Scripts\pacifica-policy.exe -PassThru -RedirectStandardError policy-error.log -RedirectStandardOutput policy-output.log;
+    $arch_proc.Kill();
+    $arch_proc | Wait-Process;
+    pytest -xv upload_badai_test.py;
+    error_and_dump $?;
+    $front_proc | Wait-Process;
+    $policy_proc.Kill();
+    echo "Asking Celery to Shutdown";
+    celery -A pacifica.ingest.tasks control shutdown;
+    $back_proc | Wait-Process;
+    coverage run --include=*/site-packages/pacifica/ingest/* -p -m pytest -xv entry_points_test.py;
+    ls .coverage* | %{ coverage combine -a $_.name };
+    coverage report -m --fail-under=100;
