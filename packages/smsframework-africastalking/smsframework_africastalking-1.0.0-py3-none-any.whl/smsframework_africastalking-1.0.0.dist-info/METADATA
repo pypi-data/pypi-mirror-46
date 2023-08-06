@@ -1,0 +1,66 @@
+Metadata-Version: 2.1
+Name: smsframework-africastalking
+Version: 1.0.0
+Summary: SMS framework: Africa's Talking provider
+Home-page: https://github.com/BBOXX/py-smsframework-africastalking
+Author: BBOXX
+Author-email: j.lynch@bboxx.co.uk
+License: UNKNOWN
+Keywords: sms message send africa africastalking smsframework provider
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Description-Content-Type: text/markdown
+Provides-Extra: _dev
+Requires-Dist: wheel ; extra == '_dev'
+Requires-Dist: nose ; extra == '_dev'
+
+# SMSframework AfricasTalking Provider
+
+[Africa's Talking] Provider for [smsframework]
+
+[Africa's Talking]: https://africastalking.com/
+[smsframework]: https://pypi.python.org/pypi/smsframework/
+
+# Initialization
+
+```
+from smsframework import Gateway
+from smsframework_africastalking import AfricasTalkingProvider
+
+gateway = Gateway()
+gateway.add_provider('africas_talking', AfricasTalkingProvider,
+    username='sandbox',
+    api_key='\*\*\*'
+)
+```
+
+## Config
+
+- `username: str`: Username for your Africa's Talking account, use `sandbox` for development `Required`
+- `api_key: str`: API key for your Africa's Talking account `Required`
+
+# Sending Parameters
+
+Provider-specific sending params:
+
+- `target_country: str`: 2-digit ISO code of the country the phonenumber should be interpretted as from `Required`
+
+Example:
+
+```
+from smsframework import OutgoingMessage
+
+message = OutgoingMessage('+254789789789', 'Hello Kenya').params(target_country='KE')
+
+gateway.send(message)
+```
+
+# Additional Information
+
+AfricasTalking SMS API also supports sending premium messages and receiving incoming messages. These features are not currently implemented in this provider.
+
