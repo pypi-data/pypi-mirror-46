@@ -1,0 +1,12 @@
+{%- from 'macro.jinja2' import output_display with context -%}
+
+{%- for output in outputs if output.type != 'display_data' -%}
+  {%- if output.type == 'error' -%}
+    <span class="error">{{ output.ename }}: {{ output.evalue }}</span>
+  {%- elif 'text/plain' in output.data -%}
+    {{ output.data['text/plain'] }}
+  {%- elif 'text/latex' in output.data -%}
+    {%- autoescape false -%}{{ output.data['text/latex'] }}{%- endautoescape -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- for output in outputs -%}{{ output_display(output, true) }}{%- endfor -%}
