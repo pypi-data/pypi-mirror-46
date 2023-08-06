@@ -1,0 +1,26 @@
+dist: xenial
+language: python
+cache:
+- pip
+python:
+- '3.5'
+- 3.5-dev
+- '3.6'
+- 3.6-dev
+- '3.7'
+before_install:
+- pip install -U pip
+- pip install -U setuptools
+- pip install -U wheel
+install:
+- pip install tox-travis .[devel]
+script:
+- tox
+deploy:
+  - provider: pypi
+    user: 4383
+    password:
+      secure: "wpStoO0Q0qWv0qEiF5IKnE6auYrOE24ykR7dvwsAMxC1k/n+pkTTkhk0vy9o7R5CiUz46UZ4ntQAROOgkLspoTSoQE09fgIIUIbe4kwdnRbapifdtJ5ORPUSzydKzfiZ6bcZUR+b+CvHdxmVw58yTTgQcaJ4WQHWsVo26ALw7V/xYg/y+IoOI1gQKcYI1ebh8SENX4avtalX9DoILXMkvFQqwEVWpbXMSso7ooHUyZKK6D+2smLJm+RUs4Fa7axjm61YU6CnyQB34MRwQsdvzu/iASdG5NmeuD0IkCODW6or/5sI5a/13umj51LUmJbHCMxyh1gj7tgf0ex3QLXqk2crkIC43g8owpr6ejyyjsd/kpgF72rgj8OefipA4KTsqJtIqTC37lZpQeFjmuiKhyL34/rZbih2YjrjP2hfNG4YMECNZIsSN8htK+pFUc+zfnfrHNnTBUenvllBfqYBuJce+spLjAaHxTe/g7s5vnfzu01wztQgmEuAzJnkhXEWEZS++A0jcz5XYKAdLjoAL7NwnD4b3MIxe8jPALhbpSVoxle1C8LLy7B/RjUa3cKcGHNCTxlP46s+rpp6TS6wlVjeZUWTdcaKIpZocO2Vdmh5xGjTurNGnLps8SwV7J9oYgy2IMIYNSKbr56NisQwncBM6RBjBJiciPzet5v8zVw="
+    on:
+      tags: true
+    distributions: sdist bdist_wheel
