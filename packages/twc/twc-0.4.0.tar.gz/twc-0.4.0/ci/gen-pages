@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# generates pages for all tags + HEAD
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+
+html()
+{
+    printf "$1\n" >> public/index.html
+}
+
+die()
+{
+    printf "%s\n" "$1"
+    exit 1
+}
+
+doc()
+{
+    tag="$1"
+    name="${2:-$1}"
+
+    git checkout "$tag" > /dev/null || die "Can't checkout git tag: $tag"
+    test -e "docs/Makefile" || return
+
+    printf "\033[0;92mGenerating documentation for %s as %s...\033[0m\n" \
+            "$tag" "$name"
+
+    rm -rf "docs/build"
+    make -s -C docs book
+    mkdir "public/$tag"
+    cp -r docs/build/book/* "public/$tag"
+    mv "public/$tag/twc.html" "public/$tag/index.html"
+
+    html "<li><a href=\"$tag\">$name</a></li>"
+}
+
+git_tag()
+{
+    git -c "versionsort.prereleaseSuffix=a" \
+        -c "versionsort.prereleaseSuffix=rc" \
+        tag --sort="-version:refname"
+}
+
+cd "$SCRIPT_DIR/.."
+
+rm -rf public
+mkdir public
+cp 'docs/img/logo.png' 'public/favicon.png'
+
+
+html '<html><head>'
+html '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">'
+html '<link rel="icon" type="image/png" href="favicon.png">'
+html '<title>TWC Documentation Index</title>'
+html '</head>'
+html '<body>'
+html '<h1>TWC Manuals</h1>'
+html '<ul>'
+
+for tag in $(git_tag); do
+    doc "$tag"
+done
+doc master "latest (master HEAD)"
+
+html '</ul>'
+html '</body></html>'
+

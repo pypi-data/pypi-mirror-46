@@ -1,0 +1,29 @@
+#!/bin/sh
+
+version=""
+fallback="0.x-unknown"
+
+nl='
+'
+
+rootdir()
+{
+    printf "%s" "$(git rev-parse --show-toplevel 2>/dev/null)"
+}
+
+if [ -f .version ]; then
+    version=`cat .version` || version=""
+fi
+
+if [ "$version" = "" ]; then
+    if [ -d "$(rootdir)" ]; then
+        version=`git describe --abbrev=4 --dirty --always --tags`
+    fi
+fi
+
+if [ "$version" = "" ]; then
+    version=$fallback
+fi
+
+echo $version | tr -d "$nl"
+

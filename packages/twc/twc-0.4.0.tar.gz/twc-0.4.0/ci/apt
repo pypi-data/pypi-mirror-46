@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ -n "$XDG_CACHE_HOME" ]; then
+    export APT_CACHE="$XDG_CACHE_HOME/apt"
+    mkdir -p "$APT_CACHE/partial"
+fi
+
+# update only once
+if [ ! -f "$CI_PROJECT_DIR/.apt-updated" ]; then
+    apt-get update -y -qqq && touch "$CI_PROJECT_DIR/.apt-updated"
+fi
+
+if [ -z "$XDG_CACHE_HOME" ]; then
+    echo "running apt-get $@"
+    apt-get "$@"
+else
+    echo "running apt-get -o dir::cache::archives=$APT_CACHE $@"
+    apt-get -o dir::cache::archives="$APT_CACHE" "$@"
+fi

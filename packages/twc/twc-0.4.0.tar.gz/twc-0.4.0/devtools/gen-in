@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+    echo "usage: gen-in FILE" >&2
+    exit 1
+fi
+
+in_file="$1"
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+app_name=${MYAPP_APP_NAME:=Feed Commas}
+version=${MYAPP_VERSION:=$($script_dir/gen-version)}
+
+sed -e "s|@PACKAGE_NAME[@]|${app_name}|g" \
+    -e "s|@VERSION[@]|${version}|g" \
+    $in_file
+
