@@ -1,0 +1,71 @@
+Metadata-Version: 2.1
+Name: cloudmon
+Version: 0.3.0
+Summary: Monitoring Orchestrator for Clouds
+Home-page: https://github.com/globocom/cloudmon
+Author: Adolfo Suzzano
+Author-email: adolfo@ngxlabs.com
+License: MIT license
+Keywords: cloudmon
+Platform: UNKNOWN
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Requires-Python: >=2.7, !=3.*
+Requires-Dist: setuptools
+Requires-Dist: cs
+Requires-Dist: configobj
+Requires-Dist: Cerberus
+Requires-Dist: Unidecode
+Requires-Dist: pika
+Requires-Dist: python-daemon
+Requires-Dist: pyzmq
+Requires-Dist: pyzabbix
+Requires-Dist: redis
+Requires-Dist: boto3
+
+# CloudMon
+
+
+CloudMon is a monitoring orchestrator for clouds. Cloudmon integrates directly an IaaS plataform (currently works with Apache CloudStack and AWS EC2) with a monitoring plataform (Zabbix).
+
+
+On the fly, CloudMon will:
+
+* create, delete or change status of zabbix hosts (each host corresponds to an IaaS VM) and even update its configurations (templates, hostgroups, macros...) replicating the changes (created/removed/stopped) ocurred within the VMs.
+
+* Read VMs [resource tags](Tags.md) and take different actions based on its values.
+
+* Associate zabbix hosts to predefined templates or hostgroups.
+
+* Simultaneously monitor multiple Cloud regions (different or same IaaS).
+
+CloudMon works as a Python Daemon that retrieves IaaS data through CloudStack API, AWS EC2 API and/or its event queues, processing that data and taking the proper action in Zabbix through the Zabbix API.
+
+CloudMon requires a Zabbix Agent installed to ensure proper functionality.
+
+CloudMon has been tested and used in CentOS environments and Python 2.7.
+
+
+
+
+## Getting Started
+
+* Read the [documentation](https://cloudmon.readthedocs.io)
+* Recommended to create a python virtualenv for CloudMon.
+* Install via `pip install cloudmon`.
+* Edit your `cloudmon.conf` file for your needs. See [Configuration](Configuration.md).
+* Create and edit one or more [managers](Managers.md).
+* Edit /etc/init.d/cloudmon if needed.
+* Run CloudMon with: `cloudmon` or `/etc/init.d/cloudmon start | stop | restart`. See [Usage](Usage.md).
+
+## Success Stories
+
+CloudMon has been successfully used by Globo.com to monitor its Cloud Infrastructure.
+
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
