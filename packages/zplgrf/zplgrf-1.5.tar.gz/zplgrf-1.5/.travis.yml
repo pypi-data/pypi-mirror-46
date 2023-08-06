@@ -1,0 +1,24 @@
+language: python
+python:
+    - 2.7
+    - 3.4
+    - 3.5
+    - 3.6
+    - 3.7
+before_install:
+    - wget https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs922/ghostscript-9.22.tar.gz
+    - tar -xvf ghostscript-9.22.tar.gz
+    - cd ghostscript-9.22
+    - ./configure --prefix=/usr
+    - sudo make install soinstall
+    - sudo ldconfig
+    - cd ..
+install:
+    - pip install Pillow coveralls ghostscript
+script:
+    - python setup.py test
+    - coverage run --source=zplgrf setup.py test
+after_success:
+    coveralls
+notifications:
+    email: false
