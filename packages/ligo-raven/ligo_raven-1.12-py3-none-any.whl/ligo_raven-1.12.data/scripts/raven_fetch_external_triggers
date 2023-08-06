@@ -1,0 +1,86 @@
+#!python
+
+#
+# Project Librarian: Alex Urban
+#              Graduate Student
+#              UW-Milwaukee Department of Physics
+#              Center for Gravitation & Cosmology
+#              <alexander.urban@ligo.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+"""
+Script that queries GraceDB for external triggers in a given period,
+then saves them in a CSV-style table.
+"""
+__author__ = "Mark Poe <mark.poe@ligo.org>, Alex Urban <alexander.urban@ligo.org>"
+
+
+# Imports.
+from lal.gpstime import tconvert
+from ligo.gracedb.rest import GraceDb
+from optparse import Option, OptionParser
+
+
+# Command line options.
+parser = OptionParser(
+    description = __doc__,
+    usage = "%prog [options]",
+    option_list = [
+        Option("-s", "--start-time", metavar="YYYY-MM-DD HH:MM:SS.SS", default=None,
+            help="UTC start time in ISO 8601 format (required)"),
+        Option("-e", "--end-time", metavar="YYYY-MM-DD HH:MM:SS.SS", default="now",
+            help="UTC end time in ISO 8601 format (default: %default)"),
+        Option("-o", "--output", metavar="FILENAME.csv", default="/dev/stdout",
+            help="Name of output file in which to store results of the query (default: %default)")
+    ])
+opts, args = parser.parse_args()
+
+
+# Check for missing required arguments.
+missing = []
+for option in parser.option_list:
+    if 'required' in option.help and eval('opts.' + option.dest) == None:
+        missing.extend(option._long_opts)
+if len(missing) > 0:
+    parser.error('Missing required options: {0}'.format(str(missing)))
+
+
+# Create an instance of GraceDB.
+gracedb = GraceDb()
+
+# Construct a query around certain GPS times.
+start = float(tconvert( opts.start_time ))
+end = float(tconvert( opts.end_time ))
+query = 'External {0} .. {1}'.format(start, end)
+
+# Perform the query, and store the triggers in a list of dictionaries.
+triggers = list( gracedb.events(query=query) )
+
+# For every trigger, create a new entry in its dictionary
+# corresponding to the UTC event time.
+for trigger in triggers:
+    trigger['event time (UTC)'] = tconvert( trigger['gpstime'] )
+
+# Create a text table with the graceid, group, pipeline, search, and event time.
+table = 'Grace ID\tGroup\tObservatory\tSearch\tEvent Time (UTC)\tSpacecraft Trigger ID\n'  # Column headers
+
+for trigger in triggers:
+    table += '{0}\t{1}\t{2}\t{3}\t{4}\n'.format(trigger['graceid'], trigger['group'],
+        trigger['pipeline'], trigger['search'], trigger['event time (UTC)'],
+        trigger['extra_attributes']['GRB']['trigger_id'])
+
+# Save the table to a file.
+with open(opts.output, 'w') as f: f.write( table )

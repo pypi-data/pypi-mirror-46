@@ -1,0 +1,122 @@
+#!python
+
+#
+# Project Librarian: Alex Urban
+#              Graduate Student
+#              UW-Milwaukee Department of Physics
+#              Center for Gravitation & Cosmology
+#              <alexander.urban@ligo.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+"""
+Script to execute the online spatiotemporal coincidence search between external
+triggers and internal gravitational wave candidate superevents
+"""
+__author__ = "Alex Urban <alexander.urban@ligo.org>"
+
+
+# Global imports.
+import os
+import sys
+import numpy as np
+import ligo.raven.search
+
+from ligo.raven.gracedb_events import SE, ExtTrig
+from optparse import Option, OptionParser
+
+
+# Command line options.
+parser = OptionParser(
+    description = __doc__,
+    usage = "%prog [options]",
+    option_list = [
+        Option("-t", "--trigger", metavar="exttrig|se", default=None,
+            help="Trigger of the coincidence search: external trigger or gravitational wave superevent (required)"),
+        Option("-g", "--graceid", metavar="{E,S,T}XXXXX", default=None,
+            help="Graceid of event (required)"),
+        Option("-w", "--window", nargs=2, metavar="dt1 dt2", type=int, action="append",
+            default=None, help="time window [dt1, dt2] seconds to search around event time (required with dt2 > dt1)"),
+        Option("-s", "--sky-map", metavar="FILE.fits(.gz)", default=None,
+            help="FITS file containing GW superevent's sky map (optional; used only if --trigger=se)")
+    ])
+opts, args = parser.parse_args()
+
+
+# Check for missing required arguments.
+missing = []
+for option in parser.option_list:
+    if 'required' in option.help and eval('opts.' + option.dest) == None:
+        missing.extend(option._long_opts)
+if len(missing) > 0:
+    parser.error('Missing required options: {0}'.format(str(missing)))
+
+# Handle use cases.
+if not (opts.trigger == 'exttrig') and not (opts.trigger == 'se'):
+    sys.stderr.write(  "ERROR: The argument passed to the --trigger flag must be either 'exttrig' or 'se'." )
+    sys.exit(1)
+
+# Perform a sanity check on the search window.
+for window in opts.window:
+    dt1, dt2 = window
+    if dt1 >= dt2:
+        sys.stderr.write(  "ERROR: The time window [dt1, dt2] must have dt2 > dt1." )
+        sys.exit(1)
+
+
+# Launch exttrig-triggered coincidence search.
+if opts.trigger == 'exttrig':
+
+    # Get trigger info.
+    try:
+        trig = ExtTrig(opts.graceid)
+    except:
+        sys.stderr.write(  "ERROR: There was a problem ingesting GRB data. " )
+        sys.stderr.write(  "Perhaps the given graceid is invalid or unreachable?" )
+        sys.exit(1)
+
+
+# Else, launch superevent-triggered coincidence search.
+elif opts.trigger == 'se':
+
+    # Get trigger info.
+    try:
+        trig = SE(opts.graceid, opts.sky_map)
+    except:
+        sys.stderr.write(  "ERROR: There was a problem ingesting SE data. " )
+        sys.stderr.write(  "Perhaps the given graceid is invalid or unreachable?" )
+        sys.exit(1)
+
+
+# Inform GraCEDb that things are about to go down.
+trig.submit_gracedb_log( "RAVEN: Initiating coincidence search" )
+
+# For each time window given, perform time coincidence search.
+for window in opts.window:
+    tl, th = window
+    coincs = ligo.raven.search.search(trig, tl, th)
+
+    # If coincs are found, analyze each of them.
+    for coinc in coincs:
+        if opts.sky_map: incl_sky = True
+        else: incl_sky = False
+
+        if opts.trigger == 'exttrig':
+            ligo.raven.search.calc_signif_gracedb(SE(coinc['graceid']), trig, tl, th, incl_sky)
+        elif opts.trigger == 'se':
+            ligo.raven.search.calc_signif_gracedb(trig, ExtTrig(coinc['graceid']), tl, th, incl_sky)
+
+# We're done here.
+trig.submit_gracedb_log( "RAVEN: Coincidence search complete" )

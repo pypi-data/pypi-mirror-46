@@ -1,0 +1,101 @@
+#!python
+
+#
+# Project Librarian: Alex Urban
+#              Graduate Student
+#              UW-Milwaukee Department of Physics
+#              Center for Gravitation & Cosmology
+#              <alexander.urban@ligo.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+"""
+Script that scrapes all GRB candidates in a given period from a NASA-
+maintained webpage, then saves them in a CSV-style table.
+"""
+__author__ = "Mark Poe <mark.poe@ligo.org>, Alex Urban <alexander.urban@ligo.org>"
+
+
+# Imports.
+import lxml.html
+from lal.gpstime import tconvert
+from optparse import Option, OptionParser
+
+
+# Command line options.
+parser = OptionParser(
+    description = __doc__,
+    usage = "%prog [options]",
+    option_list = [
+        Option("-s", "--start-time", metavar='"YYYY-MM-DD HH:MM:SS.SS"', default=None,
+            help="UTC start time string in ISO 8601 format (required)"),
+        Option("-e", "--end-time", metavar='"YYYY-MM-DD HH:MM:SS.SS"', default="now",
+            help="UTC end time string in ISO 8601 format (default: %default)"),
+        Option("-o", "--output", metavar="FILENAME.csv", default="/dev/stdout",
+            help="Name of output file in which to store results of the query (default: %default)"),
+        Option("-g", "--observatory", metavar="Swift|Fermi", default=None,
+            help="Satellite observatory from which to fetch GRB candidates (required)")
+    ])
+opts, args = parser.parse_args()
+
+
+# Check for missing required arguments.
+missing = []
+for option in parser.option_list:
+    if 'required' in option.help and eval('opts.' + option.dest) == None:
+        missing.extend(option._long_opts)
+if len(missing) > 0:
+    parser.error('Missing required options: {0}'.format(str(missing)))
+
+# Check that the observatory is either Swift or Fermi.
+if opts.observatory not in ("Swift", "Fermi"):
+    parser.error('Observatory must be either Swift or Fermi (case sensitive)')
+
+
+# Set the web table URL and number of columns.
+if opts.observatory == "Swift":
+    col = 6
+    url = 'http://gcn.gsfc.nasa.gov/swift_grbs.html'
+elif opts.observatory == "Fermi":
+    col = 7
+    url = 'http://gcn.gsfc.nasa.gov/fermi_grbs.html'
+
+# Construct a query around certain GPS times.
+start = float(tconvert( opts.start_time ))
+end = float(tconvert( opts.end_time ))
+
+# Fetch the observatory's web table.
+table = lxml.html.parse(url).getroot().xpath('//table/tr')
+
+# Keep rows from this table if and only if they fall
+# within the specified time window.
+data = [[c.text_content() for c in table[1].getchildren()[:col]]]
+for row in table[2::]:  # the first two rows are only labels
+    vals = [c.text_content() for c in row.getchildren()]
+    try:
+        yy, mm, dd = tuple( vals[1].split('/') )
+        utc_date = '{0}/{1}/{2} {3}'.format(mm, dd, yy, vals[2])
+        gps_time = float(tconvert( utc_date ))
+        if gps_time > start and gps_time < end:
+            vals[1] = utc_date.split(' ')[0]  # use date format MM/DD/YY
+            data.append( vals[:col] )
+    except:
+        import sys
+        sys.stderr.write( 'WARNING: Expected date field not found. Ignoring trigger {0}.\n'.format( vals[0] ))
+        pass
+
+# Save to file.
+with open(opts.output, 'w') as f:
+    for row in data: f.write( "%s\n" % "\t".join(row) )
