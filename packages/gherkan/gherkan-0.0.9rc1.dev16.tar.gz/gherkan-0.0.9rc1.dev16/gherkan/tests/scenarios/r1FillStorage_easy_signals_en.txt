@@ -1,0 +1,19 @@
+# language: en
+
+Feature: robot R1
+    Robot R1 má na starosti kompletaci skládání Chassi. Robot postupně sbírá kostičky potřebné ke kompletaci.
+Background:
+  Given lineOn
+
+Scenario: Given store R1 is empty and if shuttle XX is in the station XY, then robot R1 starts unloading all cubes 3x2.
+  Given storeR1Count == 0
+  When shuttleXXAtStationXY
+  Then robotR1ProgramNumber == 3 && robotR1ProgramStarted
+
+Scenario: When robot R1 finishes unloading cubes 3x2, then robot R1 starts unloading all cubes 4x2.
+  When robotR1ProgramNumber == 3 && robotR1ProgramEnded
+  Then robotR1ProgramNumber == 4 && robotR1ProgramStarted
+
+Scenario: When robot R1 finished unloading cubes 4x2, then robot R1 starts unloading all cubes 6x2.
+  When robotR1ProgramNumber == 4 && robotR1ProgramEnded
+  Then robotR1ProgramNumber == 5 && robotR1ProgramStarted

@@ -1,0 +1,23 @@
+# language: cs
+
+Požadavek: Montrac
+     Montrac je dopravníkový systém s několika samostatnými vozíčky. Tyto vozíčky přepravují částečně zkompletované výrobky mezi několika stanicemi.
+Kontext:
+  Pokud lineOn
+
+Scénář: Jakmile stanice XZX je volná, pak vozíček XY jede do stanice XZX.
+  Když stationXZXFree
+  Pak shuttleXYDestination == XZX
+
+Scénář: Jakmile robot R1 zvedne kostku 1, pak robot R1 položí kostičku 1 na vozíček XY na pozici 1.
+  Když robotR1ProgramNumber == 2
+  Pak robotR1ProgramNumber == 6
+
+Scénář: Když stanice XXX je volná a robot R1 skončil vykládání kostičky 3x2, pak vozíček X jede do stanice XXX.
+  Když (stationXXXFree) && (robotR1ProgramNumber == 3 && robotR1ProgramEnded)
+  Pak shuttleXDestination == XXX
+
+Scénář: Pokud je sklad XYZ prázdný, když robot R2 začne vyrábět produkt, pak vozíček Y jede do stanice XXX.
+  Pokud storageXYZCount == 0
+  Když robotR2ProgramNumber == 1 && robotR2ProgramStarted
+  Pak shuttleYDestination == XXX

@@ -1,0 +1,17 @@
+# language: cs
+
+Feature: robot R4
+    Robot R4 je kolaborativní robot Kuka IIWA. Má za úkol finální kompletaci autíčka. Postupně mu jsou na jeho stanici XX přivezeny zkompletované součásti autíčka. Robotu je nejdříve přivezono chassi autíčka. Následuje body (korba) a jako poslední je přivezena kabina.
+Background:
+  Given lineon
+
+Scenario: Pokud je sklad prázdný, když je vozíček XX ve stanici XY, Pak robot vyloží všechny kostičky 3x2.
+  Given storageCount == 1
+  When None
+  Then robotr4ProgramNumber == 4
+Scenario: Když robot skončí vykládání kostiček 3x2  Pak robot vyloží všechny kostičky 4x2.
+  When robotr4ProgramNumber == 5 && robotr4ProgramEnded
+  Then robotr4ProgramNumber == 2
+Scenario: Když robot dokončí vykládání kostiček 4x2, Pak robot vyloží všechny kostičky 6x2.
+  When robotr4ProgramNumber == 1 && robotr4ProgramEnded
+  Then robotr2ProgramNumber == 4
