@@ -1,0 +1,73 @@
+Metadata-Version: 2.1
+Name: django-list-tests
+Version: 0.1.2
+Summary: Add a django management command to list all tests in the project
+Home-page: https://github.com/robinramael/django-list-tests
+Author: Robin Ramael
+Author-email: robin.ramael@gmail.com
+License: MIT
+Keywords: django-list-tests
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Framework :: Django :: 1.11
+Classifier: Framework :: Django :: 2.0
+Classifier: Framework :: Django :: 2.1
+Classifier: Framework :: Django :: 2.2
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+
+=============================
+django-list-tests
+=============================
+
+
+Add a django management command to list all tests in the project
+
+Quickstart
+----------
+
+Install django-list-tests::
+
+    pip install django-list-tests
+
+Add it to your `INSTALLED_APPS`:
+
+.. code-block:: python
+
+    INSTALLED_APPS = (
+        ...
+        'django_list_tests',
+        ...
+    )
+
+
+And run::
+
+     ./manage.py list_tests <app_name>
+
+
+You can use this command for fzf completion of tests::
+
+    # FZF ALL DAY ERRY DAY
+    function tz() {
+        # cache the test names to speed things up. you can go more complex with
+        # watchman or whatever.
+        if [[ ! -f '.test_names' ]]; then
+            python $DJANGO_MANAGE_SCRIPT list_tests $DJANGO_ROOT_MODULE > ./.test_names
+        fi
+
+        TESTS=$( cat .test_names | fzf )
+
+        echo Runnning "$TESTS"
+        python "$DJANGO_MANAGE_SCRIPT" "test" --keepdb "$TESTS"
+    }
+
+
+
