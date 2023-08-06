@@ -1,0 +1,113 @@
+language: python
+dist: xenial
+
+cache: pip
+
+os:
+  - linux
+
+env:
+  - PYVER=2.7 NPY="numpy==1.13.1"
+  - PYVER=2.7 NPY="numpy==1.14.5"
+  - PYVER=2.7 NPY="numpy>=1.15"
+
+  - PYVER=3.4 NPY="numpy==1.13.1"
+  - PYVER=3.4 NPY="numpy==1.14.5"
+  - PYVER=3.4 NPY="numpy>=1.15"
+
+  - PYVER=3.5 NPY="numpy==1.13.1"
+  - PYVER=3.5 NPY="numpy==1.14.5"
+  - PYVER=3.5 NPY="numpy>=1.15"
+
+  - PYVER=3.6 NPY="numpy==1.13.1"
+  - PYVER=3.6 NPY="numpy==1.14.5"
+  - PYVER=3.6 NPY="numpy>=1.15"
+
+  - PYVER=3.7 NPY="numpy==1.14.5"
+  - PYVER=3.7 NPY="numpy>=1.15"
+
+  - PYVER=pypy2.7 NPY="numpy>=1.15"
+
+  - PYVER=pypy3.5 NPY="numpy>=1.15"
+
+install:
+  # Install conda
+  - wget -nv http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --add channels conda-forge;
+  - conda install --quiet --yes -c conda-forge/label/mamba-alpha mamba
+  - conda config --set always_yes yes --set changeps1 no
+  # Create the conda testing environment
+  # FIXME: Mamba decides to upgrade Python here so pin it again
+  # FIXME: Channel priority is also mixed up
+  # FIXME: Mamba doesn't install pip by default
+  # FIXME: Mamba causes pip install numpy to be extremely slow
+  - if [[ "${PYVER}" = pypy* ]]; then
+      conda create --quiet --yes -n testenv ${PYVER};
+    elif [ "${PYVER}" = "2.7" ] || [ "${PYVER}" = "3.6" ] || [ "${PYVER}" = "3.7" ]; then
+      mamba create --quiet --yes -n testenv python=${PYVER} pip;
+    else
+      conda create --quiet --yes -n testenv python=${PYVER};
+    fi
+  - source activate testenv
+  - if [ "${PYVER}" = "2.7" ] || [ "${PYVER}" = "3.6" ] || [ "${PYVER}" = "3.7" ]; then
+      mamba install --quiet --yes python=${PYVER} pip root;
+      source activate testenv;
+    fi
+  - pip install --upgrade setuptools-scm
+  - pip install $NPY
+  - python -c 'import numpy; print(numpy.__version__)'
+  - pip install "awkward>=0.10.0"
+  - python -c 'import awkward; print(awkward.__version__)'
+  - pip install "uproot-methods>=0.6.0"
+  - python -c 'import uproot_methods; print(uproot_methods.__version__)'
+  - pip install cachetools pkgconfig lz4 mock requests "pytest>=3.9" pytest-runner
+  - pip install lz4 requests
+  - if [[ ${PYVER} = "2.7" ]] ; then pip install backports.lzma ; fi
+  - pip install pandas
+  # pyopenssl is for deployment
+  - if [[ ${PYVER} != pypy* ]] ; then
+      mamba install -c anaconda python=${PYVER} pyopenssl;
+    fi
+  - wget -O tests/samples/Event.root http://scikit-hep.org/uproot/examples/Event.root
+
+addons:
+  apt:
+    packages:
+      - python-setuptools
+
+script:
+  pytest -v tests
+
+notifications:
+  slack: scikit-hep:b6cgBXwccPoaCNLn5VKFJFVy
+
+deploy:
+  provider: pypi
+  user: pivarski
+  password:
+    secure: "BpSLpIcnkTtey4MILj0hiBPCF2W89iAyPbMs4eGO+KMYrACbuXoSR5Pt+Fm4JZpBF5apQeW2ul3WZLpJYNCnkZ/FnliUJwmfJVzcSJrJBmG0dkYyGtASaxuIR7BK4GWuMC00YVcqUX33mExwodU+P54LzXsFYIM4uVjjZgUWrlMxgZTPrYmfSowQfSAxkSV9TUSPZoh8ofONBUZJrt0dzeO8MnIfbssMnI2VMnWv3FG9H0eWxbzaWLjQBOQmMHRXPqGWBflwJ5uUsdBEFKoDpbj9JhDesiULcxezHHFxnWeXr0z7lR6KGM+R3rSwjCrLrS/0MQnXmW8+00pNVLwxjGOYrbSinnvBdZ+Olwb8PcGnqXVFAf0EdwWsYgrX2055vzJDpH0d82t3CAu2RrvpStq/TuDydCfPHmehIpJwBbicKAOmK+DIcMKs/rqpGnb4TCFav0L+zB+xQBqn5tZhbev6F0fPtyuUbrjCPqpb/HikzaZoSnqKA39FSK3wBDP3K13GkEJZiYlq0lvynQD5Ye/1DB9OKH3Vdzohi0JStopAtEga5YvH/CzpIm3D9gK7ZpIVKLXf79ebxAMeYGBNFxEI9SKLdWgxL0kJoCxyZWxdzusyafxWRLp76xJ5mMMNEb+RgNXThgybVBISWhD+WjhOodUm/43sty5eMM4mKRs="
+  distributions: "sdist bdist_wheel --universal"
+  on:
+    tags: true
+    branch: master
+    condition: '$PYVER = "3.7" && $NPY = "numpy>=1.15"'
+
+stages:
+  - test
+  - name: binder
+    if: (branch = master) AND (NOT (type IN (pull_request)))
+
+jobs:
+  include:
+  - stage: binder
+    python: "3.6"
+    env: NPY="numpy>=1.15"
+    addons: skip
+    before_install: skip
+    install: skip
+    script:
+    # Use Binder build API to trigger repo2docker to build image
+    - bash binder/trigger_binder.sh https://mybinder.org/build/gh/scikit-hep/uproot/"${TRAVIS_BRANCH}"
