@@ -1,0 +1,63 @@
+The ``weierstrass.doctest`` module
+==================================
+
+Tests for ``weierstrass``
+-------------------------
+
+This is a text file including a set of commands for comparing values of
+wp and wpp functions, implemented in ``weierstrass`` module, to values
+calculated with Wolfram Mathematica 11. First, let us test values for
+the square cell.
+
+    >>> from basicsums.weierstrass import Weierstrass
+
+Import 10000 differences of points randomly distributed in the cell:
+    
+    >>> import os.path
+    >>> import numpy as np
+    >>> from basicsums.tests import test_data_path as data_path
+    >>> diffs = np.fromfile(os.path.join(data_path, 'diffs_sqr.dat'), dtype=np.complex128)
+
+Create an instance of ``weierstrass`` corresponding to the cell and
+vectorize wp and wpp functions:
+
+    >>> w1, w2 = 1, 1j
+    >>> wpo = Weierstrass(w1/2, w2/2)
+    >>> wp = np.vectorize(wpo.wp)
+    >>> wpp = np.vectorize(wpo.wpp)
+
+Calculate values:
+    
+    >>> wp_py = wp(diffs)
+    >>> wpp_py = wpp(diffs)
+
+Import values computed with Wolfram Mathematica 11:
+    
+    >>> wp_math = np.fromfile(os.path.join(data_path, 'wp_sqr_math11.dat'), dtype=np.complex128)
+    >>> wpp_math = np.fromfile(os.path.join(data_path, 'wpp_sqr_math11.dat'), dtype=np.complex128)
+
+Compare values:
+    
+    >>> np.isclose(wp_py, wp_math).all()
+    True
+    >>> np.isclose(wpp_py, wpp_math).all()
+    True
+
+Perform same actions for the hexagonal cell:
+    
+    >>> diffs = np.fromfile(os.path.join(data_path, 'diffs_hex.dat'), dtype=np.complex128)
+    >>> w1 = np.sqrt(2.) / (3**(1/4.))
+    >>> w2 = w1 * np.exp(np.pi/3*1j)
+    >>> wpo = Weierstrass(w1/2, w2/2)
+    >>> wp = np.vectorize(wpo.wp)
+    >>> wpp = np.vectorize(wpo.wpp)
+    >>> wp_py = wp(diffs)
+    >>> wpp_py = wpp(diffs)
+    >>> wp_math = np.fromfile(os.path.join(data_path, 'wp_hex_math11.dat'), dtype=np.complex128)
+    >>> wpp_math = np.fromfile(os.path.join(data_path, 'wpp_hex_math11.dat'), dtype=np.complex128)
+    >>> np.isclose(wp_py, wp_math).all()
+    True
+    >>> np.isclose(wpp_py, wpp_math).all()
+    True
+
+

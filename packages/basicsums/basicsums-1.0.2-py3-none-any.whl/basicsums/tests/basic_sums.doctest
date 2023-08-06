@@ -1,0 +1,40 @@
+The ``basic_sums.doctest`` module
+==================================
+
+Tests for ``basic_sums``
+------------------------
+
+This is a text file including a set of commands for testing ``basic_sums`` module. It is known from the theory that values of structural sums computed for the regular square array of inclusions should be the same, regardles the number of disks forming the array. For instance, system with only on inclusion yield the same value for the system with 100 disks.
+
+
+    >>> from basicsums.basic_sums import Cell, BasicSums
+    >>> from basicsums.multi_indexes import sums_in_Gq_prime
+    >>> import numpy as np
+
+Let us create the cell object and consider multi-indexes of sums up to the order qmax:
+    
+    >>> w1, w2 = 1, 1j
+    >>> qmax = 9
+    >>> cell = Cell(w1, w2, q=qmax)
+    >>> indexes = sums_in_Gq_prime(qmax)
+
+Let A1 denote the syystem incorporating single inclusion:
+
+    >>> A1 = [0]
+
+Let A2 be the socond system, i.e. the regular array 10x10 points:
+
+    >>> k = np.linspace(-w1/2, w1/2, 10, endpoint=False)
+    >>> A2 = (w1+w2)/(20) + (k.reshape(10, 1) + k*1j).flatten()
+
+Create BasicSums objects:
+
+   >>> bso1 = BasicSums(A1, cell)
+   >>> bso2 = BasicSums(A2, cell)
+
+Calculate and compare the values of considered sums:
+    
+    >>> np.isclose(bso1.esums(indexes), bso2.esums(indexes)).all()
+    True
+
+
