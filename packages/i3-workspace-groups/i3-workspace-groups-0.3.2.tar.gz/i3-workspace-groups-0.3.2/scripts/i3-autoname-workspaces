@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+# pylint: disable=invalid-name
+# Inspired by:
+# https://github.com/maximbaz/dotfiles/blob/master/bin/i3-autoname-workspaces
+
+import argparse
+import logging
+import logging.handlers
+import os.path
+
+import i3ipc
+
+from i3wsgroups import cli, i3_workspace_groups, icons
+
+logger = i3_workspace_groups.logger
+
+
+class WorkspaceAutonamer:
+
+    def __init__(self,
+                 add_window_icons_all_groups: bool = False,
+                 renumber_workspaces: bool = False,
+                 dry_run: bool = True):
+        self.add_window_icons_all_groups = add_window_icons_all_groups
+        self.renumber_workspaces = renumber_workspaces
+        self.dry_run = dry_run
+
+    def create_controller(self, i3_connection
+                         ) -> i3_workspace_groups.WorkspaceGroupsController:
+        return i3_workspace_groups.WorkspaceGroupsController(
+            i3_connection,
+            group_context=None,
+            add_window_icons=True,
+            add_window_icons_all_groups=self.add_window_icons_all_groups,
+            renumber_workspaces=self.renumber_workspaces,
+            dry_run=self.dry_run)
+
+    def rename_workspaces(self, i3_connection) -> None:
+        controller = self.create_controller(i3_connection)
+        group_to_workspaces = i3_workspace_groups.get_group_to_workspaces(
+            controller.get_monitor_workspaces())
+        controller.organize_workspace_groups(group_to_workspaces)
+
+    def window_event_handler(self, i3_connection, event) -> None:
+        logger.debug('Got window event with change: %s', event.change)
+        if event.change in ['new', 'close', 'move']:
+            self.rename_workspaces(i3_connection)
+
+    # TODO: Should this be in another daemon script?
+    def workspace_event_handler(self, i3_connection, event):
+        logger.debug('Got workspace event with change: %s', event.change)
+        if event.change != 'focus':
+            return
+        controller = self.create_controller(i3_connection)
+        focused_workspace = controller.get_tree().find_focused().workspace()
+        controller.set_focused_workspace(focused_workspace)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Runs in the background and automatically renames i3 '
+        'workspaces according to the running apps.')
+    cli.add_common_args(parser)
+    cli.add_workspace_naming_args(parser)
+    args = parser.parse_args()
+    i3_workspace_groups.init_logger(os.path.basename(__file__))
+    logger.setLevel(getattr(logging, args.log_level.upper(), None))
+    autonamer = WorkspaceAutonamer(args.window_icons_all_groups,
+                                   args.renumber_workspaces, args.dry_run)
+    i3_connection = i3ipc.Connection()
+    autonamer.rename_workspaces(i3_connection)
+    i3_connection.on('window', autonamer.window_event_handler)
+    i3_connection.on('workspace', autonamer.workspace_event_handler)
+    i3_connection.main()
+
+
+if __name__ == '__main__':
+    main()
