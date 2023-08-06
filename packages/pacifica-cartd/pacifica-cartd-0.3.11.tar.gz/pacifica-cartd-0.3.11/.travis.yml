@@ -1,0 +1,108 @@
+language: python
+dist: xenial
+services:
+- redis-server
+env:
+  BROKER_URL: redis://127.0.0.1:6379/0
+  BACKEND_URL: redis://127.0.0.1:6379/0
+stages:
+- lint
+- test
+- test-docker
+- deploy
+".script": &1
+- export CARTD_CPCONFIG=$PWD/server.conf
+- cd tests
+- pip install pacifica-cartd==0.2.0 redis
+- pacifica-cart-cmd dbsync
+- pip install ..
+- >
+  coverage run --include '*/site-packages/pacifica/cartd/*' -p -m pacifica.cartd;
+  ret_val=$?;
+  if [[ $ret_val == 0 ]] ; then exit -1; fi;
+- >
+  coverage run --include '*/site-packages/pacifica/cartd/*' -p test/cmd_test.py dbchk --equal;
+  ret_val=$?;
+  if [[ $ret_val == 0 ]] ; then exit -1; fi;
+- >
+  coverage run --include '*/site-packages/pacifica/cartd/*' -p test/cmd_test.py dbchk;
+  ret_val=$?;
+  if [[ $ret_val == 0 ]] ; then exit -1; fi;
+- coverage run --include '*/site-packages/pacifica/cartd/*' -p test/cmd_test.py dbsync
+- coverage run --include '*/site-packages/pacifica/cartd/*' -p -m pytest -xv test
+- rm -f db.sqlite3
+- coverage run --include '*/site-packages/pacifica/cartd/*' -p test/cmd_test.py dbsync
+- coverage run --include '*/site-packages/pacifica/cartd/*' -p test/cmd_test.py dbchk --equal
+- coverage run --include '*/site-packages/pacifica/cartd/*' -p test/cmd_test.py dbchk
+- coverage run --include '*/site-packages/pacifica/cartd/*' -p -m celery -A pacifica.cartd.tasks worker -l info -c 1 -P solo & echo $! > celery.pid
+- coverage run --include '*/site-packages/pacifica/cartd/*' -p -m pacifica.cartd & echo $! > server.pid
+- sleep 1
+- coverage run --include '*/site-packages/pacifica/cartd/*' -p -m pytest -xv e2e
+- kill `cat ../archive.pid`
+- kill `cat server.pid`
+- celery -A pacifica.cartd.tasks control shutdown || true
+- coverage run --include '*/site-packages/pacifica/cartd/*' -p -m pacifica.cartd --stop-after-a-moment || true
+- wait
+- coverage combine -a .coverage*
+- coverage report -m --fail-under 100
+".before_script": &2
+- export ARCHIVEINTERFACE_CPCONFIG="$PWD/travis/server.conf"
+- pacifica-archiveinterface --config travis/config.cfg & echo $! > archive.pid
+- sleep 1
+- python travis/archiveinterfacepreload.py
+jobs:
+  include:
+  - stage: lint
+    python: 3.6
+    before_script: skip
+    script: pre-commit run -a
+  - python: 2.7
+    before_script: skip
+    script: pre-commit run -a
+  - stage: test
+    script: *1
+    before_script: *2
+    python: 3.6
+  - script: *1
+    before_script: *2
+    python: 2.7
+  - stage: test-docker
+    sudo: required
+    python: 2.7
+    services:
+    - docker
+    script: >
+      docker-compose build --pull;
+      docker-compose up -d;
+      cd tests;
+      python -m unittest docker_test.BasicCartTests;
+      python -m unittest docker_test.RunCartTests
+  - stage: deploy
+    language: python
+    script: skip
+    before_script: skip
+    python: 3.6
+    deploy:
+      skip_cleanup: true
+      provider: pypi
+      user: dmlb2000
+      distributions: sdist bdist_wheel
+      password:
+        secure: XOS7c9h0d+WOQjGFgTSKnOK1jQQ1Rva0p0dtDXsoT58HMtpmdk/XHTdQeZZkBUlZ5FjjBlm6NRPQv/ZEoT8maRwOLBZpVsLp98DZjM84wNE7lxM3m3VxWbKHdMni5ZXKGKnU15u3WxA12FTjvMMUiwkDCi3sOeuOaFSS88QzZ3eL02/aOYc+/6ebUVjoU8yP7fU5u0wSK/9Ch/ne84liN0pxf+MlTWacYw4yvX1Wl2eKRmFta+PyXrJLsyJ5GKIhenP6uj2qvA06WH+O3AaaPr34/ZVCMxABmG/jp8qa/FmQwiXBZ9tfzNvBZclEaRpwjml6cMnSa1SC0G+qX1k6THdQAp2sSl4Gsl6HKLOQ7cDANKkHMDswjIFBqtFyokpVx6++6YaN/+KhWgYhh/vIITFxL972UE+aQMnSCbW+QPs0ljq2eyyErnpd4d4vV3SR4p71xBmJW/xmP6OdJChPMFv+wyzLFSe7f2eBBucFT/b3msci+NMwexZiCRs8/9/fRQ+s4hqHd69ofFfQfXE3UZxxF3Pc42whIdJ8v3xAtPkfZ3iEG8Gf4HuHqHvcMkMhmFL/2jD/fj3LYf3GqvC94I8GaZXvQ9EvJmqA6hDvoqFc6UokZ22rn//gmXNFrQz9/kdXdQOfgBNHq2rCiqp6JccR6Roty5hq0ZDxqQ0Q3fM=
+      on:
+        tags: true
+  - language: python
+    python: 2.7
+    script: skip
+    before_script: skip
+    deploy:
+      skip_cleanup: true
+      provider: pypi
+      user: dmlb2000
+      distributions: bdist_wheel
+      password:
+        secure: XOS7c9h0d+WOQjGFgTSKnOK1jQQ1Rva0p0dtDXsoT58HMtpmdk/XHTdQeZZkBUlZ5FjjBlm6NRPQv/ZEoT8maRwOLBZpVsLp98DZjM84wNE7lxM3m3VxWbKHdMni5ZXKGKnU15u3WxA12FTjvMMUiwkDCi3sOeuOaFSS88QzZ3eL02/aOYc+/6ebUVjoU8yP7fU5u0wSK/9Ch/ne84liN0pxf+MlTWacYw4yvX1Wl2eKRmFta+PyXrJLsyJ5GKIhenP6uj2qvA06WH+O3AaaPr34/ZVCMxABmG/jp8qa/FmQwiXBZ9tfzNvBZclEaRpwjml6cMnSa1SC0G+qX1k6THdQAp2sSl4Gsl6HKLOQ7cDANKkHMDswjIFBqtFyokpVx6++6YaN/+KhWgYhh/vIITFxL972UE+aQMnSCbW+QPs0ljq2eyyErnpd4d4vV3SR4p71xBmJW/xmP6OdJChPMFv+wyzLFSe7f2eBBucFT/b3msci+NMwexZiCRs8/9/fRQ+s4hqHd69ofFfQfXE3UZxxF3Pc42whIdJ8v3xAtPkfZ3iEG8Gf4HuHqHvcMkMhmFL/2jD/fj3LYf3GqvC94I8GaZXvQ9EvJmqA6hDvoqFc6UokZ22rn//gmXNFrQz9/kdXdQOfgBNHq2rCiqp6JccR6Roty5hq0ZDxqQ0Q3fM=
+      on:
+        tags: true
+install:
+- pip install -r requirements-dev.txt

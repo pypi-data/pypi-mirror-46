@@ -1,0 +1,63 @@
+version: '2'
+
+volumes:
+  archivedata:
+  cartdata:
+
+services:
+  cartrabbit:
+    image: rabbitmq
+    ports:
+    - 5672:5672
+
+  cartmysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pacifica_cartd
+      MYSQL_USER: cartd
+      MYSQL_PASSWORD: cartd
+
+  archiveinterface:
+    image: pacifica/archiveinterface
+    ports:
+    - 8080:8080
+    volumes:
+    - archivedata:/srv
+
+
+  cartworkers:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    links:
+    - cartrabbit:amqp
+    - cartmysql:mysql
+    - archiveinterface:archivei
+    volumes:
+    - cartdata:/shared
+    environment:
+      PEEWEE_ADDR: mysql
+      BROKER_URL: pyamqp://guest:guest@amqp:5672//
+      ARCHIVE_INTERFACE_URL: http://archivei:8080/
+      VOLUME_PATH: /shared/
+      LRU_BUFFER_TIME: 0
+
+  cartserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.uwsgi
+    ports:
+    - 8081:8081
+    links:
+    - cartrabbit:amqp
+    - cartmysql:mysql
+    - archiveinterface:archivei
+    volumes:
+    - cartdata:/shared
+    environment:
+      PEEWEE_ADDR: mysql
+      BROKER_URL: pyamqp://guest:guest@amqp:5672//
+      ARCHIVE_INTERFACE_URL: http://archivei:8080/
+      VOLUME_PATH: /shared/
+      LRU_BUFFER_TIME: 0
