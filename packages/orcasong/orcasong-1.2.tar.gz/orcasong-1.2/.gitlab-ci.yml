@@ -1,0 +1,40 @@
+stages:
+  - install
+  - doc
+  - release
+
+before_script:
+  - apt-get update -qq && apt-get install -y -qq libhdf5-dev
+  - pip install -U pip setuptools wheel numpy
+  - pip install .
+
+install-os:
+    image: docker.km3net.de/base/python:3
+    stage: install
+    script:
+        - pip install .
+
+pages:
+    image: docker.km3net.de/base/python:3
+    stage: doc
+    script:
+        - cd docs && make html
+        - mv _build/html/ ../public/
+    artifacts:
+        paths:
+            - public
+    only:
+        - tags
+        - master
+
+pypi:
+    image: docker.km3net.de/base/python:3
+    stage: release
+    cache: {}
+    script:
+        - pip install -U twine
+        - python setup.py sdist
+        - twine upload dist/*
+    only:
+        - tags
+
