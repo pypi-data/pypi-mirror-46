@@ -1,0 +1,492 @@
+Metadata-Version: 2.1
+Name: mlprimitives
+Version: 0.1.10
+Summary: Pipelines and primitives for machine learning and data science.
+Home-page: https://github.com/HDI-Project/MLPrimitives
+Author: MIT Data To AI Lab
+Author-email: dailabmit@gmail.com
+License: MIT license
+Description: <p align="left">
+        <img width=25% src="https://dai.lids.mit.edu/wp-content/uploads/2018/06/Logo_DAI_highres.png" alt=“DAI-Lab” />
+        <i>An open source project from Data to AI Lab at MIT.</i>
+        </p>
+        
+        
+        
+        [![PyPi Shield](https://img.shields.io/pypi/v/mlprimitives.svg)](https://pypi.python.org/pypi/mlprimitives)
+        [![Travis CI Shield](https://travis-ci.org/HDI-Project/MLPrimitives.svg?branch=master)](https://travis-ci.org/HDI-Project/MLPrimitives)
+        
+        
+        # MLPrimitives
+        
+        Pipelines and primitives for machine learning and data science.
+        
+        - Free software: MIT license
+        - Documentation: https://HDI-Project.github.io/MLPrimitives
+        
+        # Overview
+        
+        This repository contains primitive annotations to be used by the MLBlocks library, as well as
+        the necessary Python code to make some of them fully compatible with the MLBlocks API requirements.
+        
+        There is also a collection of custom primitives contributed directly to this library, which either
+        combine third party tools or implement new functionalities from scratch.
+        
+        ## Why did we create this library?
+        
+        * Too many libraries in a fast growing field
+        * Huge societal need to build machine learning apps
+        * Domain expertise resides at several places (knowledge of math)
+        * No documented information about hyperparameters, behavior...
+        
+        # Installation
+        
+        The simplest and recommended way to install MLPrimitives is using `pip`:
+        
+        ```
+        pip install mlprimitives
+        ```
+        
+        Alternatively, you can also clone the repository and install it from sources
+        
+        ```
+        git clone git@github.com:HDI-Project/MLPrimitives.git
+        cd MLPrimitives
+        make install
+        ```
+        
+        For development, you can use `make install-develop` instead in order to install all the required
+        dependencies for testing and code linting.
+        
+        # Quickstart
+        
+        This section is a short series of tutorials to help you getting started with MLPrimitives.
+        
+        In the following steps you will learn how to load and run a primitive on some data.
+        
+        Later on you will learn how to evaluate and improve the performance of a primitive by tuning
+        its hyperparameters.
+        
+        ## Running a Primitive
+        
+        In this first tutorial, we will be executing a single primitive for data transformation.
+        
+        ### 1. Load a Primitive
+        
+        The first step in order to run a primitive is to load it.
+        
+        This will be done using the `mlprimitives.load_primitive` function, which will
+        load the indicated primitive as an [MLBlock Object from MLBlocks](https://hdi-project.github.io/MLBlocks/api/mlblocks.html#mlblocks.MLBlock)
+        
+        In this case, we will load the `mlprimitives.custom.feature_extraction.CategoricalEncoder`
+        primitive.
+        
+        ```python
+        from mlprimitives import load_primitive
+        
+        primitive = load_primitive('mlprimitives.custom.feature_extraction.CategoricalEncoder')
+        ```
+        
+        ### 2. Load some data
+        
+        The CategoricalEncoder is a transformation primitive which applies one-hot encoding to all the
+        categorical columns of a `pandas.DataFrame`.
+        
+        So, in order to be able to run our primitive, we will first load some data that contains
+        categorical columns.
+        
+        This can be done with the `mlprimitives.datasets.load_census` function:
+        
+        ```python
+        from mlprimitives.datasets import load_census
+        
+        dataset = load_census()
+        ```
+        
+        This dataset object has an attribute `data` which contains a table with several categorical
+        columns.
+        
+        We can have a look at this table by executing `dataset.data.head()`, which will return a
+        table like this:
+        
+        ```python
+                                     0                    1                   2
+        age                         39                   50                  38
+        workclass            State-gov     Self-emp-not-inc             Private
+        fnlwgt                   77516                83311              215646
+        education            Bachelors            Bachelors             HS-grad
+        education-num               13                   13                   9
+        marital-status   Never-married   Married-civ-spouse            Divorced
+        occupation        Adm-clerical      Exec-managerial   Handlers-cleaners
+        relationship     Not-in-family              Husband       Not-in-family
+        race                     White                White               White
+        sex                       Male                 Male                Male
+        capital-gain              2174                    0                   0
+        capital-loss                 0                    0                   0
+        hours-per-week              40                   13                  40
+        native-country   United-States        United-States       United-States
+        ```
+        
+        ### 3. Fit the primitive
+        
+        In order to run our pipeline, we first need to fit it.
+        
+        This is the process where it analyzes the data to detect which columns are categorical
+        
+        This is done by calling its `fit` method and assing the `dataset.data` as `X`.
+        
+        ```python
+        primitive.fit(X=dataset.data)
+        ```
+        
+        ### 4. Produce results
+        
+        Once the pipeline is fit, we can process the data by calling the `produce` method of the
+        primitive instance and passing agin the `data` as `X`.
+        
+        ```python
+        transformed = primitive.produce(X=dataset.data)
+        ```
+        
+        After this is done, we can see how the transformed data contains the newly generated
+        one-hot vectors:
+        
+        ```
+                                                        0      1       2       3       4
+        age                                            39     50      38      53      28
+        fnlwgt                                      77516  83311  215646  234721  338409
+        education-num                                  13     13       9       7      13
+        capital-gain                                 2174      0       0       0       0
+        capital-loss                                    0      0       0       0       0
+        hours-per-week                                 40     13      40      40      40
+        workclass= Private                              0      0       1       1       1
+        workclass= Self-emp-not-inc                     0      1       0       0       0
+        workclass= Local-gov                            0      0       0       0       0
+        workclass= ?                                    0      0       0       0       0
+        workclass= State-gov                            1      0       0       0       0
+        workclass= Self-emp-inc                         0      0       0       0       0
+        ...                                             ...    ...     ...     ...     ...
+        ```
+        
+        ## Tuning a Primitive
+        
+        In this short tutorial we will teach you how to evaluate the performance of a primitive
+        and improve its performance by modifying its hyperparameters.
+        
+        To do so, we will load a primitive that can learn from the transformed data that we just
+        generated and later on make predictions based on new data.
+        
+        ### 1. Load another primitive
+        
+        Firs of all, we will load the `xgboost.XGBClassifier` primitive that we will use afterwards.
+        
+        ```python
+        primitive = load_primitive('xgboost.XGBClassifier')
+        ```
+        
+        ### 2. Split the dataset
+        
+        Before being able to evaluate the primitive perfomance, we need to split the data in two
+        parts: train, which will be used for the primitive to learn, and test, which will be used
+        to make the predictions that later on will be evaluated.
+        
+        In order to do this, we will get the first 75% of rows from the transformed data that we
+        obtained above and call it `X_train`, and then set the next 25% of rows as `X_test`.
+        
+        ```python
+        train_size = int(len(transformed) * 0.75)
+        X_train = transformed.iloc[:train_size]
+        X_test = transformed.iloc[train_size:]
+        ```
+        
+        Similarly, we need to obtain the `y_train` and `y_test` variables containing the corresponding
+        output values.
+        
+        ```python
+        y_train = dataset.target[:train_size]
+        y_test = dataset.target[train_size:]
+        ```
+        
+        ### 3. Fit the new primitive
+        
+        Once we have have splitted the data, we can fit the primitive by passing `X_train` and `y_train`
+        to its `fit` method.
+        
+        ```python
+        primitive.fit(X=X_train, y=y_train)
+        ```
+        
+        ### 4. Make predictions
+        
+        Once the primitive has been fitted, we can produce predictions using the `X_test` data as input.
+        
+        ```python
+        predictions = primitive.produce(data=X_test)
+        ```
+        
+        ### 5. Evalute the performance
+        
+        We can now evaluate how good the predictions from our primitive are by using the `score`
+        method from the `dataset` object on both the expected output and the real output from the
+        primitive:
+        
+        ```python
+        dataset.score(y_test, predictions)
+        ```
+        
+        This will output a float value between 0 and 1 indicating how good the predicitons are, being
+        0 the worst score possible and 1 the best one.
+        
+        In this case we will obtain a score around 0.866
+        
+        ### 6. Set new hyperparameter values
+        
+        In order to improve the performance of our primitive we will try to modify a couple of its
+        hyperparameters.
+        
+        First we will see which hyperparameter values the primitive has by calling its
+        `get_hyperparameters` method.
+        
+        ```python
+        primitive.get_hyperparameters()
+        ```
+        
+        which will return a dictionary like this:
+        
+        ```python
+        {
+            "n_jobs": -1,
+            "n_estimators": 100,
+            "max_depth": 3,
+            "learning_rate": 0.1,
+            "gamma": 0,
+            "min_child_weight": 1
+        }
+        ```
+        
+        Next, we will see which are the valid values for each one of those hyperparameters by calling its
+        `get_tunable_hyperparameters` method:
+        
+        ```python
+        primitive.get_tunable_hyperparameters()
+        ```
+        
+        For example, we will see that the `max_depth` hyperparameter has the following specification:
+        
+        ```python
+        {
+            "type": "int",
+            "default": 3,
+            "range": [
+                3,
+                10
+            ]
+        }
+        ```
+        
+        Next, we will choose a valid value, for example 7, and set it into the pipeline using the
+        `set_hyperparameters` method:
+        
+        ```python
+        primitive.set_hyperparameters({'max_depth': 7})
+        ```
+        
+        ### 7. Re-evaluate the performance
+        
+        Once the new hyperparameter value has been set, we repeat the fit/train/score cycle to
+        evaluate the performance of this new hyperparameter value:
+        
+        ```python
+        primitive.fit(X=X_train, y=y_train)
+        predictions = primitive.produce(data=X_test)
+        dataset.score(y_test, predictions)
+        ```
+        
+        This time we should see that the performance has improved to a value around 0.724
+        
+        
+        # History
+        
+        ## 0.1.10
+        
+        ### New Features
+        
+        * Add function to run primitives without a pipeline [Issue #43](https://github.com/HDI-Project/MLPrimitives/issues/43) by @csala
+        
+        ### New Pipelines
+        
+        * Add pipelines for all the MLBlocks examples [Issue #162](https://github.com/HDI-Project/MLPrimitives/issues/162) by @csala
+        
+        ### Primitive Improvements
+        
+        * Add Early Stopping to `keras.Sequential.LSTMTimeSeriesRegressor` primitive [Issue #156](https://github.com/HDI-Project/MLPrimitives/issues/156) by @csala
+        * Make FeatureExtractor primitives accept Numpy arrays [Issue #165](https://github.com/HDI-Project/MLPrimitives/issues/165) by @csala
+        * Add window size and pruning to the `timeseries_anomalies.find_anomalies` primitive [Issue #160](https://github.com/HDI-Project/MLPrimitives/issues/160) by @csala
+        
+        
+        ## 0.1.9
+        
+        ### New Features
+        
+        * Add a single table binary classification dataset [Issue #141](https://github.com/HDI-Project/MLPrimitives/issues/141) by @csala
+        
+        ### New Primitives
+        
+        * Add Multilayer Perceptron (MLP) primitive for binary classification [Issue #140](https://github.com/HDI-Project/MLPrimitives/issues/140) by @Hector-hedb12
+        * Add primitive for Sequence classification with LSTM [Issue #150](https://github.com/HDI-Project/MLPrimitives/issues/150) by @Hector-hedb12
+        * Add VGG-like convnet primitive [Issue #149](https://github.com/HDI-Project/MLPrimitives/issues/149) by @Hector-hedb12
+        * Add Multilayer Perceptron (MLP) primitive for multi-class softmax classification [Issue #139](https://github.com/HDI-Project/MLPrimitives/issues/139) by @Hector-hedb12
+        * Add primitive to count feature matrix columns [Issue #146](https://github.com/HDI-Project/MLPrimitives/issues/146) by @csala
+        
+        ### Primitive Improvements
+        
+        * Add additional fit and predict arguments to keras.Sequential [Issue #161](https://github.com/HDI-Project/MLPrimitives/issues/161) by @csala
+        * Add suport for keras.Sequential Callbacks [Issue #159](https://github.com/HDI-Project/MLPrimitives/issues/159) by @csala
+        * Add fixed hyperparam to control keras.Sequential verbosity [Issue #143](https://github.com/HDI-Project/MLPrimitives/issues/143) by @csala
+        
+        ## 0.1.8
+        
+        ### New Primitives
+        
+        * mlprimitives.custom.timeseries_preprocessing.time_segments_average - [Issue #137](https://github.com/HDI-Project/MLPrimitives/issues/137)
+        
+        ### New Features
+        
+        * Add target_index output in timseries_preprocessing.rolling_window_sequences - [Issue #136](https://github.com/HDI-Project/MLPrimitives/issues/136)
+        
+        ## 0.1.7
+        
+        ### General Improvements
+        
+        * Validate JSON format in `make lint` -  [Issue #133](https://github.com/HDI-Project/MLPrimitives/issues/133)
+        * Add demo datasets - [Issue #131](https://github.com/HDI-Project/MLPrimitives/issues/131)
+        * Improve featuretools.dfs primitive - [Issue #127](https://github.com/HDI-Project/MLPrimitives/issues/127)
+        
+        ### New Primitives
+        
+        * pandas.DataFrame.resample - [Issue #123](https://github.com/HDI-Project/MLPrimitives/issues/123)
+        * pandas.DataFrame.unstack - [Issue #124](https://github.com/HDI-Project/MLPrimitives/issues/124)
+        * featuretools.EntitySet.add_relationship - [Issue #126](https://github.com/HDI-Project/MLPrimitives/issues/126)
+        * featuretools.EntitySet.entity_from_dataframe - [Issue #126](https://github.com/HDI-Project/MLPrimitives/issues/126)
+        
+        ### Bug Fixes
+        
+        * Bug in timeseries_anomalies.py - [Issue #119](https://github.com/HDI-Project/MLPrimitives/issues/119)
+        
+        ## 0.1.6
+        
+        ### General Improvements
+        
+        * Add Contributing Documentation
+        * Remove upper bound in pandas version given new release of `featuretools` v0.6.1
+        * Improve LSTMTimeSeriesRegressor hyperparameters
+        
+        ### New Primitives
+        
+        * mlprimitives.candidates.dsp.SpectralMask
+        * mlprimitives.custom.timeseries_anomalies.find_anomalies
+        * mlprimitives.custom.timeseries_anomalies.regression_errors
+        * mlprimitives.custom.timeseries_preprocessing.rolling_window_sequences
+        * mlprimitives.custom.timeseries_preprocessing.time_segments_average
+        * sklearn.linear_model.ElasticNet
+        * sklearn.linear_model.Lars
+        * sklearn.linear_model.Lasso
+        * sklearn.linear_model.MultiTaskLasso
+        * sklearn.linear_model.Ridge
+        
+        ## 0.1.5
+        
+        ### New Primitives
+        
+        * sklearn.impute.SimpleImputer
+        * sklearn.preprocessing.MinMaxScaler
+        * sklearn.preprocessing.MaxAbsScaler
+        * sklearn.preprocessing.RobustScaler
+        * sklearn.linear_model.LinearRegression
+        
+        ### General Improvements
+        
+        * Separate curated from candidate primitives
+        * Setup `entry_points` in setup.py to improve compaitibility with MLBlocks
+        * Add a test-pipelines command to test all the existing pipelines
+        * Clean sklearn example pipelines
+        * Change the `author` entry to a `contributors` list
+        * Change the name of `mlblocks_primitives` folder
+        * Pip install `requirements_dev.txt` fail documentation
+        
+        ### Bug Fixes
+        
+        * Fix LSTMTimeSeriesRegressor primitive. Issue #90
+        * Fix timeseries primitives. Issue #91
+        * Negative index anomalies in `timeseries_errors`. Issue #89
+        * Keep pandas version below 0.24.0. Issue #87
+        
+        ## 0.1.4
+        
+        ### New Primitives
+        
+        * mlprimitives.timeseries primitives for timeseries data preprocessing
+        * mlprimitives.timeseres_error primitives for timeseries anomaly detection
+        * keras.Sequential.LSTMTimeSeriesRegressor
+        * sklearn.neighbors.KNeighbors Classifier and Regressor
+        * several sklearn.decomposition primitives
+        * several sklearn.ensemble primitives
+        
+        ### Bug Fixes
+        
+        * Fix typo in mlprimitives.text.TextCleaner primitive
+        * Fix bug in index handling in featuretools.dfs primitive
+        * Fix bug in SingleLayerCNNImageClassifier annotation
+        * Remove old vlaidation tags from JSON annotations
+        
+        ## 0.1.3
+        
+        ### New Features
+        
+        * Fix and re-enable featuretools.dfs primitive.
+        
+        ## 0.1.2
+        
+        ### New Features
+        
+        * Add pipeline specification language and Evaluation utilities.
+        * Add pipelines for graph, text and tabular problems.
+        * New primitives ClassEncoder and ClassDecoder
+        * New primitives UniqueCounter and VocabularyCounter
+        
+        ### Bug Fixes
+        
+        * Fix TrivialPredictor bug when working with numpy arrays
+        * Change XGB default learning rate and number of estimators
+        
+        
+        ## 0.1.1
+        
+        ### New Features
+        
+        * Add more keras.applications primitives.
+        * Add a Text Cleanup primitive.
+        
+        ### Bug Fixes
+        
+        * Add keywords to `keras.preprocessing` primtives.
+        * Fix the `image_transform` method.
+        * Add `epoch` as a fixed hyperparameter for `keras.Sequential` primitives.
+        
+        ## 0.1.0
+        
+        * First release on PyPI.
+        
+Keywords: mlblocks mlprimitives pipelines primitives machine learning data science
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Requires-Python: >=3.5
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Provides-Extra: test
