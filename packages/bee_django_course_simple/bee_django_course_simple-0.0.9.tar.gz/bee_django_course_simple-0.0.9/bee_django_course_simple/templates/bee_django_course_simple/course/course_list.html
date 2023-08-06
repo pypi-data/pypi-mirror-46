@@ -1,0 +1,53 @@
+{% extends "bee_django_course_simple/base.html" %}
+{% load bee_django_course_simple_filter %}
+{% block content %}
+    <div class="text-center"><h3>
+        课程列表
+    </h3>
+    </div>
+    <div class="text-right">
+        {% if perms.bee_django_course_simple.add_course %}
+            <a class="btn btn-default" href="{% url 'bee_django_course_simple:course_add' %}">添加课程</a>
+        {% endif %}
+    </div>
+    <div>共{{ paginator.count }}个</div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>标题</th>
+            <th>副标题</th>
+            <th></th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for course in course_list %}
+            <tr>
+                <td>{{ course.title }}</td>
+                <td>{{ course.subtitle|default:"" }}</td>
+                <td>
+                    <a href="{% url 'bee_django_course_simple:course_detail' course.id %}  ">详情</a>
+                    {% if perms.bee_django_course_simple.change_course %}
+                        <a href="{% url 'bee_django_course_simple:course_update' course.id %}  ">修改</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'bee_django_course_simple/paginator.html' %}
+{% endblock %}
+{% block scripts %}
+    <script>
+        function click_del(_this) {
+            if (!confirm('确认要执行这个操作？')) {
+                return false;
+            }
+            var url = $(_this).attr('data-confirm');
+            $.post(url).done(function (data) {
+                alert('删除成功!');
+                location.reload();
+            });
+        }
+    </script>
+{% endblock %}
