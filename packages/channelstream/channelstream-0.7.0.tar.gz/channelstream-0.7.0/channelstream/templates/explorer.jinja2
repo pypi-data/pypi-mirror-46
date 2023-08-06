@@ -1,0 +1,36 @@
+<script type="module">
+    import {ChannelStreamSigner} from '{{ request.static_url('channelstream:static/channelstream/index.js') }}';
+
+    window.onload = function() {
+
+        // Build a system
+        const ui = SwaggerUIBundle({
+            url: "{{ request.route_url('openapi_spec') }}",
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
+            ],
+            plugins: [
+                SwaggerUIBundle.plugins.DownloadUrl
+            ],
+            requestInterceptor: (req) => {
+                // when we input the password in swagger UI
+                // X-Channelstream-Secret header is set with its value
+                // we can then use that to sign the requests
+                let secret = req.headers['X-Channelstream-Secret'];
+                if (secret){
+                    let signer = new ChannelStreamSigner(secret);
+                    req.headers['X-Channelstream-Secret'] = signer.signRequest();
+                }
+                return req;
+            },
+
+            layout: "StandaloneLayout"
+        });
+        window.ui = ui;
+
+
+    }
+</script>
