@@ -1,0 +1,14 @@
+build_ami:
+  base_ami_product: com.ubuntu.cloud:server:18.04:amd64
+  rootfs_skel_dirs:
+    $append: rootfs.skel
+  packages:
+    $remove: docker.io
+    $extend:
+      - jenkins
+      - openjdk-8-jre-headless
+  cloud_config_data:
+    apt_sources:
+      - source: "deb https://packages.gitlab.com/gitlab/gitlab-ee/ubuntu/ bionic main"
+        filename: gitlab.list
+        keyid: 38B914219A96E15E78F4
