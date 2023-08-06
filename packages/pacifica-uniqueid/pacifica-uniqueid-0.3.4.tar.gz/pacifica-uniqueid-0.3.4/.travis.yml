@@ -1,0 +1,93 @@
+language: python
+dist: xenial
+cache: pip
+stages:
+- lint
+- test
+- test-docker
+- deploy
+".script": &1
+- pip install .
+- export UNIQUEID_CPCONFIG="$PWD/server.conf"
+- cd tests
+- pip install pacifica-uniqueid==0.2.1
+- python -c 'from pacifica.uniqueid.orm import database_setup; database_setup()'
+- pip install ..
+- >
+  coverage run --include '*/site-packages/pacifica/uniqueid/*' -m pacifica.uniqueid;
+  ret_val=$?;
+  if [[ $ret_val == 0 ]] ; then exit -1; fi;
+- >
+  coverage run --include '*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbchk --equal;
+  ret_val=$?;
+  if [[ $ret_val == 0 ]] ; then exit -1; fi;
+- >
+  coverage run --include '*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbchk;
+  ret_val=$?;
+  if [[ $ret_val == 0 ]] ; then exit -1; fi;
+- coverage run --include '*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbsync
+- rm -f db.sqlite3
+- coverage run --include '*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbsync
+- coverage run --include '*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbchk --equal
+- coverage run --include '*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbchk
+- coverage run --include '*/site-packages/pacifica/uniqueid/*' -am pacifica.uniqueid --stop-after-a-moment
+- coverage run --include '*/site-packages/pacifica/uniqueid/*' -am pytest -xv
+- coverage report -m --fail-under 100
+jobs:
+  include:
+  - stage: lint
+    python: 3.6
+    script: pre-commit run -a
+  - python: 2.7
+    script: pre-commit run -a
+  - stage: test
+    script: *1
+    python: 3.6
+  - script: *1
+    python: 2.7
+  - stage: test-docker
+    sudo: required
+    python: 3.6
+    services:
+    - docker
+    script: >
+      docker-compose build --pull;
+      docker-compose up -d;
+      MAX_TRIES=60;
+      HTTP_CODE=$(curl -sL -w "%{http_code}\\n" 'localhost:8051/getid' -o /dev/null || true);
+      while [[ $HTTP_CODE != 404 && $MAX_TRIES > 0 ]] ; do
+        sleep 1;
+        HTTP_CODE=$(curl -sL -w "%{http_code}\\n" 'localhost:8051/getid' -o /dev/null || true)
+        MAX_TRIES=$(( MAX_TRIES - 1 ))
+      done;
+      curl 'http://127.0.0.1:8051/getid?range=1&mode=test'
+  - stage: deploy
+    language: python
+    before_install: skip
+    script: skip
+    python: 3.6
+    deploy:
+      skip_cleanup: true
+      provider: pypi
+      user: dmlb2000
+      distributions: sdist bdist_wheel
+      password:
+        secure: JDfdgUub3ICxJNW8LStwJLXsq6R7YI7RbRsrLNFj88ZhzY5MqVfsgVoFd1iWQ1radHiAQmDRMMFVFGE2tdMzuuKjvcPS1ziofzpvhzHQ2nAolFIKF96/20i1q0Rv8PEQxyyhrctpFzUttd9bwyaSXmh4aB0Ltx3w71yCWxFeyEQv6Qr288tvEydvcxaaZm5oKoH3ztvX7pXWFAkjv5AtzHz9chli1ROGY9IHaDAEmPzdIbnky5SMoMl4vnNXHNQOVipEW6Ru+FILa5mzYanyBauQ+KP+gAc+SkMXNEnb/QrfU3rY1jcEbUYqgwcK/Z0VD8iAV+Kc3NRQhZdy//kmqRVEA/r4Zo6JewR/zj+Fq9ArrNeig3qnKTYZBwGSsc5Es70rtZieYdUYw/A5KDSmkGHgzYFUbKPG8xu4hilVHOS4cBLhPokoER4AyJbChRvrk8eSA2FsuQy7UMfcRMXT3m9xOhdati+dok8LCL8qhKRqMJ/UX12kfw5aL2kWQKFLDkahNswONXQQdOeRV2uq/6RR9TZE++G2+jXZ8PcPlwuP2SH7tW9ChOunaspE62QUosfZnJtU8RggHjbXqeE/22LBE48uO4WLIqzmSvjF9LiWdXz2E9+b9GfKqcTZPOqnseiIEnWkxAwVfcUnrGCdBZS+CNpbPwUlHsNPcarGeUI=
+      on:
+        tags: true
+  - services: []
+    language: python
+    before_install: skip
+    script: skip
+    python: 2.7
+    deploy:
+      skip_cleanup: true
+      provider: pypi
+      user: dmlb2000
+      distributions: bdist_wheel
+      password:
+        secure: JDfdgUub3ICxJNW8LStwJLXsq6R7YI7RbRsrLNFj88ZhzY5MqVfsgVoFd1iWQ1radHiAQmDRMMFVFGE2tdMzuuKjvcPS1ziofzpvhzHQ2nAolFIKF96/20i1q0Rv8PEQxyyhrctpFzUttd9bwyaSXmh4aB0Ltx3w71yCWxFeyEQv6Qr288tvEydvcxaaZm5oKoH3ztvX7pXWFAkjv5AtzHz9chli1ROGY9IHaDAEmPzdIbnky5SMoMl4vnNXHNQOVipEW6Ru+FILa5mzYanyBauQ+KP+gAc+SkMXNEnb/QrfU3rY1jcEbUYqgwcK/Z0VD8iAV+Kc3NRQhZdy//kmqRVEA/r4Zo6JewR/zj+Fq9ArrNeig3qnKTYZBwGSsc5Es70rtZieYdUYw/A5KDSmkGHgzYFUbKPG8xu4hilVHOS4cBLhPokoER4AyJbChRvrk8eSA2FsuQy7UMfcRMXT3m9xOhdati+dok8LCL8qhKRqMJ/UX12kfw5aL2kWQKFLDkahNswONXQQdOeRV2uq/6RR9TZE++G2+jXZ8PcPlwuP2SH7tW9ChOunaspE62QUosfZnJtU8RggHjbXqeE/22LBE48uO4WLIqzmSvjF9LiWdXz2E9+b9GfKqcTZPOqnseiIEnWkxAwVfcUnrGCdBZS+CNpbPwUlHsNPcarGeUI=
+      on:
+        tags: true
+install:
+- pip install -r requirements-dev.txt

@@ -1,0 +1,56 @@
+version: 0.1.{build}
+pull_requests:
+  do_not_increment_build_number: true
+
+environment:
+  matrix:
+    - PYTHON: C:\Python27-x64
+      MSVC_VERSION: "Visual Studio 10 Win64"
+    - PYTHON: C:\Python36-x64
+      MSVC_VERSION: "Visual Studio 10 Win64"
+
+install:
+- ps: >
+    & "$env:PYTHON\python.exe" -m virtualenv C:\pacifica;
+    C:\pacifica\Scripts\activate.ps1;
+    python -m pip install --upgrade pip setuptools wheel;
+    Invoke-WebRequest -OutFile sqlite.zip https://www.sqlite.org/2018/sqlite-dll-win64-x64-3240000.zip;
+    Invoke-WebRequest -OutFile sqlite-devel.zip https://www.sqlite.org/2018/sqlite-amalgamation-3240000.zip;
+    Expand-Archive sqlite.zip -DestinationPath sqlite3;
+    Expand-Archive sqlite-devel.zip -DestinationPath sqlite3;
+    cd sqlite3;
+    & "C:\Users\appveyor\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\Bin\amd64\link.exe" /lib /def:sqlite3.def;
+    cd ..;
+    cp sqlite3\sqlite3.dll "$env:PYTHON\DLLs\sqlite3.dll";
+    cp sqlite3\sqlite3.lib "$env:PYTHON\libs\sqlite3.lib";
+    cp sqlite3\sqlite-amalgamation-3240000\sqlite3.h "$env:PYTHON\include\sqlite3.h";
+    cp "c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdint.h" "C:\Users\appveyor\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\include\stdint.h";
+    pip install -r requirements-dev.txt;
+    echo "done";
+
+build: off
+
+test_script:
+  - ps: >
+      C:\pacifica\Scripts\activate.ps1;
+      $env:UNIQUEID_CPCONFIG = "$PWD/server.conf";
+      pre-commit run -a;
+      cd tests;
+      pip install pacifica-uniqueid==0.2.1;
+      python -c 'from pacifica.uniqueid.orm import database_setup; database_setup()';
+      pip install ..;
+      echo "This command should fail";
+      coverage run --include='*/site-packages/pacifica/uniqueid/*' -m pacifica.uniqueid;
+      if ($LastExitCode -eq 0) { $host.SetShouldExit(-1); };
+      coverage run --include='*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbchk --equal;
+      if ($LastExitCode -eq 0) { $host.SetShouldExit(-1); };
+      coverage run --include='*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbchk;
+      if ($LastExitCode -eq 0) { $host.SetShouldExit(-1); };
+      coverage run --include='*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbsync;
+      rm -Force db.sqlite3;
+      coverage run --include='*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbsync;
+      coverage run --include='*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbchk --equal;
+      coverage run --include='*/site-packages/pacifica/uniqueid/*' -a cmd_test.py dbchk;
+      coverage run --include='*/site-packages/pacifica/uniqueid/*' -am pacifica.uniqueid --stop-after-a-moment;
+      coverage run --include='*/site-packages/pacifica/uniqueid/*' -am pytest -xv;
+      coverage report -m --fail-under=100;

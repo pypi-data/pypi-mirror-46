@@ -1,0 +1,23 @@
+version: '2'
+services:
+  uniqueidmysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pacifica_uniqueid
+      MYSQL_USER: uniqueid
+      MYSQL_PASSWORD: uniqueid
+
+  uniqueid:
+    build: .
+    links:
+      - uniqueidmysql:mysql
+    ports:
+      - 8051:8051
+    environment:
+      PEEWEE_USER: uniqueid
+      PEEWEE_PASS: uniqueid
+      PEEWEE_ADDR: mysql
+      PEEWEE_PORT: 3306
+      PEEWEE_PROTO: mysql
+      PEEWEE_DATABASE: pacifica_uniqueid
