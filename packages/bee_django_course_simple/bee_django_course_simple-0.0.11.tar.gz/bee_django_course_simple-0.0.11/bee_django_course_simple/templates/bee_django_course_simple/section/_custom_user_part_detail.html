@@ -1,0 +1,99 @@
+<div id="user_part_{{ user_part.id }}" data-status="{{ user_part.status }}">
+    {% if user_part.part.type == 1 %}
+
+        <h4>
+            {% if user_part.status != 0 %}
+                <a href="#" onclick="show_part_detail($(this))">
+                    <i class="glyphicon glyphicon-play-circle">
+                        {% if user_part.status == 1 %}
+                            {{ user_part.part.pre_title|default:"" }}
+                        {% elif user_part.status == 2 %}
+                            {{ user_part.part.pre_title|default:""}} {{ user_part.part.title }}
+                        {% endif %}
+
+                    </i>
+                    <span class="user_part_status">
+                        {% if user_part.status == 2 %}(已观看){% endif %}
+                    </span>
+
+                </a>
+            {% else %}
+                <i class="glyphicon glyphicon-play-circle">{{ user_part.part.pre_title|default:"" }}</i>
+                <span class="user_part_status">
+                        {% if user_part.status == 2 %}(已通过){% endif %}
+                    </span>
+            {% endif %}
+        </h4>
+        <div {% if user_part.status != 1 %}style="display:none;"{% endif %} class="part_detail">
+            {% for video in user_part.part.video_set.all %}
+
+
+                <div align="center" class="embed-responsive embed-responsive-16by9">
+                    <video controls
+                           data-url="{% url 'bee_django_course_simple:user_part_update' user_part_id=user_part.id %}"
+                           data-id="{{ video.id }}"
+                           class="embed-responsive-item"
+                           onended="video_done($(this))">
+                        <source src="http://{{ qiniu_domain }}/{{ video.file_name }}" type="video/mp4">
+                        你的浏览器不支持video标签.
+                    </video>
+                </div>
+
+                <div>
+                    {{ video.content | safe }}
+                </div>
+
+            {% endfor %}
+        </div>
+
+    {% elif user_part.part.type == 2 %}
+        <h4>
+            {% if user_part.status != 0 %}
+                <a href="#" onclick="show_part_detail($(this))">
+                    <i class="glyphicon glyphicon-list">
+                        {% if user_part.status == 1 %}
+                            {{ user_part.part.pre_title|default:"" }}
+                        {% elif user_part.status == 2 %}
+                            {{ user_part.part.pre_title|default:"" }} {{ user_part.part.title }}
+                        {% endif %}
+
+                    </i>
+                    <span class="user_part_status">
+                        {% if user_part.status == 2 %}(已通过){% endif %}
+                    </span>
+                </a>
+            {% else %}
+                <i class="glyphicon glyphicon-list">{{ user_part.part.pre_title|default:"" }}</i>
+                <span class="user_part_status">
+                        {% if user_part.status == 2 %}(已通过){% endif %}
+                    </span>
+            {% endif %}
+        </h4>
+        <div {% if user_part.status != 1 %}style="display: none;"{% endif %} class="part_detail">
+            {% for question in user_part.part.question_set.all %}
+
+                <h5>
+                    {{ question.title }}
+                </h5>
+                <div data-question-id="{{ question.id }}" class="user_question">
+                    {% for option in question.option_set.all %}
+                        <div>
+                            <input type="radio" id="option_{{ forloop.counter }}" name="question_{{ question.id }}"
+                                   {% if user_part.status != 1 %}disabled{% endif %}
+                                   value="{{ option.id }}"/>
+                            <label for="option_{{ forloop.counter }}">{{ option.title }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+
+            {% endfor %}
+
+            <input type="button" value="提交" class="btn btn-default"
+                   {% if user_part.status != 1 %}disabled{% endif %}
+                   data-url="{% url 'bee_django_course_simple:user_part_update' user_part_id=user_part.id %}"
+                   onclick="submit_user_answer($(this))"/>
+        </div>
+
+    {% endif %}
+</div>
+<br/>

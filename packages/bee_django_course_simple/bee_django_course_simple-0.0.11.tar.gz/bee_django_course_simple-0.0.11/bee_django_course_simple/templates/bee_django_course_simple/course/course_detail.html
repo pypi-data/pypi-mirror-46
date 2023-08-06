@@ -1,0 +1,85 @@
+{% extends "bee_django_course_simple/base.html" %}
+{% load bee_django_course_simple_filter %}
+{% block content %}
+
+    <div>
+        <h4>
+            <a href="{% url 'bee_django_course_simple:course_list' %}">课程列表</a> ->
+            课程【{{ course.title }}】详情</h4>
+        {% if perms.bee_django_course_simple.change_course %}
+            <a href="{% url 'bee_django_course_simple:course_update'  course.id %}">修改课程</a>
+        {% endif %}
+        <table class="table">
+
+            <tr>
+                <td class="col-xs-3">标题</td>
+                <td>{{ course.title }}</td>
+            </tr>
+            <tr>
+                <td>副标题</td>
+                <td>{{ course.subtitle|default:"" }}</td>
+            </tr>
+
+        </table>
+    </div>
+
+    {% if perms.bee_django_course_simple.view_all_sections %}
+        <div>
+            <h4>包含的课件</h4>
+            {% if perms.bee_django_course_simple.change_section %}
+                <a href="{% url 'bee_django_course_simple:section_add'  course_id=course.id %}">添加课件</a>
+            {% endif %}
+            <table class="table" id="section-list">
+                <thead>
+                <tr>
+                    <th>顺序</th>
+                    <th>课件标题</th>
+                    <th>额外标题</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for section in course.section_set.all %}
+                    <tr>
+                        <td>{{ section.number }}</td>
+                        <td>{{ section.title }}</td>
+
+                        <td>{{ section.extra_title|default:"" }}</td>
+                        <td>
+                            <a href="{% url 'bee_django_course_simple:section_detail' section.id %}"
+                               class="btn btn-default">详情</a>
+                            {% if perms.bee_django_course_simple.change_section %}
+                                <a href="{% url 'bee_django_course_simple:section_update' section.id %}"
+                                   class="btn btn-default">修改</a>
+                            {% endif %}
+                            {% if perms.bee_django_course_simple.delete_section %}
+                                <a href="#" class="btn btn-danger remove-section"
+                                   data-confirm="{% url 'bee_django_course_simple:section_delete' section.id %}">删除</a>
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $(".remove-section").click(function (e) {
+                e.preventDefault();
+                if (confirm("此操作同时会删除用户对应的学习记录，是否继续？")) {
+                    var url = $(this).attr('data-confirm');
+                    var _this_tr = $(this).parent().parent();
+                    $.post(url).done(function (data) {
+                        alert('操作成功');
+                        _this_tr.remove();
+                    })
+                }
+            })
+        })
+    </script>
+{% endblock %}

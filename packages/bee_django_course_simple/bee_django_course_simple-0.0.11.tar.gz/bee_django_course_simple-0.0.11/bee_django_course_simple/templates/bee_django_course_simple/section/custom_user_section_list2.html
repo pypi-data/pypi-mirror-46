@@ -1,0 +1,73 @@
+{% extends "bee_django_course_simple/user_base.html" %}
+{% load static %}
+{% block styles %}
+    <style>
+    .user_part_list img{
+        width: 90%;
+        max-width: 300px;
+    }
+    </style>
+{% endblock %}
+{% block content %}
+
+
+    <div class="text-center"><h4>{{ user_course.course.title }}</h4></div>
+
+
+    <div class="user_section_list">
+        {% for us in user_section_list %}
+            <div class="user_section">
+                {% if us.section.group_name %}
+                    <div class="section_group_name">
+                        {{ us.section.group_name }}
+                    </div>
+                {% endif %}
+                <div class="section_title">
+                    {{ us.section.title }}{{ us.section.extra_title|default:"" }}
+                </div>
+                <div class="row user_part_list">
+                    {% for up in us.userpart_set.all %}
+                        <div class="col-xs-6 col-sm-4">
+                            <div class="text-center">
+                                {% if up.part.image %}
+                                    <img src="{{ up.part.image.url }}" alt="{{ up.part.title|default:"" }}">
+                                {% else %}
+                                    <img src="{% static 'bee_django_course_simple/img/part_image.jpg' %}"
+                                         alt="{{ up.part.title|default:"" }}">
+                                {% endif %}
+                            </div>
+                            <div class="text-center">
+                                {{ up.part.title|default:"" }}{{ up.part.extra_title|default:"" }}</div>
+
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+
+            {#                <td>#}
+            {#                    {% if e.is_open %}#}
+            {#                        {{ e.started_at }} 开始#}
+            {#                    {% endif %}#}
+            {#                    {% if e.is_pass %}#}
+            {#                        {{ e.started_at }} - {{ e.passed_at }}#}
+            {##}
+            {#                    {% endif %}#}
+            {#                </td>#}
+
+        {% endfor %}
+    </div>
+
+    {% include 'bee_django_course_simple/paginator.html' %}
+
+
+{% endblock content %}
+{% block scripts %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+
+        });
+
+    </script>
+{% endblock scripts %}
