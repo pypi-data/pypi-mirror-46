@@ -1,0 +1,1 @@
+print("[INFO]:导入模块bin1-pkg")
