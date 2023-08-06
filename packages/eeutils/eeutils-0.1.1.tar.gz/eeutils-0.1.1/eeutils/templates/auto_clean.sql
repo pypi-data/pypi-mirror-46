@@ -1,0 +1,12 @@
+UPDATE wsaa_config SET url = 'test_clean';
+DELETE FROM wsaa_ta;
+UPDATE wsfe_config SET url = 'test_clean';
+DELETE FROM pos_ar_wsfe_rel;
+DELETE FROM pos_ar_wsfex_rel;
+UPDATE wsfex_config SET url = 'test_clean';
+DELETE FROM ir_cron WHERE id > 8;
+DELETE FROM fetchmail_server;
+DELETE FROM ir_mail_server;
+DELETE FROM ir_cron WHERE name ILIKE '%mail%';
+UPDATE res_users SET login='admin', password = 'admin' WHERE id = 1;
+DELETE FROM ir_config_parameter WHERE key ILIKE 'financing%';
