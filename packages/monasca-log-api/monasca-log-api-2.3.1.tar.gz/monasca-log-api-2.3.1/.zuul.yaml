@@ -1,0 +1,45 @@
+- job:
+    name: monascalog-tempest-base
+    parent: legacy-dsvm-base
+    run: playbooks/legacy/monascalog-tempest-base/run.yaml
+    post-run: playbooks/legacy/monascalog-tempest-base/post.yaml
+    timeout: 7800
+    required-projects:
+      - openstack-infra/devstack-gate
+      - openstack/monasca-agent
+      - openstack/monasca-api
+      - openstack/monasca-common
+      - openstack/monasca-grafana-datasource
+      - openstack/monasca-notification
+      - openstack/monasca-persister
+      - openstack/monasca-statsd
+      - openstack/monasca-thresh
+      - openstack/monasca-ui
+      - openstack/python-monascaclient
+      - openstack/tempest
+      - openstack/monasca-log-api
+      - openstack/monasca-kibana-plugin
+      - openstack/monasca-tempest-plugin
+
+- job:
+    name: monascalog-tempest
+    parent: monascalog-tempest-base
+
+- project:
+    templates:
+      - openstack-python-jobs
+      - openstack-python35-jobs
+      - check-requirements
+      - publish-openstack-sphinx-docs
+      - release-notes-jobs
+    check:
+      jobs:
+        - monascalog-tempest
+        - openstack-tox-cover
+    gate:
+      queue: monasca
+      jobs:
+        - monascalog-tempest
+    post:
+      jobs:
+        - openstack-tox-cover
