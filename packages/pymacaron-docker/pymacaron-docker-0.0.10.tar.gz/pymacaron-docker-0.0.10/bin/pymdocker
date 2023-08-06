@@ -1,0 +1,214 @@
+#!/bin/bash
+
+set -e
+
+ARGS=$@
+
+VERSION=
+DO_PUSH=
+DO_BUILD=1
+DO_DEBUG=
+
+usage() {
+    cat << EOF
+USAGE: pymdocker [--debug] [--no-build] [--push] --version N
+
+Package a PyMacaron microservice into a Docker image and pushes that image to a
+Docker repository. Must be run from the root of a PyMacaron directory. The user
+running pymdocker must have logged in to the docker reporitofy with 'docker
+login'. The name of the project and of the docker repository are extracted from
+the project's pym-config.
+
+If the project contains the file 'Dockerfile.extra', its content will be added
+into the docker file used to generate the docker image.
+
+The ID of the generated Docker image is saved in the file
+'.pym/last_docker_image_id'.
+
+OPTIONS:
+  --version N  The version of the docker image to generate (mandatory)
+  --no-build   Don't build the image
+  --push       Push the generated docker image to he docker repository specified
+  --debug      Run with extra verbosity
+  --help       Show this help
+
+EXAMPLES:
+  # Build and push version 0.0.1
+  pymdocker --version 0.0.1 --push
+
+  # Build 0.0.1 but don't push
+  pymdocker --version 0.0.1
+
+  # Push version 0.0.1, without (re)building it
+  pymdocker --version 0.0.1 --no-build --push
+
+EOF
+}
+
+
+parse_args() {
+    while [ "$1" != "" ]; do
+        case $1 in
+            "--version")      shift; export VERSION=$1;;
+            "--debug")        export DO_DEBUG=1; set -x;;
+            "--no-build")     export DO_BUILD=;;
+            "--push")         export DO_PUSH=1;;
+            "-h" | "--help")  usage; exit 0;;
+            *)                echo "Unknown argument '$1' (-h for help)"; exit 0;;
+        esac
+        shift
+    done
+}
+
+parse_args $ARGS
+
+if [ ! -e 'pym-config.yaml' ]; then
+    echo "ERROR: no pym-config.yaml in current dir"
+    exit 1
+fi
+
+if [ -z "$VERSION" ]; then
+    echo "ERROR: please set an image version with --version"
+    exit 1
+fi
+
+#
+# Load configuration
+#
+
+PROJECT_NAME=$(pymconfig --name)
+DOCKER_ROOT_REPO=$(pymconfig --docker-repo)
+DOCKER_REPO=$DOCKER_ROOT_REPO/$PROJECT_NAME
+
+#
+# Check that we can run safely
+#
+
+check_git_clean() {
+    IS_DIRTY_CLONE=$(git status --short --porcelain | wc -l)
+    if [ "$IS_DIRTY_CLONE" -gt 0 ]; then
+        ROOTDIR=$(git rev-parse --show-toplevel)
+        ROOTDIR=$(basename $ROOTDIR)
+        echo "ERROR: project $ROOTDIR is not clean! Commit and re-run."
+        exit 1
+    fi
+}
+
+check_git_clean
+
+for LINK in $(pymconfig --include-links)
+do
+    check_git_clean $LINK
+done
+
+ROOTDIR=$(git rev-parse --show-toplevel)
+if [ "$PWD" != "$ROOTDIR" ]; then
+    echo "ERROR: current dir is not the clone's root directory"
+    exit 1
+fi
+
+DOCKERFILE_TEMPLATE=$(pymdockerpath)/Dockerfile.template
+if [ ! -e "$DOCKERFILE_TEMPLATE" ]; then
+    echo "ERROR: cannot find $DOCKERFILE_TEMPLATE"
+    exit 1
+fi
+
+EXTRA_DOCKERFILE='./Dockerfile.extra'
+
+#
+# All set! Let's build!
+#
+
+if [ ! -z "$DO_BUILD" ]; then
+    echo "=> Building Docker image for project $PROJECT_NAME, version $VERSION"
+    CELERY_CMD=''
+    DO_ASYNC=$(pymconfig --with-async)
+    if [ ! -z "$DO_ASYNC" ]; then
+        echo "=> Including celery workers to image"
+        CELERY_CMD=$(python -c 'import pymacaron_async; print(pymacaron_async.get_celery_cmd(False))' | tail -n 1)
+        CELERY_CMD="redis-server \& $CELERY_CMD \& "
+    fi
+
+    echo "=> Taring source with git archive"
+    mkdir -p docker
+    git archive -o docker/macaron.tar HEAD
+
+    if [ -d 'apis' ]; then
+        tar -rf docker/macaron.tar apis/*.yaml
+    fi
+
+    for LINK in $(pymconfig --include-links)
+    do
+        tar --dereference \
+            -rf docker/macaron.tar \
+            --exclude='*.pyc' \
+            --exclude='*__pycache__*' \
+            $LINK
+    done
+
+    echo "=> Docker image will contain files:"
+    echo ""
+    tar -tvf docker/macaron.tar
+    echo ""
+
+    echo "=> Generating docker/Dockerfile"
+    cat $DOCKERFILE_TEMPLATE \
+        | sed -e "s|<VERSION>|$VERSION|" \
+        | sed -e "s|<START_CELERY>|$CELERY_CMD|" \
+        > docker/Dockerfile
+
+    if [ -f $EXTRA_DOCKERFILE ]; then
+        echo "=> Adding Dockerfile.extra to docker/Dockerfile"
+        sed -i -e '/<EXTRA_DOCKERFILE>/r Dockerfile.extra' docker/Dockerfile > docker/Dockerfile.tmp
+    fi
+
+    # Remove image if it already exists
+    # TODO: make the cleanup optional, so it can be skipped if no changes to project files
+    IMAGE_ID=$(docker images --quiet ${DOCKER_REPO}:${VERSION})
+    if [ ! -z "$IMAGE_ID" ]; then
+        echo "=> Deleting cached image"
+        docker rmi -f $IMAGE_ID
+    fi
+
+    echo "=> Building docker image"
+    docker build -t ${DOCKER_REPO}:${VERSION} --rm docker
+
+    if [ ! -e '.pym' ]; then
+        mkdir .pym
+    fi
+
+    FILE_IMAGE_ID=.pym/last_docker_image_id
+    echo "=> Saving image version to $FILE_IMAGE_ID"
+    echo "${DOCKER_REPO}:${VERSION}" > $FILE_IMAGE_ID
+
+    FILE_VERSION=.pym/last_version
+    echo "=> Saving version to $FILE_VERSION"
+    echo $VERSION > $FILE_VERSION
+
+    echo "=> Cleaning up"
+    rm docker/Dockerfile
+else
+    echo "=> Not building docker image"
+fi
+
+if [ ! -z "$DO_PUSH" ]; then
+    # NOTE: for this to work, the running user must have logged in into the
+    # docker hub using 'docker login'
+    echo "=> Checking if 'docker login' has been run"
+    set +e
+    IS_LOGGEDIN=$(docker info | grep Username)
+    if [ -z "$DO_DEBUG" ]; then
+        set -e
+    fi
+    if [ -z "$IS_LOGGEDIN" ]; then
+        echo "ERROR: please login to docker hub with 'docker login'"
+        exit 1
+    fi
+
+    echo "=> Pushing to registry ${DOCKER_REPO}:${VERSION}"
+    docker push ${DOCKER_REPO}:${VERSION}
+else
+    echo "=> Not pushing docker image to repository"
+fi
+
+echo "=> Done!"

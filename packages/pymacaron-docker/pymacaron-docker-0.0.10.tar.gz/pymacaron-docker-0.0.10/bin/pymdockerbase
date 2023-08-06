@@ -1,0 +1,122 @@
+#!/bin/bash
+
+set -e
+
+ARGS=$@
+
+DOCKER_REPO=pymacaron/base
+DO_DEBUG=
+DO_PUSH=
+
+usage() {
+    cat << EOF
+USAGE: pymdockerbase [--debug] [--push]
+
+Rebuild the PyMacaron base image and optionally push it to the public PyMacaron
+base image repository. For use only by admins of the PyMacaron docker
+repository.
+
+OPTIONS:
+  --push       Push the generated docker image to he docker repository specified
+  --debug      Run with extra verbosity
+  --help       Show this help
+
+EXAMPLES:
+  # Build and push a new base image
+  pymdockerbase --push
+
+EOF
+}
+
+
+parse_args() {
+    while [ "$1" != "" ]; do
+        case $1 in
+            "--debug")        export DO_DEBUG=1; set -x;;
+            "--push")         export DO_PUSH=1;;
+            "-h" | "--help")  usage; exit 0;;
+            *)                echo "Unknown argument '$1' (-h for help)"; exit 0;;
+        esac
+        shift
+    done
+}
+
+parse_args $ARGS
+
+#
+# Check prerequisites
+#
+
+IS_DIRTY_CLONE=$(git status --short --porcelain | wc -l)
+if [ "$IS_DIRTY_CLONE" -gt 0 ]; then
+    echo "ERROR: this clone is not clean! Commit and re-run."
+    #exit 1
+fi
+
+ROOTDIR=$(git rev-parse --show-toplevel)
+if [ "$PWD" != "$ROOTDIR" ]; then
+    echo "ERROR: current dir is not the clone's root directory"
+    exit 1
+fi
+
+DOCKERFILE_TEMPLATE=$(bin/pymdockerpath)/Dockerfile.base.template
+if [ ! -e "$DOCKERFILE_TEMPLATE" ]; then
+    echo "ERROR: cannot find $DOCKERFILE_TEMPLATE"
+    exit 1
+fi
+
+# Set the version of the new base image
+GIT_BRANCH=$(git branch 2>/dev/null| sed -n '/^\*/s/^\* //p')
+GIT_COUNT=$(git rev-list HEAD --count)
+DATE=$(date +"%y%m%d-%H%M")
+VERSION=$DATE-$GIT_COUNT
+
+echo "=> List default pymacaron requirements"
+mkdir -p docker
+cat <<EOF > docker/requirements.txt
+pymacaron
+pymacaron-async
+EOF
+
+echo "=> Generating docker/Dockerfile"
+
+cp requirements.txt docker/
+cat $DOCKERFILE_TEMPLATE \
+    | sed -e "s/<VERSION>/$VERSION/" \
+    > docker/Dockerfile
+
+# Remove image if it already exists
+# TODO: make the cleanup optional, so it can be skipped if no changes to project files
+IMAGE_ID=$(docker images --quiet ${DOCKER_REPO}:${VERSION})
+if [ ! -z "$IMAGE_ID" ]; then
+    echo "=> Deleting cached image"
+    docker rmi -f $IMAGE_ID
+fi
+
+echo "=> Building docker image"
+docker build -t ${DOCKER_REPO}:${VERSION} --rm docker
+
+rm docker/Dockerfile
+rm docker/requirements.txt
+
+if [ ! -z "$DO_PUSH" ]; then
+    # NOTE: for this to work, the running user must have logged in into the
+    # docker hub using 'docker login'
+    echo "=> Checking if 'docker login' has been run"
+    set +e
+    IS_LOGGEDIN=$(docker info | grep Username)
+    if [ -z "$DO_DEBUG" ]; then
+        set -e
+    fi
+    if [ -z "$IS_LOGGEDIN" ]; then
+        echo "ERROR: please login to docker hub with 'docker login'"
+        exit 1
+    fi
+
+    echo "=> Pushing to registry ${DOCKER_REPO}:${VERSION}"
+    docker push ${DOCKER_REPO}:${VERSION}
+else
+    echo "=> Not pushing docker image to repository"
+fi
+
+echo "=> Done."
