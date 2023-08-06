@@ -1,0 +1,42 @@
+import sys
+import traceback
+import json
+import time
+
+{{action_globals}}
+
+
+def _run(params):
+    from cortex import Message
+{{action_code}}
+
+    return {{func_name}}(params)
+
+
+def pre_log(params):
+    act = params.get('activationId', "0")
+    print("activationId:"+act)
+    print("Input recieved: {}".format(json.dumps(params.get("payload"))))
+    return time.time()
+
+
+def post_log(result, start):
+    print("Output generated: "+str(result))
+    print("Duration of execution: "+str(round((time.time() - start), 4))+" s")
+
+
+if __name__ == '__main__':
+    if len(sys.argv) >= 2:
+        data = sys.argv[1]
+    else:
+        data = {}
+
+    try:
+       params = json.loads(data)
+       start = pre_log(params)
+       result = _run(params)
+       post_log(result, start)
+    except Exception as e:
+        error = {'success': False, 'error': str(e)}
+        print(str(e), file=sys.stderr, flush=True)
+        traceback.print_exc()
