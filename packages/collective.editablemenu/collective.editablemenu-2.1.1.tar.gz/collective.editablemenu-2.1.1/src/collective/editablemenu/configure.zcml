@@ -1,0 +1,65 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="collective.editablemenu">
+
+  <includeDependencies package="." />
+
+  <i18n:registerTranslations directory="locales" />
+
+  <permission
+        id="collective.editablemenu.permissions.ManageSettings"
+        title="collective.editablemenu: Manage Settings"
+        />
+
+  <include package=".browser" />
+  <include file="upgrades.zcml" />
+
+<genericsetup:registerProfile
+      name="default"
+      title="Editable menu"
+      directory="profiles/default"
+      description="Installs Editable menu."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      post_handler=".setuphandlers.post_install"
+      />
+
+  <genericsetup:registerProfile
+      name="uninstall"
+      title="Editable menu: uninstall"
+      directory="profiles/uninstall"
+      description="Uninstalls Editable menu."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      post_handler=".setuphandlers.uninstall"
+      />
+
+  <utility
+      factory=".setuphandlers.HiddenProfiles"
+      name="collective.editablemenu-hiddenprofiles" />
+
+  <genericsetup:registerProfile
+      name="from_1300_to_1400"
+      title="collective.editablemenu: clean"
+      directory="profiles/from_1300_to_1400"
+      description="Clean registry from old field for the collective.editablemenu add-on."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
+  <genericsetup:registerProfile
+      name="from_1400_to_1410"
+      title="collective.editablemenu: remove old js"
+      directory="profiles/from_1400_to_1410"
+      description="Remove non minified js resource."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
+  <genericsetup:registerProfile
+      name="to_2000"
+      title="collective.editablemenu: move to resource registry"
+      directory="profiles/to_2000"
+      description="Move static assets to resource registry."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
+
+
+</configure>
