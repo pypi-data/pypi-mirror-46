@@ -1,0 +1,323 @@
+Document:
+  extends: Thing
+  label: File
+  plural: Files
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - fileName
+    - mimeType
+    - parent
+  properties:
+    contentHash:
+      label: "Checksum"
+      description: "SHA1 hash of the data"
+      # hidden: true
+      type: checksum
+    title:
+      label: "Title"
+      rdf: http://purl.org/dc/elements/1.1/title
+      caption: true
+    author:
+      label: "Author"
+      description: "The original author, not the uploader"
+      rdf: http://purl.org/dc/elements/1.1/creator
+    generator:
+      label: "Generator"
+      description: "The program used to generate this file"
+    crawler:
+      label: "Crawler"
+      description: "The crawler used to acquire this file"
+    fileSize:
+      label: "File size"
+      type: number
+    fileName:
+      label: "File name"
+    extension:
+      label: "File extension"
+    encoding:
+      label: "File encoding"
+    messageId:
+      label: "Message ID"
+      description: "Message ID of a document; unique in most cases"
+      type: identifier
+    mimeType:
+      label: "MIME type"
+      type: mimetype
+      rdf: http://purl.org/dc/terms/format
+    language:
+      label: "Language"
+      type: language
+      rdf: http://purl.org/dc/terms/language
+    date:
+      label: "Date"
+      description: "If not otherwise specified"
+      type: date
+      rdf: http://purl.org/dc/elements/1.1/date
+    authoredAt:
+      label: "Authored on"
+      type: date
+    publishedAt:
+      label: "Published on"
+      type: date
+    parent:
+      label: "Folder"
+      type: entity
+      range: Folder
+      reverse:
+        name: children
+        label: "Children"
+        hidden: true
+      rdf: http://purl.org/dc/terms/isPartOf
+    ancestors:
+      label: "Ancestors"
+      type: entity
+      hidden: true
+      range: Folder
+      reverse:
+        name: descendants
+        hidden: true
+        label: "Descendants"
+    namesMentioned:
+      label: "Mentioned names"
+      hidden: true
+      type: name
+    ibanMentioned:
+      label: "IBANs"
+      hidden: true
+      type: iban
+    ipMentioned:
+      label: "IP addresses"
+      hidden: true
+      type: ip
+    locationMentioned:
+      label: "Locations"
+      hidden: true
+      type: address
+    phoneMentioned:
+      label: "Phone numbers"
+      hidden: true
+      type: phone
+    emailMentioned:
+      label: "E-Mail addresses"
+      hidden: true
+      type: email
+    processingStatus:
+      label: "Processing status"
+      hidden: true
+    processingError:
+      label: "Processing error"
+      hidden: true
+      type: text
+      
+
+
+PlainText:
+  # Text files, like .txt or source code.
+  extends: Document
+  label: Text file
+  plural: Text files
+  hidden: true
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - fileName
+    - mimeType
+    - parent
+  properties:
+    bodyText:
+      label: "Text"
+      hidden: true
+      type: "text"
+
+Pages:
+  # Like PDF, word document, ...
+  extends: Document
+  label: Document
+  plural: Documents
+  hidden: true
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - fileName
+    - mimeType
+    - parent
+  properties:
+    pdfHash:
+      label: "PDF alternative version checksum"
+      hidden: true
+      type: checksum
+
+Folder:
+  extends: Document
+  label: Folder
+  plural: Folders
+  hidden: true
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - parent
+
+Package:
+  extends: Folder
+  label: Package
+  plural: Packages
+  hidden: true
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - fileName
+    - mimeType
+    - parent
+
+Workbook:
+  extends: Folder
+  label: Workbook
+  plural: Workbooks
+  hidden: true
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - fileName
+    # - mimeType
+    - parent
+
+Image:
+  extends: Document
+  label: Image
+  plural: Images
+  hidden: true
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - fileName
+    - mimeType
+    - parent
+  properties:
+    bodyText:
+      label: "Text"
+      hidden: true
+      type: "text"
+
+Video:
+  extends: Document
+  label: Video
+  plural: Videos
+  hidden: true
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - fileName
+    - mimeType
+    - parent
+  properties:
+    duration:
+      label: "Duration"
+      description: "Duration of the video in ms"
+      type: number
+
+Audio:
+  extends: Document
+  label: Audio
+  plural: Audio files
+  hidden: true
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - fileName
+    - mimeType
+    - parent
+  properties:
+    duration:
+      label: "Duration"
+      description: "Duration of the audio in ms"
+      type: number
+    samplingRate:
+      label: "Sampling Rate"
+      description: "Sampling rate of the audio in Hz"
+      type: number
+
+HyperText:
+  # HTML document
+  extends: Document
+  label: Web page
+  plural: Web pages
+  hidden: true
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - fileName
+    - mimeType
+    - parent
+  properties:
+    bodyText:
+      label: "Text"
+      hidden: true
+      type: "text"
+    bodyHtml:
+      label: "HTML"
+      hidden: true
+      type: text
+
+Email:
+  extends:
+    - Folder
+    - PlainText
+    - HyperText
+  label: E-Mail
+  plural: E-Mails
+  hidden: true
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - parent
+  properties:
+    # sender:
+    #   label: "Sender"
+    #   type: email
+    # recipient:
+    #   label: "Recipient"
+    #   type: email
+    # carbonCopy:
+    #   label: "Carbon copy"
+    #   type: email
+    # blindCarbonCopy:
+    #   label: "Blind carbon copy"
+    #   type: email
+    inReplyTo:
+      label: "In Reply To"
+      description: "Message IDs of the preceding emails in the thread"
+      type: identifier
+    headers:
+      label: "Raw headers"
+      hidden: true
+      type: json
+
+Table:
+  extends: Document
+  label: Table
+  plural: Tables
+  hidden: true
+  matchable: false
+  generated: true
+  featured:
+    - title
+    - fileName
+    - mimeType
+    - parent
+  properties:
+    columns:
+      label: "Column headings"
+      hidden: true
+      type: json
