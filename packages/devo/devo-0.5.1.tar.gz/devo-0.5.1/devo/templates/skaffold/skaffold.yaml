@@ -1,0 +1,25 @@
+apiVersion: skaffold/v1beta10
+kind: Config
+build:
+  artifacts:
+    - image: {{ registry_image }}/test
+      docker:
+        buildArgs:
+          REQUIREMENTS: test
+deploy:
+  kustomize:
+    path: ./k8s/test/
+profiles:
+  - name: prod
+    build:
+      artifacts:
+        - image: {{ registry_image }}
+          docker:
+            buildArgs:
+              REQUIREMENTS: prod
+      local:
+        push: true
+    deploy:
+      kustomize:
+        path: ./k8s/prod
+
