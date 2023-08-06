@@ -1,0 +1,75 @@
+Metadata-Version: 2.1
+Name: automatedai
+Version: 0.5
+Summary: Automated.ai Python Client Library
+Home-page: https://github.com/pypa/automatedai
+Author: James Barfield
+Author-email: info@automated.ai
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+Requires-Dist: requests
+Requires-Dist: opencv-python
+Requires-Dist: numpy
+
+# Automated.ai Client Package
+
+Python Client Package to access automated.ai hosted algorithms.  For more information, please see [automated.ai](http://automated.ai)
+
+Building the python package:
+```console
+python setup.py bdist_wheel
+source py27
+python setup.py bdist_wheel
+python -m twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+```
+
+Install localally:
+```console
+pip install dist/automatedai-0.1-py3-none-any.whl
+```
+
+
+
+Ways of using the client api:
+```console
+
+endpoint
+token = "my_secret_token"
+Algo=automatedai.Algorithm(endpoint,token)
+
+# Send None to invoke algorithm 
+output = Algo.send(None)
+print(output)
+
+# Send a string to your algorithm
+output = Algo.send("send a string")
+print(output)
+
+# Send a file 
+output = Algo.send(bytearray(open("my_image.jpg", "rb").read()))
+print(output)
+
+# Send a JSON structure, returns the JSON structure 
+output = Algo.send({"MyString":"JSON String"})
+print(output)
+
+# Send an dictionary (np arrays are converted to list)
+output = Algo.send({"int":1,"float":1.2,"array":[1,2],"string":"Ddd","np":np.random.randint(0,255,(100,100,3),np.uint8),"List":[1,2,3,4]})
+print(output)
+
+# Send a list
+output = Algo.send(["send", "elements", "in", "array"])
+print(output)
+
+# send a file link to download, returns the file bytes downloaded
+output = Algo.send_url_to_download("https://file_link
+print(output)
+
+```
+
