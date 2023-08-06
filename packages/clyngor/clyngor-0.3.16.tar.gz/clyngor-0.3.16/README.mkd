@@ -1,0 +1,359 @@
+<p align="center">
+  <img src="clyngor.png"/><br>
+</p>
+
+Handy python wrapper around [Potassco's Clingo](https://potassco.org/) [ASP solver](https://en.wikipedia.org/wiki/Answer%20set%20programming).
+
+
+
+## Example
+Clyngor offers multiple interfaces. The followings are all equivalent.
+(they search for [formal concepts](https://en.wikipedia.org/wiki/Formal_concept_analysis))
+
+```python
+from clyngor import ASP, solve
+
+answers = ASP("""
+rel(a,(c;d)). rel(b,(d;e)).
+obj(X):- rel(X,_) ; rel(X,Y): att(Y).
+att(Y):- rel(_,Y) ; rel(X,Y): obj(X).
+:- not obj(X):obj(X).
+:- not att(Y):att(Y).
+""")
+for answer in answers:
+    print(answer)
+```
+
+The same, but with the lower level function expecting files:
+
+```python
+answers = solve(inline="""
+rel(a,(c;d)). rel(b,(d;e)).
+obj(X):- rel(X,_) ; rel(X,Y): att(Y).
+att(Y):- rel(_,Y) ; rel(X,Y): obj(X).
+:- not obj(X):obj(X).
+:- not att(Y):att(Y).
+""")
+```
+
+More traditional interface, using file containing the ASP source code:
+
+```python
+answers = solve('concepts.lp'):  # also accepts an iterable of file
+```
+
+More examples are available in [the unit tests](clyngor/test/).
+
+
+
+## Chaining
+Once you get your answers, clyngor allows you to specify
+the answer sets format using builtin methods:
+
+```python
+for answer in answers.by_predicate.first_arg_only:
+    print('{' + ','.join(answer['obj']) + '} × {' + ','.join(answer['att']) + '}')
+```
+
+And if you need a [*pyasp-like*](https://github.com/sthiele/pyasp) interface:
+
+```python
+for answer in answers.as_pyasp:
+    print('{' + ','.join(a.args()[0] for a in answer if a.predicate == 'obj')
+          + '} × {' + ','.join(a.args()[0] for a in answer if a.predicate == 'att') + '}')
+```
+
+Currently, there is only one way to see all chaining operator available:
+[the source code of the Answers object](clyngor/answers.py).
+(or `help(clyngor.Answers)`)
+
+
+
+
+
+## Official Python API
+If the used version of clingo is compiled with python, you can put python code into your ASP code as usual.
+But if you also have the [clingo package](https://potassco.org/clingo/python-api/current/clingo.html)
+installed and importable, clyngor can use it for various tasks.
+
+Using the official API leads to the following changes :
+
+- both robust and quick parsing, instead of the simple vs slow method
+- some options are not supported : constants, time-limit, parsing error handling
+
+You can activate the use of the clingo module by calling once `clyngor.activate_clingo_module()`
+or calling `clyngor.solve` with argument `use_clingo_module` set to `True`.
+
+
+## Python embedding
+For users putting some python in their ASP, clyngor may help.
+The only condition is to have clingo compiled with python support,
+and having clyngor installed for the python used by clingo.
+
+
+### Easy ASP functors
+Clyngor provides `converted_types` function,
+allowing one to avoid boilerplate code based on type annotation when
+calling python from inside ASP code.
+
+Example (see [tests](clyngor/test/test_upapi.py) for more):
+
+```python
+#script(python)
+from clyngor.upapi import converted_types
+@converted_types
+def f(a:str, b:int):
+    yield a * b
+    yield len(a) * b
+#end.
+
+p(X):- (X)=@f("hello",2).
+p(X):- (X)=@f(1,2).  % ignored, because types do not match
+```
+
+Without `converted_types`, user have to ensure that `f` is a function returning a list,
+and that arguments are of the expected type.
+
+
+### Generalist propagators
+Propagators are presented in [this paper](http://drops.dagstuhl.de/opus/volltexte/2016/6733/). They are basically active
+observers of the solving process, able for instance to modify truth assignment
+and invalidate models.
+
+As shown in [clyngor/test/test_propagator_class.py](clyngor/test/test_propagator_class.py),
+a high-level propagator class built on top of the official API is available, useful in many typical use-cases.
+
+
+### Python constraint propagators
+As shown in [examples/pyconstraint.lp](examples/pyconstraint.lp),
+clyngor also exposes some helpers for users wanting to create propagators
+that implement an ASP constraint, but written in Python:
+
+```python
+#script(python)
+from clyngor import Constraint, Variable as V, Main
+
+# Build the constraint on atom b
+def formula(inputs) -> bool:
+    return inputs['b', (2,)]
+
+constraint = Constraint(formula, {('b', (V,))})
+
+# regular main function that register given propagator.
+main = Main(propagators=constraint)
+
+#end.
+
+% ASP part, computing 3 models, b(1), b(2) and b(3).
+1{b(1..3)}1.
+```
+
+## Decoders
+An idea coming from the [JSON decoders](https://docs.python.org/3/library/json.html#encoders-and-decoders), allowing user to specify how to decode/encode custom objects in JSON.
+With clyngor, you can do something alike for ASP (though very basic and only from ASP to Python):
+
+```python
+import clyngor, itertools
+
+ASP_LIST_CONCEPTS = """  % one model contains all concepts
+concept(0).
+extent(0,(a;b)). intent(0,(c;d)).
+concept(1).
+extent(1,(b;e)). intent(1,(f;g)).
+concept(2).
+extent(2,b). intent(2,(c;d;f;g)).
+"""
+
+class Concept:
+    "Decoder of concepts in ASP output"
+    def __init__(self, concept:1, extent:all, intent:all):
+        self.id = int(concept[0])
+        self.extent = frozenset(arg for nb, arg in extent if nb == self.id)
+        self.intent = frozenset(arg for nb, arg in intent if nb == self.id)
+    def __str__(self):
+        return f"<{self.id}: {{{','.join(sorted(self.extent))}}} × {{{','.join(sorted(self.intent))}}}>"
+
+objects = clyngor.decode(inline=ASP_LIST_CONCEPTS, decoders=[Concept])
+print('\t'.join(map(str, objects)))
+```
+
+This code will print something like:
+
+    <2: {b} × {c,d,f,g}>	<0: {a,b} × {c,d}>	<1: {b,e} × {f,g}>
+
+Note the use of annotations to declare that each `concept` must be associated to one instance,
+and that all `extent` and `intent` must be sent to constructor for each object.
+
+See [tests](clyngor/test/test_decoder.py) for complete API example.
+
+Remaining features for a good decoder support:
+
+- encoding: try to more-or-less automatically build the python to ASP compiler
+- more available annotations, for instance `(3, 5)` (to ask for between 3 and 5 atoms to be associated with the instance), or `any` (exact meaning has to be found)
+- allow to raise an InvalidDecoder exception during decoder instanciation to get the instance discarded
+
+
+## Alternatives
+Clyngor is basically the total rewriting of [pyasp](https://github.com/sthiele/pyasp), which is now abandonned.
+
+For an ORM approach, give a try to [clorm](https://github.com/daveraja/clorm).
+
+
+
+## Installation
+
+    pip install clyngor
+
+You must have [`clingo`](https://potassco.org/doc/start/) in your path. Depending on your OS, it might be done with a system installation,
+or through [downloading](https://github.com/potassco/clingo/releases) and (compilation and) manual installation.
+
+You may also want to install the [python clingo module](https://potassco.org/clingo/python-api/current/clingo.html),
+which is [an optional dependancy](#official-api-embedding).
+
+
+## Tips
+### Careful parsing
+By default, clyngor uses a very simple parser (yeah, `str.split`) in order to achieve time efficiency in most time.
+However, when asked to compute a particular output format (like `parse_args`) or an explicitely *careful parsing*,
+clyngor will use a much more robust parser (made with an [arpeggio](http://www.igordejanovic.net/Arpeggio/) grammar).
+
+### Import/export
+See the [`utils` module](clyngor/utils.py) and its [tests](clyngor/test/test_utils.py),
+which provides high level routines to save and load answer sets.
+
+
+### Define the path to clingo binary
+
+```python
+import clyngor
+clyngor.CLINGO_BIN_PATH = 'path/to/clingo'
+```
+
+Note that it will be the very first parameter to [`subprocess.Popen`](https://docs.python.org/3/library/subprocess.html#popen-constructor).
+The `solve` function also support the `clingo_bin_path` parameter.
+
+The third solution is to use the decorator `with_clingo_bin`, which modify the global variable
+during the execution of a specific function:
+
+```python
+import clyngor
+
+@clyngor.with_clingo_bin('clingo454')
+def sequence():
+    ...
+    clyngor.solve(...)  # will use clingo454, not clingo, unless clingo_bin_path is given
+    ...
+```
+
+
+### `clyngor.solve` parameters
+The `solve` functions allow to pass explicitely some parameters to clingo
+(including number of models to yield, time-limit, and constants).
+Using the `options` parameter is just fine, but with the explicit parameters some verifications
+are made against data (mostly about type).
+
+Therefore, the two followings are equivalent ; but the first is more readable and will crash earlier with a better error message if `n` is not valid:
+
+```python
+solve('file.lp', nb_model=n)
+solve('file.lp', options='-n ' + str(n))
+```
+
+
+
+## FAQ
+
+### Dinopython support ?
+No.
+
+### Contributions ?
+Yes.
+
+### Why clyngor ?
+No, it's pronounced [*clyngor*](https://www.youtube.com/watch?v=RyU99BCNRuU#t=50s).
+
+### Explain me again the thing with the official module
+Clyngor was designed to not require the official module, because it required a manual compilation and installation of clingo.
+However, because of the obvious interest in features and performances,
+the official module can be used by clyngor if it is available.
+
+
+## Further ideas
+- [timeout](https://stackoverflow.com/a/12698328/3077939) in addition to time-limit
+- ASP source code debugging generator (started in [clyngor-parser](clyngor-parser))
+
+
+## Changelog
+
+- 0.4.0 (todo)
+    - see [further ideas](#Further-ideas)
+- 0.3.16
+    - support for `.by_arity`, equivalent to `.by_predicate` but with predicate and arity
+    - decorator `with_clingo_bin`, changing clingo binary path for encapsulated function
+    - support for `.with_optimality`, giving optimization and optimality along with the model
+- 0.3.14
+    - decoders support, see [`clyngor.decoder`](clyngor/decoder.py) and [doc](#decoders)
+- 0.3.10
+    - support for `.discard_quotes` option (thanks to ArnaudBelcour)
+    - bugfix: `.atom_as_string` and `.first_arg_only` collision
+    - bugfix: more robust tempfile deletion and closing management
+    - [demonstration](examples/pyconstraint-is-not-working.lp) of the non-working Constraint type implementation
+- before
+    - predicat to know if python/lua are available with used clingo binary
+    - easy interface for most use cases using type hint for embedded python
+    - easy python constraints in ASP with Constraint type
+    - add support for propagators
+    - add support for clingo official python module
+
+
+## from pyasp to clyngor
+If you have a project that makes use of pyasp, but need clingo instead of gringo+clasp, one way to go is to use clyngor instead.
+
+Here was my old code:
+
+```python
+from pyasp import asp
+
+def solving(comp, graph):
+    programs = [comp, graph]
+    clasp_options = ['--opt-mode=optN', '--parallel-mode=4', '--project']
+    solver = asp.Gringo4Clasp(clasp_options=clasp_options)
+    print("solver run as: `clingo {} {}`".format(' '.join(programs), clasp_options))
+    at_least_one_solution = False
+    for answerset in solver.run(programs, collapseAtoms=False):
+        yield answerset
+
+def find_direct_inclusions(model) -> dict:
+    programs = [ASP_SRC_INCLUSION]
+    solver = asp.Gringo4Clasp()
+    add_atoms = ''.join(str(atom) + '.' for atom in model)
+    answers = tuple(solver.run(programs, collapseAtoms=False,
+                               additionalProgramText=add_atoms))
+    return answers
+```
+
+And here is the version using clyngor, that pass the exact same unit tests:
+
+```python
+import clyngor
+
+def solving(comp, graph):
+    programs = [comp, graph]
+    clasp_options = '--opt-mode=optN', '--parallel-mode=4', '--project'
+    answers = clyngor.solve(programs, options=clasp_options)
+    print("solver run as: `{}`".format(answers.command))
+    for answerset in answers.as_pyasp.parse_args.int_not_parsed:
+        yield answerset
+
+def find_direct_inclusions(model) -> dict:
+    programs = [ASP_SRC_INCLUSION]
+    add_atoms = ''.join(str(atom) + '.' for atom in model)
+    answers = tuple(clyngor.solve(programs, inline=add_atoms).as_pyasp.parse_args)
+    return answers
+```
+
+
+## Thanks
+To [Arnaud Belcour](https://github.com/ArnaudBelcour) for his works and frequent feedbacks.
+
+To [Domoritz](https://github.com/domoritz) for his questions and feedbacks.
