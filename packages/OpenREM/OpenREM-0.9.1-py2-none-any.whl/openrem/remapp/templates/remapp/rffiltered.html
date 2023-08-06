@@ -1,0 +1,624 @@
+{% extends "remapp/filteredbase.html" %}
+{% load sigdig %}
+
+{% block navrf %}<li class="active">{% endblock %}
+
+{% block toprow %}
+      <p>
+        There are {{ filter.count }} studies in this list.
+      </p>
+
+{% endblock %}
+
+{% block col2 %}
+  <div class="panel panel-info small">
+  <div class="panel-heading">
+      <h3 class="panel-title">Data export</h3>
+  </div>
+  <div class="panel-body">
+    {% if admin.exportgroup %}
+        <p><strong>Note:</strong> Apply the exam filter first to refine what is exported.</p>
+    <p>
+      <a href="{% url 'flcsv1' 0 0 %}?{{ request.GET.urlencode }}"
+             class="btn btn-default btn-sm" role="button">Export to CSV&nbsp;</a>
+          {% if admin.pidgroup %}
+              <a href="{% url 'flcsv1' 1 0 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With names</a>
+              <a href="{% url 'flcsv1' 0 1 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With ID</a>
+              <a href="{% url 'flcsv1' 1 1 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With both</a>
+    </p>
+    <p>
+          {% endif %}
+          <a href="{% url 'rfxlsx1' 0 0 %}?{{ request.GET.urlencode }}"
+             class="btn btn-default btn-sm" role="button">Export to XLSX</a>
+          {% if admin.pidgroup %}
+              <a href="{% url 'rfxlsx1' 1 0 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With names</a>
+              <a href="{% url 'rfxlsx1' 0 1 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With ID</a>
+              <a href="{% url 'rfxlsx1' 1 1 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With both</a>
+          {% endif %}
+    </p>
+
+  {% else %}
+    <p>
+      No export permissions
+    </p>
+  {% endif %}
+
+
+  </div>
+  </div>
+
+
+    {{ studyfilter }}
+
+    <form action="" method="get" class="form-horizontal" role="form">
+         <div class="panel panel-info small">
+            <div class="panel-heading">
+              <h3 class="panel-title">Exam filter</h3>
+            </div>
+            <div class="panel-body">
+                <i>Date format yyyy-mm-dd</i>
+                {% for field in filter.form %}
+                    <div class="form-group">
+                        <div class="col-xs-4">
+                            <label>{{ field.label_tag }}</label>
+                        </div>
+                        <div class="col-xs-8">
+                            {{ field.errors }}
+                            {{ field }}
+                        </div>
+                    </div>
+                {% endfor %}
+                <input class="btn btn-default" type="submit" />
+            </div>
+            <div class="panel-heading">
+                <h3 class="panel-title">Chart options</h3>
+            </div>
+            <div class="panel-body">
+                <table>
+                    {% csrf_token %}
+                    {{ chartOptionsForm }}
+                </table>
+                <input class="btn btn-default" name="submit" type="submit" />
+            </div>
+            <div class="panel-heading">
+                <h3 class="panel-title">Table options</h3>
+            </div>
+            <div class="panel-body">
+                <table>
+                    {{ itemsPerPageForm }}
+                </table>
+                <input class="btn btn-default" name="submit" type="submit" />
+            </div>
+          </div>
+    </form>
+
+    <script src="{{ STATIC_URL }}js/datepicker.js"></script>
+    <script src="{{ STATIC_URL }}js/formatDate.js"></script>
+
+
+{% endblock %}
+
+{% block col1 %}
+{% load l10n %}
+
+    <table class="table table-bordered table-hover row-clickable small">
+        <tr>
+            <th>Institution</th>
+            <th>
+                <table>
+                    <tr><td>Make</td></tr>
+                    <tr><td>Model</td></tr>
+                    <tr><td class="nowrap">Display name</td></tr>
+                </table>
+            </th>
+            <th>Date</th>
+            <th>
+                <table>
+                    <tr><td class="nowrap">Study description</td></tr>
+                    <tr><td class="nowrap">Procedure</td></tr>
+                    <tr><td class="nowrap">Requested Procedure</td></tr>
+                    <tr><td class="nowrap">Accession number</td></tr>
+                </table>
+            </th>
+            <th>Number of events</th>
+            <th>Total DAP (cGy.cm<sup>2</sup>)</th>
+            <th>Total dose at RP (Gy)</th>
+            {% if alertLevels.show_accum_dose_over_delta_weeks %}
+                <th>Total DAP summed over <br>{{ alertLevels.accum_dose_delta_weeks }} weeks before study(cGy.cm<sup>2</sup>)</th>
+                <th>Total dose at RP summed over <br>{{ alertLevels.accum_dose_delta_weeks }} weeks before study (Gy)</th>
+            {% endif %}
+
+            <th>Physician</th>
+            {% if admin.admingroup %}
+            <th>Delete?</th>
+            {% endif %}
+        </tr>
+        {% for exam in study_list %}
+          {% with equipment=exam.generalequipmentmoduleattr_set.get %}
+          {% with projection_set=exam.projectionxrayradiationdose_set.get %}
+          {% with accum_set=projection_set.accumxraydose_set.all %}
+          {% with study_delta_pk_set=exam.pksforsummedrfdosestudiesindeltaweeks_set.all %}
+        <tr>
+            <td>
+                <a href="{% url 'rf_detail_view' pk=exam.id %}">
+                    {{ equipment.institution_name }}
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'rf_detail_view' pk=exam.id %}">
+                    <table onclick="window.location='{% url 'rf_detail_view' pk=exam.id %}';">
+                        <tr><td class="nowrap">{{ equipment.manufacturer }}</td></tr>
+                        <tr><td class="nowrap">{{ equipment.manufacturer_model_name }}</td></tr>
+                        <tr><td class="nowrap">{{ equipment.unique_equipment_name.display_name }}</td></tr>
+                    </table>
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'rf_detail_view' pk=exam.id %}">
+                    {{ exam.study_date|date:"Y-m-d" }} {{ exam.study_time|date:"H:i" }}
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'rf_detail_view' pk=exam.id %}">
+                    <table onclick="window.location='{% url 'rf_detail_view' pk=exam.id %}';">
+                        <tr><td class="nowrap">{{ exam.study_description }}</td></tr>
+                        <tr><td class="nowrap">{{ exam.procedure_code_meaning }}</td></tr>
+                        <tr><td class="nowrap">{{ exam.requested_procedure_code_meaning }}</td></tr>
+                  {% if not exam.accession_hashed %}
+                        <tr><td class="nowrap">{{ exam.accession_number }}</td></tr>
+                  {% endif %}
+                    </table>
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'rf_detail_view' pk=exam.id %}">
+                    {{ projection_set.irradeventxraydata_set.count }}
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'rf_detail_view' pk=exam.id %}">
+                    {% for record in accum_set %}
+                      {% with accum_integrated=record.accumintegratedprojradiogdose_set.get %}
+                        {% if accum_set.count > 1 %}
+                            {{ record.acquisition_plane }}:
+                        {% endif %}
+
+                        {% if accum_integrated.convert_gym2_to_cgycm2 >= alertLevels.alert_total_dap_rf %}
+                            <strong style="color: red;">{{ accum_integrated.convert_gym2_to_cgycm2|floatformat:1 }}</strong>
+                        {% else %}
+                            {{ accum_integrated.convert_gym2_to_cgycm2|floatformat:1 }}
+                        {% endif %}
+
+                        <br>
+                      {% endwith %}
+                    {% endfor %}
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'rf_detail_view' pk=exam.id %}">
+                    {% for record in accum_set %}
+                      {% with accum_integrated=record.accumintegratedprojradiogdose_set.get %}
+                        {% if accum_set.count > 1 %}
+                            {{ record.acquisition_plane }}:
+                        {% endif %}
+
+                        {% if accum_integrated.dose_rp_total >= alertLevels.alert_total_rp_dose_rf %}
+                            <strong style="color: red;">{{ accum_integrated.dose_rp_total | sigdig }} </strong>
+                        {% else %}
+                            {{ accum_integrated.dose_rp_total | sigdig }}
+                        {% endif %}
+
+                        <br>
+                      {% endwith %}
+                    {% endfor %}
+                </a>
+            </td>
+            {% if alertLevels.show_accum_dose_over_delta_weeks %}
+                {% with accum_set|first as first_accum_set %}
+                    <td>
+                        <a href="{% url 'rf_detail_view' pk=exam.id %}">
+                          {% with accum_integrated=first_accum_set.accumintegratedprojradiogdose_set.get %}
+                            {% if accum_integrated.total_dap_delta_gym2_to_cgycm2 >= alertLevels.alert_total_dap_rf %}
+                                <strong style="color: red;">{{ accum_integrated.total_dap_delta_gym2_to_cgycm2|floatformat:1 }}</strong>
+                            {% else %}
+                                {{ accum_integrated.total_dap_delta_gym2_to_cgycm2|floatformat:1 }}
+                            {% endif %}
+
+                            {% with n_studies=study_delta_pk_set.count %}
+                                 ({{ n_studies }} exam{{ n_studies|pluralize }})
+                            {% endwith %}
+                          {% endwith %}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url 'rf_detail_view' pk=exam.id %}">
+                          {% with accum_integrated=first_accum_set.accumintegratedprojradiogdose_set.get %}
+                            {% if accum_integrated.dose_rp_total_over_delta_weeks >= alertLevels.alert_total_rp_dose_rf %}
+                                <strong style="color: red;">{{ accum_integrated.dose_rp_total_over_delta_weeks | sigdig }} </strong>
+                            {% else %}
+                                {{ accum_integrated.dose_rp_total_over_delta_weeks | sigdig }}
+                            {% endif %}
+
+                            {% with n_studies=study_delta_pk_set.count %}
+                                 ({{ n_studies }} exam{{ n_studies|pluralize }})
+                            {% endwith %}
+                          {% endwith %}
+                        </a>
+                    </td>
+                {% endwith %}
+            {% endif %}
+            <td>
+                <a href="{% url 'rf_detail_view' pk=exam.id %}">
+                    {{ exam.performing_physician_name }}
+                </a>
+            </td>
+            {% if admin.admingroup %}
+            <td>
+              <a href="{% url 'study_delete' exam.id %}">Delete</a>
+            </td>
+            {% endif %}
+        </tr>
+          {% endwith %}{% endwith %}{% endwith %}{% endwith %}
+        {% endfor %}
+    </table>
+
+
+
+{% endblock %}
+
+{% block plotdata %}
+
+    {% if request.user.userprofile.plotCharts %}
+
+        <script src="{{ STATIC_URL }}js/django_reverse/reverse.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartFullScreen.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartSetExportSize.js"></script>
+        <script src="{{ STATIC_URL }}js/chroma.min.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartUpdateData.js"></script>
+
+        <div class="ajax-progress"><img src="{{ STATIC_URL }}img/ajax-loader.gif"></div>
+
+        <!-- Include JavaScript to enable highcharts plots -->
+        <script src="{{ STATIC_URL }}js/charts/highcharts.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/boost.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/exporting.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/offline-exporting.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/export-csv.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/drilldown.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartSortingRoutines.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartHistogramNormalise.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartAverageAndHistogram.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartAverageOverTime.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartFrequency.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartWorkload.js"></script>
+        <script>
+            var chartSorting = '{{ request.user.userprofile.plotRFInitialSortingChoice }}';
+            var chartSortingDirection = {{ request.user.userprofile.plotInitialSortingDirection }};
+
+            var def_title, norm_btn_class, instr_class, render_div, val_label, val_units, avg_label, cat_label, cat_counter,
+                    field_name_min, field_name_max, field_multiplier, field_cat_name, tooltip_filters, href_start, result, hide_series_btn_stub;
+        </script>
+        <!-- End of include JavaScript to enable highcharts plots -->
+
+        <!-- JavaScript to enable bootstrap tooltips -->
+        <script>
+            $(document).ready(function(){
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+        </script>
+        <!-- End of JavaScript to enable bootstrap tooltips -->
+
+        <!-- JavaScript function to sort a list of objects by the 'y' or 'name' object. -->
+        <script src="{{ STATIC_URL }}js/charts/sorting.js"></script>
+        <!-- End of JavaScript function to sort a list of objects by the 'y' or 'name' object -->
+
+        <!-- JavaScript chart AJAX code. -->
+        <script src="{{ STATIC_URL }}js/charts/rfChartAjax.js"></script>
+        <!-- End of JavaScript chart AJAX code. -->
+
+        <script>var plotAverageChoice = '{{ request.user.userprofile.plotAverageChoice }}';</script>
+
+        {% if request.user.userprofile.plotRFStudyDAP %}
+            <!-- HTML to include div container for study plot -->
+            <div class="panel-group" id="plotRFStudyDAPAccordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#plotRFStudyDAPAccordion" href="#collapsePlotRFStudyDAPAccordion" onclick="setTimeout(function() {fitChartToDiv('plotRFStudyDAPContainer');}, 0);">
+                                {% if request.user.userprofile.plotAverageChoice == 'mean' %}
+                                    Plot of mean DAP for each study description.
+                                {% elif request.user.userprofile.plotAverageChoice == 'median' %}
+                                    Plot of median DAP for each study description.
+                                {% else %}
+                                    Plot of mean and median DAP for each study description.
+                                {% endif %}
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapsePlotRFStudyDAPAccordion" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div id="plotRFStudyDAPContainer" style="height: auto; margin: 0 0"></div>
+
+                            <div class="stu-instructions">
+                                <table style="border:none">
+                                    <tr>
+                                        <th colspan="3" style="padding: 0px; padding-right: 10px; vertical-align: top">Sorting options</th>
+                                        <td rowspan="3" style="padding-left: 20px; vertical-align: top">
+                                            {% if request.user.userprofile.plotHistograms %}
+                                            Click on an individual column to show a histogram of data for that study description.<br>
+                                            Click on a histogram bin tooltip to see the studies that contain the study names in the bin. Note that
+                                            this will include studies at the upper bin boundary, so in some cases may display more data than
+                                            shown in the histogram bin.
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0px; padding-right: 10px; vertical-align: top"><a onclick="anySeriesSort('#plotRFStudyDAPContainer', 'avgValue', 1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort by ascending DLP">&uarr;DAP</a></td>
+                                        <td style="padding: 0px; padding-right: 10px; vertical-align: top"><a onclick="anySeriesSort('#plotRFStudyDAPContainer', 'totalCounts', 1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort by ascending frequency">&uarr;frequency</a></td>
+                                        <td style="padding: 0px; vertical-align: top"><a onclick="anySeriesSort('#plotRFStudyDAPContainer', 'name', 1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort alphabetically">A&nbsp;to&nbsp;Z</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0px; padding-right: 10px; vertical-align: top"><a onclick="anySeriesSort('#plotRFStudyDAPContainer', 'avgValue', -1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort by descending DAP">&darr;DAP</a></td>
+                                        <td style="padding: 0px; padding-right: 10px; vertical-align: top"><a onclick="anySeriesSort('#plotRFStudyDAPContainer', 'totalCounts', -1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort by descending frequency">&darr;frequency</a></td>
+                                        <td style="padding: 0px; vertical-align: top"><a onclick="anySeriesSort('#plotRFStudyDAPContainer', 'name', -1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort reverse alphabetically">Z&nbsp;to&nbsp;A</a></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <a onclick="$('#plotRFStudyDAPContainer').highcharts().viewData(false, false, true); enterFullScreen('collapsePlotRFStudyDAPAccordion','plotRFStudyDAPContainer'); $('#toggle_study_data_btn').toggle();" class="btn btn-default btn-sm" role="button">Toggle fullscreen</a>
+                            <a onclick="$('#plotRFStudyDAPContainer').highcharts().viewData(true, true);" class="btn btn-default btn-sm" role="button" id="toggle_study_data_btn">Toggle data table</a>
+                            <a onclick="$('#plotRFStudyDAPContainer').highcharts().zoomOut();" class="btn btn-default btn-sm" role="button">Reset zoom</a>
+                            <a onclick="hideOrShowAllSeries('plotRFStudyDAPContainer', 'hide', 'study_dap_series_')" class="btn btn-default btn-sm" role="button" id="study_dap_series_hide">Hide all series</a>
+                            <a onclick="hideOrShowAllSeries('plotRFStudyDAPContainer', 'show', 'study_dap_series_')" class="btn btn-default btn-sm" role="button" id="study_dap_series_show">Show all series</a>
+                            <a onclick="toggleAllSeries('plotRFStudyDAPContainer')" class="btn btn-default btn-sm" role="button" id="study_dap_series_toggle">Toggle all series</a>
+                            <div class="stu-hist-norm-btn"><a onclick="normaliseHistograms('#plotRFStudyDAPContainer'); $('#plotRFStudyDAPContainer').highcharts().viewData(false, true);" class="btn btn-default btn-sm" role="button">Toggle normalised histograms</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of HTML to include div for study name plot -->
+
+            <script>
+                $('#study_dap_series_show').hide();
+
+                var plotRFStudyDAP = true;
+                $(window).resize(function() {
+                    chartSetExportSize('plotRFStudyDAPContainer');
+                    fitChartToDiv('plotRFStudyDAPContainer');
+                });
+                var tooltipFiltersStudy = '{% for field in filter.form %}{% if field.name != 'study_description' and field.name != 'o' and field.value %}&{{ field.name }}={{ field.value }}{% endif %}{% endfor %}';
+                norm_btn_class = '.stu-hist-norm-btn';
+                instr_class = '.stu-instructions';
+                render_div = 'plotRFStudyDAPContainer';
+                val_label = 'DAP';
+                val_units = 'cGy.cm<sup>2</sup>';
+                cat_label = 'Study description';
+                cat_counter = 'studies';
+                field_name_min = 'study_dap_min';
+                field_name_max = 'study_dap_max';
+                field_multiplier = 1.0;
+                field_cat_name = 'study_description';
+                tooltip_filters = tooltipFiltersStudy;
+                href_start = '{% url 'rf_summary_list_filter' %}?';
+                hide_series_btn_stub = 'study_dap_series_';
+
+            {% if request.user.userprofile.plotAverageChoice == 'both' %}
+                avg_label = 'Mean and median';
+            {% elif request.user.userprofile.plotAverageChoice == 'mean' %}
+                avg_label = 'Mean';
+            {% else %}
+                avg_label = 'Median';
+            {% endif %}
+
+                def_title = avg_label + ' ' + val_label + ' per ' + cat_label.toLowerCase();
+                result = chartAverageAndHistogram(def_title, norm_btn_class, instr_class, render_div, val_label,
+                        val_units, avg_label, cat_label, cat_counter, field_name_min, field_name_max, field_multiplier,
+                        field_cat_name, tooltip_filters, href_start, hide_series_btn_stub);
+            </script>
+        {% endif %}
+
+        {% if request.user.userprofile.plotRFRequestDAP %}
+            <!-- HTML to include div container for request plot -->
+            <div class="panel-group" id="plotRFRequestDAPAccordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#plotRFRequestDAPAccordion" href="#collapsePlotRFRequestDAPAccordion" onclick="setTimeout(function() {fitChartToDiv('plotRFRequestDAPContainer');}, 0);">
+                                {% if request.user.userprofile.plotAverageChoice == 'mean' %}
+                                    Plot of mean DAP for each requested procedure name.
+                                {% elif request.user.userprofile.plotAverageChoice == 'median' %}
+                                    Plot of median DAP for each requested procedure name.
+                                {% else %}
+                                    Plot of mean and median DAP for each requested procedure name.
+                                {% endif %}
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapsePlotRFRequestDAPAccordion" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div id="plotRFRequestDAPContainer" style="height: auto; margin: 0 0"></div>
+
+                            <div class="req-instructions">
+                                <table style="border:none">
+                                    <tr>
+                                        <th colspan="3" style="padding: 0px; padding-right: 10px; vertical-align: top">Sorting options</th>
+                                        <td rowspan="3" style="padding-left: 20px; vertical-align: top">
+                                            {% if request.user.userprofile.plotHistograms %}
+                                            Click on an individual column to show a histogram of data for that requested procedure.<br>
+                                            Click on a histogram bin tooltip to see the studies that contain the requested procedure names in the bin. Note that
+                                            this will include studies at the upper bin boundary, so in some cases may display more data than
+                                            shown in the histogram bin.
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0px; padding-right: 10px; vertical-align: top"><a onclick="anySeriesSort('#plotRFRequestDAPContainer', 'avgValue', 1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort by ascending DLP">&uarr;DAP</a></td>
+                                        <td style="padding: 0px; padding-right: 10px; vertical-align: top"><a onclick="anySeriesSort('#plotRFRequestDAPContainer', 'totalCounts', 1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort by ascending frequency">&uarr;frequency</a></td>
+                                        <td style="padding: 0px; vertical-align: top"><a onclick="anySeriesSort('#plotRFRequestDAPContainer', 'name', 1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort alphabetically">A&nbsp;to&nbsp;Z</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0px; padding-right: 10px; vertical-align: top"><a onclick="anySeriesSort('#plotRFRequestDAPContainer', 'avgValue', -1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort by descending DAP">&darr;DAP</a></td>
+                                        <td style="padding: 0px; padding-right: 10px; vertical-align: top"><a onclick="anySeriesSort('#plotRFRequestDAPContainer', 'totalCounts', -1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort by descending frequency">&darr;frequency</a></td>
+                                        <td style="padding: 0px; vertical-align: top"><a onclick="anySeriesSort('#plotRFRequestDAPContainer', 'name', -1, 0)" class="sorting-option" data-toggle="tooltip" title="Sort reverse alphabetically">Z&nbsp;to&nbsp;A</a></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <a onclick="$('#plotRFRequestDAPContainer').highcharts().viewData(false, false, true); enterFullScreen('collapsePlotRFRequestDAPAccordion','plotRFRequestDAPContainer'); $('#toggle_request_data_btn').toggle();" class="btn btn-default btn-sm" role="button">Toggle fullscreen</a>
+                            <a onclick="$('#plotRFRequestDAPContainer').highcharts().viewData(true, true);" class="btn btn-default btn-sm" role="button" id="toggle_request_data_btn">Toggle data table</a>
+                            <a onclick="$('#plotRFRequestDAPContainer').highcharts().zoomOut();" class="btn btn-default btn-sm" role="button">Reset zoom</a>
+                            <a onclick="hideOrShowAllSeries('plotRFRequestDAPContainer', 'hide', 'request_dap_series_')" class="btn btn-default btn-sm" role="button" id="request_dap_series_hide">Hide all series</a>
+                            <a onclick="hideOrShowAllSeries('plotRFRequestDAPContainer', 'show', 'request_dap_series_')" class="btn btn-default btn-sm" role="button" id="request_dap_series_show">Show all series</a>
+                            <a onclick="toggleAllSeries('plotRFRequestDAPContainer')" class="btn btn-default btn-sm" role="button" id="request_dap_series_toggle">Toggle all series</a>
+                            <div class="req-hist-norm-btn"><a onclick="normaliseHistograms('#plotRFRequestDAPContainer'); $('#plotRFRequestDAPContainer').highcharts().viewData(false, true);" class="btn btn-default btn-sm" role="button">Toggle normalised histograms</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of HTML to include div for request plot -->
+
+            <script>
+                $('#request_dap_series_show').hide();
+
+                var plotRFRequestDAP = true;
+                $(window).resize(function() {
+                    chartSetExportSize('plotRFRequestDAPContainer');
+                    fitChartToDiv('plotRFRequestDAPContainer');
+                });
+                var tooltipFiltersRequest = '{% for field in filter.form %}{% if field.name != 'requested_procedure' and field.name != 'o' and field.value %}&{{ field.name }}={{ field.value }}{% endif %}{% endfor %}';
+                norm_btn_class = '.req-hist-norm-btn';
+                instr_class = '.req-instructions';
+                render_div = 'plotRFRequestDAPContainer';
+                val_label = 'DAP';
+                val_units = 'cGy.cm<sup>2</sup>';
+                cat_label = 'Requested procedure name';
+                cat_counter = 'requests';
+                field_name_min = 'study_dap_min';
+                field_name_max = 'study_dap_max';
+                field_multiplier = 1.0;
+                field_cat_name = 'requested_procedure';
+                tooltip_filters = tooltipFiltersRequest;
+                href_start = '{% url 'rf_summary_list_filter' %}?';
+                hide_series_btn_stub = 'request_dap_series_';
+
+            {% if request.user.userprofile.plotAverageChoice == 'both' %}
+                avg_label = 'Mean and median';
+            {% elif request.user.userprofile.plotAverageChoice == 'mean' %}
+                avg_label = 'Mean';
+            {% else %}
+                avg_label = 'Median';
+            {% endif %}
+
+                def_title = avg_label + ' ' + val_label + ' per ' + cat_label.toLowerCase();
+                result = chartAverageAndHistogram(def_title, norm_btn_class, instr_class, render_div, val_label,
+                        val_units, avg_label, cat_label, cat_counter, field_name_min, field_name_max, field_multiplier,
+                        field_cat_name, tooltip_filters, href_start, hide_series_btn_stub);
+            </script>
+        {% endif %}
+
+        {% if request.user.userprofile.plotRFStudyPerDayAndHour %}
+            <!-- HTML to include div container for study workload -->
+            <div class="panel-group" id="accordion5">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion5" href="#collapseStudyWorkloadPieChart" onclick="setTimeout(function() {fitChartToDiv('piechartStudyWorkloadDIV');}, 0);">
+                                Pie chart showing a breakdown of number of studies per weekday.
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseStudyWorkloadPieChart" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div id="piechartStudyWorkloadDIV" style="height: auto; margin: 0 0"></div>
+                            <p>Click on a segment to be taken to a pie chart showing the breakdown per hour for that weekday.</p>
+                            <a onclick="$('#piechartStudyWorkloadDIV').highcharts().viewData(false, false, true); enterFullScreen('collapseStudyWorkloadPieChart', 'piechartStudyWorkloadDIV'); $('#toggle_studywl_data_btn').toggle();" class="btn btn-default btn-sm" role="button">Toggle fullscreen</a>
+                            <a onclick="$('#piechartStudyWorkloadDIV').highcharts().viewData(true, true);" class="btn btn-default btn-sm" role="button" id="toggle_studywl_data_btn">Toggle data table</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of HTML to include div container for studies per week day pie chart -->
+
+            <script>
+                var plotRFStudyPerDayAndHour = true;
+                $(window).resize(function() {
+                    chartSetExportSize('piechartStudyWorkloadDIV');
+                    fitChartToDiv('piechartStudyWorkloadDIV');
+                });
+                result = chartWorkload('piechartStudyWorkloadDIV', 'Studies');
+            </script>
+        {% endif %}
+
+        {% if request.user.userprofile.plotRFStudyFreq %}
+            <!-- HTML to include div container for study name pie chart -->
+            <div class="panel-group" id="accordionPiechartStudy">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordionPiechartStudy" href="#collapseStudyPieChart" onclick="setTimeout(function() {fitChartToDiv('piechartStudyDIV');}, 0);">
+                                Pie chart showing a breakdown of study name frequency.
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseStudyPieChart" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div id="piechartStudyDIV" style="height: auto; margin: 0 0"></div>
+                            <a onclick="$('#piechartStudyDIV').highcharts().viewData(false, false, true); enterFullScreen('collapseStudyPieChart', 'piechartStudyDIV'); $('#toggle_studyf_data_btn').toggle();" class="btn btn-default btn-sm" role="button">Toggle fullscreen</a>
+                            <a onclick="$('#piechartStudyDIV').highcharts().viewData(true, true);" class="btn btn-default btn-sm" role="button" id="toggle_studyf_data_btn">Toggle data table</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of HTML to include div container for study name pie chart -->
+
+            <script>
+                var plotRFStudyFreq = true;
+                $(window).resize(function() {
+                    chartSetExportSize('piechartStudyDIV');
+                    fitChartToDiv('piechartStudyDIV');
+                });
+                var urlStartStudy = '{% url 'rf_summary_list_filter' %}?{% for field in filter.form %}{% if field.name != 'study_description' and field.name != 'o' and field.value %}&{{ field.name }}={{ field.value }}{% endif %}{% endfor %}&study_description=';
+                result = chartFrequency('piechartStudyDIV', 'Study description frequency');
+            </script>
+        {% endif %}
+
+        {% if request.user.userprofile.plotRFRequestFreq %}
+            <!-- HTML to include div container for requested procedure name pie chart -->
+            <div class="panel-group" id="accordionPiechartRequest">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordionPiechartRequest" href="#collapseRequestPieChart" onclick="setTimeout(function() {fitChartToDiv('piechartRequestDIV');}, 0);">
+                                Pie chart showing a breakdown of requested procedure frequency.
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseRequestPieChart" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div id="piechartRequestDIV" style="height: auto; margin: 0 0"></div>
+                            <a onclick="$('#piechartRequestDIV').highcharts().viewData(false, false, true); enterFullScreen('collapseRequestPieChart', 'piechartRequestDIV'); $('#toggle_requestf_data_btn').toggle();" class="btn btn-default btn-sm" role="button">Toggle fullscreen</a>
+                            <a onclick="$('#piechartRequestDIV').highcharts().viewData(true, true);" class="btn btn-default btn-sm" role="button" id="toggle_requestf_data_btn">Toggle data table</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of HTML to include div container for requested procedure name pie chart -->
+
+            <script>
+                var plotRFRequestFreq = true;
+                $(window).resize(function() {
+                    chartSetExportSize('piechartRequestDIV');
+                    fitChartToDiv('piechartRequestDIV');
+                });
+                var urlStartRequest = '{% url 'rf_summary_list_filter' %}?{% for field in filter.form %}{% if field.name != 'requested_procedure' and field.name != 'o' and field.value %}&{{ field.name }}={{ field.value }}{% endif %}{% endfor %}&requested_procedure=';
+                result = chartFrequency('piechartRequestDIV', 'Requested procedure frequency');
+            </script>
+        {% endif %}
+
+
+    {% endif %}
+{% endblock %}
