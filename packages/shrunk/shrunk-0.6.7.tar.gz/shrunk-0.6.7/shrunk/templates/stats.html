@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>URL stats</h1>
+<a href="/link-visits-csv?url={{ short_url }}">Export visit data as CSV</a>
+<article class="add-group clearfix">
+    {% if missing_url %}
+    <h3> URL not found :( </h3>
+    {% else %}
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-1.5.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/emn178/chartjs-plugin-labels/src/chartjs-plugin-labels.js"></script>
+    <h3><a href="{{ url_info['long_url'] }}">
+	    {{ url_info["title"] }}
+    </a></h3>
+    <ul>
+	<li>Visits: {{ url_info["visits"] }}</li>
+	<li>First Time Visits: <span id="first_time_visits">Loading...</span></li>
+    </ul>
+
+    <hr>
+
+    <div>
+	key:
+	<span style="color:steelblue">total visits</span>
+	<span style="color:orange">first time visits</span>
+    </div>
+    <div id="nodata"></div>
+    <svg height="0"></svg>
+    <div>
+	<form class="form-inline">
+	    <input type="date" class="form-control" id="start"></input>
+	    <input type="date" class="form-control" id="end"></input>
+	    <button class="form-control" id="reset">reset</button>
+	</form>
+	<span id="error"></span>
+    </div>
+
+    <hr>
+
+    <div id="map-toggle" class="btn-group">
+	<button class="btn btn-default" type="button" onmouseup="show_us_map()">US</button>
+	<button class="btn btn-default" type="button" onmouseup="show_world_map()">World</button>
+    </div>
+
+    <div id="maps-div">
+	<div id="us-map"></div>
+	<div id="world-map"></div>
+    </div>
+    <hr>
+    <div id="pie-charts">
+      <div class="pie-div" height="191" id="browser-stats">
+	<canvas id="browser-canvas"></canvas>
+      </div>
+      
+      <div class="pie-div" id="platform-stats">
+	<canvas id="platform-canvas"></canvas>
+      </div>
+      
+      <div class="pie-div" id="referer-stats">
+	<canvas id="referer-canvas"></canvas>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+
+    </br></br></br></br>
+    {% endif %}
+</article>
+{% endblock %}
