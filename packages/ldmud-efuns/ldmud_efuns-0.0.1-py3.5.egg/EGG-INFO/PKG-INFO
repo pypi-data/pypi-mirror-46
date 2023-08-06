@@ -1,0 +1,87 @@
+Metadata-Version: 1.1
+Name: ldmud-efuns
+Version: 0.0.1
+Summary: Python Efun package for LDMud
+Home-page: https://github.com/ldmud/python-efuns
+Author: LDMud Team
+Author-email: ldmud-dev@UNItopia.DE
+License: UNKNOWN
+Description: # Python Efun package for LDMud
+        
+        These are python efuns to be used with LDMud 3.5 and later.
+        
+        This package contains the following efuns:
+         * `strings` module:
+            * `string wrap(string str [, int len [, int left]])`
+            * `string wrap_say(string intro, string text [, int len [, int left]])`
+            * `string left(string text, int len [,string pattern])`
+         * `json` module:
+            * `mixed json_parse(string jsonstring)`
+            * `string json_serialize(mixed data)`
+        
+        ## Usage
+        
+        ### Build the image yourself
+        
+        You can build the image yourself.
+        
+        First clone the repository
+        ```
+        git clone https://github.com/ldmud/docker.git
+        ```
+        
+        Build the docker image (in this example the LP-245 mudlib)
+        ```
+        docker build -t lp245 docker/LP-245
+        ```
+        
+        The image has no the name `lp245`.
+        
+        ### Use the image from docker hub
+        
+        The images are also built on docker hub, so you can just download them.
+        
+        You can download images with
+        ```
+        docker pull ldmuddev/lp245
+        ```
+        
+        But this isn't necessary. `docker run` will automatically download required images.
+        
+        ### Running the image
+        
+        To execute the image (LP-245 uses Port 4242 and 4246) start
+        ```
+        # When built yourself:
+        docker run -p 4242:4242 -p 4246:4246/udp --name lp245 lp245
+        # When using docker hub:
+        docker run -p 4242:4242 -p 4246:4246/udp --name lp245 ldmuddev/lp245
+        ```
+        
+        When you want to have write access to the mudlib, you have to
+        1. mount an external directory as the docker container's mudlib
+        2. run the docker container under your user account
+        
+        Here we assume, that the external mudlib directory is named $HOME/mudlib.
+        If the directory doesn't contain a mudlib, the docker images will put
+        a fresh mudlib there.
+        
+        ```
+        docker run -p 4242:4242 -p 4246:4246/udp -u $UID -v $HOME/mudlib:/mud/lib --name lp245 ldmuddev/lp245
+        ```
+        
+        After that you can use `telnet localhost 4242` to play the game.
+        
+        ### Stopping the container
+        
+        Stop the container simply with
+        ```
+        docker stop lp245
+        ```
+        
+        Have fun!
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: ISC License (ISCL)
+Classifier: Operating System :: OS Independent
