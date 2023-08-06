@@ -1,0 +1,22 @@
+{% extends 'votebase/base.html' %}
+{% load i18n %}
+
+{% block content_title %}{% trans 'Buy' %} {{ package }} {% trans 'package' %}{% endblock %}
+{% block content %}
+    <div class="well">
+    {% blocktrans with package=package fee=package_fee|floatformat:2 %}
+        Thank you for choosing {{ package }} package ({{ fee }} EUR).
+        It will be valid until {{ package_valid_to }}.<br>
+        Please, fill out all necessary fields to complete your subscription.
+    {% endblocktrans %}
+    </div>
+
+    <form method="post" action="{{ request.path }}" class="form-horizontal well">
+        {% csrf_token %}
+        {% include 'votebase/helpers/form.html' %}
+
+        <div class="form-actions">
+            <input type="submit" class="btn btn-primary" value="{% trans 'Checkout via TrustPay' %}" />
+        </div>
+    </form>
+{% endblock %}

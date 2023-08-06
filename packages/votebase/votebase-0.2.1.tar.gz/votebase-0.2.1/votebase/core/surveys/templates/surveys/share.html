@@ -1,0 +1,169 @@
+{% extends 'votebase/base.html' %}
+{% load i18n utils static google_short_url %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'surveys_index' %}" class="back">{% trans 'Back' %}</a>
+    <form method="post" action="{% url 'surveys_update' survey.pk %}">
+        {% csrf_token %}
+        <input type="text" value="{{ survey.title }}" name="title" placeholder="{% trans 'Your new survey' %}"required="required" class="survey-title span9">
+    </form>
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' %}{% endblock %}
+{% block subtitle %}{% trans 'Share' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with active='share' survey=survey %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+
+        {% if object_list.count > 1 %}
+            <div class="span3">
+                {% include 'surveys/helpers/rounds-advanced.html' with survey=survey round=round rounds=object_list %}
+            </div>
+
+            <div class="span9">
+        {% else %}
+            <div class="span12">
+        {% endif %}
+
+            <h2>{% trans 'Almost done!' %}</h2>
+
+            <p>
+                {% trans 'You have several possibilities how to share your survey:' %}
+            </p>
+
+            <div class="accordion" id="share">
+                <div class="accordion-group">
+                    <div class="accordion-heading">
+                        <a class="accordion-toggle" data-toggle="collapse" data-parent="#share" href="#collapseURL">
+                            <span class="counter">1.</span> {% trans 'URL address' %}
+                        </a>
+                    </div>
+                    <div id="collapseURL" class="accordion-body collapse in">
+                        <div class="accordion-inner">
+                            <p>{% trans 'Choose URL address format you like the most.' %}</p>
+
+                            <div class="tabbable">
+                                <ul class="nav nav-tabs dark">
+                                    <li class="active">
+                                        <a href="#share-url-short-link" data-toggle="tab">{% trans 'Short link' %}</a>
+                                    </li>
+                                    <li><a href="#share-url-nice-link" data-toggle="tab">{% trans 'Nice link' %}</a></li>
+                                    <li><a href="#share-url-profile-link" data-toggle="tab">{% trans 'Profile link' %}</a></li>
+                                    {% if round.survey.round_set.all.count > 1 %}
+                                        <li><a href="#share-url-segment-specific" data-toggle="tab">{% trans 'Segment specific' %}</a></li>
+                                    {% endif %}
+                                    <li><a href="#share-url-googl" data-toggle="tab">{% trans 'Goo.gl' %}</a></li>
+                                </ul>
+
+                                <div class="tab-content">
+                                    <div id="share-url-short-link" class="tab-pane active">
+                                        <input type="text" disabled="disabled" class="input-block-level" value="{{ protocol }}{{ host }}{{ round.get_voting_url }}">
+                                    </div><!-- /.tab-pane -->
+
+                                    <div id="share-url-nice-link" class="tab-pane">
+                                        <input type="text" disabled="disabled" class="input-block-level" value="{{ protocol }}{{ host }}{{ round.get_voting_url_survey }}">
+                                    </div><!-- /.tab-pane -->
+
+                                    <div id="share-url-profile-link" class="tab-pane">
+                                        <input type="text" disabled="disabled" class="input-block-level" value="{{ protocol }}{{ host }}{{ round.get_voting_url_profile_survey }}">
+                                    </div><!-- /.tab-pane -->
+
+                                    <div id="share-url-segment-specific" class="tab-pane">
+                                        <p>
+                                            <input type="text" disabled="disabled" class="input-block-level" value="{{ protocol }}{{ host }}{{ round.get_voting_url_survey_round }}">
+                                        </p>
+                                        <input type="text" disabled="disabled" class="input-block-level" value="{{ protocol }}{{ host }}{{ round.get_voting_url_profile_survey_round }}">
+                                    </div><!-- /.tab-pane -->
+
+                                    <div id="share-url-googl" class="tab-pane">
+                                        {% with protocol|add:host|add:round.get_voting_url as link %}
+                                        <input type="text" disabled="disabled" class="input-block-level" value="{{ link|google_short_url }}">
+                                        {% endwith %}
+                                    </div><!-- /.tab-pane -->                                    
+                                </div><!-- /.tab-content -->
+                            </div><!-- /.tabbable -->
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-group">
+                    <div class="accordion-heading">
+                        <a class="accordion-toggle" data-toggle="collapse" data-parent="#share" href="#collapseQR">
+                            <span class="counter">2.</span> {% trans 'QR code' %}
+                        </a>
+                    </div>
+                    <div id="collapseQR" class="accordion-body collapse">
+                        <div class="accordion-inner center">
+                            {% with protocol|add:host|add:round.get_voting_url as link %}
+                                {{ link|qrcode:round.survey }}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-group">
+                    <div class="accordion-heading">
+                        <a class="accordion-toggle" data-toggle="collapse" data-parent="#share" href="#collapseIframe">
+                            <span class="counter">4.</span> Iframe
+                        </a>
+                    </div>
+                    <div id="collapseIframe" class="accordion-body collapse">
+                        <div class="accordion-inner">
+                            <input type="text" class="input-block-level" value='&lt;iframe src="{{ protocol }}{{ host }}{{ round.get_voting_url }}" height="100%" width="960"&gt;&lt;/iframe&gt;'>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-group">
+                    <div class="accordion-heading">
+                        <a class="accordion-toggle" data-toggle="collapse" data-parent="#share" href="#collapseLogo">
+                            <span class="counter">5.</span> Logo
+                        </a>
+                    </div>
+                    <div id="collapseLogo" class="accordion-body collapse">
+                        <div class="accordion-inner">
+                            <p>{% trans 'You can share your survey by embedding this nice logo too!' %}</p>
+                            <p><a href="{{ protocol }}{{ host }}{{ round.get_voting_url }}"><img src="{% static 'images/logo-share.png' %}"></a></p>
+                            <input type="text" class="input-block-level" value='&lt;a href="{{ protocol }}{{ host }}{{ round.get_voting_url }}"&gt;&lt;img src="{{ protocol }}{{ host }}{% static 'images/logo-share.png' %}"&gt;&lt;/a&gt;'>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-group">
+                    <div class="accordion-heading">
+                        <a class="accordion-toggle" data-toggle="collapse" data-parent="#share" href="#collapsePrint">
+                            <span class="counter">6.</span> {% trans 'Print' %}
+                        </a>
+                    </div>
+
+                    <div id="collapsePrint" class="accordion-body collapse">
+                        <div class="accordion-inner">
+                            <a href="{% url 'surveys_print' survey.pk %}" class="btn btn-primary">{% trans 'Print questions' %}</a>
+                        </div>
+                    </div>
+                </div>
+
+                {% if object_list.count < 2 %}
+                    <div class="accordion-group">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#share" href="#collapseSegments">
+                                <span class="counter">7.</span> {% trans 'Segments' %}
+                            </a>
+                        </div>
+
+                        <div id="collapseSegments" class="accordion-body collapse">
+                            <div class="accordion-inner">
+                                <p>{% trans 'Adress this one survey to different audiences!' %}</p>
+                                <p>{% trans 'You can create so called segments which will help you to separate voters in your survey statistics. It is usefull in situations when you need to summarize results of different audience groups. Each segment can be set independently. You will be able to change segment title, voting date ranges, access permission level and many other advanced settings.' %}</p>
+
+                                <a href="{% url 'surveys_create_round' survey.pk %}" class="btn btn-primary">{% trans 'Create segment' %}</a>
+                            </div>
+                        </div>
+                    </div>
+
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

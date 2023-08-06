@@ -1,0 +1,77 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n static %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'questions_index' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='advanced' %}{% endblock %}
+{% block subtitle %}{% trans 'Settings' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with survey=survey %}{% endblock %}
+{% block js %}
+    <script type="text/javascript" src="{% static 'votebase/js/ace/ace.js' %}"></script>    
+    <script type="text/javascript">
+    	$(document).ready(function() {
+			var editor = ace.edit('ace-editor');
+			var textarea = $('textarea[name="css"]');
+
+			editor.setTheme('ace/theme/chrome');
+    		editor.getSession().setMode('ace/mode/css');
+
+            $('form.css-editor').submit(function() {
+                textarea.val(editor.getSession().getValue());
+            });
+    	});        
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span3">
+            {% include 'surveys/helpers/settings_tabs.html' with active='branding' survey=survey reversed=1 %}
+
+            {% if brandingimages %}
+                <div class="sidebar-images">
+                    <div class="inner">
+                        <ul>
+                            <li class="nav-header">{% trans 'Available images' %}</li>
+                            {% for image in brandingimages %}
+                                <li>
+                                    <a href="{% url 'media' image.image.name %}" class="link">{% url 'media' image.image.name %}</a>
+                                    <a href="{% url 'surveys_settings_branding_delete_image' image.pk %}" class="delete">Delete</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div><!-- /.inner -->
+                </div><!-- /.sidebar-images -->
+            {% endif %}
+        </div>
+
+        <div class="span9">
+
+    <form method="post" action="{% url 'surveys_settings_branding' survey.pk %}" class="css-editor">
+        {% csrf_token %}
+<div id="ace-editor-wrapper">
+{% if not survey.css %}
+<div id="ace-editor">#content 											{ }
+#content .voting 									{ }
+#content .voting .control-group 					{ }
+#content .voting .control-group .control-label 		{ }
+#content .voting .control-group .controls 			{ }
+#content .voting .form-actions 						{ }
+#content .voting .form-actions input[type=submit] 	{ }</div>
+{% else %}
+<div id="ace-editor">{{ survey.css }}</div>
+{% endif %}
+</div>
+
+        <div class="hidden">
+        	{% include 'votebase/helpers/form.html' %}
+        </div>
+        <input type="submit" class="btn btn-primary">
+        <a href="{% url 'surveys_settings_branding_upload_image' survey.pk %}" class="btn">{% trans 'Upload an image' %}</a>
+    </form>
+        </div>
+    </div>
+{% endblock %}

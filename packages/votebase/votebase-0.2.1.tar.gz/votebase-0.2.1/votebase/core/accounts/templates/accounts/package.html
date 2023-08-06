@@ -1,0 +1,32 @@
+{% extends 'votebase/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'Package' %}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'surveys_index' %}" class="back">{% trans 'Back' %}</a>{% trans 'Package' %}
+{% endblock %}
+{% block body_class %}package{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="span3">
+      {% include 'accounts/helpers/sidebar.html' with active='profile' reversed=1 %}
+    </div>
+
+    <div class="span9">
+      {% include 'accounts/helpers/tabs.html' with active='package' %}
+
+        {% trans 'Your currently active package' %}: {{ request.user.get_profile.get_package_display }}<br>
+        {% trans 'Monthly fee' %}: {{ request.user.get_profile.get_monthly_fee }} {% trans 'EUR per month' %}<br>
+
+        {% if request.user.get_profile.package != request.user.get_profile.PACKAGE_BASIC %}
+            {% trans 'Valid to' %}: {{ request.user.get_profile.package_valid_to }}
+        {% endif %}
+
+        <br><br>
+        <div class="clearfix">
+            <a href="{% url 'pricing' %}" class="btn btn-primary">{% trans 'View pricing' %}</a>
+        </div>
+    </div>
+  </div>
+{% endblock %}

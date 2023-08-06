@@ -1,0 +1,60 @@
+{% extends 'votebase/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'My surveys' %}{% endblock %}
+{% block content_title %}{% trans 'My surveys' %}{% endblock %}
+{% block content_title_extra %}<a href="{% url 'surveys_create' %}" class="btn btn-success pull-right">{% trans 'Create' %}</a>{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="surveys-list span12">
+            {% if object_list %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>{% trans 'Survey title' %}</th>
+                            <th>{% trans 'Questions' %}</th>
+                            <th>{% trans 'Voters' %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for survey in object_list %}
+                        <tr>
+                            <td class="title" style="vertical-align: middle;">
+                                <a href="{% url 'questions_index' survey.pk %}">{{ survey.title }}</a>
+                            </td>
+
+                            <td style="vertical-align: middle; width: 1px;">
+                                {{ survey.question_set.all.count }}
+                            </td>
+
+                            <td class="answers" style="vertical-align: middle; width: 1px;">
+                                <strong>{{ survey.voter_set.all.count }}</strong>
+                                {% if survey.new_voters_count %}
+                                    <span> ({{ survey.new_voters_count }} {% trans 'new' %})</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="actions">
+                                <div class="btn-group btn-small">
+                                    <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="{% url 'statistics_graphs' survey.pk %}">{% trans 'Statistics' %}</a></li>
+                                        <li><a href="{% url 'questions_index' survey.pk %}">{% trans 'Questions' %}</a></li>
+                                        <li><a href="{% url 'surveys_update' survey.pk %}">{% trans 'Basic settings' %}</a></li>
+                                        <li><a href="{% url 'surveys_delete' survey.pk %}" onclick="javascript:return confirm('{% trans 'Delete survey' %} {{ survey.title }}?')">{% trans 'Delete' %}</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+            {% include 'votebase/helpers/pagination-listview.html' %}
+            {% else %}
+                {% trans "You don't have any surveys. Create some!" %}
+            {% endif%}
+        </div>
+    </div>
+{% endblock %}

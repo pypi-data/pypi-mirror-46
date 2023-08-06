@@ -1,0 +1,23 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n question_extras voter_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'statistics_voters' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='statistics' %}{% endblock %}
+
+{% block content %}
+    <div class="voting voter row">
+        <div class="span12">
+            <form action="{{ request.get_full_path }}" method="post">
+                {% csrf_token %}
+                {{ form }}
+                <div class="form-actions">
+                    <input type="submit" class="btn btn-primary pull-right" value="{% if submit_label %}{{ submit_label }}{% else %}{% trans 'Save' %}{% endif %}" />
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n voter_extras %}
+
+{% block title %}{% trans 'My voting history' %}{% endblock %}
+{% block content_title %}{% trans 'My voting history' %}{% endblock %}
+{% block content_title_extra %}{% endblock %}
+{% block subtitle %}{% endblock %}
+{% block subtitle_extra %}{% endblock %}
+
+{% block content %}
+    {% include 'votebase/helpers/tabs.html' with active='voting_history' %}
+
+    <div class="row">
+        <div class="span6">
+            <h2 class="subtitle">{% trans 'Surveys' %}</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="voters-list span12">
+            <br>
+            {% if object_list %}
+                <table class="table">
+                    <tbody>
+                        {% for voter in object_list %}
+                            <tr>
+                                <td class="title">{{ voter.round.survey.title }}</td>
+                                <td class="date">{{ voter.created }}</td>
+                                <td>{% if voter.round.survey.is_quiz %}{{ voter.quiz_result }}%{% endif %}</td>
+                                <td class="actions">
+                                    <a href="{{ voter.get_absolute_history_url }}" class="answers btn btn-primary">{% trans 'Show answers' %}</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% include 'votebase/helpers/pagination-listview.html' with page_obj=pagination.page is_paginated=pagination.is_paginated %}
+            {% else %}
+                {% trans "You haven't voted in any survey yet." %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

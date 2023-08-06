@@ -1,0 +1,18 @@
+{% load i18n %}
+
+<ul class="nav nav-list segments-list well{% if reversed %} reversed{% endif %}">
+    {% if total_url %}
+        <li class="nav-header">{% trans 'Total' %}</li>
+        <li {% if not round %}class="active"{% endif %}><a href="{% url total_url survey.pk %}">{% trans 'Summary' %}</a></li>
+    {% endif %}
+
+    <li class="nav-header">{% trans 'Segments' %}</li>
+
+    {% if not rounds %}
+        {% trans 'There is no segment in this survey. Create some.' %}
+    {% else %}
+        {% for r in rounds %}
+            <li {% if r == round %}class="active"{% endif %}><a href="{% url url r.survey.pk r.pk %}">{{ r }}</a></li>
+        {% endfor %}
+    {% endif %}
+</ul>

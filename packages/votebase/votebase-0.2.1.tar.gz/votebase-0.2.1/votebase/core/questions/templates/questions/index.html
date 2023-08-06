@@ -1,0 +1,63 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n question_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'surveys_index' %}" class="back">{% trans 'Back' %}</a>
+    <form method="post" action="{% url 'surveys_update' survey.pk %}">
+        {% csrf_token %}
+        <input type="text" value="{{ survey.title }}" name="title" placeholder="{% trans 'Your new survey' %}"required="required" class="survey-title span9">
+    </form>
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' %}{% endblock %}
+{% block subtitle %}{% trans 'Question types' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with active='questions' survey=survey %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span3">
+            {% include 'questions/helpers/kinds.html' %}
+        </div>
+
+        <div class="span9 voting" data-survey-id="{{ survey.pk }}">
+            {% if not object_list %}
+                <div class="row">
+                    <div class="span5 offset2">
+                        <div class="no-questions">
+                            <strong>{% trans 'Great!<br> Now lets create your first question.' %}</strong>
+                            <p>{% trans 'Select the element you need from the sidebar' %}</p>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="questions-list" rel="{% url 'questions_index' survey.pk %}">
+                    <form>
+                        {% for question in object_list %}
+                            {% if question.category %}
+                                <div class="category">
+                                    {{ question.category }}
+                                </div>
+                            {% endif %}
+                            <div class="question {{ question.kind|lower }}" rel="{{ question.pk }}" data-question-id="{{ question.pk }}">
+                                <div class="well">
+                                    {% get_design_form question forloop.counter %}
+                                </div>
+
+                                <div class="actions btn-group">
+                                    <a href="{{ question.get_absolute_url }}" class="edit btn btn-small">{% trans 'Edit' %}</a>
+                                    <a href="{% url 'questions_delete' question.pk %}" class="delete btn btn-small" onclick="javascript:return confirm('{% trans 'Delete question' %} {{ question.title }}?')">{% trans 'Delete' %}</a>
+                                    <a href="#" class="move btn btn-small">{% trans 'Move' %}</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="placeholder">{% trans 'Your new question will be here.' %}</div>
+                    </form>
+                </div>
+
+                <a class="btn btn-primary btn-continue" href="{% url 'questions_preview' survey.pk %}">{% trans 'Continue' %}</a>
+
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

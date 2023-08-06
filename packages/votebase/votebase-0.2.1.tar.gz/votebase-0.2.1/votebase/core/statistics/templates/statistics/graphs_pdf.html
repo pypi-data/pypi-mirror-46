@@ -1,0 +1,51 @@
+{% extends 'votebase/skeleton.html' %}
+
+{% load i18n graph_extras staticfiles %}
+
+{#Turn off responsive#}
+{% block head_css %}{% with responsive_off=1 %}{{block.super}}{% endwith %}{% endblock head_css %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block css %}<style type="text/css">a.export { display: none !important; }</style>{% endblock %}
+
+{% block skeleton %}
+    <div id="wrap">
+        {# CONTENT #}
+        <div id="content" class="container">
+
+            {# TITLE #}
+            <div class="row">
+                <div class="span12">
+                    <div class="page-header clearfix">
+                        <h1 class="pull-left">{{ survey.title }}</h1>
+                        <div class="pull-right">{% block content_title_extra %}{% endblock %}</div>
+                    </div>
+                </div>
+            </div>
+
+            {# SUBTITLE #}
+            <div class="row">
+                <div class="span6">
+                    <h2 class="subtitle">{% block subtitle %}{% trans 'Survey statistics' %}{% endblock %}</h2>
+                </div>
+            </div>
+
+            <br>
+
+            {% block content %}
+                <div class="row">
+                    <div class="span12 statistics-list">
+                        <table class="table">
+                            {{ html }}
+                        </table>
+                    </div>
+                </div>
+            {% endblock %}
+
+        </div><!-- /#content -->
+
+        {#        <div id="push"></div>#}
+    </div>
+
+{#    {% include 'votebase/helpers/footer.html' with hidden_languages=1 %}#}
+{% endblock %}
