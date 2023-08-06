@@ -1,0 +1,53 @@
+Metadata-Version: 2.1
+Name: maker-chief
+Version: 0.1.2
+Summary: tally makerdao governance votes
+Home-page: https://github.com/banteg/maker-chief
+License: MIT
+Author: banteg
+Author-email: banteeg@gmail.com
+Requires-Python: >=3.7,<4.0
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Requires-Dist: appdirs (>=1.4,<2.0)
+Requires-Dist: click (>=7.0,<8.0)
+Requires-Dist: eth-abi (>=1.3,<2.0)
+Requires-Dist: eth-utils (>=1.4,<2.0)
+Requires-Dist: requests (>=2.21,<3.0)
+Requires-Dist: web3 (>=4.9,<5.0)
+Description-Content-Type: text/markdown
+
+# maker-chief
+tally makerdao governance votes
+
+## about
+
+this tool fetches all `etch` and `vote` events from makerdao governance contract (see [ds-chief](https://github.com/dapphub/ds-chief)), tallies the votes and breaks them down by proposal and voters.
+
+it also tries to recover what proposals are doing assuming they are [ds-spell](https://github.com/dapphub/ds-spell) executed on [mom](https://github.com/makerdao/sai/blob/master/src/mom.sol) contract. functions like `setFee` can be additionally parsed to show more meaningful values.
+
+the text output format is:
+
+```
+<n>. <proposal> <votes>
+spell: <func> <desc> <args>
+  <voter> <votes>
+```
+
+the currently active proposal (`hat`) is shown in green.
+
+the json format is self-explanatory. note that the numbers are encoded as text to avoid rounding errors.
+
+## installation
+
+install python 3.7 and a local ethereum node.
+
+```bash
+pip3 install maker-chief 
+```
+
+## usage
+
+run `maker-chief` or `maker-chief --json`
+
