@@ -1,0 +1,47 @@
+Metadata-Version: 2.1
+Name: guozhi
+Version: 0.1.6
+Summary: python-iot-sdk for guozhiyun
+Home-page: https://gitee.com/cui_com/jucie-python-sdk.git
+Author: yebing
+Author-email: cui_com@qq.com
+Maintainer-email: cui_com@qq.com
+License: UNKNOWN
+Description: # jucie-python-sdk
+        
+        #### 项目介绍
+        
+        果汁云IOT的Python SDK
+        主项目:[https://gitee.com/haonan108/juice-cloud](https://gitee.com/haonan108/juice-cloud)
+        JAVA-SDK:[https://gitee.com/haonan108/juice-java-sdk](https://gitee.com/haonan108/juice-java-sdk)
+        
+        #### 安装教程
+        
+        1. 安装python环境(>2.6)
+        2. pip install guozhi
+        
+        #### 使用说明
+        
+        1. 以下可直接连接到guozhiyun平台
+        ````
+        from juice.MqttClient import MqttClient 
+        from juice.handler.extend.sensor.SoudSetHandler import SoudSetHandler
+        from juice.handler.extend.device.TempGetHandler import TempGetHandler
+        
+        get_handler_dict = {'temp': TempGetHandler()}  # 读取设备温度
+        set_handler_dict = {'soud': SoudSetHandler()}  # 设置蜂鸣器(传感器)状态
+        
+        if __name__ == '__main__':
+            # 填入产品code、设备code、密钥(需在www.guozhiyun.cn上申请)
+            mqtt = MqttClient('product_code', 'device_code', 'secret')
+            mqtt.get_message = get_handler_dict
+            mqtt.set_message = set_handler_dict
+            mqtt.init()
+        ````
+        
+        2. 扩展Handler,需要继承PropGetHandler或PropSetHandler,并实现handle方法,可参考SoudSetHandler,TempGetHandler
+        
+        
+        
+Platform: UNKNOWN
+Description-Content-Type: text/markdown
