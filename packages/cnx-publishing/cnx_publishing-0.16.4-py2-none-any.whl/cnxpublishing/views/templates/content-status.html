@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}GOB - {{ domain }}{% endblock %}
+{% block content %}
+<div class="content-status">
+  <h1>Content Status</h1>
+  <form action="/a/content-status/" method="get">
+    <div class="clearfix">
+      <div class="left text-right form-field">Status:</div>
+      <div class="left text-left form-input">
+        {% for state, state_icon in STATE_ICONS %}
+        <label><input type="checkbox" name="status_filter" {% if state in status_filters %}checked="checked"{% endif %} value="{{ state }}">
+          <i class="{{ state_icon }}"></i>
+          {{ state }}
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="clearfix">
+      <div class="left text-right form-field"><label for="latest">Latest Only:</label></div>
+      <div class="left text-left form-input">
+          <input type="checkbox" name="latest" id="latest" {%if latest_only %}checked="checked"{% endif %} value="latest">
+      </div>
+    </div>
+
+    <div class="clearfix">
+      <div class="left text-right form-field"><label for="author">Author:</label></div>
+      <div class="left text-left form-input">
+        <input type="text" name="author" id="author" value="{{ author }}">
+      </div>
+    </div>
+
+    <div class="clearfix">
+      <div class="left text-right form-field"><label for="uuid">UUID:</label></div>
+      <div class="left text-left form-input">
+        <input type="text" name="uuid" id="uuid" value="{{ uuid }}">
+      </div>
+    </div>
+
+    <div class="clearfix">
+      <div class="left text-right form-field"><label for="number">Entries Per Page:</label></div>
+      <div class="left text-left form-input">
+        <input type="number" min="1" name="number" id="number" value="{{ num_entries }}" />
+      </div>
+    </div>
+
+    <div class="clearfix">
+      <div class="left text-right form-field"><label for="page">Page:</label></div>
+      <div class="left text-left form-input">
+        <input type="number" min="1" name="page" id="page" value="{{ page }}" />
+      </div>
+    </div>
+
+    <div class="clearfix">
+      <div class="left text-right form-field"></div>
+      <div class="left text-left form-input">
+        <input type="submit" value="Filter" />
+      </div>
+    </div>
+  </form>
+
+  <p>
+  {% if states %}
+    Showing {{ start_entry + 1 }} - {{ [start_entry + num_entries, total_entries]|sort|first }} of {{ total_entries }}
+  {% else %}
+    Showing 0 - 0 of {{ total_entries }}
+  {% endif %}
+  </p>
+
+  <table>
+    <tr>
+      <th onclick='sortBooks("bpsa.created")'>Created<i class="{{sort_created}}"></i></th>
+      <th onclick='sortBooks("m.name")'>Status Link<i class="{{sort_name}}"></i></th>
+      <th>Authors</th>
+      <th onclick='sortBooks("STATE")'>State<i class="{{sort_state}}"></i></th>
+      <th>Print Style</th>
+      <th>Recipe</th>
+      <th>Link to book</th>
+      <th>Message</th>
+    </tr>
+    {% for state in states %}
+      <tr>
+        <td>{{ state.created.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>
+          <a href="{{ state.status_link }}">{{ state.title }}</a>
+        </td>
+        <td>{{ state.authors }}</td>
+        <td>
+          <i class="{{state.state_icon}}"></i> {{ state.state }}
+        </td>
+        <td>
+          {% if state.print_style %}
+          <a href={{ state.print_style_link }}>{{ state.print_style }}</a>
+          {% else %}
+          None
+          {% endif %}
+        </td>
+        <td>
+          {% if state.recipe %}
+          <a href="{{ state.recipe_link }}">{{ state.recipe_name }} ({{ state.recipe_tag }})</a>
+          {% else %}
+          None
+          {% endif %}
+        </td>
+        <td>
+          <a href="{{ state.content_link }}">{{ state.content_link }}</a>
+        </td>
+        <td>{{ state.state_message }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
+{% block script %}
+  function sortBooks(col) {
+    var new_link = "";
+    var current_url = window.location.href;
+    if (current_url.includes("sort=")) {
+      new_sort = current_url.includes("sort=" + col + "%20ASC")
+            ? "sort=" + col + " DESC"
+            : "sort=" + col + " ASC";
+      new_link = current_url.replace(/sort=[^&]*/, new_sort);
+    } else if (current_url.includes("/?")) { // no sort filter
+      new_link = current_url + "&sort=" + col + " ASC";
+    } else {  // no filters of any kind
+      new_link = current_url + "?sort=" + col + " ASC";
+    }
+    window.location.href = new_link;
+  }
+{% endblock %}
