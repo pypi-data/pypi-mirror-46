@@ -1,0 +1,43 @@
+<div class="paginator-cards responsive-container">
+    {% for obj in component.get_queryset() %}
+        <div class="l3 m2 s1">
+        <div class="cards-row" align="center">
+            <div style="border: 1px solid #ddd; border-radius: 0; padding: 10px; margin-bottom: 10px;overflow: hidden; height:280px">
+                <div>
+                     {% for verbose_name, lookup, sortable, to in component.column_names %}
+                        {% if loop.first %}
+                        <div>
+                            {{ paginator_checkboxes(component, obj, False) }}
+                            <p class="cards-title">{{ obj|getattr(lookup)|format }}</p>
+                        </div>
+                        {% else %}
+                            <p>{% if loop.index > 2 %}<strong>{{ verbose_name }}</strong>:{% endif %} {{ obj|getattr(lookup)|format }}</p>
+                            {% if loop.last %}
+                                <div class="cards-action paginator-actions">
+                                    {{ paginator_icons(component, obj, True) }}
+                                    {{ add_grouped_actions(component, obj) }}
+                                    {{ component.drop_down|safe }}
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        </div>
+    {% endfor %}
+</div>
+<style>
+    .cards-row{
+        padding-left:0;
+        margin-right: 5px;
+    }
+    .cards-title{
+        font-size: 200%;
+        font-weight: bold;
+    }
+    .cards-action a{
+        margin-top: 10px;
+    }
+</style>
+

@@ -1,0 +1,38 @@
+
+
+{% if not component.as_pdf %}
+<h2><i class="fa fa-file-text-o"></i> {{ component.title }}</h2>
+
+{{ component.form }}
+
+<div class="seperator"></div>
+
+{% if component.components %}
+    <ul class="nav nav-tabs">
+        <li class="active"
+            onclick="$('.tab-statistics, .tab-data').toggle(); $('.nav-tabs > li').toggleClass('active')"><a href="javascript:">Estatística</a></li>
+        <li onclick="$('.tab-statistics, .tab-data').toggle(); $('.nav-tabs > li').toggleClass('active')"><a href="javascript:">Dados</a></li>
+    </ul>
+{% endif %}
+
+</br>
+
+{% endif %}
+
+<div class="tab-data" style="{% if component.components %}display: none{% endif %}">
+    {% if not component.as_pdf %}
+    <div align="right">
+        <a target="_blank" href="{{ component.request.get_full_path()}}{% if component.request.META.QUERY_STRING %}&{% else %}?{% endif %}pdf={{ component.id }}">
+            <i class="fa fa-file"></i> <span>Exportar PDF</span>
+        </a>
+    </div>
+    {% endif %}
+    {{ component.table|safe }}
+</div>
+
+<div class="tab-statistics" style="display: block">
+    {% for component in component.components %}
+        {{ component|safe }}
+        <div class="seperator"></div>
+    {% endfor %}
+</div>
