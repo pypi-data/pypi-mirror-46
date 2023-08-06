@@ -1,0 +1,31 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="collective.messagesviewlet">
+
+    <includeDependencies package="." />
+
+    <i18n:registerTranslations directory="locales" />
+
+    <include package=".browser" />
+    <include file="profiles.zcml" />
+
+    <permission
+    id="collective.messagesviewlet.addMessage"
+    title="collective.messagesviewlet: Add Message"
+    />
+
+    <adapter name="start" factory=".message.start_index" />
+    <adapter name="end" factory=".message.end_index" />
+
+    <subscriber
+        for="collective.messagesviewlet.message.IMessage
+             Products.CMFCore.interfaces.IActionSucceededEvent"
+        handler=".subscribers.change_hidden_uid"
+        />
+
+
+
+</configure>
