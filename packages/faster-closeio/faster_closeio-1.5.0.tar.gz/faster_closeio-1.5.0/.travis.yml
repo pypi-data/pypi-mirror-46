@@ -1,0 +1,35 @@
+language: python
+sudo: false
+cache:
+- pip
+python:
+- '3.6'
+env:
+  global:
+  - secure: fXlEmwz4hbxQI+vSp3CRYEkz9LG0K0d8E/ubP9k8emM7fteqmJ/8F+Ry1z60N7n7eaj/xqGArX3yFEvGKuGeQh8wappnfiOor17ralD/5ZfbtfNd6L0W8I9Ec/+Fh307EkpqsMmDt7IQ9p061m+S91Q9lXkIKMBCHrttgyRPO1w=
+  matrix:
+  - DJANGO="https://github.com/django/django/archive/stable/2.0.x.tar.gz#egg=django"
+  - DJANGO="https://github.com/django/django/archive/stable/2.1.x.tar.gz#egg=django"
+  - DJANGO="https://github.com/django/django/archive/stable/1.11.x.tar.gz#egg=django"
+  - DJANGO="https://github.com/django/django/archive/master.tar.gz#egg=django"
+matrix:
+  allow_failures:
+  - env: DJANGO="https://github.com/django/django/archive/master.tar.gz#egg=django"
+install:
+- pip install -U codecov isort
+- pip install $DJANGO
+script:
+- coverage run --source=closeio setup.py test
+- isort --check-only --recursive --diff .
+after_success:
+- codecov
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  skip_existing: true
+  user: codingjoe
+  password:
+    secure: EbCAfnLxHzVgyPe/4f1w5wbgBMrEjiPw/olfaDS0kIJjNFuAuWGiqyVQaSPgLsBteD9dYUuU/O95eVy1W5tYFySTc8FEXXXI7YBTMHZN+aFQzFoBcvE6g5npvPAdUU0W53g+13wiAUI9tMFTnOf0rG585qmzMEu0NY6R2dEOtTo=
+  on:
+    tags: true
+    repo: Thermondo/closeio
