@@ -1,0 +1,964 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "STREAMING" "1" "May 13, 2019" "2.5.10" "OCI CLI Command Reference"
+.SH NAME
+streaming \- 
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH DESCRIPTION
+.sp
+The CLI for the Streaming Service.
+.SH AVAILABLE COMMANDS
+.INDENT 0.0
+.IP \(bu 2
+admin
+.INDENT 2.0
+.IP \(bu 2
+stream
+.INDENT 2.0
+.IP \(bu 2
+create
+.IP \(bu 2
+delete
+.IP \(bu 2
+get
+.IP \(bu 2
+list
+.IP \(bu 2
+update
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+stream
+.INDENT 2.0
+.IP \(bu 2
+cursor
+.INDENT 2.0
+.IP \(bu 2
+create\-cursor
+.IP \(bu 2
+create\-group\-cursor
+.UNINDENT
+.IP \(bu 2
+group
+.INDENT 2.0
+.IP \(bu 2
+commit
+.IP \(bu 2
+get
+.IP \(bu 2
+heartbeat
+.IP \(bu 2
+update
+.UNINDENT
+.IP \(bu 2
+message
+.INDENT 2.0
+.IP \(bu 2
+get
+.IP \(bu 2
+put
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS admin
+.SS Description
+.sp
+Admin operations for streaming service
+.SS Available Commands
+.INDENT 0.0
+.IP \(bu 2
+stream
+.INDENT 2.0
+.IP \(bu 2
+create
+.IP \(bu 2
+delete
+.IP \(bu 2
+get
+.IP \(bu 2
+list
+.IP \(bu 2
+update
+.UNINDENT
+.UNINDENT
+.SS stream
+.SS Description
+.sp
+Detailed representation of a stream, including all its partitions.
+.SS Available Commands
+.INDENT 0.0
+.IP \(bu 2
+create
+.IP \(bu 2
+delete
+.IP \(bu 2
+get
+.IP \(bu 2
+list
+.IP \(bu 2
+update
+.UNINDENT
+.SS create
+.SS Description
+.sp
+Starts the provisioning of a new stream. To track the progress of the provisioning, you can periodically call \fI\%GetStream\fP <\fBhttps://docs.cloud.oracle.com/api/#/en/streaming/20180418/Stream/GetStream\fP>\&. In the response, the \fIlifecycleState\fP parameter of the \fI\%Stream\fP <\fBhttps://docs.cloud.oracle.com/api/#/en/streaming/20180418/Stream/\fP> object tells you its current state.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming admin stream create [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-name [text]
+.sp
+The name of the stream. Avoid entering confidential information.
+.sp
+Example: \fITelemetryEvents\fP [required]
+.SS \-\-partitions [integer]
+.sp
+The number of partitions in the stream. [required]
+.SS \-\-compartment\-id, \-c [text]
+.sp
+The OCID of the compartment that contains the stream. [required]
+.SS \-\-retention\-in\-hours [integer]
+.sp
+The retention period of the stream, in hours. Accepted values are between 24 and 168 (7 days). If not specified, the stream will have a retention period of 24 hours.
+.SS \-\-freeform\-tags [complex type]
+.sp
+Free\-form tags for this resource. Each tag is a simple key\-value pair that is applied with no predefined name, type, or namespace. Exists for cross\-compatibility only. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/Content/General/Concepts/resourcetags.htm\fP>\&.
+.sp
+Example: \fI{"Department": "Finance"}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-defined\-tags [complex type]
+.sp
+Defined tags for this resource. Each key is predefined and scoped to a namespace. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/Content/General/Concepts/resourcetags.htm\fP>\&.
+.sp
+Example: \fI{"Operations": {"CostCenter": "42"}}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-wait\-for\-state [CREATING|ACTIVE|DELETING|DELETED|FAILED]
+.sp
+This operation creates, modifies or deletes a resource that has a defined lifecycle state. Specify this option to perform the action and then wait until the resource reaches a given lifecycle state. If timeout is reached, a return code of 2 is returned. For any other error, a return code of 1 is returned.
+.SS \-\-max\-wait\-seconds [integer]
+.sp
+The maximum time to wait for the resource to reach the lifecycle state defined by \-\-wait\-for\-state. Defaults to 1200 seconds.
+.SS \-\-wait\-interval\-seconds [integer]
+.sp
+Check every \-\-wait\-interval\-seconds to see whether the resource to see if it has reached the lifecycle state defined by \-\-wait\-for\-state. Defaults to 30 seconds.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS delete
+.SS Description
+.sp
+Deletes a stream and its content. Stream contents are deleted immediately. The service retains records of the stream itself for 90 days after deletion. The \fIlifeCycleState\fP parameter of the \fIStream\fP object changes to \fIDELETING\fP and the stream becomes inaccessible for read or write operations. To verify that a stream has been deleted, make a \fI\%GetStream\fP <\fBhttps://docs.cloud.oracle.com/api/#/en/streaming/20180418/Stream/GetStream\fP> request. If the call returns the stream\(aqs lifecycle state as \fIDELETED\fP, then the stream has been deleted. If the call returns a "404 Not Found" error, that means all records of the stream have been deleted.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming admin stream delete [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stream\-id [text]
+.sp
+The OCID of the stream to delete. [required]
+.SS \-\-force
+.sp
+Perform deletion without prompting for confirmation.
+.SS \-\-wait\-for\-state [CREATING|ACTIVE|DELETING|DELETED|FAILED]
+.sp
+This operation creates, modifies or deletes a resource that has a defined lifecycle state. Specify this option to perform the action and then wait until the resource reaches a given lifecycle state. If timeout is reached, a return code of 2 is returned. For any other error, a return code of 1 is returned.
+.SS \-\-max\-wait\-seconds [integer]
+.sp
+The maximum time to wait for the resource to reach the lifecycle state defined by \-\-wait\-for\-state. Defaults to 1200 seconds.
+.SS \-\-wait\-interval\-seconds [integer]
+.sp
+Check every \-\-wait\-interval\-seconds to see whether the resource to see if it has reached the lifecycle state defined by \-\-wait\-for\-state. Defaults to 30 seconds.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS get
+.SS Description
+.sp
+Gets detailed information about a stream, including the number of partitions.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming admin stream get [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stream\-id [text]
+.sp
+The OCID of the stream to retrieve. [required]
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS list
+.SS Description
+.sp
+Lists the streams.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming admin stream list [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-compartment\-id, \-c [text]
+.sp
+The OCID of the compartment. [required]
+.SS \-\-id [text]
+.sp
+A filter to return only resources that match the given ID exactly.
+.SS \-\-name [text]
+.sp
+A filter to return only resources that match the given name exactly.
+.SS \-\-limit [integer]
+.sp
+The maximum number of items to return. The value must be between 1 and 50. The default is 10.
+.SS \-\-page [text]
+.sp
+The page at which to start retrieving results.
+.SS \-\-sort\-by [NAME|TIMECREATED]
+.sp
+The field to sort by. You can provide no more than one sort order. By default, \fITIMECREATED\fP sorts results in descending order and \fINAME\fP sorts results in ascending order.
+.SS \-\-sort\-order [ASC|DESC]
+.sp
+The sort order to use, either \(aqasc\(aq or \(aqdesc\(aq.
+.SS \-\-lifecycle\-state [CREATING|ACTIVE|DELETING|DELETED|FAILED]
+.sp
+A filter to only return resources that match the given lifecycle state. The state value is case\-insensitive.
+.SS \-\-all
+.sp
+Fetches all pages of results. If you provide this option, then you cannot provide the \-\-limit option.
+.SS \-\-page\-size [integer]
+.sp
+When fetching results, the number of results to fetch per call. Only valid when used with \-\-all or \-\-limit, and ignored otherwise.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS update
+.SS Description
+.sp
+Updates the tags applied to the stream.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming admin stream update [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stream\-id [text]
+.sp
+The OCID of the stream to update. [required]
+.SS \-\-freeform\-tags [complex type]
+.sp
+Free\-form tags for this resource. Each tag is a simple key\-value pair that is applied with no predefined name, type, or namespace. Exists for cross\-compatibility only. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/Content/General/Concepts/resourcetags.htm\fP>\&.
+.sp
+Example: \fI{"Department": "Finance"}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-defined\-tags [complex type]
+.sp
+Defined tags for this resource. Each key is predefined and scoped to a namespace. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/Content/General/Concepts/resourcetags.htm\fP>\&.
+.sp
+Example: \fI{"Operations": {"CostCenter": "42"}}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-force
+.sp
+Perform update without prompting for confirmation.
+.SS \-\-wait\-for\-state [CREATING|ACTIVE|DELETING|DELETED|FAILED]
+.sp
+This operation creates, modifies or deletes a resource that has a defined lifecycle state. Specify this option to perform the action and then wait until the resource reaches a given lifecycle state. If timeout is reached, a return code of 2 is returned. For any other error, a return code of 1 is returned.
+.SS \-\-max\-wait\-seconds [integer]
+.sp
+The maximum time to wait for the resource to reach the lifecycle state defined by \-\-wait\-for\-state. Defaults to 1200 seconds.
+.SS \-\-wait\-interval\-seconds [integer]
+.sp
+Check every \-\-wait\-interval\-seconds to see whether the resource to see if it has reached the lifecycle state defined by \-\-wait\-for\-state. Defaults to 30 seconds.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS stream
+.SS Description
+.sp
+Stream operations
+.SS Available Commands
+.INDENT 0.0
+.IP \(bu 2
+cursor
+.INDENT 2.0
+.IP \(bu 2
+create\-cursor
+.IP \(bu 2
+create\-group\-cursor
+.UNINDENT
+.IP \(bu 2
+group
+.INDENT 2.0
+.IP \(bu 2
+commit
+.IP \(bu 2
+get
+.IP \(bu 2
+heartbeat
+.IP \(bu 2
+update
+.UNINDENT
+.IP \(bu 2
+message
+.INDENT 2.0
+.IP \(bu 2
+get
+.IP \(bu 2
+put
+.UNINDENT
+.UNINDENT
+.SS cursor
+.SS Description
+.sp
+A cursor that indicates the position in the stream from which you want to begin consuming messages and which is required by the \fI\%GetMessages\fP <\fBhttps://docs.cloud.oracle.com/api/#/en/streaming/20180418/Message/GetMessages\fP> operation.
+.SS Available Commands
+.INDENT 0.0
+.IP \(bu 2
+create\-cursor
+.IP \(bu 2
+create\-group\-cursor
+.UNINDENT
+.SS create\-cursor
+.SS Description
+.sp
+Creates a cursor. Cursors are used to consume a stream, starting from a specific point in the partition and going forward from there. You can create a cursor based on an offset, a time, the trim horizon, or the most recent message in the stream. As the oldest message inside the retention period boundary, using the trim horizon effectively lets you consume all messages in the stream. A cursor based on the most recent message allows consumption of only messages that are added to the stream after you create the cursor. Cursors expire five minutes after you receive them from the service.
+.sp
+The top level \-\-endpoint parameter must be supplied for this operation.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming stream cursor create\-cursor [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stream\-id [text]
+.sp
+The OCID of the stream to create a cursor for. [required]
+.SS \-\-partition [text]
+.sp
+The partition to get messages from. [required]
+.SS \-\-type [AFTER_OFFSET|AT_OFFSET|AT_TIME|LATEST|TRIM_HORIZON]
+.sp
+The type of cursor, which determines the starting point from which the stream will be consumed:
+.INDENT 0.0
+.IP \(bu 2
+\fIAFTER_OFFSET:\fP The partition position immediately following the offset you specify. (Offsets are assigned when you successfully append a message to a partition in a stream.) \- \fIAT_OFFSET:\fP The exact partition position indicated by the offset you specify. \- \fIAT_TIME:\fP A specific point in time. \- \fILATEST:\fP The most recent message in the partition that was added after the cursor was created. \- \fITRIM_HORIZON:\fP The oldest message in the partition that is within the retention period window. [required]
+.UNINDENT
+.SS \-\-offset [integer]
+.sp
+The offset to consume from if the cursor type is \fIAT_OFFSET\fP or \fIAFTER_OFFSET\fP\&.
+.SS \-\-time [datetime]
+.sp
+The time to consume from if the cursor type is \fIAT_TIME\fP, expressed in \fI\%RFC 3339\fP <\fBhttps://tools.ietf.org/rfc/rfc3339\fP> timestamp format.
+.sp
+The following datetime formats are supported:
+.SS UTC with milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ss.sssTZD
+.sp
+Example: 2017\-09\-15T20:30:00.123Z
+.SS UTC without milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example: 2017\-09\-15T20:30:00Z
+.SS UTC with minute precision
+.sp
+Format: YYYY\-MM\-DDTHH:mmTZD
+.sp
+Example: 2017\-09\-15T20:30Z
+.SS Timezone with milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example:
+2017\-09\-15T12:30:00.456\-08:00,
+2017\-09\-15T12:30:00.456\-0800
+.SS Timezone without milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example:
+2017\-09\-15T12:30:00\-08:00,
+2017\-09\-15T12:30:00\-0800
+.SS Timezone with minute precision
+.sp
+Format: YYYY\-MM\-DDTHH:mmTZD
+.sp
+Example:
+2017\-09\-15T12:30\-08:00,
+2017\-09\-15T12:30\-0800
+.SS Short date and time
+.sp
+The timezone for this date and time will be taken as UTC (Needs to be surrounded by single or double quotes)
+Format: \(aqYYYY\-MM\-DD HH:mm\(aq or "YYYY\-MM\-DD HH:mm"
+Example: \(aq2017\-09\-15 17:25\(aq
+.SS Date Only
+.sp
+This date will be taken as midnight UTC of that day
+.sp
+Format: YYYY\-MM\-DD
+.sp
+Example: 2017\-09\-15
+.SS Epoch seconds
+.sp
+Example: 1412195400
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS create\-group\-cursor
+.SS Description
+.sp
+Creates a group\-cursor.
+.sp
+The top level \-\-endpoint parameter must be supplied for this operation.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming stream cursor create\-group\-cursor [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stream\-id [text]
+.sp
+The OCID of the stream to create a cursor for. [required]
+.SS \-\-type [AT_TIME|LATEST|TRIM_HORIZON]
+.sp
+The type of the cursor. This value is only used when the group is created. [required]
+.SS \-\-group\-name [text]
+.sp
+Name of the consumer group. [required]
+.SS \-\-time [datetime]
+.sp
+The time to consume from if type is AT_TIME.
+.sp
+The following datetime formats are supported:
+.SS UTC with milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ss.sssTZD
+.sp
+Example: 2017\-09\-15T20:30:00.123Z
+.SS UTC without milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example: 2017\-09\-15T20:30:00Z
+.SS UTC with minute precision
+.sp
+Format: YYYY\-MM\-DDTHH:mmTZD
+.sp
+Example: 2017\-09\-15T20:30Z
+.SS Timezone with milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example:
+2017\-09\-15T12:30:00.456\-08:00,
+2017\-09\-15T12:30:00.456\-0800
+.SS Timezone without milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example:
+2017\-09\-15T12:30:00\-08:00,
+2017\-09\-15T12:30:00\-0800
+.SS Timezone with minute precision
+.sp
+Format: YYYY\-MM\-DDTHH:mmTZD
+.sp
+Example:
+2017\-09\-15T12:30\-08:00,
+2017\-09\-15T12:30\-0800
+.SS Short date and time
+.sp
+The timezone for this date and time will be taken as UTC (Needs to be surrounded by single or double quotes)
+Format: \(aqYYYY\-MM\-DD HH:mm\(aq or "YYYY\-MM\-DD HH:mm"
+Example: \(aq2017\-09\-15 17:25\(aq
+.SS Date Only
+.sp
+This date will be taken as midnight UTC of that day
+.sp
+Format: YYYY\-MM\-DD
+.sp
+Example: 2017\-09\-15
+.SS Epoch seconds
+.sp
+Example: 1412195400
+.SS \-\-instance\-name [text]
+.sp
+A unique identifier for the instance joining the consumer group. If an instanceName is not provided, a UUID will be generated and used.
+.SS \-\-timeout\-in\-ms [integer]
+.sp
+The amount of a consumer instance inactivity time, before partition reservations are released.
+.SS \-\-commit\-on\-get [boolean]
+.sp
+When using consumer\-groups, the default commit\-on\-get behaviour can be overriden by setting this value to false. If disabled, a consumer must manually commit their cursors.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS group
+.SS Description
+.sp
+Represents the current state of a consumer group, including partition reservations and committed offsets.
+.SS Available Commands
+.INDENT 0.0
+.IP \(bu 2
+commit
+.IP \(bu 2
+get
+.IP \(bu 2
+heartbeat
+.IP \(bu 2
+update
+.UNINDENT
+.SS commit
+.SS Description
+.sp
+Provides a mechanism to manually commit offsets, if not using commit\-on\-get consumer semantics. This commits offsets assicated with the provided cursor, extends the timeout on each of the affected partitions, and returns an updated cursor.
+.sp
+The top level \-\-endpoint parameter must be supplied for this operation.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming stream group commit [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stream\-id [text]
+.sp
+The OCID of the stream for which the group is committing offsets. [required]
+.SS \-\-cursor [text]
+.sp
+The group\-cursor representing the offsets of the group. This cursor is retrieved from the CreateGroupCursor API call. [required]
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS get
+.SS Description
+.sp
+Returns the current state of a consumer group.
+.sp
+The top level \-\-endpoint parameter must be supplied for this operation.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming stream group get [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stream\-id [text]
+.sp
+The OCID of the stream, on which the group is operating. [required]
+.SS \-\-group\-name [text]
+.sp
+The name of the consumer group. [required]
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS heartbeat
+.SS Description
+.sp
+Allows long\-running processes to extend the timeout on partitions reserved by a consumer instance.
+.sp
+The top level \-\-endpoint parameter must be supplied for this operation.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming stream group heartbeat [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stream\-id [text]
+.sp
+The OCID of the stream for which the group is committing offsets. [required]
+.SS \-\-cursor [text]
+.sp
+The group\-cursor representing the offsets of the group. This cursor is retrieved from the CreateGroupCursor API call. [required]
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS update
+.SS Description
+.sp
+Forcefully changes the current location of a group as a whole; reseting processing location of all consumers to a particular location in the stream.
+.sp
+The top level \-\-endpoint parameter must be supplied for this operation.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming stream group update [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stream\-id [text]
+.sp
+The OCID of the stream, on which the group is operating. [required]
+.SS \-\-group\-name [text]
+.sp
+The name of the consumer group. [required]
+.SS \-\-type [AT_TIME|LATEST|TRIM_HORIZON]
+.sp
+The type of the cursor.
+.SS \-\-time [datetime]
+.sp
+The time to consume from if type is AT_TIME.
+.sp
+The following datetime formats are supported:
+.SS UTC with milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ss.sssTZD
+.sp
+Example: 2017\-09\-15T20:30:00.123Z
+.SS UTC without milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example: 2017\-09\-15T20:30:00Z
+.SS UTC with minute precision
+.sp
+Format: YYYY\-MM\-DDTHH:mmTZD
+.sp
+Example: 2017\-09\-15T20:30Z
+.SS Timezone with milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example:
+2017\-09\-15T12:30:00.456\-08:00,
+2017\-09\-15T12:30:00.456\-0800
+.SS Timezone without milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example:
+2017\-09\-15T12:30:00\-08:00,
+2017\-09\-15T12:30:00\-0800
+.SS Timezone with minute precision
+.sp
+Format: YYYY\-MM\-DDTHH:mmTZD
+.sp
+Example:
+2017\-09\-15T12:30\-08:00,
+2017\-09\-15T12:30\-0800
+.SS Short date and time
+.sp
+The timezone for this date and time will be taken as UTC (Needs to be surrounded by single or double quotes)
+Format: \(aqYYYY\-MM\-DD HH:mm\(aq or "YYYY\-MM\-DD HH:mm"
+Example: \(aq2017\-09\-15 17:25\(aq
+.SS Date Only
+.sp
+This date will be taken as midnight UTC of that day
+.sp
+Format: YYYY\-MM\-DD
+.sp
+Example: 2017\-09\-15
+.SS Epoch seconds
+.sp
+Example: 1412195400
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS message
+.SS Description
+.sp
+A message in a stream.
+.SS Available Commands
+.INDENT 0.0
+.IP \(bu 2
+get
+.IP \(bu 2
+put
+.UNINDENT
+.SS get
+.SS Description
+.sp
+Returns messages from the specified stream using the specified cursor as the starting point for consumption. By default, the number of messages returned is undefined, but the service returns as many as possible. To get messages, you must first obtain a cursor using the \fI\%CreateCursor\fP <\fBhttps://docs.cloud.oracle.com/api/#/en/streaming/20180418/Cursor/CreateCursor\fP> operation. In the response, retrieve the value of the \(aqopc\-next\-cursor\(aq header to pass as a parameter to get the next batch of messages in the stream.
+.sp
+The top level \-\-endpoint parameter must be supplied for this operation.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming stream message get [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stream\-id [text]
+.sp
+The OCID of the stream to get messages from. [required]
+.SS \-\-cursor [text]
+.sp
+The cursor used to consume the stream. [required]
+.SS \-\-limit [integer]
+.sp
+The maximum number of messages to return. You can specify any value up to 10000. By default, the service returns as many messages as possible. Consider your average message size to help avoid exceeding throughput on the stream.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS put
+.SS Description
+.sp
+Emits messages to a stream. There\(aqs no limit to the number of messages in a request, but the total size of a message or request must be 1 MiB or less. The service calculates the partition ID from the message key and stores messages that share a key on the same partition. If a message does not contain a key or if the key is null, the service generates a message key for you. The partition ID cannot be passed as a parameter.
+.sp
+The top level \-\-endpoint parameter must be supplied for this operation.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci streaming stream message put [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stream\-id [text]
+.sp
+The OCID of the stream where you want to put messages. [required]
+.SS \-\-messages [complex type]
+.sp
+The array of messages to put into a stream.
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.INDENT 0.0
+.INDENT 3.5
+[required]
+.UNINDENT
+.UNINDENT
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SH AUTHOR
+Oracle
+.SH COPYRIGHT
+2016, 2019, Oracle
+.\" Generated by docutils manpage writer.
+.
