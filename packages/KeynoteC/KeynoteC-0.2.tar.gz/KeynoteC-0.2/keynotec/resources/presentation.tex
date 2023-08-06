@@ -1,0 +1,199 @@
+\documentclass[aspectratio=169,14pt,usenames,dvipsnames]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{fontspec}
+\usepackage{enumitem}
+\usepackage{calc}
+\usepackage{listings}
+
+\usepackage{datetime}
+\newcommand\builddate{%
+   \ifcase \month%
+        \or Janeiro%
+        \or Fevereiro%
+        \or Março%
+        \or Abril%
+        \or Maio%
+        \or Junho%
+        \or Julho%
+        \or Agosto%
+        \or Setembro%
+        \or Outubro%
+        \or Novembro%
+        \or Dezembro%
+    \fi\space\number\year%
+}
+
+% --- beamer templates
+
+\newcommand{\rightpagenumber}[0]{
+    \vspace{6pt}%
+    \hspace*{\fill}%
+    \usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \insertpagenumber%
+    \hspace{4pt}%
+    \vspace{6pt}%
+}
+\newcommand{\centerpagenumber}[0]{
+    \vspace{6pt}%
+    \hspace*{\fill}%
+    \usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \insertpagenumber%
+    \hspace*{\fill}%
+    \vspace{6pt}%
+}
+\newcommand{\leftpagenumber}[0]{
+    \vspace{6pt}%
+    \hspace{4pt}%
+    \usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \insertpagenumber%
+    \vspace{6pt}%
+}
+\defbeamertemplate{headline}{left page number}{\leftpagenumber}
+\defbeamertemplate{footline}{left page number}{\leftpagenumber}
+\defbeamertemplate{headline}{right page number}{\rightpagenumber}
+\defbeamertemplate{footline}{right page number}{\rightpagenumber}
+\defbeamertemplate{headline}{center page number}{\centerpagenumber}
+\defbeamertemplate{footline}{center page number}{\centerpagenumber}
+
+% --- commands
+
+\newcommand{\loadtheme}[1]{%
+    \input{themes/#1}%
+}
+\newcommand{\presentationlanguage}[1]{%
+    \usepackage[#1]{babel}%
+}
+
+% Configura a apresentação para ser executada em tela cheia.
+\newcommand{\setfullscreen}{\hypersetup{pdfpagemode=FullScreen}}
+
+% Hide beamer navigation simbols
+\beamertemplatenavigationsymbolsempty
+
+%
+% Standard frames
+%
+
+% coverframe
+\newcommand{\coverframe}{%
+    \begin{frame} %
+        \titlepage %
+    \end{frame} %
+}
+
+% finalframe{email}
+\newcommand{\finalframe}[2][Thank you!]{%
+    \begin{frame}%
+        \begin{flushright}%
+            \huge \textbf{#1}%
+            \vfill%
+            \large \textbf{#2}%
+        \end{flushright}%
+    \end{frame}%
+}
+
+% bigtitle{title}
+\newcommand{\bigtitle}[1]{%
+    \begin{frame}%
+        \begin{center}%
+            \Huge {#1}%
+        \end{center}%
+    \end{frame}%
+}
+
+% citation{cite}{author}
+\renewcommand{\citation}[2]{%
+    \begin{frame}%
+        \begin{center}%
+            \vspace{1cm}
+            \large \textit{"#1"}\\%
+            \vspace{1cm}
+            \footnotesize {#2}%
+        \end{center}%
+    \end{frame}%
+}
+
+% bigimage{file}
+\newcommand{\bigimage}[2][1.0]{%
+    {%
+        %\usebackgroundtemplate{}%
+        \begin{frame}%
+            {%
+            \makebox[\textwidth][c]{%
+              \includegraphics[height=#1\paperheight, width=#1\paperwidth,%
+                               keepaspectratio]{#2}%
+              }%
+            }%
+        \end{frame}%
+    }%
+}
+
+% twoimages{file}{file}
+\newcommand{\twoimages}[2]{%
+    {%
+        \begin{frame}%
+            \begin{columns}%
+                \begin{column}{0.45\paperwidth}%
+                    {%
+                    \makebox[0.45\paperwidth][c]{%
+                      \includegraphics[height=0.99\paperheight, width=0.45\paperwidth,%
+                                       keepaspectratio]{#1}%
+                      }%
+                    }%
+                \end{column}%
+                \begin{column}{0.45\paperwidth}%
+                    {%
+                    \makebox[0.45\paperwidth][c]{%
+                      \includegraphics[height=0.99\paperheight, width=0.45\paperwidth,%
+                                       keepaspectratio]{#2}%
+                      }%
+                    }%
+                \end{column}%
+            \end{columns}%
+        \end{frame}%
+    }%
+}
+
+% fourimages{file}{file}
+\newcommand{\fourimages}[4]{%
+    {%
+        \begin{frame}%
+            \begin{columns}%
+                \begin{column}{0.45\paperwidth}%
+                    {%
+                    \makebox[0.45\paperwidth][c]{%
+                      \includegraphics[height=0.45\paperheight, width=0.45\paperwidth,%
+                                       keepaspectratio]{#1}%
+                      }%
+                    }%
+                    \vspace{0.05\paperheight}
+                    {%
+                    \makebox[0.45\paperwidth][c]{%
+                      \includegraphics[height=0.45\paperheight, width=0.45\paperwidth,%
+                                       keepaspectratio]{#2}%
+                      }%
+                    }%
+                \end{column}%
+                \begin{column}{0.45\paperwidth}%
+                    {%
+                    \makebox[0.45\paperwidth][c]{%
+                      \includegraphics[height=0.45\paperheight, width=0.45\paperwidth,%
+                                       keepaspectratio]{#3}%
+                      }%
+                      \vspace{0.05\paperheight}
+                      {%
+                      \makebox[0.45\paperwidth][c]{%
+                        \includegraphics[height=0.45\paperheight, width=0.45\paperwidth,%
+                                         keepaspectratio]{#4}%
+                        }%
+                      }%
+                    }%
+                \end{column}%
+            \end{columns}%
+        \end{frame}%
+    }%
+}
