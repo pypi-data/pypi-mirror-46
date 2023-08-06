@@ -1,0 +1,85 @@
+Metadata-Version: 2.1
+Name: ec4sap-client
+Version: 0.1.4
+Summary: EC4SAP Python Client
+Home-page: https://gitlab.swisscloud.io/itclouds/ec4sap-python-client
+Author: Christian Werder
+Author-email: christian.werder@swisscom.com
+License: Apache License 2.0
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Programming Language :: Python :: 2.7
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+Requires-Dist: requests (>=2.0.0)
+Requires-Dist: requests-oauthlib (>=0.4.2)
+Requires-Dist: abiquo-api (>=0.1.14)
+
+# EC4SAP Python Client
+
+
+## Summary
+
+This Python client provides an API to access the Swisscom EC4SAP environment in an easy way. It is written in Python 2.7 (a port to Python 3 will follow later). The API is based on the Python client provided by Abiquo.
+
+GIT Repositories: 
+
+* https://gitlab.swisscloud.io/itclouds/ec4sap-python-client
+* https://github.com/abiquo/api-python-client
+
+## Get started
+
+1. Install EC4SAP client with 'pip install ec4sap-client' - for the cli you will need to install globally (sudo)
+3. Adapt the config (see below)
+4. Write some code, have fun
+
+##### Example 1: get all VMs accessable by the current user and export it as a .csv (no admin rights needed)
+
+```python
+from ec4sap import config
+from ec4sap.abiquo_api import *
+from ec4sap.abiquo_env import *
+env = ABIQUO_ENV("int")
+vm = ABQ_VM(env).scanAllTenant(keys=config.CSV_FORMAT_VM)
+print vm.csvHeader()
+for i in range(vm.count()): print vm.csvRow(i)
+```
+
+## Setup an environment
+The
+EC4SAP Python Client uses OAuth1 to authenticate your client in Abiquo. Compared to Oauth2, which is used by the portal to authenticate an user, these credentials are stored fix in the user context of of Abiquo and do not expire. To use the client it is neccessary to register the Application in your EC4SAP user context. This will be made via console (see below).
+
+First you need an active OAuth2 Token (Authentication Bearer) - this is the hardest part of the job:
+1. Login to your desired EC4SAP Environment (DEV/INT/PRD)
+2. Open the Developer Console of your browser (F12 on Chrome)
+3. Search for a MOS enabled VM
+4. Select the "Virtual Machine Services" in the context menu of the VM
+5. Search for the Parameter "Authorization: Bearer ..." in the Request Header of the CMS-Orch API Request (e.q. ".../Folders?...")
+
+With this token you are now able to Register your application in Abiquo and generate a set of OAuth1 tokens:
+1. Start the EC4SAP Console (console.py)
+2. Set the desired Environment (most probably prd and/or int)
+
+```bash
+>>> set env int
+```
+
+3. Register your application (name e.q. MyApp is free choosable)
+
+```bash
+>>> reg MyApp 43ee89a5-049d-4f39-b66a-6b72df75a89d
+OK: Registration of application MyApp successful
+
+Application Name   : MyApp
+Application Key    : 123-456-789
+Application Secret : xxxxxxxxxxxxxxxxx
+Acess Token        : abc-def-ghi
+Access Secret      : xxxxxxxxxxxxxxxxx
+```
+
+4. The tokens are now stored locally and your EC4SAP Client is ready. If you need more than one environmemnt you can start over at Nr.1
+
+
