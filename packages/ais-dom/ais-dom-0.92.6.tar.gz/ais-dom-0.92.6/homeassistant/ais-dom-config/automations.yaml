@@ -1,0 +1,385 @@
+- id: '201807081853001'
+  alias: 'Asystent domowy Witamy'
+  initial_state: True
+  trigger:
+  - event: start
+    platform: homeassistant
+  action:
+   - service: frontend.set_theme
+     data:
+       name: ais
+   - delay: '3'
+   - service: ais_ai_service.publish_command_to_frame
+     data:
+       key: relaunch
+       val: true
+       ip: 127.0.0.1
+   - service: ais_cloud.get_players
+     data: {}
+   - delay: '3'
+   - service: ais_shell_command.init_local_sdcard
+   - service: ais_ai_service.publish_command_to_frame
+     data:
+       key: setupStorageSymlinks
+       val: true
+       ip: 127.0.0.1
+   - service: ais_shell_command.set_ais_secure_android_id_dom
+   - delay: '3'
+   - service: camera.turn_on
+     data:
+       entity_id: camera.remote_access
+   - delay: '3'
+   - service: ais_drives_service.refresh_files
+   - delay: '1'
+   - service: ais_ai_service.welcome_home
+   - delay: '1'
+   - service: ais_bookmarks.get_favorites
+   - delay: '1'
+   - service: ais_bookmarks.get_bookmarks
+   - delay: '1'
+   - service: ais_cloud.get_radio_types
+   - delay: '1'
+   - service: ais_cloud.get_podcast_types
+   - delay: '1'
+   - service: ais_cloud.get_rss_news_category
+   - service: ais_yt_service.search
+   - service: ais_spotify_service.search
+   - delay: '3'
+   - service: ais_ai_service.prepare_remote_menu
+   - service: ais_ai_service.check_local_ip
+   - service: ais_ai_service.publish_command_to_frame
+     data:
+       key: WifiConnectionInfo
+       val: true
+       ip: 127.0.0.1
+   - delay: '5'
+   - service: mqtt.publish
+     data:
+       payload: 1
+       topic: dom/cmnd/SetOption19
+   - delay: '5'
+   - service: mqtt.publish
+     data:
+       payload: 0
+       topic: dom/cmnd/state
+   - service: ais_shell_command.change_remote_access
+   - service: camera.snapshot
+     data:
+       entity_id: camera.remote_access
+       filename: "/data/data/pl.sviete.dom/files/home/AIS/dom_access_code.png"
+   - delay: '60'
+   - service: ais_ai_service.prepare_remote_menu
+   - delay: '300'
+   - service: ais_updater.check_version
+
+- id: '201807081853002'
+  alias: 'Keyboard Command Received'
+  initial_state: True
+  hide_entity: true
+  trigger:
+    platform: event
+    event_type: keyboard_remote_command_received
+  action:
+    - service: ais_ai_service.process_code
+      data_template:
+        code: '{{ trigger.event.data[''code''] }}'
+
+- id: '201807081853003'
+  alias: 'Command Message Received'
+  initial_state: True
+  hide_entity: true
+  trigger:
+    platform: event
+    event_type: speech_text_received
+  action:
+    - service: ais_ai_service.process
+      data_template:
+        text: '{{ trigger.event.data[''text''] }}'
+
+- id: '201807081853004'
+  alias: 'Command Message Received MQTT'
+  initial_state: True
+  hide_entity: true
+  trigger:
+    platform: mqtt
+    topic: ais/speech_command
+  action:
+    - service: ais_ai_service.process
+      data_template:
+        text: '{{ trigger.payload }}'
+
+- id: '201807081853005'
+  alias: 'Button Event Received MQTT'
+  initial_state: True
+  hide_entity: true
+  trigger:
+    platform: mqtt
+    topic: ais/key_command
+  action:
+    - service: ais_ai_service.process_code
+      data_template:
+        text: '{{ trigger.payload }}'
+
+- id: '201807081858006'
+  alias: 'Get RSS Help Items For Selected Topic'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.ais_rss_help_topic
+  action:
+    - service: ais_cloud.select_rss_help_item
+      data_template:
+        rss_help_topic: "{{ states('input_select.ais_rss_help_topic') }}"
+
+- id: '201807081858007'
+  alias: 'Get Books'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.book_autor
+  action:
+    - service: ais_gm_service.get_books
+      data_template:
+        author: "{{ states('input_select.book_autor') }}"
+
+- id: '201807081858008'
+  alias: 'Get Chapters'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.book_name
+  action:
+    - service: ais_gm_service.get_chapters
+      data_template:
+        book: "{{ states('input_select.book_name') }}"
+
+- id: '201807081858009'
+  alias: 'Select Book Chapter'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.book_chapter
+  action:
+      service: ais_gm_service.select_chapter
+      data_template:
+        book_chapter: "{{ states('input_select.book_chapter') }}"
+
+- id: '201807081905011'
+  alias: 'Ask The Question'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_text.ais_knowledge_query
+  condition:
+    condition: template
+    value_template: "{{ states.input_text.ais_knowledge_query.state != '' }}"
+  action:
+    - service: ais_ai_service.process
+      data_template:
+        text: "{{ states('input_text.ais_knowledge_query') }}"
+
+- id: '201807081905012'
+  alias: 'Search YouTube Tracks'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_text.ais_music_query
+  action:
+    - service: ais_yt_service.search
+      data_template:
+        query: "{{ states('input_text.ais_music_query') }}"
+
+- id: '2018070819050123'
+  alias: 'Search Spotify Tracks'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_text.ais_spotify_query
+  action:
+    - service: ais_spotify_service.search
+      data_template:
+        query: "{{ states('input_text.ais_spotify_query') }}"
+
+- id: '201807081916015'
+  alias: 'Get RSS News Channels'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.rss_news_category
+  action:
+    - service: ais_cloud.get_rss_news_channels
+      data_template:
+        rss_news_category: "{{ states('input_select.rss_news_category') }}"
+
+- id: '201807081916016'
+  alias: 'Get RSS News Items'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.rss_news_channel
+  action:
+    - service: ais_cloud.get_rss_news_items
+      data_template:
+        rss_news_channel: "{{ states('input_select.rss_news_channel') }}"
+
+- id: '201807081919019'
+  alias: 'Get Podcast Names'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.podcast_type
+  action:
+    - service: ais_cloud.get_podcast_names
+      data_template:
+        podcast_type: "{{ states('input_select.podcast_type') }}"
+
+- id: '201807081923022'
+  alias: 'Get Radio Names'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.radio_type
+  action:
+    - service: ais_cloud.get_radio_names
+      data_template:
+        radio_type: "{{ states('input_select.radio_type') }}"
+
+- id: '201807081923024'
+  alias: 'Select Radio Player'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.radio_player
+  action:
+    - service: ais_cloud.select_media_player
+      data_template:
+        media_player_type: "Radio"
+
+- id: '201807081923025'
+  alias: 'Change Player Speed'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_number.media_player_speed
+  action:
+    - service: ais_ai_service.publish_command_to_frame
+      data_template:
+        key: "setPlaybackSpeed"
+        val: "{{ states('input_number.media_player_speed') }}"
+
+- id: '201808231617123'
+  alias: 'Select Device To Add'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.ais_iot_devices_in_network
+  condition:
+    condition: template
+    value_template: "{{ states.input_select.ais_iot_devices_in_network.state != '-' }}"
+  action:
+    - service: ais_ai_service.on_new_iot_device_selection
+      data_template:
+        iot: "{{ states('input_select.ais_iot_devices_in_network') }}"
+
+- id: '201809171610123'
+  alias: 'Select Bookmark To Play'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.ais_bookmark_last_played
+  condition:
+    condition: template
+    value_template: "{{ states.input_select.ais_bookmark_last_played.state != '-' }}"
+  action:
+    - service: ais_bookmarks.play_bookmark
+      data_template:
+        bookmark: "{{ states('input_select.ais_bookmark_last_played') }}"
+
+- id: '201809291519123'
+  alias: 'Flush logs'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: time
+    at: '21:35:00'
+  action:
+    - service: ais_shell_command.flush_logs
+
+- id: '201809061229123'
+  alias: 'Add a bookmark'
+  initial_state: True
+  hide_entity: true
+  trigger:
+    platform: event
+    event_type: add_a_bookmark
+  action:
+    - delay: '1'
+    - service: mqtt.publish
+      data:
+        payload: 0
+        topic: cmnd/dom/status
+
+- id: '20181205122942123'
+  alias: 'Execute process command web hook'
+  initial_state: True
+  hide_entity: true
+  trigger:
+     platform: webhook
+     webhook_id: aisdomprocesscommandfromframe
+  action:
+    - service: ais_ai_service.process_command_from_frame
+      data_template:
+        web_hook_json: '{{ trigger.json }}'
+
+- id: '201901210208123'
+  alias: 'Select Wifi Network'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_select.ais_android_wifi_network
+  action:
+    - service: input_text.set_value
+      data_template:
+        entity_id: input_text.ais_android_wifi_password
+        value: ""
+
+- id: '201902030742123'
+  alias: 'Change remote web access'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: state
+    entity_id: input_boolean.ais_remote_access
+  action:
+    - service: ais_shell_command.change_remote_access
+
+- id: '201994281100123'
+  alias: 'Discovery info to dom devices'
+  initial_state: True
+  hide_entity: True
+  trigger:
+    platform: time_pattern
+    minutes: '/30'
+  action:
+    - service: mqtt.publish
+      data:
+        payload: 1
+        topic: dom/cmnd/SetOption19
+    - delay: '10'
+    - service: ais_ai_service.prepare_remote_menu

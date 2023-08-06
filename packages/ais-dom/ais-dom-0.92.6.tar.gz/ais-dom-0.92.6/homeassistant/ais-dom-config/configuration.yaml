@@ -1,0 +1,131 @@
+homeassistant:
+  name: Asystent domowy
+  unit_system: metric
+  time_zone: Europe/Warsaw
+  latitude: 52.298519
+  longitude: 20.838871
+  elevation: 134
+  customize: !include customize.yaml
+  packages: !include_dir_named ais_packages/
+  auth_providers:
+  - type: trusted_networks
+    trusted_networks:
+    - 127.0.0.1
+    - 0.0.0.0/0
+  - type: homeassistant
+  - type: legacy_api_password
+    api_password: dom
+  whitelist_external_dirs:
+  - /data/data/pl.sviete.dom/files/home/AIS/
+
+#
+system_health:
+
+# Track the sun
+sun:
+
+# ais-dom cloud functionality
+ais_cloud:
+#ais_cloud_sync:
+ais_ai_service:
+ais_knowledge_service:
+ais_shell_command:
+ais_yt_service:
+ais_updater:
+  include_used_components: false
+ais_drives_service:
+conversation:
+
+# Show links to resources in log and frontend
+introduction:
+
+
+# for restore_state on input_select (radio stations etc.)
+recorder:
+  purge_keep_days: 3
+  exclude:
+    entities:
+      - sensor.time
+      - sensor.ais_drives
+      - input_select.radio_type
+      - input_select.radio_player
+      - input_select.podcast_type
+      - input_select.rss_news_category
+      - input_select.rss_news_channel
+      - input_select.book_autor
+      - input_select.book_name
+      - input_select.book_chapter
+      - sensor.radiolist
+      - sensor.podcastlist
+      - sensor.youtubelist
+      - sensor.spotifysearchlist
+      - sensor.spotifylist
+      - sensor.rssnewslist
+      - sensor.podcastnamelist
+    domains:
+      - mqtt
+history:
+  exclude:
+    entities:
+      - sensor.time
+      - sensor.ais_drives
+      - input_select.radio_type
+      - input_select.radio_player
+      - input_select.podcast_type
+      - input_select.podcast_name
+      - input_select.rss_news_category
+      - input_select.rss_news_channel
+      - input_select.book_autor
+      - input_select.book_name
+      - input_select.book_chapter
+      - sensor.radiolist
+      - sensor.podcastlist
+      - sensor.youtubelist
+      - sensor.spotifysearchlist
+      - sensor.spotifylist
+      - sensor.rssnewslist
+      - sensor.podcastnamelist
+    domains:
+      - mqtt
+media_extractor:
+
+# Enables the frontend
+frontend:
+  # development_repo: /home/andrzej/Projects/AIS-home-assistant-polymer
+  javascript_version: latest
+  themes: !include_dir_merge_named themes
+
+
+# Enables configuration UI
+config:
+
+http:
+   api_password: dom
+   base_url: localhost:8180
+   server_port: 8180
+   #ssl_certificate: /data/data/pl.sviete.dom/files/home/AIS/servercert.pem
+   #ssl_key: /data/data/pl.sviete.dom/files/home/AIS/privekey.pem
+
+
+
+# AIS Service for AI
+# Allows you to issue voice commands
+mqtt: !include mqtt.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml
+
+# bookmarks and favorites
+ais_bookmarks:
+
+# set up Zeroconf and make AIS dom discoverable
+ais_mdns:
+
+#
+# ais_gm_service:
+
+#
+ais_spotify_service:
+
+#
+tts:
+  - platform: ais_tts

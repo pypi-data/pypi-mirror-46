@@ -1,0 +1,105 @@
+sensor:
+  - platform: template
+    sensors:
+      ais_connect_iot_device_info:
+        value_template: "Podłącz urządzenie do prądu. Upewnij się, że urządzenie znajduje się w zasięgu routera WiFi oraz bramki AIS dom.
+                         Żeby uruchomić tryb parowania naciśnij szybko 4 razy przycisk na urządzeniu i poczkaj aż jego dioda zacznie mrugać."
+      ais_android_wifi_current_network_info:
+        value_template: "Brak informacji o połączeniu WiFi"
+
+  - platform: mqtt
+    name: local_host_name
+    state_topic: ais/local_host_name/sensor
+  - platform: mqtt
+    name: internal_ip_address
+    state_topic: ais/internal_ip_address/sensor
+weblink:
+  entities:
+    - name: cloud
+      url: https://powiedz.co/ords/f?p=1000:101
+      icon: mdi:open-in-new
+
+input_text:
+  ais_android_wifi_password:
+    name: "Podaj hasło do Wifi (jeśli pierwszy raz łączysz się z tego urządzenia z wybraną siecią):"
+    mode: password
+    initial: ""
+    icon: mdi:textbox-password
+  ais_iot_device_wifi_password:
+    name: "Podaj hasło do Wifi:"
+    mode: password
+    initial: ""
+    icon: mdi:textbox-password
+  ais_iot_device_name:
+    name: "Podaj nazwę dla nowego urządzenia:"
+    initial: ""
+input_select:
+  ais_rss_help_topic:
+    name: 'Strona dokumentacji:'
+    options:
+      - "-"
+      - "Pierwsze kroki"
+      - "Co nowego"
+      - "Komendy głosowe"
+      - "Sterowanie pilotem"
+      - "Automatyka domowa"
+      - "Dostęp do bramki"
+    initial: "-"
+    icon: mdi:format-list-bulleted-type
+  ais_android_wifi_network:
+    name: 'Wybierz sieć Wifi:'
+    options:
+      - "-"
+    initial: "-"
+    icon: mdi:wifi
+  ais_iot_devices_in_network:
+    name: 'Wykryte nowe urządzenia:'
+    options:
+      - "-"
+    initial: "-"
+    icon: mdi:home-plus
+input_boolean:
+  ais_android_wifi_changes_notify:
+    name: Powiadamiaj o zmianach Wifi
+    initial: off
+    icon: mdi:voice
+
+group:
+  Internet Status:
+    name: Ustawienia sieci
+    control: hidden
+    entities:
+      - sensor.local_host_name
+      - sensor.internal_ip_address
+      - sensor.ais_android_wifi_current_network_info
+      - script.ais_scan_android_wifi_network
+      - input_select.ais_android_wifi_network
+      - input_text.ais_android_wifi_password
+      - script.ais_connect_android_wifi_network
+      - input_boolean.ais_android_wifi_changes_notify
+  AIS add IOT device:
+    name: Dodaj nowe urządzenia
+    control: hidden
+    entities:
+      - sensor.ais_connect_iot_device_info
+      - script.ais_scan_iot_devices_in_network
+      - input_select.ais_iot_devices_in_network
+      - input_select.ais_android_wifi_network
+      - input_text.ais_iot_device_wifi_password
+      - input_text.ais_iot_device_name
+      - script.ais_connect_iot_device_to_network
+  AIS Configurator:
+    name: Konfiguracja
+    entities:
+      - configurator.ais_dom_host
+  ais_rss_help:
+    control: hidden
+    name: Instrukcja
+    entities:
+      - input_select.ais_rss_help_topic
+      - sensor.aisrsshelptext
+  ais_rss_help_remote:
+    control: hidden
+    name: Instrukcja
+    entities:
+      - input_select.ais_rss_help_topic
