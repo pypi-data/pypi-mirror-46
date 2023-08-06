@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <h1>KeyRotation</h1>
+    <ol class="breadcrumb">
+        <li><i class="fa fa-home"></i> <a href="{{ url_for('index.home') }}">Home</a></li>
+        <li class="active">KeyRotation</li>
+    </ol>
+{% endblock %}
+
+{% block content %}
+<div class="box box-primary">
+    
+    {% if keygen_jar_exists %}
+    <div class="box-header with-border">
+        <h3 class="panel-title">Overview</h3>
+    </div>
+    <div class="box-body">
+        <dl class="dl-horizontal">
+            <dt>Enabled</dt>
+            <dd>{{ "Yes" if kr.enabled else "No" }}</dd>
+            <dt>Rotation Interval</dt>
+            <dd>{{ kr.interval }} hour(s)</dd>
+            <dt>Backend Type</dt>
+            <dd>{{ "JKS" if kr.type == "jks" else "N/A" }}</dd>
+        </dl>
+    </div>
+    <div class="box-footer">
+        <a href="{{ url_for('keyrotation.settings') }}" class="btn btn-primary pull-right">Settings</a>
+    </div>
+    {% else %}
+    
+
+    <div class="panel panel-warning">
+      <div class="panel-heading">Missing Component</div>
+      <div class="panel-body">You'll need to download the keygen.jar. 
+      Prepare the OpenID Connect keys generator by using the following commands
+      <br><br>
+      <code>
+      mkdir -p $HOME/.clustermgr/javalibs
+      </code>
+      <br>
+      <code>
+      wget https://ox.gluu.org/maven/org/xdi/oxauth-client/3.1.6.Final/oxauth-client-3.1.6.Final-jar-with-dependencies.jar -O $HOME/.clustermgr/javalibs/keygen.jar
+      </code>
+      </div>
+      
+    </div>
+    
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block js %}
+{% endblock %}
