@@ -1,0 +1,2 @@
+class InvalidModulePathError(Exception):
+    pass
