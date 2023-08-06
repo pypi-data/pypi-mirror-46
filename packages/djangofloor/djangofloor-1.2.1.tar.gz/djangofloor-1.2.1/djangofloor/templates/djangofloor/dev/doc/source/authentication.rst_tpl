@@ -1,0 +1,155 @@
+Authentication
+==============
+
+There are many, many ways to authenticate users:
+
+Password authentication
+-----------------------
+
+By default, users are locally created (no external user directory) and authenticated by their password. 
+HTTP basic authentication is disabled by default, but you can easily activate it:
+
+.. code-block:: ini
+  :caption: {{ path_etc_virtualenv }}/{{ DF_MODULE_NAME }}/settings.ini
+
+  [auth]
+  allow_basic_auth = true
+
+You can disable this local password database:
+
+.. code-block:: ini
+  :caption: {{ path_etc_virtualenv }}/{{ DF_MODULE_NAME }}/settings.ini
+
+  [auth]
+  local_users = false
+
+You can also allow anonymous users to create their own account (otherwise, only a superuser can create new accounts):
+
+.. code-block:: ini
+  :caption: {{ path_etc_virtualenv }}/{{ DF_MODULE_NAME }}/settings.ini
+
+  [auth]
+  create_users = true
+
+A superuser (or administrator) is required and can be created using the command line:
+
+.. code-block:: bash
+
+    {{ control_command }} createsuperuser
+
+Finally, you can change any password with another command:
+
+.. code-block:: bash
+
+    {{ control_command }} changepassword [username]
+
+
+Reverse-proxy authentication
+----------------------------
+
+You reverse proxy (Apache or Nginx) can authenticate users for you and put then user name in a HTTP header (often `REMOTE_USER`).
+Since the header is set by the reverse proxy and not by the Python server itself, this HTTP header is renamed to `HTTP_REMOTE_USER`.
+These reverse proxies can handle any authentication methods, like Kerberos, GSSAPI, LDAP, Shibbolet, and so on.
+The user is automatically created on its first connection (you can even automatically add him to several groups) if `create_user` is `true`.
+This method allows GSSAPI/Kerberos authentication. You can also configure the LDAP authentication if you want to retrieve user attributes (or its groups) from the LDAP server (see below).
+
+.. code-block:: ini
+  :caption: {{ path_etc_virtualenv }}/{{ DF_MODULE_NAME }}/settings.ini
+
+  [auth]
+  remote_user_header = HTTP-REMOTE-USER
+  remote_user_groups = Users,New Users
+  create_users = true
+
+If this method does not work, try with another header name (without dash - nor underscore _).
+
+OAuth2 authentication
+---------------------
+
+The package `django-allauth <http://django-allauth.readthedocs.io/en/latest/>`_ perfectly handles OAuth2 authentication from many providers.
+Please check its own documentation; it must be installed separately.
+
+You can add a new provider or display configured providers with the following commands:
+
+.. code-block:: bash
+
+  {{ control_command }} social_authentications show
+  {{ control_command }} social_authentications add
+
+You need to run the `migrate` command again to finalize the creation.
+The first command also displays the used configuration file. If you reinstall your server, just backup this
+file to avoid this manual process.
+
+
+PAM authentication
+------------------
+
+You can authenticate your user against the local PAM database, just set in the config files and install the "django-pam" package:
+
+.. code-block:: ini
+  :caption: {{ path_etc_virtualenv }}/{{ DF_MODULE_NAME }}/settings.ini
+
+  [auth]
+  pam = true
+
+Radius authentication
+---------------------
+
+You can also authenticate users by testing their password against a Radius server, if you have installed the "django-radius" package:
+
+.. code-block:: ini
+  :caption: {{ path_etc_virtualenv }}/{{ DF_MODULE_NAME }}/settings.ini
+
+  [auth]
+  radius_server = 8.8.8.1
+  radius_port = 1812
+  radius_secret = secret
+
+
+LDAP authentication
+-------------------
+
+Just install `django-auth-ldap <https://pythonhosted.org/django-auth-ldap/>`_ to enable LDAP authentication.
+There are two modes for LDAP authentication:
+
+    * a LDAP search is performed (to search the user and its groups) with a specific account, then a binding is performed to check the password,
+    * a direct bind is performed with the user login/password and the user account is used to search its data.
+
+Here is an example of configuration for the first method:
+
+.. code-block:: ini
+  :caption: {{ path_etc_virtualenv }}/{{ DF_MODULE_NAME }}/settings.ini
+
+  [auth]
+  ldap_server_url = ldap://ldap.example.com
+  ldap_start_tls = false
+  ldap_user_search_base = ou=users,dc=example,dc=com
+  ldap_bind_dn = cn=admin,ou=users,dc=example,dc=com
+  ldap_bind_password = secret
+  ldap_filter = (uid=%%(user)s)
+
+and for the second method:
+
+.. code-block:: ini
+  :caption: {{ path_etc_virtualenv }}/{{ DF_MODULE_NAME }}/settings.ini
+
+  [auth]
+  ldap_server_url = ldap://ldap.example.com
+  ldap_start_tls = false
+  ldap_direct_bind = uid=%%(user)s,ou=users,dc=example,dc=com
+
+You can also use some advanced features, for example for retrieving some user attributes from the LDAP, or for copying its groups:
+
+.. code-block:: ini
+  :caption: {{ path_etc_virtualenv }}/{{ DF_MODULE_NAME }}/settings.ini
+
+  [auth]
+  ldap_first_name_attribute = givenName
+  ldap_email_attribute = email
+  ldap_last_name_attribute = sn
+  ldap_is_active_group = cn=active,ou=groups,dc=example,dc=com
+  ldap_is_staff_group = cn=staff,ou=groups,dc=example,dc=com
+  ldap_is_superuser_group = cn=admin,ou=groups,dc=example,dc=com
+  ldap_group_search_base = ou=groups,dc=example,dc=com
+  ldap_group_type = posix
+  ldap_mirror_groups = true
