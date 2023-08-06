@@ -1,0 +1,153 @@
+# RADinitio
+
+**RADinitio** is a pipeline for the assessment of RADseq experiments via prospective and retrospective data simulation. Sequencing data is generated *de novo* for multiple individuals via a coalescent simulation under a user-defined demographic model using **msprime**. The genetic variants in each sample are simulated in a genomic context that can impact downstream generation of RAD loci and sequencing reads. The per-individual sequences then treated to an *in silico* RADseq library preparation. The components of the library are defined by the user, allowing for the exploration of parameters including restriction enzyme selection, insert size, sequencing coverage, and PCR duplicate distribution. **RADinitio** simulations can also be applied retrospectively by comparing and modelling sources of error in empirical datasets. The purpose of **RADinitio** is for researchers to fully explore possible variables in their data generation process to ensure that their protocol selection and library preparation is performed optimally, within the limitations of technical and experimental error.
+
+## Installation
+
+**RADinitio** can be installed from the Python Package Index (PyPI) using:
+
+```sh
+python3 -m pip install radinitio
+```
+
+More information regarding this installation can be obtained at the **RADinitio** [PyPI Project page](https://pypi.org/project/radinitio/ "PyPI Project page").
+
+Users can install **RADinitio** in their local Python directories using the `--user` flag:
+
+```sh
+python3 -m pip install radinitio --user
+```
+
+Alternatively, the software can be downloaded from the [Catchen Lab](http://catchenlab.life.illinois.edu/radinitio/ "Catchen Lab") website and installed using the following commands:
+
+```sh
+python3 -m pip install radinitio-version.tar.gz
+```
+
+Or for a local installation:
+
+```sh
+python3 -m pip install radinitio-version.tar.gz --user
+```
+
+For more information regarding the `pip` installation, please visit the [pip user-guide](https://pip.pypa.io/en/stable/user_guide/ "pip user-guide").
+
+Running the `pip` installation, from both PyPI or the the direct installation will take care of all dependencies, including **msprime** ([Kelleher, et al. 2016](http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1004842/ "Kelleher, et al. 2016")), **scipy**, **numpy**.
+
+## Pipeline structure
+
+**RADinitio** is designed as a series of independent functions that simulate different aspects of the RADseq library preparation process. The pipeline can be broken down into three main steps:
+
+### Variant generation and processing
+
+Variants are generated with **msprime** from an user-defined demographic. Independent simulations are run for different chromosomes present in an user-provided reference genome. The simulated variants are then projected against the reference genome to obtain the reference alleles, which are then converted into alternative alleles using an user-defined model.
+
+### Extraction of RAD alleles
+
+The reference genome is *in silico* digested to obtain a series of refence RAD loci. This can be done using a single or double enzyme digestion. The positions of the refernce loci in the genome then used to filter the simulated variants for all samples to include only variants present in RAD loci, improving downstream performance. For each sample, we extract the RAD alleles-the reference RAD loci are modified to include the corresponding genetic variants for each sample. This process can alter a cutsite's sequence, resulting in a dropped allele for that sample.
+
+### Simulate library enrichment and sequencing
+
+Once extracted, the alleles for each sample are randomly sampled to obtain paired-end sequences for each allele template. The alleles are sampled with replacement, proportional to the desired sequencing coverage of the library. Each iteration of the sampling is treated as an independent sequence template that is truncated to a random lenth sampled from a simulated insert size distribution. A PCR duplicate distribution, generaed from an user defined model, can be applied to the sampling process, resulting in the duplicate sampling of unique template sequences. This process can also introduce random error to the sequence, simulating the generation of PCR errors. Finally, paired end sequence are generated from the each of each template, each with its own unique sequencing error.
+
+The corresponding functions for each stage can be run independently. We do provide a wrapper script, `radinitio`, that calls the top-level `radinitio.simulate()` function which runs the pipeline from start to finish. Advanced users can run the pipeline through the Python API, which allows for the generation of more complex demographic models, define finer details of the library preparation process, and running componments of the pipeline independently.
+
+## Command line interface
+
+The simplest way to run **RADinitio** is to execute the module via the `radinitio` command line
+wrapper, which then calls the top-level `radinitio.simulate()` function, which runs all the stages of the
+pipeline.
+
+### Usage & options
+
+The program options are the following:
+
+```sh
+radinitio --genome path --chromosomes path --out-dir dir [(demographic model options)] [(library options)]
+```
+
+#### Input/Output files
+
+`-g`, `--genome` : Path to reference genome (fasta file, may be gzipped). Required.
+
+`-l`, `--chromosomes` : File containing the list of chromosomes (one per line) to simulate. Required.
+
+`-o`, `--out-dir` : Path to an output directory where all files will be written. Will be created and must **not** exist. Required.
+
+#### Demographic model (simple island model)
+
+`-p`, `--n-pops`: (*int*) Number of populations (demes) in the island model (default = 2)
+
+`-n`, `--pop-eff-size` : (*float*) Effective population size of each simulated deme (default = 5000)
+
+`-s`, `--n-seq-indv` : (*int*) Number of individuals sampled from each population (default = 10)
+
+#### Library preparation/sequencing
+
+`-b`, `--library-type` : Library type (sdRAD or ddRAD) (default = 'sdRAD')
+
+`-e`, `--enz` : Restriction enzyme (SbfI, PstI, EcoRI, BamHI, etc.) (default = 'SbfI')
+
+`-d`, `--enz2` : Second restriction enzyme for double digest (MspI, MseI, AluI, etc.). (default = 'MspI')
+
+`-c`, `--pcr-cycles` : (*int*) Number of PCR cycles (default = 0)
+
+`-v`, `--coverage` : (*int*) Sequencing coverage (default = 20)
+
+### Examples
+
+```sh
+# Simulating a sdRAD library:
+radinitio \
+    --genome ./genome/reference.fa.gz \
+    --chromosomes ./genome/chrom.list \
+    --out-dir ./simulations_sdRAD/ \
+    --n-pops 4 --pop-eff-size 2500 --n-seq-indv 10 \
+    --lib-type sdRAD --enz SbfI --pcr-cycles 12 --coverage 30
+
+# Simulating a ddRAD library:
+radinitio \
+    --genome ./genome/reference.fa.gz \
+    --chromosomes ./genome/chrom.list \
+    --out-dir ./simulations_ddRAD/ \
+    --n-pops 4 --pop-eff-size 2500 --n-seq-indv 10 \
+    --lib-type ddRAD --enz PstI --enz2 MspI \
+    --pcr-cycles 12 --coverage 30
+```
+
+### Explanation of options
+
+`reference.fa.gz` is a genome fasta file. **RADinitio** can simulate using both compressed and uncompressed fasta files.
+
+The `--out-dir` is the output directory for the simulations. Inside it series of subdirectories and files will be generated (described bellow). This directory will be created automatically and must _not_ exist.
+
+`chrom.list` is contains a list with all the chromosome ids to simulate. Only the chromosomes on the list will be used as input for the simulations. This is important when working with highly fragmented assemblies or those with many small unplaced scaffolds. The structure of `chrom.list` is the following:
+
+```sh
+chromosome_1
+chromosome_2
+chromosome_3
+...
+```
+
+`--n-pops`, `--n-seq-indv`, and `--pop-eff-size` contains the parameters of a simple **msprime** island demographic model. In this example, we are simulating 4 populations with an effective population size of 2,500 individuals each, from which we sample 10 individuals each. More complex demographic parameters can be generated using additional **RADinitio** functions. For more information regarding the demographic model parameters, please check the [**msprime** documentation](https://msprime.readthedocs.io/en/stable/ "msprime documentation").
+
+For the *sdRAD* example below (`--library-type sdRAD`), `--enz` is the main restriction enzyme used for generating a single-digest RADseq library, as described by the protocols by [Baird, et al. 2008](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0003376 "Baird, et al. 2008") and [Etter, et al. 2011](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0018561 "Etter, et al. 2011"). In this example, the restriction enzyme *SbfI* is used, but other enzymes such as *EcoRI*, *PstI*, *BamHI*, among others, are available. The simulated library will have an average insert size of 350bp (+-35bp), and 2x150bp paired end reads. Additional library parameters can be generated using additional **RADinitio** functions.
+
+The *ddRAD* example (`--library-type ddRAD`) uses a double restriction enzyme combination, as described in the protocol by [Peterson, et al. 2012](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0037135 "Peterson, et al. 2012"), where `--enz` is the rare (main) cutter, *PstI* in this case, and `--enz2` is the common (or double) cutter enzyme (*MspI*). The simulated library will have an minimum insert size of 250bp, a maximum insert size of 500bp, and 2x150bp paired end reads. Additional library parameters can be generated using additional **RADinitio** functions.
+
+`--pcr-cycles` defines a RAD library enriched using 12 cycles of PCR. The library has a 2:1 template molecules to sequenced reads ratio. More complex PCR parameters can be generated using additional **RADinitio** functions.
+
+`--coverage` defines the per-locus sequencing depth of the library, in this case 30X. 
+
+## RADinitio manual
+
+A complete version of the **RADinitio** manual including instructions for installation, documentation of command line variables, description of output files, and a tutorial to run the pipeline can be found at the [**RADinitio** website](http://catchenlab.life.illinois.edu/radinitio/ "RADinitio website").
+
+## Authors
+
+Angel G. Rivera-Colon <angelgr2@illinois.edu>
+
+Nicolas Rochette <rochette@illinois.edu>
+
+Julian Catchen <jcatchen@illinois.edu>
