@@ -1,0 +1,202 @@
+Metadata-Version: 2.1
+Name: another-linked-list
+Version: 0.1.1
+Summary: A linked list with an api and documentation more to my liking
+Home-page: https://github.com/olsonpm/py_another-linked-list
+Author: Philip Olson
+Author-email: philip.olson@pm.me
+Requires-Python: >=3.7,<4.0
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Project-URL: Repository, https://github.com/olsonpm/py_another-linked-list
+Description-Content-Type: text/markdown
+
+# Another Linked List
+
+*Note: This document is best viewed [on github](https://github.com/olsonpm/py_another-linked-list).
+Pypi's headers are all caps which presents inaccurate information*
+
+
+<br>
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [What is it?](#what-is-it)
+- [Why create it?](#why-create-it)
+- [Simple usage](#simple-usage)
+- [Api](#api)
+  - [class LinkedList([a list of elements])](#class-linkedlista-list-of-elements)
+    - [Attributes](#attributes)
+    - [Methods](#methods)
+  - [node](#node)
+- [Test](#test)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+<br>
+
+### What is it?
+
+- An incomprehensive implementation of a doubly-linked list
+
+<br>
+
+### Why create it?
+
+- I didn't like the api or documentation of other linked lists.  I'm also new
+  to python so this was a good way to learn.
+
+<br>
+
+### Simple usage
+
+```py
+from another_linked_list import LinkedList
+
+# create a list with three nodes
+ll = LinkedList(["a", "b", "d"])
+
+# get the node with element "b"
+bNode = ll.findFirstNode("b")
+
+# insert "c" after bNode
+ll.insertAfter(bNode, "c")
+
+print(list(ll))
+# prints ['a', 'b', 'c', 'd']
+```
+
+<br>
+
+### Api
+
+#### class LinkedList([a list of elements])
+- the linked list holds a list of [nodes](#node).  Each node holds an element
+  (the value) along with pointers to the previous and next nodes.  For the most
+  part the methods are intended to allow you to work with the elements moreso
+  than the nodes because that was my use-case.  This design decision may change
+  in the future to be more focused around the nodes.
+- all methods return `self` unless specified otherwise
+- all methods which take a list argument also accept an instance of LinkedList
+- in all code examples below, assume `ll` starts with `LinkedList(["a", "c"])`
+- the internal methods implemented are
+  - \_\_copy\_\_
+  - \_\_iter\_\_ (iterates over the elements, **not** the nodes)
+  - \_\_len\_\_
+  - \_\_reversed\_\_
+
+<br>
+
+#### Attributes
+
+##### firstNode: [node](#node)
+```py
+print(ll.firstNode.element) # a
+```
+##### lastNode: [node](#node)
+```py
+print(ll.lastNode.element) # c
+```
+
+<br>
+
+#### Methods
+
+##### append(element)
+```py
+ll.append('d')
+print(list(ll)) # ['a', 'c', 'd']
+```
+
+##### copy() => LinkedList
+
+##### appendAll(list)
+```py
+ll.appendAll(['d', 'e'])
+print(list(ll)) # ['a', 'c', 'd', 'e']
+```
+
+##### findFirstNode(element) => [node](#node)
+```py
+cNode = ll.findFirstNode(['c'])
+print(cNode.element) # c
+```
+
+##### insertAfter([node](#node), element)
+```py
+ll.insertAfter(ll.firstNode, 'b')
+print(list(ll)) # ['a', 'b', 'c']
+```
+
+##### insertAllAfter([node](#node), list)
+```py
+ll.insertAllAfter(ll.firstNode, ['b', 'd'])
+print(list(ll)) # ['a', 'b', 'd', 'c']
+```
+
+##### insertAllBefore([node](#node), list)
+```py
+ll.insertAllBefore(ll.lastNode, ['b', 'd'])
+print(list(ll)) # ['a', 'b', 'd', 'c']
+```
+
+##### insertBefore([node](#node), element)
+```py
+ll.insertBefore(ll.lastNode, 'b')
+print(list(ll)) # ['a', 'b', 'c']
+```
+
+##### prepend(element)
+```py
+ll.prepend('z')
+print(list(ll)) # ['z', 'a', 'c']
+```
+
+##### prependAll(list)
+```py
+ll.prependAll(['y', 'z'])
+print(list(ll)) # ['y', 'z', 'a', 'c']
+```
+
+##### removeFirstElement(element)
+```py
+ll.removeFirstElement('c')
+print(list(ll)) # ['a']
+```
+
+##### removeNode([node](#node))
+```py
+ll.removeNode(ll.firstNode)
+print(list(ll)) # ['c']
+```
+
+<br>
+
+#### node
+- a node is just an instance of SimpleNamespace with three attributes
+  - **element**: &lt;can be anything&gt;
+  - **next_**: node
+  - **previous**: node
+
+```py
+print(ll.firstNode.element) # a
+print(ll.firstNode.next_.element) # c
+print(ll.lastNode.previous.element) # a
+print(ll.firstNode.previous is None) # True
+```
+
+<br>
+
+### Test
+
+```sh
+#
+# you must have poetry installed
+#
+$ poetry shell
+$ poetry install
+$ python runTests.py
+```
+
