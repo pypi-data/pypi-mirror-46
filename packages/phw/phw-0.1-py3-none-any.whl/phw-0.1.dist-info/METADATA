@@ -1,0 +1,44 @@
+Metadata-Version: 2.1
+Name: phw
+Version: 0.1
+Summary: A lspci/lscpu/dmidecode cmd parser to get hardware info
+Home-page: https://github.com/deskos-xp/pyHardware
+Author: Karl Josef Wisdom
+Author-email: k.j.hirner.wisdom@gmail.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)
+Classifier: Operating System :: POSIX :: Linux
+Description-Content-Type: text/markdown
+
+# pyHardware
+a rewrite of python-hwinfo to support python3
+
+To get dmidecode info, you will need sudo/root, as well as the related package that installs ```dmidecode``` for your Linux Distribution.
+
+```python
+from hw import dmidecode_reader
+
+dmidcode_data=dmidecode_reader.getDmidecode().parsed
+#get bios info from data
+bios_info={i:dmidecode_data[i] for i in dmidecode_data.keys() if i.endswith('bios_info')}
+```
+
+To get cpu information.
+
+```python
+from hw import cpu_reader
+cpu_data=cpu_reader.getCpu().parsed
+```
+
+To get PCI information you will need the related package that installs ```lspci```.
+
+```python
+from hw import lspci_reader
+lspci_data=lspci_reader.getLspci().parsed
+```
+
+The resulting data from each generated will be a dictionary of the desired data.
+
+
