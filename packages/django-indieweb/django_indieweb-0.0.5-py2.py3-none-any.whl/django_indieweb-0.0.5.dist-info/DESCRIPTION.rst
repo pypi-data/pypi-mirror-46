@@ -1,0 +1,90 @@
+=============================
+django-indieweb
+=============================
+
+.. image:: https://badge.fury.io/py/django-indieweb.png
+    :target: https://badge.fury.io/py/django-indieweb
+
+.. image:: https://travis-ci.org/ephes/django-indieweb.png?branch=master
+    :target: https://travis-ci.org/ephes/django-indieweb
+
+includes indieauth and a micropub endpoint
+
+Documentation
+-------------
+
+The full documentation is at https://django-indieweb.readthedocs.org.
+
+Quickstart
+----------
+
+Install django-indieweb::
+
+    pip install django-indieweb
+
+Then use it in a project::
+
+    import indieweb
+
+Features
+--------
+
+* TODO
+
+Running Tests
+--------------
+
+Does the code actually work?
+
+::
+
+    source <YOURVIRTUALENV>/bin/activate
+    (myenv) $ pip install -r requirements_test.txt
+    (myenv) $ python runtests.py
+
+Credits
+---------
+
+Tools used in rendering this package:
+
+*  Cookiecutter_
+*  `cookiecutter-djangopackage`_
+
+.. _Cookiecutter: https://github.com/audreyr/cookiecutter
+.. _`cookiecutter-djangopackage`: https://github.com/pydanny/cookiecutter-djangopackage
+
+
+
+
+History
+-------
+
+0.0.5 (2019-05-19)
+++++++++++++++++++
+
+* Auth endpoint works with https://pin13.net/login/ \o/
+* Use black for code formatting
+* Better package infrastructure
+* Require python >= 3.6
+
+0.0.4 (2016-06-14)
+++++++++++++++++++
+
+* exempt csrf checking
+
+0.0.3 (2016-06-13)
+++++++++++++++++++
+
+* added migrations
+
+0.0.2 (2016-05-15)
+++++++++++++++++++
+
+* Auth and Token endpoints with some tests.
+
+0.0.1 (2016-05-14)
+++++++++++++++++++
+
+* First release on PyPI.
+
+
