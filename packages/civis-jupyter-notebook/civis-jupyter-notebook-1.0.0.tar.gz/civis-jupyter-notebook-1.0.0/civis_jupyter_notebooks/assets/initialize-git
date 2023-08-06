@@ -1,0 +1,34 @@
+#!/bin/bash
+# NOTE: Similar logic exists in https://github.com/civisanalytics/replicator/blob/3691bec/git-clone.sh
+# TODO: write conditional for setting up SSH Key
+
+if test $GIT_CREDENTIAL; then
+  git config --global core.excludesfile ~/.gitignore_global
+  echo "civis-notebook-logs.log" > ~/.gitignore_global
+
+  git config --global user.name "$USER_NAME"
+  git config --global user.email "$USER_EMAIL"
+  git config --global core.editor "nano"
+
+  if [[ $GIT_HOST = "github.com" ]]; then
+    USERNAME=$GIT_CREDENTIAL
+    PASSWORD=x-oauth-basic
+  elif [[ $GIT_HOST = "bitbucket.org" ]]; then
+    # Exchange the refresh token we have for an actual auth token
+    RESP=$(curl -X POST -u "$BITBUCKET_CLIENT_ID:$BITBUCKET_CLIENT_SECRET" https://bitbucket.org/site/oauth2/access_token -d grant_type=refresh_token -d refresh_token=$GIT_CREDENTIAL)
+    REPO_HTTP_TOKEN=$(echo $RESP | awk '{print $2}' | sed 's|[",]||g')
+
+    USERNAME=x-token-auth
+    PASSWORD=$REPO_HTTP_TOKEN
+  fi
+
+  # Store GIT_CREDENTIAL in the credential cache to avoid writing token to disk
+  # This will only work with Github tokens!
+  git config --global credential.helper 'cache --timeout=10000000'
+  git credential approve <<EOF
+protocol=https
+host=$GIT_HOST
+username=$USERNAME
+password=$PASSWORD
+EOF
+fi
