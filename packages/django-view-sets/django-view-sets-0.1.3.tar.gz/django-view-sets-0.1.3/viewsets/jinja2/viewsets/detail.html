@@ -1,0 +1,33 @@
+{% extends 'viewsets/base.html' %}
+
+{% block breadcrumbs_items %}
+  {% if viewset.view_index %}
+    <li class="breadcrumb-item"><a href="{{ viewset.get_index_url() }}">{{ _('Home') }}</a></li>
+  {% endif %}
+  <li class="breadcrumb-item"><a href="{{ viewset_url(model_viewset, 'list') }}">{{ opts.verbose_name_plural|capfirst }}</a></li>
+  <li class="breadcrumb-item active">{{ object|capfirst }}</li>
+{% endblock %}
+
+{% block body_title %}{{ object|capfirst }}{% endblock %}
+
+{% block title_buttons %}
+  {% if object.get_absolute_url %}
+    <a class="btn btn-info float-right ml-1"
+       href="{{ object.get_absolute_url() }}"
+       target="_blank"><i class="far fa-eye"></i> {{ _('Show on site') }}</a>
+  {% endif %}
+  {% if has_update_permission %}
+    <a class="btn btn-primary float-right"
+       href="{{ viewset_url(model_viewset, 'update', pk=object.pk) }}"><i class="fa fa-edit"></i> {{ _('Edit') }}</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% for name, value in serializer %}
+    <dl class="row mb-2">
+      <dt class="col-2">{{ name }}</dt>
+      <dd class="col">{{ value }}</dd>
+    </dl>
+  {% endfor %}
+{% endblock %}
+
