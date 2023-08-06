@@ -1,0 +1,470 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>synapse.api.auth module &#8212; Synapse 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="synapse.api.constants module" href="synapse.api.constants.html" />
+    <link rel="prev" title="synapse.api.streams.event module" href="synapse.api.streams.event.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="synapse.api.constants.html" title="synapse.api.constants module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="synapse.api.streams.event.html" title="synapse.api.streams.event module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Synapse 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="synapse.html" >synapse package</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="synapse.api.html" accesskey="U">synapse.api package</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-synapse.api.auth">
+<span id="synapse-api-auth-module"></span><h1>synapse.api.auth module<a class="headerlink" href="#module-synapse.api.auth" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="synapse.api.auth.Auth">
+<em class="property">class </em><code class="descclassname">synapse.api.auth.</code><code class="descname">Auth</code><span class="sig-paren">(</span><em>hs</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>FIXME: This class contains a mix of functions for authenticating users
+of our client-server API and authenticating events added to room graphs.</p>
+<dl class="method">
+<dt id="synapse.api.auth.Auth.can_federate">
+<code class="descname">can_federate</code><span class="sig-paren">(</span><em>event</em>, <em>auth_events</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.can_federate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.check">
+<code class="descname">check</code><span class="sig-paren">(</span><em>room_version</em>, <em>event</em>, <em>auth_events</em>, <em>do_sig_check=True</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if this event is correctly authed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>room_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – version of the room</li>
+<li><strong>event</strong> – the event being checked.</li>
+<li><strong>(</strong><strong>dict</strong> (<em>auth_events</em>) – event-key -&gt; event): the existing room state.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if the auth checks pass.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.check_auth_blocking">
+<code class="descname">check_auth_blocking</code><span class="sig-paren">(</span><em>user_id=None</em>, <em>threepid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.check_auth_blocking" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if the user should be rejected for some external reason,
+such as monthly active user limiting or global disable flag</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>user_id</strong> (<em>str|None</em>) – If present, checks for presence against existing</li>
+<li><strong>cohort</strong> (<em>MAU</em>) – </li>
+<li><strong>threepid</strong> (<em>dict|None</em>) – If present, checks for presence against configured</li>
+<li><strong>threepid. Used in cases where the user is trying register</strong> (<em>reserved</em>) – </li>
+<li><strong>a MAU blocked server</strong><strong>, </strong><strong>normally they would be rejected but their</strong> (<em>with</em>) – </li>
+<li><strong>is on the reserved list. user_id and</strong> (<em>threepid</em>) – </li>
+<li><strong>should never be set at the same time.</strong> (<em>threepid</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.check_can_change_room_list">
+<code class="descname">check_can_change_room_list</code><span class="sig-paren">(</span><em>room_id</em>, <em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.check_can_change_room_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the user is allowed to edit the room’s entry in the
+published room list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>room_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – </li>
+<li><strong>user</strong> (<em>UserID</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.check_from_context">
+<code class="descname">check_from_context</code><span class="sig-paren">(</span><em>room_version</em>, <em>event</em>, <em>context</em>, <em>do_sig_check=True</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.check_from_context" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.check_host_in_room">
+<code class="descname">check_host_in_room</code><span class="sig-paren">(</span><em>room_id</em>, <em>host</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.check_host_in_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.check_in_room_or_world_readable">
+<code class="descname">check_in_room_or_world_readable</code><span class="sig-paren">(</span><em>room_id</em>, <em>user_id</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.check_in_room_or_world_readable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks that the user is or was in the room or the room is world
+readable. If it isn’t then an exception is raised.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Resolves to the current membership of
+the user in the room and the membership event ID of the user. If
+the user is not in the room and never has been, then
+<cite>(Membership.JOIN, None)</cite> is returned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Deferred[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a>, str|None]]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.check_joined_room">
+<code class="descname">check_joined_room</code><span class="sig-paren">(</span><em>room_id</em>, <em>user_id</em>, <em>current_state=None</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.check_joined_room" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the user is currently joined in the room
+:param room_id: The room to check.
+:type room_id: str
+:param user_id: The user to check.
+:type user_id: str
+:param current_state: Optional map of the current state of the room.</p>
+<blockquote>
+<div>If provided then that map is used to check whether they are a
+member of the room. Otherwise the current membership is
+loaded from the database.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>AuthError if the user is not in the room.</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A deferred membership event for the user if the user is in
+the room.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.check_redaction">
+<code class="descname">check_redaction</code><span class="sig-paren">(</span><em>room_version</em>, <em>event</em>, <em>auth_events</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.check_redaction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether the event sender is allowed to redact the target event.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if the the sender is allowed to redact the target event if the
+target event was created by them.
+False if the sender is allowed to redact the target event with no
+further checks.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><strong>AuthError if the event sender is definitely not allowed to redact</strong> – </li>
+<li><strong>the target event.</strong> – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.check_user_was_in_room">
+<code class="descname">check_user_was_in_room</code><span class="sig-paren">(</span><em>room_id</em>, <em>user_id</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.check_user_was_in_room" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the user was in the room at some point.
+:param room_id: The room to check.
+:type room_id: str
+:param user_id: The user to check.
+:type user_id: str</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>AuthError if the user was never in the room.</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A deferred membership event for the user if the user was in the
+room. This will be the join event if they are currently joined to
+the room. This will be the leave event if they have left the room.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.compute_auth_events">
+<code class="descname">compute_auth_events</code><span class="sig-paren">(</span><em>event</em>, <em>current_state_ids</em>, <em>for_verification=False</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.compute_auth_events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="synapse.api.auth.Auth.get_access_token_from_request">
+<em class="property">static </em><code class="descname">get_access_token_from_request</code><span class="sig-paren">(</span><em>request</em>, <em>token_not_found_http_status=401</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.get_access_token_from_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts the access_token from the request.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> – The http request.</li>
+<li><strong>token_not_found_http_status</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The HTTP status code to set in the
+AuthError if the token isn’t found. This is used in some of the
+legacy APIs to change the status code to 403 from the default of
+401 since some of the old clients depended on auth errors returning
+403.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The access_token</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">unicode</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="synapse.api.errors.html#synapse.api.errors.AuthError" title="synapse.api.errors.AuthError"><strong>AuthError</strong></a> – If there isn’t an access_token in the request.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.get_appservice_by_req">
+<code class="descname">get_appservice_by_req</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.get_appservice_by_req" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.get_public_keys">
+<code class="descname">get_public_keys</code><span class="sig-paren">(</span><em>invite_event</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.get_public_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.get_user_by_access_token">
+<code class="descname">get_user_by_access_token</code><span class="sig-paren">(</span><em>token</em>, <em>rights='access'</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.get_user_by_access_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate access token and get user_id from it</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>token</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The access token to get the user by.</li>
+<li><strong>rights</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The operation being performed; the access token must
+allow this.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>dict that includes:</dt>
+<dd><p class="first last"><cite>user</cite> (UserID)
+<cite>is_guest</cite> (bool)
+<cite>token_id</cite> (int|None): access token id. May be None if guest
+<cite>device_id</cite> (str|None): device corresponding to access token</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">Deferred[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a>]</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><strong>AuthError if no user by that token exists</strong><strong> or </strong><strong>the token is invalid.</strong> – </p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.get_user_by_req">
+<code class="descname">get_user_by_req</code><span class="sig-paren">(</span><em>request</em>, <em>allow_guest=False</em>, <em>rights='access'</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.get_user_by_req" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a registered user’s ID.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>- An HTTP request with an access_token query parameter.</strong> (<em>request</em>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">resolves to a <code class="docutils literal notranslate"><span class="pre">synapse.types.Requester</span></code> object</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">defer.Deferred</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><strong>AuthError if no user by that token exists</strong><strong> or </strong><strong>the token is invalid.</strong> – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.get_user_id_from_macaroon">
+<code class="descname">get_user_id_from_macaroon</code><span class="sig-paren">(</span><em>macaroon</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.get_user_id_from_macaroon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the user_id given by the caveats on the macaroon.</p>
+<p>Does <em>not</em> validate the macaroon.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>macaroon</strong> (<em>pymacaroons.Macaroon</em>) – The macaroon to validate</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(str) user id</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>AuthError if there is no user_id caveat in the macaroon</strong> – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="synapse.api.auth.Auth.has_access_token">
+<em class="property">static </em><code class="descname">has_access_token</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.has_access_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if the request has an access_token.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">False if no access_token was given, True otherwise.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)">bool</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.is_server_admin">
+<code class="descname">is_server_admin</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.is_server_admin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the given user is a local server admin.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – mxid of user to check</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the user is an admin</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)">bool</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.api.auth.Auth.validate_macaroon">
+<code class="descname">validate_macaroon</code><span class="sig-paren">(</span><em>macaroon</em>, <em>type_string</em>, <em>verify_expiry</em>, <em>user_id</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.api.auth.Auth.validate_macaroon" title="Permalink to this definition">¶</a></dt>
+<dd><p>validate that a Macaroon is understood by and was signed by this server.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>macaroon</strong> (<em>pymacaroons.Macaroon</em>) – The macaroon to validate</li>
+<li><strong>type_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The kind of token required (e.g. “access”,
+“delete_pusher”)</li>
+<li><strong>verify_expiry</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Whether to verify whether the macaroon has expired.</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The user_id required</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="synapse.api.streams.event.html"
+                        title="previous chapter">synapse.api.streams.event module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="synapse.api.constants.html"
+                        title="next chapter">synapse.api.constants module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/synapse.api.auth.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="synapse.api.constants.html" title="synapse.api.constants module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="synapse.api.streams.event.html" title="synapse.api.streams.event module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Synapse 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="synapse.html" >synapse package</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="synapse.api.html" >synapse.api package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Copyright 2014-2017 OpenMarket Ltd, 2017 Vector Creations Ltd, 2017 New Vector Ltd.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,187 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>synapse.federation.persistence module &#8212; Synapse 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="synapse.federation.replication module" href="synapse.federation.replication.html" />
+    <link rel="prev" title="synapse.federation.pdu_codec module" href="synapse.federation.pdu_codec.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="synapse.federation.replication.html" title="synapse.federation.replication module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="synapse.federation.pdu_codec.html" title="synapse.federation.pdu_codec module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Synapse 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="synapse.html" >synapse package</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="synapse.federation.html" accesskey="U">synapse.federation package</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-synapse.federation.persistence">
+<span id="synapse-federation-persistence-module"></span><h1>synapse.federation.persistence module<a class="headerlink" href="#module-synapse.federation.persistence" title="Permalink to this headline">¶</a></h1>
+<p>This module contains all the persistence actions done by the federation
+package.</p>
+<p>These actions are mostly only used by the <code class="xref py py-mod docutils literal notranslate"><span class="pre">replication</span></code> module.</p>
+<dl class="class">
+<dt id="synapse.federation.persistence.TransactionActions">
+<em class="property">class </em><code class="descclassname">synapse.federation.persistence.</code><code class="descname">TransactionActions</code><span class="sig-paren">(</span><em>datastore</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.federation.persistence.TransactionActions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Defines persistence actions that relate to handling Transactions.</p>
+<dl class="method">
+<dt id="synapse.federation.persistence.TransactionActions.delivered">
+<code class="descname">delivered</code><span class="sig-paren">(</span><em>transaction</em>, <em>response_code</em>, <em>response_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.federation.persistence.TransactionActions.delivered" title="Permalink to this definition">¶</a></dt>
+<dd><p>Marks the given <cite>Transaction</cite> as having been successfully
+delivered to the remote homeserver, and what the response was.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.federation.persistence.TransactionActions.have_responded">
+<code class="descname">have_responded</code><span class="sig-paren">(</span><em>origin</em>, <em>transaction</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.federation.persistence.TransactionActions.have_responded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Have we already responded to a transaction with the same id and
+origin?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Results in <cite>None</cite> if we have not previously responded to
+this transaction or a 2-tuple of <cite>(int, dict)</cite> representing the
+response code and response body.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.federation.persistence.TransactionActions.prepare_to_send">
+<code class="descname">prepare_to_send</code><span class="sig-paren">(</span><em>transaction</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.federation.persistence.TransactionActions.prepare_to_send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Persists the <cite>Transaction</cite> we are about to send and works out the
+correct value for the <cite>prev_ids</cite> key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.federation.persistence.TransactionActions.set_response">
+<code class="descname">set_response</code><span class="sig-paren">(</span><em>origin</em>, <em>transaction</em>, <em>code</em>, <em>response</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.federation.persistence.TransactionActions.set_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Persist how we responded to a transaction.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="synapse.federation.pdu_codec.html"
+                        title="previous chapter">synapse.federation.pdu_codec module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="synapse.federation.replication.html"
+                        title="next chapter">synapse.federation.replication module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/synapse.federation.persistence.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="synapse.federation.replication.html" title="synapse.federation.replication module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="synapse.federation.pdu_codec.html" title="synapse.federation.pdu_codec module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Synapse 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="synapse.html" >synapse package</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="synapse.federation.html" >synapse.federation package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Copyright 2014-2017 OpenMarket Ltd, 2017 Vector Creations Ltd, 2017 New Vector Ltd.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>
