@@ -1,0 +1,1 @@
+from .pastoke import log_changes, clear_clipboard, replace_clipboard
