@@ -1,0 +1,53 @@
+<div {{table._get_filtered_custom_css('overflow-y,max-height')|safe}} class="desktop-only">
+<table class="table {{table.cssClass}}" {{table.customCss|safe}} {{table.dataAttributes|safe}}>
+	<thead>
+		<tr>
+			{% for i in table.headers %}
+			<th class="{{i.cssClass}}" {{i.customCss|safe}}>{{i.get_cell_value()|safe}}</th> {% endfor %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for row in table.rows %}
+		<tr>
+			{% for i in row.rowCells %}
+			<td class="{{i.cssClass}}" {{i.customCss|safe}}>{{i.get_cell_value()|safe}}</td> {% endfor %} 
+		</tr>
+		{% for child in row.children recursive%}
+		<tr>
+			{% for j in child.rowCells %}
+			<td class="{{j.cssClass}}" {{j.customCss|safe}}>{{j.get_cell_value()|safe}}</td> {% endfor %}
+		</tr>
+		{{ loop(child.children) }}
+		{% endfor %}
+		{% endfor %}
+	</tbody>
+</table>
+</div>
+
+<div class="mobile-only" style="display:none">
+{% for i in table.headers %}
+{% set outer_loop = loop %}
+	{% if loop.index != 1 %}
+	<table class="table {{table.cssClass}}" {{table.customCss|safe}}>
+	<tr>
+				<th class="{{i.cssClass}}" {{table.headers[0].customCss|safe}}>{{table.headers[0].get_cell_value()|safe}}</th>
+				<th class="{{i.cssClass}}" {{i.customCss|safe}}>{{i.get_cell_value()|safe}}</th>
+			</tr>
+			{% for row in table.rows %}
+				<tr>
+					<td class="{{row.rowCells[0].cssClass}}" {{row.rowCells[0].customCss|safe}}>{{row.rowCells[0].get_cell_value()|safe}}</td>
+					<td class="{{row.rowCells[outer_loop.index0].cssClass}}" {{row.rowCells[outer_loop.index0].customCss|safe}}>{{row.rowCells[outer_loop.index0].get_cell_value()|safe}}</td>
+				</tr>
+				{% for child in row.children recursive%}
+				<tr>
+					<td class="{{child.rowCells[0].cssClass}}" {{child.rowCells[0].customCss|safe}}>{{child.rowCells[0].get_cell_value()|safe}}</td>
+					<td class="{{child.rowCells[outer_loop.index0].cssClass}}" {{child.rowCells[outer_loop.index0].customCss|safe}}>{{child.rowCells[outer_loop.index0].get_cell_value()|safe}}</td>
+				</tr>
+				{{ loop(child.children) }}
+				{% endfor %}
+			{% endfor %}
+	</table>
+	{% endif %}
+{% endfor %}
+</div>
+

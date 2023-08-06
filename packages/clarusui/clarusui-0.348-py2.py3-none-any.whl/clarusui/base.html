@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+	integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+	crossorigin="anonymous"></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"
+	integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
+	crossorigin="anonymous"></script>
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"
+	integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+	crossorigin="anonymous">
+<link rel="stylesheet"
+	href="https://eval.clarusft.com/resources/extras.min.css">
+<link rel="stylesheet"
+	href="https://eval.clarusft.com/resources/animate.min.css">
+<link rel="stylesheet" type="text/css"
+	href="https://eval.clarusft.com/resources/roboto.css" />
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
+	integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
+	crossorigin="anonymous"></script>
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<link
+	href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/2.3.1/css/flag-icon.min.css"
+	rel="stylesheet" />
+<link rel="stylesheet" type="text/css"
+	href="https://cdn.datatables.net/v/bs4/dt-1.10.18/b-1.5.4/b-html5-1.5.4/datatables.min.css" />
+<script type="text/javascript"
+	src="https://cdn.datatables.net/v/bs4/dt-1.10.18/b-1.5.4/b-html5-1.5.4/datatables.min.js"></script>
+{% block style %}{% endblock %}
+</head>
+<body>
+	<div>{% block body %}{% endblock %}</div>
+<script>
+
+	$(document).ready(function() {
+		$('.collapse-trigger').click(function() {
+			var trigger = $(this)
+			var target = $(trigger.data('target'))
+			target.collapse('toggle');
+			trigger.toggleClass('opened')
+
+			var icon = $(trigger).find('i').first()
+			icon.toggleClass('fa-plus-circle fa-minus-circle')
+
+			//cascade row hiding to subrows
+			target.on('hide.bs.collapse', function() {
+				var subTarget = $(this).data('target')
+				$(subTarget).collapse('hide');
+			});
+
+			target.on('show.bs.collapse', function() {
+				var subTarget = $(this).data('target')
+				if (target.hasClass('opened')) {
+					$(subTarget).collapse('show');
+				}
+			});
+		});
+	});
+
+	$(document).ready(function() {
+		$('.table-enhanced').DataTable({
+			dom : 'Bftp',
+			buttons : [ {
+				extend : 'csvHtml5',
+				title : 'export',
+				text : '<span class="fa fa-download"></span>'
+			} ]
+		});
+	});
+	
+	$(window).on('load', function() {
+		var pl = document.getElementsByClassName("plotly-graph-div")
+		for (var i = 0; i < pl.length; i++) {
+			var chartDiv = document.getElementById(pl[i].id);
+			addResizeListener(chartDiv);
+			Plotly.Plots.resize(chartDiv);
+		}
+		$('[data-toggle="popover"]').popover({
+			container : 'body'
+		});
+	});
+
+	function addResizeListener(chartDiv) {
+		window.addEventListener('resize', function() {
+			Plotly.Plots.resize(chartDiv);
+		});
+	}
+
+	var activeTabs = sessionStorage.getItem('clarusui_activeTabs') == null ? '{}'
+			: sessionStorage.getItem('clarusui_activeTabs');
+	sessionStorage.setItem('clarusui_activeTabs', activeTabs)
+	var at = JSON.parse(activeTabs)
+	for ( var panel in at) {
+		$('a[href="' + at[panel] + '"]').tab('show');
+	}
+
+	var allPanels = document.getElementsByClassName("nav-tabs")
+	for (var i = 0; i < allPanels.length; i++) {
+		var panel = allPanels[i]
+		var panelId = panel.id
+		if (!(panelId in at)) {
+			$('#' + panelId + ' li:first-child a').tab('show')
+		}
+	}
+
+	$('body').on(
+			'click',
+			'a[data-toggle=\'tab\']',
+			function(e) {
+				e.preventDefault()
+				var tab_name = this.getAttribute('href')
+				var activeTabs = JSON.parse(sessionStorage
+						.getItem('clarusui_activeTabs'));
+				activeTabs[this.getAttribute('panel-id')] = tab_name
+				sessionStorage.setItem('clarusui_activeTabs', JSON
+						.stringify(activeTabs))
+				$(this).tab('show');
+				return false;
+			});
+	
+	
+	var expandedCollapsibles = sessionStorage.getItem('clarusui_collapsibleStates') == null ? '{}'
+			: sessionStorage.getItem('clarusui_collapsibleStates');
+	sessionStorage.setItem('clarusui_collapsibleStates', expandedCollapsibles)
+	var expanded = JSON.parse(expandedCollapsibles)
+	for ( var ex in expanded) {
+		if (expanded[ex] == 'show') {
+			$('#'+ ex).addClass('show');
+			$('#'+ ex + '_collapse-indicator').toggleClass('fa-chevron-up fa-chevron-down');
+		}
+	}
+	
+	 $('.collapse').on('show.bs.collapse', function () {
+		  var collapseId = this.id;
+		  var collapsibleStates = JSON.parse(sessionStorage
+					.getItem('clarusui_collapsibleStates'));
+		  collapsibleStates[collapseId] = 'show';
+		  sessionStorage.setItem('clarusui_collapsibleStates', JSON
+					.stringify(collapsibleStates));
+		});
+	 
+	 $('.collapse').on('hide.bs.collapse', function () {
+		  var collapseId = this.id;
+		  var collapsibleStates = JSON.parse(sessionStorage
+					.getItem('clarusui_collapsibleStates'));
+		  collapsibleStates[collapseId] = 'hide';
+		  sessionStorage.setItem('clarusui_collapsibleStates', JSON
+					.stringify(collapsibleStates));
+		});
+</script>
+</body>
+</html>
+

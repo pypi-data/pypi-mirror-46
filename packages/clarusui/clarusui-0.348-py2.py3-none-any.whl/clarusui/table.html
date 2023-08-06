@@ -1,0 +1,23 @@
+<div {{table._get_filtered_custom_css('overflow-y,max-height')|safe}}>
+<table class="table {{table.cssClass}}" {{table.customCss|safe}} {{table.dataAttributes|safe}}>
+	<thead>
+		<tr>
+			{% for i in table.headers %}
+			<th class="{{i.cssClass}}" {{i.customCss|safe}}>{{i.get_cell_value()|safe}}</th> {% endfor %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for row in table.rows %}
+		<tr class="collapse-trigger" data-target=".{{row.rowHeader}}" id="{{row.rowHeader}}">
+			{% for i in row.rowCells %}<td class="{{i.cssClass}}" {{i.customCss|safe}} {{i.dataAttributes|safe}}>{{i.get_cell_value()|safe}}</td> {% endfor %} 
+ 		</tr>
+		{% for child in row.children recursive%}
+		<tr class="collapse-trigger {{child.parentRowHeader}} collapse" data-target=".{{child.rowHeader}}"  id="{{child.rowHeader}}">
+			{% for j in child.rowCells %}<td class="{{j.cssClass}}" {{j.customCss|safe}} {{j.dataAttributes|safe}}>{{j.get_cell_value()|safe}}</td> {% endfor %}
+		</tr>
+		{{ loop(child.children) }}
+		{% endfor %}
+		{% endfor %}
+	</tbody>
+</table>
+</div>
