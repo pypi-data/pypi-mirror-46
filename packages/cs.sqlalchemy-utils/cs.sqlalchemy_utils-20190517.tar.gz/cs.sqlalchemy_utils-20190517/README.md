@@ -1,0 +1,44 @@
+Assorted utility functions to support working with SQLAlchemy.
+
+
+Assorted utility functions to support working with SQLAlchemy.
+
+## Function `auto_session(func)`
+
+Decorator to run a function in a session is not presupplied.
+
+## Class `ORM`
+
+A convenience base class for an ORM class.
+
+This defines a `.Base` attribute which is a new `DeclarativeBase`
+and provides various Session related convenience methods.
+
+Subclasses must define their own `.Session` factory in
+their own `__init__`, for example:
+
+    self.Session = sessionmaker(bind=engine)
+
+## Function `orm_auto_session(method)`
+
+Decorator to run a method in a session derived from `self.orm`
+if a session is not presupplied.
+Intended to assist classes with a `.orm` attribute.
+
+## Function `with_session(func, *a, orm=None, session=None, **kw)`
+
+Call `func(*a,session=session,**kw)`, creating a session if required.
+
+This is the inner mechanism of `@auto_session` and
+`ORM.auto_session_method`.
+
+Parameters:
+* `func`: the function to call
+* `a`: the positional parameters
+* `orm`: optional ORM class with a `.session()` context manager method
+* `session`: optional existing ORM session
+
+One of `orm` or `session` must be not `None`; if `session`
+is `None` then one is made from `orm.session()` and used as
+a context manager. The `session` is also passed to `func` as
+the keyword parameter `session` to support nested calls.
