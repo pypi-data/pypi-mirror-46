@@ -1,0 +1,1 @@
+from .batch_predict import batch_predict
