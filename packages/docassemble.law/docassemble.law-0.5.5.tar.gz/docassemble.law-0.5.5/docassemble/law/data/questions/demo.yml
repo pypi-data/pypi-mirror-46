@@ -1,0 +1,566 @@
+# Prepared by Community.lawyer on 5/16/2019
+# Compatible with Docassemble version 0.3.11
+---
+modules:
+  - docassemble.base.util
+---
+mandatory: True
+code: |
+  from docassemble.base.functions import get_uid
+  if not defined("___answers_session_id"):
+    define("___answers_session_id", get_uid())
+---
+mandatory: True
+code: |
+  define("Today", today())
+---
+initial: True
+code: |
+  import datetime
+  import types
+
+  def ternary(condition, true_value, false_value):
+    if is_undefined(condition):
+      return Undefined()
+    elif is_true(augment(condition)):
+      return primitive_value(true_value)
+    else:
+      return primitive_value(false_value)
+
+  def cl_array_access(array, _index):
+    index = _index - 1
+    return (array[index] if index < len(array) else None)
+
+  def primitive_value(something):
+    return augment(something).wrapped
+
+  def Undefined():
+    return augment(None)
+
+  def is_true(arg):
+    return primitive_value(arg) == True
+
+  def is_false(arg):
+    return primitive_value(arg) == False
+
+  def is_falsy(arg):
+    wrapped = primitive_value(arg)
+    return wrapped == False or wrapped == None
+
+  def is_truthy(arg):
+    wrapped = primitive_value(arg)
+    return not is_falsy(wrapped)
+
+  def is_augmented(something):
+    return something.__class__.__name__ == 'Augmented'
+
+  def augment(something):
+    if is_augmented(something):
+      return something
+    return Augmented(something)
+
+  def is_undefined(something):
+    return augment(something).wrapped == None
+
+  def is_not_undefined(something):
+    return not is_undefined(something)
+
+  class Augmented(object):
+    def __init__(self, something):
+      self.wrapped = something
+    def __str__(self):
+      return unicode(self.wrapped)
+    # array
+    def array_index(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(cl_array_access(self.wrapped, int(arg.wrapped)))
+    def array_size(self):
+      if is_undefined(self):
+        return self
+      return augment(len(self.wrapped))
+    def array_leading(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped[:int(arg.wrapped)])
+    def array_trailing(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped[int(-(arg.wrapped)):])
+    def array_excluding_leading(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped[int(arg.wrapped):])
+    def array_excluding_trailing(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped[:int(-(arg.wrapped))])
+    # boolean
+    def boolean_and(self, _arg):
+      arg = augment(_arg)
+      if is_false(self.wrapped) or is_false(arg.wrapped):
+        return augment(False)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped and arg.wrapped)
+    def boolean_or(self, _arg):
+      arg = augment(_arg)
+      if is_true(self.wrapped) or is_true(arg.wrapped):
+        return augment(True)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped or arg.wrapped)
+    def boolean_not(self):
+      if is_undefined(self):
+        return self
+      return augment(not self.wrapped)
+    def boolean_eq(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped == arg.wrapped)
+    def boolean_ne(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped != arg.wrapped)
+    # number
+    def number_add(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped + arg.wrapped)
+    def number_subtract(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped - arg.wrapped)
+    def number_multiply(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped * arg.wrapped)
+    def number_divide(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      if arg.wrapped == 0:
+        return Undefined()
+      return augment(self.wrapped / arg.wrapped)
+    def number_eq(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped == arg.wrapped)
+    def number_ne(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped != arg.wrapped)
+    def number_gt(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped > arg.wrapped)
+    def number_gte(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped >= arg.wrapped)
+    def number_lt(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped < arg.wrapped)
+    def number_lte(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped <= arg.wrapped)
+    # string
+    def string_join_with_space(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped + ' ' + arg.wrapped)
+    def string_join_without_space(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped + arg.wrapped)
+    def string_eq(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped == arg.wrapped)
+    def string_ne(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped != arg.wrapped)
+    def string_length(self):
+      if is_undefined(self):
+        return Undefined()
+      return augment(len(self.wrapped))
+    # time
+    def time_eq(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped == arg.wrapped)
+    def time_ne(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped != arg.wrapped)
+    def time_gt(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped > arg.wrapped)
+    def time_gte(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped >= arg.wrapped)
+    def time_lt(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped < arg.wrapped)
+    def time_lte(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped <= arg.wrapped)
+    # date
+    def date_eq(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped == arg.wrapped)
+    def date_ne(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped != arg.wrapped)
+    def date_gt(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped > arg.wrapped)
+    def date_gte(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped >= arg.wrapped)
+    def date_lt(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped < arg.wrapped)
+    def date_lte(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return Undefined()
+      return augment(self.wrapped <= arg.wrapped)
+    # dictionary
+    def dictionary_all_false(self):
+      if is_undefined(self):
+        return self
+      return augment(self.wrapped.all_false())
+    def dictionary_all_true(self):
+      if is_undefined(self):
+        return self
+      return augment(self.wrapped.all_true())
+    def dictionary_any_false(self):
+      if is_undefined(self):
+        return self
+      return augment(self.wrapped.any_false())
+    def dictionary_any_true(self):
+      if is_undefined(self):
+        return self
+      return augment(self.wrapped.any_true())
+    def dictionary_access(self, _arg):
+      arg = augment(_arg)
+      if is_undefined(self) or is_undefined(arg):
+        return self
+      return augment(self.wrapped.get(arg.wrapped))
+
+  # typecasting
+  def typecast_as_date(_arg):
+    arg = augment(_arg)
+    if is_undefined(arg):
+      return arg
+    return augment(as_datetime(arg.wrapped))
+  def typecast_as_number(_arg):
+    arg = augment(_arg)
+    if is_undefined(arg):
+      return arg
+    return augment(float(arg.wrapped))
+  def typecast_as_boolean(_arg):
+    arg = augment(_arg)
+    if is_undefined(arg):
+      return arg
+    wrapped = arg.wrapped
+    if wrapped == 'True':
+      return augment(True)
+    if wrapped == 'False':
+      return augment(False)
+    return Undefined()
+  def typecast_as_string(_arg):
+    arg = augment(_arg)
+    if is_undefined(arg):
+      return arg
+    return augment(str(arg.wrapped))
+  def as_url_param_value(_arg):
+    arg = augment(_arg)
+    if is_undefined(arg):
+      return ''
+    return augment(typecast_as_string(arg.wrapped))
+
+  # array reducers
+
+  def number_add_array_reducer(_arg):
+    arg = augment(_arg)
+    if is_undefined(arg):
+      return arg
+    return reduce(lambda x, y: augment(x).number_add(augment(y)), arg.wrapped)
+
+  def cl_array_map(myfunc, _myiterable):
+    myiterable = augment(_myiterable)
+    if is_undefined(myiterable):
+      return myiterable
+    return map(myfunc, myiterable.wrapped)
+---
+initial: True
+code: |
+  import re
+  from bs4 import BeautifulSoup
+  from markdown import markdown
+
+  def markdown_to_plaintext(markdown_string):
+    try:
+      html_list = list(map(lambda str: markdown(str), markdown_string.split("\n")))
+      html_list = list(map(lambda html: re.sub(r'<pre>(.*?)</pre>', ' ', html), html_list))
+      html_list = list(map(lambda html: re.sub(r'<code>(.*?)</code >', ' ', html), html_list))
+      soup_list = list(map(lambda html: BeautifulSoup(html, "html.parser"), html_list))
+      text_list = list(map(lambda soup: ''.join(soup.findAll(text=True)), soup_list))
+      text_list = list(map(lambda text: re.sub(r'\n', '\n\n', text), text_list))
+      return "\n".join(text_list)
+    except:
+      return markdown_string
+---
+mandatory: True
+code: |
+
+  def ___define_until_idempotent():
+    original_dict = all_variables()
+    ___define_all()
+    if all_variables() != original_dict:
+      re_run_logic()
+  def ___define_all():
+    vars = all_variables()
+
+    if ((not ("___shortcut_6_false" in vars)) and (("__continue" in vars))):
+      define("___shortcut_6_false", ((primitive_value(((augment(__continue) if ("__continue" in vars) else Undefined()).boolean_eq(augment(False)))))))
+---
+initial: True
+code: |
+  ___define_until_idempotent()
+---
+code: |
+  ___shortcut_6_false = (__continue == False)
+---
+mandatory: True
+code: |
+  def passive_possible_variables():
+    return { 'Today': markdown_to_plaintext(Today) if defined("Today") else '', '___shortcut_6_false': markdown_to_plaintext(___shortcut_6_false) if defined("___shortcut_6_false") else '', '__continue': markdown_to_plaintext(__continue) if defined("__continue") else '', 'email': markdown_to_plaintext(email) if defined("email") else '', 'name': markdown_to_plaintext(name) if defined("name") else '', 'signature': markdown_to_plaintext(signature) if defined("signature") else '' }
+---
+mandatory: True
+code: |
+  import requests
+  import json
+  define("___authorized", json.loads(requests.get("https://community.lawyer/docassemble_builder/docassemble_interviews/authorize?id=1604&key=" + unicode(url_args.get('key'))).content)['authorized'])
+---
+mandatory: |
+  not ___authorized
+question: Sorry, you are not authorized to access this page.
+subquestion: Try signing into your account or contacting the App author.
+---
+features:
+  debug: False
+  inverse navbar: False
+  javascript:
+    - https://community.lawyer/static/system_d-2.js
+  css:
+    - https://community.lawyer/static/styles/jcc.css
+---
+metadata:
+  title: |
+    Legal Automation Workshop Demo
+  exit label: |
+    Powered by Community.lawyer
+---
+mandatory: True
+code: |
+  from docassemble.base.util import device
+  ___user_device = device().browser.family
+---
+mandatory: True
+code: |
+  if ___user_device == "IE":
+    log("This app may not run as expected on Internet Explorer - please consider using a more modern browser, such as those found <a href='http://outdatedbrowser.com/en'>here</a>.", "warning")
+---
+id: 39025
+mandatory: |
+  True
+question: |
+  <span id="session-id" data-session-id="${user_info().session}">
+  <span id="sends-answers" data-sends-answers="false">
+  <span id="cl-endpoint" data-cl-endpoint="https://community.lawyer">
+  <span id="interview-id" data-interview-id="1604">
+
+subquestion: |
+  # [THIS IS CODE, NOT LEGAL ADVICE](https://github.com/AriChivukula/docassemble.law/blob/master/docassemble/law/data/questions/demo.yml)
+field: __continue
+
+under: |
+---
+id: 39024
+mandatory: |
+  True
+question: |
+  <span id="session-id" data-session-id="${user_info().session}">
+  <span id="sends-answers" data-sends-answers="false">
+  <span id="cl-endpoint" data-cl-endpoint="https://community.lawyer">
+  <span id="interview-id" data-interview-id="1604">
+
+subquestion: |
+
+fields:
+  - "<span class=\"producer\" data-variable-name=\"name\" data-field-id=\"88320\" >What is your name?</span>": name
+    datatype: text
+    required: true
+
+  - "<span class=\"producer\" data-variable-name=\"email\" data-field-id=\"88322\" >What is your email?</span>": email
+    datatype: email
+    required: true
+
+under: |
+---
+id: 39023
+mandatory: |
+  True
+question: |
+  <span id="session-id" data-session-id="${user_info().session}">
+  <span id="sends-answers" data-sends-answers="false">
+  <span id="cl-endpoint" data-cl-endpoint="https://community.lawyer">
+  <span id="interview-id" data-interview-id="1604">
+
+subquestion: |
+  Sign here please!
+signature: signature
+
+under: |
+---
+id: 39027
+mandatory: |
+  True
+question: |
+  <span id="session-id" data-session-id="${user_info().session}">
+  <span id="sends-answers" data-sends-answers="false">
+  <span id="cl-endpoint" data-cl-endpoint="https://community.lawyer">
+  <span id="interview-id" data-interview-id="1604">
+
+subquestion: |
+  Thanks for trying!
+
+attachment code: |
+  filter(bool, [t____sr1_pdf_1519_attachment_1740])
+allow emailing: False
+under: |
+  ${ ('' if defined("___already_sent_t_email_email_4e4652a186c7") else (___send_t_email_email_4e4652a186c7())) }
+
+css: |
+  <style>
+    button.btn-primary[type='submit'] {
+      display: none;
+    }
+
+  </style>
+---
+code: |
+  if True:
+    import requests
+    import json
+    import time
+    template_id = 1519
+    access_key = 'a9t6qmZUAW'
+    drawn_variables = {'59041': markdown_to_plaintext(unicode(__continue)), '58998': markdown_to_plaintext(unicode((Today.strftime('%m-%d-%Y') if Today != "" else ""))), '59069': unicode("DEMO, NOT FOR OFFICIAL USE"), '59068': markdown_to_plaintext(unicode((signature.url_for() if signature != "" else ""))), '58999': markdown_to_plaintext(unicode(name))}
+    post_data = { 'template_id': template_id, 'access_key': access_key, 'drawn_target_variables': drawn_variables }
+    fill_response = requests.post('https://community.lawyer/fill', json=post_data).json()
+    task_id = fill_response.get('task_id')
+    filled_attachment_url = ""
+    done = False
+    pdf_attempts = 0
+    while not done and pdf_attempts < 250:
+      task_response = requests.get('https://community.lawyer/tasks?task_id={0}&access_key={1}'.format(task_id, access_key)).json()
+      done = task_response.get('status') == 'done'
+      filled_attachment_url = task_response.get('document')
+      pdf_attempts += 1
+      time.sleep(.2)
+    t____sr1_pdf_1519_attachment_1740 = DAFileCollection()
+    t____sr1_pdf_1519_attachment_1740.pdf = DAFile()
+    t____sr1_pdf_1519_attachment_1740.pdf.initialize(extension="pdf")
+    if done:
+      t____sr1_pdf_1519_attachment_1740.pdf.from_url(filled_attachment_url)
+      t____sr1_pdf_1519_attachment_1740.info = {'name': 'sr1', 'filename': 'sr1', 'description': ''}
+    else:
+      t____sr1_pdf_1519_attachment_1740.pdf.from_url('https://community.lawyer/static/blank.pdf')
+      t____sr1_pdf_1519_attachment_1740.info = {'name': 'We encountered a problem', 'filename': 'sr1', 'description': 'There was a problem filling your Pdf - please try again'}
+  else:
+    t____sr1_pdf_1519_attachment_1740 = ''
+---
+template: t_email_template_d5f20bd99683
+subject: |
+  Legal Automation Workshop Demo
+content: |
+  Spread the word ${name if defined("name") else ""}  <3
+
+  [https://www.legalautomation.rocks/](https://www.legalautomation.rocks/)
+---
+mandatory: True
+code: |
+  def ___send_t_email_email_4e4652a186c7():
+    define("___already_sent_t_email_email_4e4652a186c7", True)
+    background_action("___send_t_email_email_4e4652a186c7_background")
+    return ''
+---
+event: ___send_t_email_email_4e4652a186c7_background
+code: |
+  if True:
+    import requests
+    permission_response = requests.get(url = 'https://community.lawyer/delivery_permitted', params = { 'id': 44, 'key': 'Raup_jZ0Eb13lMncLMtf6Q', 'desired_deliveries': 2 })
+    data = permission_response.json()
+    if data['permitted']:
+      send_email(template=t_email_template_d5f20bd99683, to="%s" % (email), cc="law@law.berkeley.edu")
+      requests.post(url = 'https://community.lawyer/increment_delivery', params = { 'id': 44, 'key': 'Raup_jZ0Eb13lMncLMtf6Q', 'increment': 2 })
+  background_response()
+---
+mandatory: |
+  True
+question: |
+  <span id="session-id" data-session-id="${user_info().session}">
+  <span id="sends-answers" data-sends-answers="false">
+  <span id="cl-endpoint" data-cl-endpoint="https://community.lawyer">
+  <span id="interview-id" data-interview-id="1604">
+
+subquestion: |
+  Thank you for using this app. Your session is complete.
+---
