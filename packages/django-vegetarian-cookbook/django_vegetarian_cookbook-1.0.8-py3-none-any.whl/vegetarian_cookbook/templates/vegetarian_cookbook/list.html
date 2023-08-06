@@ -1,0 +1,50 @@
+{% extends "vegetarian_cookbook/base.html" %}
+{% load static %}
+{% load i18n %}
+{% load vegetarian_cookbook_tags %}
+
+{% block bootstrap4_extra_head %}
+<title>{{ title }}</title>
+<meta name="description" content="{{ seo_description }}">
+<meta name="keywords" content="{{ seo_keywords }}">
+{% endblock %}
+
+{% block bootstrap4_content %}
+
+<div class="container">
+    <main role="main">
+        <div class="recipe-list_title recipe-bg text-center">
+          <h1 class="text-primary">{{ title }}</h1>
+        </div>
+        <div class="recipe-bg">
+            {% paginator recipes %}
+            <div class="pageblock">
+                <div class="row recipe-list">
+                    {% include "vegetarian_cookbook/list_include.html" %}
+                </div>
+            </div>
+            {% paginator recipes %}
+        </div>
+    </main>
+</div>
+<script>
+    document.fonts.ready.then(function() {
+        $('.tag-list').each(function(i,e) {
+            if ($(this).width() < $(this).find('.btn-group').outerWidth()) {
+                var list_width = $(this).width();
+                var width = list_width;
+                $(this).find('button').each(function(i,e) {
+                    if (width == 0) {
+                        $(this).hide();
+                    } else if (width < $(this).outerWidth()) {
+                        $(this).outerWidth(width);
+                        width = 0;
+                    } else {
+                        width -= $(this).outerWidth();
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

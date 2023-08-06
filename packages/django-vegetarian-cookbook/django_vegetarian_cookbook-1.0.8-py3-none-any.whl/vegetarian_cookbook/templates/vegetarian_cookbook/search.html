@@ -1,0 +1,136 @@
+{% extends "vegetarian_cookbook/base.html" %}
+{% load static %}
+{% load i18n %}
+{% load vegetarian_cookbook_tags %}
+
+{% block bootstrap4_extra_head %}
+<link href='{% static "vegetarian_cookbook/css/jquery-ui.css" %}' rel="stylesheet">
+<script type="text/javascript" src='{% static "vegetarian_cookbook/js/jquery-ui.js" %}' ></script>
+<title>{{ title }}</title>
+<meta name="description" content="{{ seo_description }}">
+<meta name="keywords" content="{{ seo_keywords }}">
+{% endblock %}
+
+{% block bootstrap4_content %}
+
+<div class="container">
+    <div class="search recipe-bg">
+        <form class="pt-2" method="POST" action="{% url 'recipes_search' %}">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col col-12">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control form-control-lg" name="query" value="{{ search.query }}" class="form-control mr-sm-2" type="search" placeholder="{% trans 'Search' %}" aria-label="{% trans 'Search' %}" autofocus>
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="submit">{% trans "Search" %}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm">
+                    <div class="row mx-0">
+                        <div class="col col-12 col-sm-4">
+                            <div class="form-group">
+                                <p>{% trans 'Search' %}</p>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="in_name" name="in_name" value="1" {% if search.in_name %} checked{% endif %}>
+                                    <label class="form-check-label" for="in_name">{% trans "in name" %}</label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="in_ingredient" name="in_ingredient" value="1"  {% if search.in_ingredient %} checked{% endif %}>
+                                    <label class="form-check-label" for="in_ingredient">{% trans "in ingredients" %}</label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="in_tag" name="in_tag" value="1"  {% if search.in_tag %} checked{% endif %}>
+                                    <label class="form-check-label" for="in_tag">{% trans "in tags" %}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col col-6 col-sm-4">
+                            <div class="form-group">
+                                <p>{% trans 'Category' %}</p>
+                                {% for category in search.categories %}
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="category-{{ category.id }}" name="category-{{ category.id }}" value="1" {% if category.checked %} checked{% endif %}>
+                                    <label class="form-check-label" for="category-{{ category.id }}">{{ category.name }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col col-6 col-sm-4">
+                            <div class="form-group">
+                                <p>{% trans 'Complexity' %}</p>
+                                {% for сomplexity in search.сomplexity_choices %}
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="сomplexity-{{ сomplexity.id }}" name="сomplexity-{{ сomplexity.id }}" value="1" {% if сomplexity.checked %} checked{% endif %}>
+                                    <label class="form-check-label" for="сomplexity-{{ сomplexity.id }}">{{ сomplexity.name }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm">
+                    <div class="row mx-0">
+                        <div class="col col-12 col-sm-6">
+                            <div class="form-group">
+                                {% trans "Energy" as range_slider_title %}
+                                {% range_slider name='energy' title=range_slider_title min=search.energy.min max=search.energy.max cmin=search.energy.cmin cmax=search.energy.cmax %}
+                            </div>
+                            <div class="form-group">
+                                {% trans "Time" as range_slider_title %}
+                                {% range_slider name='time' title=range_slider_title min=search.time.min max=search.time.max cmin=search.time.cmin cmax=search.time.cmax %}
+                            </div>
+                        </div>
+                        <div class="col col-12 col-sm-6">
+                            <div class="form-group">
+                                <div class="form-group">
+                                    {% trans "Protein" as range_slider_title %}
+                                    {% range_slider name='protein' title=range_slider_title min=search.protein.min max=search.protein.max cmin=search.protein.cmin cmax=search.protein.cmax %}
+                                </div>
+                                <div class="form-group">
+                                    {% trans "Fat" as range_slider_title %}
+                                    {% range_slider name='fat' title=range_slider_title min=search.fat.min max=search.fat.max cmin=search.fat.cmin cmax=search.fat.cmax %}
+                                </div>
+                                <div class="form-group">
+                                    {% trans "Carbohydrate" as range_slider_title %}
+                                    {% range_slider name='carbohydrate' title=range_slider_title min=search.carbohydrate.min max=search.carbohydrate.max cmin=search.carbohydrate.cmin cmax=search.carbohydrate.cmax %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+    <div class="search-result recipe-bg">
+        {% if result.recipes %}
+            <div class="row">
+                <div class="col col-12">
+                    {% for recipe in result.recipes %}
+                        <p>
+                            <a href="{% url 'recipes_category' recipe.category.name %}" title="{{ recipe.category.name }}">
+                                {% if recipe.category.image %}
+                                    <img style="width:16px" src="{{recipe.category.image.url }}">
+                                {% else %}
+                                    <span class="badge badge-primary">{{ recipe.category.name }}</span>
+                                {% endif %}
+                            </a>
+                            <a href="{% url 'recipes_recipe' recipe.url %}" class="ml-2">
+                                {{ recipe.title }}
+                            </a>
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            {% trans "No results." %}
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}
