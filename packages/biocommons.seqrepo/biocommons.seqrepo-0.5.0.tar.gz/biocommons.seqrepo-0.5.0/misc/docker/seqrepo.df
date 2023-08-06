@@ -1,0 +1,64 @@
+# (Reece) builds like this:
+# ./build 0.3.6 2018-08-21
+#
+# Then users do something like:
+# docker run -it --name seqrepo biocommons/seqrepo
+# The first time will take a while as it downloads seqrepo
+# into /usr/local/share/seqrepo
+#
+# Then, use the container volume like this:
+# docker run -it --name myapp --volumes-from seqrepo ubuntu  do-something
+
+
+FROM ubuntu:18.04
+
+RUN apt update && apt install -y \
+    curl \
+    python3-pip \
+    rsync \
+    zlib1g-dev \
+    libbz2-dev \
+    liblzma-dev
+
+RUN pip3 install --upgrade setuptools pip
+
+RUN pip3 install --upgrade numpy scipy pandas
+
+RUN pip3 install --upgrade \
+    biopython \
+    bioutils \
+    decorator \
+    ipython \
+    ipython-genutils \
+    pexpect \
+    pickleshare \
+    prompt-toolkit \
+    ptyprocess \
+    pygments \
+    pysam \
+    simplegeneric \
+    six \
+    tqdm \
+    traitlets \
+    wcwidth \
+    yoyo-migrations
+
+
+MAINTAINER reecehart@gmail.com
+ARG SEQREPO_VERSION
+RUN test -n "$SEQREPO_VERSION"
+ARG SEQREPO_DATA_RELEASE=2018-08-21
+RUN test -n "$SEQREPO_DATA_RELEASE"
+
+ENV SEQREPO_DATA_RELEASE ${SEQREPO_DATA_RELEASE}
+
+ARG SEQREPO_DATA_DIR=/usr/local/share/seqrepo
+ENV SEQREPO_DATA_DIR ${SEQREPO_DATA_DIR}
+
+LABEL description="seqrepo data volume container ${SEQREPO_VERSION}/${SEQREPO_DATA_RELEASE} at ${SEQREPO_DATA_DIR}"
+
+VOLUME ${SEQREPO_DATA_DIR}
+
+RUN pip3 install --upgrade biocommons.seqrepo==${SEQREPO_VERSION}
+
+CMD seqrepo -r ${SEQREPO_DATA_DIR} pull -i ${SEQREPO_DATA_RELEASE}
