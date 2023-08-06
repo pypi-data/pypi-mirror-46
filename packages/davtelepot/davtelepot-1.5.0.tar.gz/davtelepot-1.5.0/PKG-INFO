@@ -1,0 +1,61 @@
+Metadata-Version: 2.1
+Name: davtelepot
+Version: 1.5.0
+Summary: telepot.aio.Bot convenient subclass, featuring dataset-powered SQLite.
+Home-page: https://gogs.davte.it/davte/davtelepot
+Author: Davide Testa
+Author-email: davte@libero.it
+License: GNU General Public License v3.0
+Description: # davtelepot
+        This project conveniently subclasses third party telepot.aio.Bot, providing many interesting features.
+        
+        Please note that you need Python3.5+ to run async code
+        
+        Check requirements.txt for third party dependencies.
+        
+        Check out `help(Bot)` for detailed information.
+        
+        ## Project folders
+        
+        ### data folder
+        * `*.db`: databases used by bots
+        * `*.log`: log files (store log_file_name and errors_file_name in `data/config.py` module)
+        * `passwords.py`: contains secret information to be git-ignored (e.g. bot tokens)
+        
+        ```
+        my_token = 'token_of_bot1'
+        my_other_token = 'token_of_bot2'
+        ...
+        ```
+        
+        ## Usage
+        ```
+        from davtelepot import Bot
+        from data.passwords import my_token, my_other_token
+        
+        my_bot = Bot.get(token=my_token, db_name='my_db')
+        my_other_bot = Bot.get(token=my_other_token, db_name='my_other_db')
+        
+        @my_bot.command('/foo')
+        async def foo_command(update):
+          return "Bar!"
+        
+        @my_other_bot.command('/bar')
+        async def bar_command(update):
+          return "Foo!"
+        
+        Bot.run()
+        ```
+        Check out `help(Bot)` for detailed information.
+        
+Keywords: telepot telegram bot python wrapper
+Platform: any
+Classifier: Development Status :: 3 - Alpha
+Classifier: Framework :: AsyncIO
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Topic :: Communications :: Chat
+Description-Content-Type: text/markdown
