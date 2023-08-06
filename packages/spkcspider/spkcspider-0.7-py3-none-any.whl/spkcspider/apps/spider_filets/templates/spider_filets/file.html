@@ -1,0 +1,31 @@
+{% load i18n %}
+<div class="w3-padding">
+  {% if type == "image" %}
+    <a href="{{download}}">
+      <img src="{{download}}" alt="{{object.name}}" style="width:100%"></img>
+    </a>
+  {% elif type == "media" %}
+    <video controls>
+      <source src="{{download}}" style="width:100%">
+      {% trans 'Format not supported' %}
+    </video>
+  {% else %}
+    <div style="width:100%" class="w3-padding w3-center">
+      <a class="w3-margin" href="{{download}}">
+        <i class="fas fa-file-download" style="font-size:300px;color: red;" aria-hidden="true"></i>
+      </a>
+    </div>
+  {% endif %}
+  <data hidden="hidden" typeof="spkc:Property">
+    <data hidden="hidden" property="spkc:name">name</data>
+    <data hidden="hidden" property="spkc:hashable" datatype="xsd:boolean">false</data>
+    <data hidden="hidden" property="spkc:value">{{object.name}}</data>
+  </data>
+  {% include "spider_filets/license_info.html" %}
+  <div typeof="spkc:Property">
+    <data hidden="hidden" property="spkc:name">file</data>
+    <data hidden="hidden" property="spkc:hashable" datatype="xsd:boolean">true</data>
+    <data hidden="hidden" property="spkc:value" datatype="spkc:hashableURI">{{download}}</data>
+    <a class="w3-xlarge" href="{{download}}">{% trans "Download" %}</a>
+  </div>
+</div>
