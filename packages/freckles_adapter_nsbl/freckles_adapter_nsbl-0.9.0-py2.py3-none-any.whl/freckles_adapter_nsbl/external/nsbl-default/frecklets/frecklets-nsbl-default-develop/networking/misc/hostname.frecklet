@@ -1,0 +1,54 @@
+doc:
+  short_help: Set the hosts hostname.
+  help: |
+    Set system’s hostname according to the platforms recommended practices.
+
+    Also add the new hostnames to the line containing '127.0.0.1' in /etc/hosts.
+    
+  further_reading:
+    "Blogpost about how to set the hostname on Ubuntu": http://derpturkey.com/setting-host-with-ansible-in-ubuntu/
+  examples:
+    - title: Set the hostname of the target machine to 'dev.frkl.io'.
+      vars:
+        hostname: dev.frkl.io
+
+args:
+  hostname:
+    doc:
+      short_help: The hostname.
+    type: string
+    required: true
+    empty: false
+    cli:
+      param_type: argument
+
+meta:
+  tags:
+    - networking
+    - hostname
+
+frecklets:
+  - task:
+      become: true
+    frecklet:
+      name: hostname
+      type: ansible-module
+      msg: "set hostname to '{{:: hostname ::}}'"
+      desc: |
+        Set hostname to '{{:: hostname ::}}' (actual tasks dependent on platform).
+    vars:
+      name: "{{:: hostname ::}}"
+  - task:
+      become: true
+    frecklet:
+      name: lineinfile
+      type: ansible-module
+      msg: "add hostname '{{:: hostname ::}}' to /etc/hosts"
+      desc: |
+        Add the hostname to the line in /etc/hosts that contains '127.0.0.1'.
+    vars:
+      dest: /etc/hosts
+      regexp: '^127\.0\.0\.1[ \t]+localhost'
+      line: "127.0.0.1 localhost {{:: hostname ::}}"
+      state: present
+

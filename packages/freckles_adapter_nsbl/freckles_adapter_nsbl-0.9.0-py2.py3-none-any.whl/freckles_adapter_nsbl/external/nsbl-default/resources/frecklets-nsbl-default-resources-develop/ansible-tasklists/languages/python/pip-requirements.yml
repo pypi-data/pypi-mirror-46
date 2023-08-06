@@ -1,0 +1,17 @@
+---
+
+- name: "ensure system pip and setuptools are installed for Python 2"
+  command: "apt-get install -y python-pip python-setuptools"
+  become: yes
+  become_user: root
+  when: "ansible_pkg_mgr == 'apt' and '3' not in ansible_python_interpreter and __pip_requirements_available__ is not defined"
+
+- name: "ensure system pip and setuptools are installed for Python 3"
+  command: "apt-get install -y python3-pip python3-setuptools"
+  become: yes
+  become_user: root
+  when: "ansible_pkg_mgr == 'apt' and '3' in ansible_python_interpreter and __pip_requirements_available__ is not defined"
+
+- name: "[set __pip_requirements_available__]"
+  set_fact:
+    __pip_requirements_available__: true

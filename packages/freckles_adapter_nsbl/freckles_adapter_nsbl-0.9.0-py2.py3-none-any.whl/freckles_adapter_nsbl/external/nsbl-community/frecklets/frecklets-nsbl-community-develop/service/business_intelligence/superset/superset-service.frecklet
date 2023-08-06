@@ -1,0 +1,148 @@
+doc:
+  short_help: Install a Superset service.
+
+args:
+  db_type:
+    doc:
+      short_help: The type of db to use.
+    type: string
+    default: sqlite
+    allowed:
+      - sqlite
+      - postgresql
+      - mariadb
+      - mysql
+  db_user:
+    doc:
+      short_help: The db username.
+    type: string
+    required: false
+    default: superset
+  db_host_ip:
+    doc:
+      short_help: The db host ip address.
+    type: string
+    default: 127.0.0.1
+    required: true
+  db_name:
+    doc:
+      short_help: the db name.
+    type: string
+    default: superset
+  db_password:
+    doc:
+      short_help: The db password.
+    type: string
+    default: superset
+  admin_username:
+    doc:
+      short_help: The username of the admin user.
+    type: string
+    required: false
+    default: admin
+  admin_firstname:
+    doc:
+      short_help: The first name of the admin user.
+    type: string
+    required: false
+  admin_lastname:
+    doc:
+      short_help: The last name of the admin user.
+    type: string
+    required: false
+  admin_email:
+    doc:
+      short_help: The email address of the admin user.
+    type: string
+    required: false
+  admin_password:
+    doc:
+      short_help: The service admin password.
+    type: string
+    required: false
+  superset_user:
+    doc:
+      short_help: The superset user.
+    type: string
+    default: superset
+  superset_group:
+    doc:
+      short_help: The superset group.
+    type: string
+    default: superset
+  python_version:
+    doc:
+      short_help: The version of Python to use for the Superset virtualenv.
+    type: string
+    default: 3.7.2
+  superset_version:
+    doc:
+      short_help: The version of superset.
+    type: string
+    required: false
+    default: "0.28.1"
+
+
+frecklets:
+  - python-virtualenv:
+      user: "{{:: superset_user ::}}"
+      group: "{{:: superset_group ::}}"
+      system_user: true
+      base_path: /var/lib/pyenv
+      python_version: "{{:: python_version ::}}"
+      venv_name: superset
+      python_packages:
+        - pandas==0.23.4
+        - psycopg2-binary
+        - gevent
+        - SQLAlchemy==1.2.18
+        - "superset=={{:: superset_version ::}}"
+        - pymssql
+        - mysqlclient
+      system_dependencies:
+        - build-essential
+        - libssl-dev
+        - libffi-dev
+        - libsasl2-dev
+        - libldap2-dev
+        - libmariadbclient-dev
+  - superset-service-configuration-file:
+      path: /etc/superset/superset_config.py
+      owner: superset
+      group: superset
+      mode: "0700"
+      db_type: "{{:: db_type ::}}"
+      db_user: "{{:: db_user ::}}"
+      db_password: "{{:: db_password ::}}"
+      db_host_ip: "{{:: db_host_ip ::}}"
+      db_name: "{{:: db_name ::}}"
+  - superset-service-init:
+      admin_username: "{{:: admin_username ::}}"
+      admin_firstname: "{{:: admin_firstname ::}}"
+      admin_lastname: "{{:: admin_lastname ::}}"
+      admin_email: "{{:: admin_email ::}}"
+      admin_password: "{{:: admin_password ::}}"
+      superset_virtualenv: "/var/lib/pyenv/versions/{{:: python_version ::}}/envs/superset"
+  - systemd-service-unit:
+      name: superset
+      desc: "Superset service daemon (gunicorn)"
+      service_user: superset
+      service_group: superset
+      service_exec_start: "/var/lib/pyenv/versions/superset/bin/gunicorn -w 10 -k gevent --timeout 120 -b 0.0.0.0:8088 --limit-request-line 0 --limit-request-field_size 0 superset:app --pythonpath /etc/superset/ --pid /run/superset/superset.pid"
+      service_exec_reload: "/bin/kill -s HUP $MAINPID"
+      service_exec_stop: "/bin/kill -s TERM $MAINPID"
+      service_private_tmp: True
+      service_working_directory: "/var/lib/pyenv/versions/superset/"
+      service_exec_start_pre:
+        - "/bin/mkdir /run/superset"
+        - "/bin/chown -R superset:superset /run/superset"
+      service_exec_stop_post:
+        - "/bin/rm -rf /run/superset"
+      service_permissions_start_only: True
+      unit_after:
+        - network.target
+      install_wanted_by:
+        - multi-user.target
+      enabled: true
+      started: true
+      service_pid_file: /run/superset/superset.pid

@@ -1,0 +1,99 @@
+---
+
+doc:
+  short_help: Execute a one-off shell command.
+  help: |
+    Execute a single command. The command will be processed through the shell, so it will reckognize environment
+    variables like ``$HOME``,  and can be used to do shell operation like "<", ">", etc.
+
+    Behind the scenes, this uses the ['shell' Ansible module](https://docs.ansible.com/ansible/latest/modules/shell_module.html),
+    so check its documentation for more details.
+
+  further_reading:
+    "'shell' Ansible module": https://docs.ansible.com/ansible/latest/modules/shell_module.html
+  examples:
+    - title: "Append a string to a file."
+      desc: |
+        You'd execute this like:
+
+        ```console
+        frecklecute example.frecklet --name World
+        ```
+      vars:
+        command: "echo 'Hello {{:: name ::}}!' >> /tmp/hello.txt"
+
+args:
+  command:
+    doc:
+      short_help: The command to execute.
+    type: string
+    required: true
+  chdir:
+    doc:
+      short_help: The working directory.
+    type: string
+    required: false
+#  become:
+#    doc:
+#      short_help: Whether to use elevated privileges when executing the command.
+#    type: boolean
+#    default: false
+  shell_executable:
+    doc:
+      short_help: The (absolute path to the) shell executable to use.
+    type: string
+    required: false
+  become_user:
+    doc:
+      short_help: The user to execute this command as.
+    type: string
+    empty: false
+    required: false
+  ignore_error:
+    doc:
+      short_help: Whether to ignore any potential errors.
+    type: boolean
+    required: false
+    default: false
+  no_log:
+    doc:
+      short_help: Whether to hide the log of this command (because for example the command contains sensitive information).
+    type: boolean
+    default: false
+    required: false
+  environment:
+    doc:
+      short_help: A dictionary of environment variables to add/set.
+    type: dict
+    required: false
+    keyschema:
+      type: string
+
+frecklets:
+
+  - task:
+      become: "{{:: become_user | true_if_not_empty ::}}"
+      become_user: "{{:: become_user ::}}"
+      ignore_errors: "{{:: ignore_error ::}}"
+      no_log: "{{:: no_log ::}}"
+      environment: "{{:: environment ::}}"
+    frecklet:
+      name: shell
+      type: ansible-module
+      elevated: "{{:: become_user | true_if_not_empty ::}}"
+      idempotent: false
+      references:
+        "'ans' Ansible module": "https://docs.ansible.com/ansible/latest/modules/shell_module.html"
+      msg: "execute one-off command: {{:: command ::}}"
+      desc: |
+        {%:: if chdir ::%}Change the current working directory to be '{{:: chdir ::}}'.{%:: endif ::%}.
+
+        {%:: if become_user ::%}As user '{%:: if become_user ::%}{{:: become_user ::}}{%:: else ::%}'root'{%:: endif ::%} execute {%:: else ::%}Execute{%:: endif ::%} (in shell):
+
+            {{:: command ::}}
+
+    vars:
+      free_form: "{{:: command ::}}"
+      chdir: "{{:: chdir ::}}"
+      executable: "{{:: shell_executable ::}}"
+

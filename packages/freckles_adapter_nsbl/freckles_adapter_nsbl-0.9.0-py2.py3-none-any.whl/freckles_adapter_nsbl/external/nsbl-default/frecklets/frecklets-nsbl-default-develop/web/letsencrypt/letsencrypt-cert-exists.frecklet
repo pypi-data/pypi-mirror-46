@@ -1,0 +1,95 @@
+doc:
+  short_help: "Ensures a letsencrypt https certificate for a hostname exists."
+  help: |
+    Request and setup a lets-encrypt certificate for a hostname.
+
+    This also creates a cron-job that monitors the certificate for
+    expiration, and re-news it if necessary.
+
+    If ``webserver_service_name`` is provided, that service is stopped before cert request, and restarted after.
+  further_reading:
+    "'thefinn93.letsencrypt' Ansible role": https://github.com/thefinn93/ansible-letsencrypt
+  examples:
+    - title: Install a letsencrypt certificate.
+      vars:
+        letsencrypt_cert_domains:
+          - dev.frkl.io
+        letsencrypt_email: hello@frkl.io
+
+args:
+  domain_names:
+    required: true
+    type: list
+    schema:
+      type: string
+    doc:
+      short_help: "The hostname(s)."
+    cli:
+      metavar: HOST_NAME
+      param_decls:
+        - "--domain"
+  email:
+    required: false
+    type: string
+    doc:
+      short_help: "The email address to use with the letsencrypt service."
+    cli:
+      metavar: EMAIL
+  letsencrypt_staging:
+    type: boolean
+    doc:
+      short_help: "Whether to use the letsencrypt staging server instead of production."
+      help: |
+        This is useful for development, as the production server only allows for a certain number of certificate
+        requests per day/week.
+    required: false
+    default: false
+    cli:
+      is_flag: true
+  renewal_command:
+    type: string
+    required: false
+    doc:
+      short_help: "The command to use for renewal in the cron job (check underlying role for details)."
+  document_root:
+    type: string
+    required: false
+    default: /var/www
+    doc:
+      short_help: "The webroot path for the webserver (check underlying role for details)."
+  webserver_service_name:
+    type: string
+    required: false
+    doc:
+      short_help: The webserver service name, to be able to stop the service before cert request.
+
+meta:
+  tags:
+    - letsencrypt
+    - https
+    - featured-frecklecutable
+    - setup
+
+frecklets:
+  - systemd-services-stopped:
+      frecklet::skip: "{{:: webserver_service_name | true_if_empty ::}}"
+      services:
+      - "{{:: webserver_service_name ::}}"
+  - frecklet:
+      type: ansible-role
+      name: thefinn93.letsencrypt
+      idempotent: true
+      elevated: true
+      internet: true
+      references:
+        "'thefinn92.letsencrypt' Ansible role": "https://github.com/thefinn93/ansible-letsencrypt"
+    vars:
+      letsencrypt_cert_domains: "{{:: domain_names ::}}"
+      letsencrypt_email: "{{:: email ::}}"
+      letsencrypt_renewal_command_args: "{{:: renewal_command ::}}"
+      letsencrypt_webroot_path: "{{:: document_root ::}}"
+      letsencrypt_server: "{{:: 'https://acme-staging.api.letsencrypt.org/directory' if letsencrypt_staging else None ::}}"
+  - systemd-services-started:
+      frecklet::skip: "{{:: webserver_service_name | true_if_empty ::}}"
+      services:
+      - "{{:: webserver_service_name ::}}"

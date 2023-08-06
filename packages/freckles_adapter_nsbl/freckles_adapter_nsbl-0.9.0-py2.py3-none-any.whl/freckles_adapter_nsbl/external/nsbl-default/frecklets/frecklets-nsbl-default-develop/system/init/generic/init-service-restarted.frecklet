@@ -1,0 +1,43 @@
+---
+doc:
+  short_help: "Restart init-service."
+  help: |
+    Make sure an init service is restarted.
+  examples:
+    - title: Restart the 'apache2' service.
+      desc: |
+        This doesn't enable the apache2 service, but starts it if it isn't already running.
+      vars:
+        name: apache2
+args:
+  name:
+    doc:
+      short_help: "The name of the service."
+    type: string
+    required: true
+    cli:
+      metavar: SERVICE_NAME
+      param_type: argument
+
+meta:
+  tags:
+    - service
+    - systemd
+    - init
+
+frecklets:
+  - task:
+      become: true
+    frecklet:
+      type: ansible-module
+      name: service
+      msg: "restart service: {{:: name ::}}"
+      idempotent: true
+      internet: false
+      elevated: true
+      references:
+        "'service' Ansible module'": "https://docs.ansible.com/ansible/latest/modules/service_module.html"
+    vars:
+      name: "{{:: name ::}}"
+      state: restarted
+

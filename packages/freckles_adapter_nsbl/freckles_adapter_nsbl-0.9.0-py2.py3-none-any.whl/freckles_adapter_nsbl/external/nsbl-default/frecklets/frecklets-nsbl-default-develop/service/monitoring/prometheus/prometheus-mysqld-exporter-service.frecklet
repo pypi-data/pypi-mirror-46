@@ -1,0 +1,43 @@
+doc:
+  short_help: Installs the Prometheus mysqld exporter.
+  help: |
+    This role is not fully functional yet. #TODO
+  further_reading:
+    "Prometheus mysqld exporter GitHub": https://github.com/prometheus/mysqld_exporter
+    "cloudalchemy.mysqld-exporter Ansible role": https://github.com/cloudalchemy/ansible-mysqld-exporter
+  examples:
+    - title: Install the Prometheus mysqld exporter.
+      vars:
+        mysqld_exporter_web_listen_address: 192.168.1.14
+
+args:
+  version:
+    doc:
+      short_help: The version of the mysqld exporter.
+    type: string
+    required: false
+  web_listen_address:
+    doc:
+      short_help: Address on which the mysqld exporter will listen.
+      help: |
+        Address on which the mysqld exporter will listen. Defaults to '0.0.0.0:9104'
+    type: string
+    required: false
+
+frecklets:
+  - task:
+      become: true
+      include-type: import
+    frecklet:
+      name: cloudalchemy.mysqld-exporter
+      type: ansible-role
+      msg: installing Prometheus mysqldexporter
+      elevated: true
+      idempotent: true
+      internet: true
+      references:
+        "'cloudalchemy.mysqld-exporter' Ansible role": "https://github.com/cloudalchemy/ansible-mysqld-exporter"
+    vars:
+      mysqld_exporter_version: "{{:: version ::}}"
+      mysqld_exporter_web_listen_address: "{{:: web_listen_address ::}}"
+

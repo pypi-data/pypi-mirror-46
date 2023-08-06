@@ -1,0 +1,24 @@
+---
+# tasks file for freckfrackery.folders
+-
+- name: "[check whether rsync exists on remote machine]"
+  set_fact:
+    intermingle_rsync_available: "{{ box_very_basics.executables.rsync | default([]) | length | bool }}"
+  when: intermingle_rsync_available is not defined or (not intermingle_rsync_available and box_very_basics is defined)
+
+- name: "[set intermingle_checkout_dest to intermingle_src if not provided]"
+  set_fact:
+    intermingle_checkout_dest: "{{ intermingle_src }}"
+  when: "intermingle_checkout_stage and intermingle_checkout_dest is not defined"
+
+- name: "[checking variables]"
+  include_tasks: check_variables.yml
+  when: intermingle_checkout_stage or intermingle_stage
+
+- name: "[starting checkout stage]"
+  include_tasks: checkout.yml
+  when: intermingle_checkout_stage
+
+- name: "[starting intermingle stage]"
+  include_tasks: intermingle.yml
+  when: intermingle_stage

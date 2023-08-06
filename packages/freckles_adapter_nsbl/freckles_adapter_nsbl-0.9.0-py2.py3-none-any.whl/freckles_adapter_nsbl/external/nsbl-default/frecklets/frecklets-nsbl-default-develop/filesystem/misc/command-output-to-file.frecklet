@@ -1,0 +1,133 @@
+doc:
+  short_help: Execute a command, write the output to file.
+  help: |
+    Execute a command and write the output to a file.
+
+    By default, this executes a command on the local (controller) host, and writes the file to the remote one. This can
+    be mixed-and-matched in any possible combination though.
+
+    This does not (yet) create either the user to execute the command as (``execute_as``) nor the owner of the result file
+    (``owner``, ``group``). Make sure to create those manually if necessary. It also does not create the parent directory
+    of the target file.
+  further_reading:
+    "Ansible 'command' module documentation": https://docs.ansible.com/ansible/latest/modules/command_module.html
+    "Ansible 'copy' module documentation": https://docs.ansible.com/ansible/latest/modules/copy_module.html
+  examples:
+    - title: Create a file with a random number as content.
+      desc: |
+        Run a command that generates a random number, and write the result into the file /tmp/random_number. Ensure the
+        file mode is '0700' and its user 'freckles'.
+      vars:
+        command: "od -A n -t d -N 1 /dev/urandom"
+        path: "/tmp/random_nubmer"
+        remote_execute: true
+        owner: "freckles"
+        mode: "0700"
+args:
+  remote_execute:
+    doc:
+      short_help: Whether to execute the command on the remote host.
+    type: boolean
+    default: false
+    required: false
+    cli:
+      param_decls:
+        - "--remote-execute/--no-remote-execute"
+  execute_as:
+    doc:
+      short_help: The user to execute the command as.
+      help: |
+        Needs to exist on the host that is used to execute.
+    type: string
+    required: false
+  owner:
+    doc:
+      short_help: The owner of the target file.
+    type: string
+    required: false
+  group:
+    doc:
+      short_help: The group of the target file.
+    type: string
+    required: false
+  mode:
+    doc:
+      short_help: The mode of the target file.
+    type: string
+    required: false
+  remote_write:
+    doc:
+      short_help: Whether to write the output file to the remote host, or locally.
+    type: boolean
+    default: true
+    cli:
+      param_decls:
+        - "--remote-write/--no-remote-write"
+  command:
+    doc:
+      short_help: The command to execute.
+    type: string
+    required: true
+  path:
+    doc:
+      short_help: The path to the output file.
+    type: string
+    required: true
+  chdir:
+    doc:
+      short_help: Change into this directory before running the shell command.
+    type: string
+    required: false
+  stdin:
+    doc:
+      short_help: Set the stdin of the command directly to the specified value.
+    type: string
+    required: false
+
+frecklets:
+  - frecklet:
+      name: command
+      type: ansible-module
+      msg: "execute command: '{{:: command ::}}'"
+      desc: |
+        On {%:: if not remote_execute ::%}controller machine{%:: else ::%}target machine{%:: endif ::%}, {%:: if chdir ::%}change into directory {{:: chdir ::}} and {%:: endif ::%}run command{%:: if execute_as ::%} (as user {{:: execute_as ::}}){%:: endif ::%}:
+
+            {{:: command ::}}
+
+        Store output into internal variable '__command_output__'.
+      elevated: "{{:: execute_as | true_if_not_empty ::}}"
+      idempotent: false
+      references:
+        "'command' Ansible module": "https://docs.ansible.com/ansible/latest/modules/command_module.html"
+    task:
+      delegate_to: "{{:: 'localhost' if not remote_execute else None ::}}"
+      register: __command_output__
+      become: "{{:: execute_as | true_if_not_empty ::}}"
+      become_user: "{{:: execute_as ::}}"
+    vars:
+      free_form: "{{:: command ::}}"
+      stdin: "{{:: stdin ::}}"
+      chdir: "{{:: chdir ::}}"
+  - frecklet:
+      name: copy
+      type: ansible-module
+      msg: "write command output to: {{:: path ::}}"
+      desc: |
+        Retrieve output of previous command from internal variable __command_output__ and create a file '{{:: path ::}}'
+        with the 'stdout' property of the output as content of the file.
+
+        {%:: if group ::%}Set the group of the file to be '{{:: group ::}}'. {%:: endif ::%}{%:: if owner ::%}Set the owner of the file to be '{{:: owner ::}}'.{%:: endif ::%} {%:: if mode ::%}Set the mode of the file to be: '{{:: mode ::}}'.{%:: endif ::%}
+      idempotent: true
+      internet: false
+      elevated: "{{:: owner | true_if_not_empty ::}}"
+      references:
+        "'copy' Ansible module": "https://docs.ansible.com/ansible/latest/modules/copy_module.html"
+    task:
+      delegate_to: "{{:: 'localhost' if not remote_write else None ::}}"
+      become: "{{:: owner | true_if_not_empty ::}}"
+    vars:
+      content: "{{ __command_output__.stdout }}"
+      dest: "{{:: path ::}}"
+      mode: "{{:: mode ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"

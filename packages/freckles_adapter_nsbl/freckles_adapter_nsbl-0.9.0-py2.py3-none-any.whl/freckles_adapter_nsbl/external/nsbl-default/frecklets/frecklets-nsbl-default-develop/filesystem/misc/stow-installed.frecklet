@@ -1,0 +1,66 @@
+doc:
+  short_help: "Install the stow package."
+  help: |
+    Install the '[stow](https://www.gnu.org/software/stow/)' package.
+
+    ``stow`` is a package that can recursively create symlinks to a source folder, in a smart way. This can be useful
+    -- for example -- if you want to version control a folder that has files strewn across different locations in the
+    folder hierarchy. So, instead of creating a very involved ``.gitignore`` file, you would create a folder with only
+    the files you are interested in, version-control it, and  then'stow' it into it's target location.
+
+  furter_reading:
+    "stow homepage": https://www.gnu.org/software/stow/
+  examples:
+    - title: Install the 'stow' package.
+      desc: |
+        This uses the default system package manager to install 'stow'.
+        If this is run on Mac OS X, homebrew will be used. If homebrew is not available,
+        If this is run on CentOS, the 'epel-release' package is also installed.
+    - title: Install the 'stow' package using the 'conda' package manager.
+      vars:
+        pkg_mgr: conda
+      desc: |
+        If the 'conda' package manager is not available, it will be installed. It will probably be necessary to activate
+        the default conda environment (``source /home/vagrant/.local/share/inaugurate/conda/bin/activate``) to have 'stow'
+        available in the path.
+    - title: Install the 'stow' package using the 'nix' package manager.
+      vars:
+        pkg_mgr: nix
+      desc: |
+        If the 'conda' package manager is not available, it will be installed. If the 'nix' package manager is not available,
+        it will be installed before-hand. It might be necessary to re-login to have nix and it's PATHs properly setup.
+
+args:
+  pkg_mgr:
+    doc:
+      short_help: the package manager to use
+    type: string
+    default: auto
+    required: false
+    cli:
+      metavar: PKG-MGR
+
+meta:
+  is_interface: true
+  tags:
+    - stow
+    - install
+    - pkg
+
+frecklets:
+  - packages-installed:
+      pkg_mgr: "{{:: pkg_mgr ::}}"
+      packages:
+        - name: epel-release
+          pkgs:
+            centos:
+              - epel-release
+            default: ignore
+  - packages-installed:
+      become: "{{:: pkg_mgr | false_if_equal('conda') ::}}"
+      packages:
+        - name: stow
+          conda_channels:
+            - conda-forge
+            - freckles
+          pkg_mgr: "{{:: pkg_mgr ::}}"

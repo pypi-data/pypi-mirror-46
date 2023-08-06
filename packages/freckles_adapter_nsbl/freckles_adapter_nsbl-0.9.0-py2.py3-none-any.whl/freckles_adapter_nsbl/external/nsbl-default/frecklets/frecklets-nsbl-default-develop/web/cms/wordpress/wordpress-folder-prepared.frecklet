@@ -1,0 +1,277 @@
+doc:
+  short_help: "Prepares wordpress project folders."
+  help: |
+    This uses the [oefenweb.wordpress Ansible role](https://github.com/Oefenweb/ansible-wordpress) to prepare a folder structure for
+    multiple wordpress sites. For more information, check out the role
+    documentation.
+
+    First, it makes sure the [wp-cli](https://github.com/wp-cli/wp-cli) application is installed,
+    then it downloads the 'Wordpress' application and puts it into the 'path' of each
+    one of the 'wordpress_install' items. Then it configures (creates admin user, etc.) every one of those items
+    (if not configured yet), and installs their themes and plugins.
+
+    It also (optionally) sets up cron jobs and other options.
+  further_reading:
+    "oefenweb.wordpress Ansible role homepage": https://github.com/Oefenweb/ansible-wordpress
+  examples:
+    - title: Setup wordpress project.
+      vars:
+        wordpress_installs:
+          - name: "my_site"
+            dbname: "my_site_db"
+            dbuser: "wordpress"
+            dbpass: "wordpress_password"
+            dbhost: "localhost"
+            path: "/var/www/wordpress"
+            url: "http://dev.frkl.io"
+            title: "My Site"
+            admin_name: "admin"
+            admin_email: "hello@frkl.io"
+            admin_password: "password123"
+            plugins:
+              - name: updraftplus
+                activate: true
+            themes:
+              - name: libra
+                activate: true
+
+args:
+  wp_cli_install_dir:
+    doc:
+      short_help: "The install directory for wp-cli."
+    required: false
+    type: string
+    cli:
+      metavar: PATH
+  wordpress_installs:
+    doc:
+      short_help: "A dict describing all required wordpress installs."
+      further_reading:
+        - "[oefenweb.wordpress Ansible role readme](https://github.com/Oefenweb/ansible-wordpress#variables)"
+    type: list
+    required: true
+    empty: false
+    default: {}
+    keyschema:
+      type: string
+    valueschema:
+      type: list
+      schema:
+        type: dict
+        schema:
+          name:
+            type: string
+            required: true
+            empty: false
+          dbname:
+            type: string
+            required: true
+            empty: false
+          dbuser:
+            type: string
+            required: true
+            empty: false
+          dbpass:
+            type: string
+            required: true
+            empty: false
+          dbhost:
+            type: string
+            required: false
+            empty: false
+            default: "localhost"
+          dbprefix:
+            type: string
+            required: false
+            default: "wp_"
+          path:
+            type: string
+            empty: false
+            required: true
+          locale:
+            type: string
+            empty: false
+            default: "en_US"
+            required: false
+          owner:
+            type: string
+            empty: false
+            required: false
+            default: "www-data"
+          group:
+            type: string
+            empty: false
+            required: false
+            default: "www-data"
+          url:
+            type: string
+            required: true
+            empty: false
+          title:
+            type: string
+            required: true
+            empty: false
+          admin_name:
+            type: string
+            required: false
+            empty: false
+            default: "admin"
+          admin_email:
+            type: string
+            required: true
+            empty: false
+          admin_password:
+            type: string
+            required: true
+            empty: false
+          cron:
+            type: dict
+            required: false
+            schema:
+              use_cron:
+                type: boolean
+                default: false
+                required: false
+              user:
+                default: www-data
+                type: string
+                required: false
+                empty: false
+              schedule:
+                required: false
+                type: dict
+                schema:
+                  day:
+                    type:
+                      - string
+                      - integer
+                    required: false
+                    default: "*"
+                  hour:
+                    type:
+                      - string
+                      - integer
+                    required: false
+                    default: "*"
+                  minute:
+                    type:
+                      - string
+                      - integer
+                    required: false
+                    default: "*"
+                  month:
+                    type:
+                      - string
+                      - integer
+                    required: false
+                    default: "*"
+                  weekday:
+                    type:
+                      - string
+                      - integer
+                    required: false
+                    default: "*"
+          themes:
+            type: dict
+            keyschema:
+              type: string
+            valueschema:
+              type: dict
+              schema:
+                name:
+                  type: string
+                  required: true
+                  empty: false
+                activate:
+                  type: boolean
+                  required: false
+                  default: false
+          plugins:
+            type: dict
+            keyschema:
+              type: string
+            valueschema:
+              type: dict
+              schema:
+                name:
+                  type: string
+                  required: true
+                  empty: false
+                activate:
+                  type: boolean
+                  required: false
+                  default: true
+                zip:
+                  type: string
+                  required: false
+                  empty: false
+                url:
+                  type: string
+                  required: false
+                  empty: false
+                force:
+                  required: false
+                  type: boolean
+                  default: false
+          users:
+            type: dict
+            required: false
+            schema:
+              src:
+                type: string
+                required: true
+              skip_update:
+                required: false
+                type: boolean
+                default: true
+          options:
+            type: dict
+            required: true
+            default: []
+            schema:
+              command:
+                type: string
+                allowed:
+                  - add
+                  - update
+                  - delete
+                required: true
+              name:
+                type: string
+                required: true
+                empty: false
+              value:
+                required: true
+                empty: false
+              autoload:
+                type: boolean
+                required: false
+                default: true
+          queries:
+            type: list
+            required: false
+            default: []
+
+meta:
+  is_idempotent: false
+  tags:
+    - wordpress
+  requirements:
+    - databases for all wordpress projects need to exist
+    - php needs to be installed
+
+frecklets:
+  - task:
+      become: true
+      include-type: import
+    frecklet:
+      name: oefenweb.wordpress
+      type: ansible-role
+      idempotent: true
+      elevated: true
+      internet: true
+      references:
+        "'oefenweb.wordpress' Ansible role": "https://github.com/Oefenweb/ansible-wordpress"
+    vars:
+      wordpress_wp_cli_install_dir: "{{:: wp_cli_install_dir ::}}"
+      wordpress_installs: "{{:: wordpress_installs ::}}"

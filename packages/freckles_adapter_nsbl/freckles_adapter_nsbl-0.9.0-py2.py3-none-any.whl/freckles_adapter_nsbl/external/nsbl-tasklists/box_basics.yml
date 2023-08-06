@@ -1,0 +1,39 @@
+---
+#
+# Copyright (c) 2018, Markus Binsteiner
+#
+# Licensed under The Parity Public license, Version 6.0.0 (the "license");
+# and you may not use this file except in compliance with the license.
+# You may obtain a copy of the License at
+#
+#  https://licensezero.com/licenses/parity
+#
+
+#- name: "[checking for python]"
+#  raw: sh -c "test -e /usr/bin/python"
+#  ignore_errors: true
+#  register: python_exists
+
+- name: "[testing sudo]"
+  raw: sh -c "true"
+  become: true
+  ignore_errors: true
+  register: can_sudo
+  changed_when: false
+  when: "not box_very_basics['root_init_done']"
+
+- name: "[running root init tasks if possible]"
+  include_tasks: "{{ playbook_dir }}/../task_lists/box_basics_root.yml"
+  when: "not box_very_basics['root_init_done'] and can_sudo.rc == 0"
+
+# TODO: check whether python available at all
+
+- name: setting python interpreter
+  set_fact:
+    ansible_python_interpreter: "{{ box_very_basics['python'] }}"
+  when: "box_very_basics['root_init_done'] or can_sudo.rc != 0"
+
+- name: "[gathering facts]"
+  setup: {}
+  tags: "always"
+  when: "box_very_basics['root_init_done'] or can_sudo.rc != 0"

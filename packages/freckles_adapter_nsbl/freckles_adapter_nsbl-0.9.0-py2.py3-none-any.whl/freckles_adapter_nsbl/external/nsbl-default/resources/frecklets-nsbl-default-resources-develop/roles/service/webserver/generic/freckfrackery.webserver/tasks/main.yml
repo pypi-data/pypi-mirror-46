@@ -1,0 +1,38 @@
+---
+# tasks file for webserver
+
+- include_tasks: set_variables.yml
+
+- name: "[creating webserver group]"
+  group:
+    name: "{{ webserver_group }}"
+    state: present
+  become: true
+
+- name: "[creating webserver user]"
+  user:
+    name: "{{ webserver_user }}"
+    group: "{{ webserver_group }}"
+    state: present
+  become: true
+
+- include_tasks: prepare_basic_auth.yml
+  when: webserver_use_basic_auth
+
+- include_tasks: prepare_https.yml
+  when: webserver_use_https and not webserver_skip_cert_request
+
+- include_tasks: prepare_php.yml
+  when: webserver_use_php
+
+- include_tasks: install_apache.yml
+  when: webserver_name == "apache"
+
+- include_tasks: install_nginx.yml
+  when: webserver_name == "nginx"
+
+- name: "[reloading webserver]"
+  service:
+    name: "{{ __webserver_service_name__ }}"
+    state: reloaded
+  become: true

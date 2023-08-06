@@ -1,0 +1,83 @@
+#!/usr/bin/env frecklecute
+---
+
+doc:
+  short_help: Set up a sort of self-hosted ngrok service.
+  help: |
+    Set up a self-hosted service similar to ngrok.
+
+    A Nginx web server (with valid Letsencrypt https certificate) proxies content from your local machine,
+    after you established an ssh-tunnel. You can use your own domain name(s), all you need is a virtual
+    server somewhere on the internet.
+
+    To connect to the service, use:
+
+        ssh -N -T -R <ssh_port>:localhost:<your_local_application_port> [server_user@]<server_domain>
+
+    Then, you (or anyone else) can connect with a browser on 'https://server_domain'.
+
+  further_reading:
+    "'Roll your own Ngrok...' blog post": "https://jerrington.me/posts/2019-01-29-self-hosted-ngrok.html"
+
+args:
+
+  hostname:
+    doc:
+      short_help: The domain name the webserver should listen on.
+    type: string
+    required: false
+    default: localhost
+  ssh_port:
+    doc:
+      short_help: The port nginx should connect to (on the server).
+    type: integer
+    default: 3333
+    required: true
+  server_admin:
+    doc:
+      short_help: "The server admin email (used for the Letsencrypt cert request)."
+    type: string
+    required: true
+    cli:
+      metavar: EMAIL
+  access_log:
+    doc:
+      short_help: "The access log."
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  error_log:
+    doc:
+      short_help: "The error log path and (optional) log level."
+      further_reading:
+        - "[Nginx core documentation](http://nginx.org/en/docs/ngx_core_module.html#error_log)"
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+
+frecklets:
+  - nginx-server-block-file:
+      path: "/etc/nginx/sites-enabled/{{:: hostname ::}}.ssh_port_{{:: ssh_port ::}}.https.conf"
+      use_https: true
+      server_admin: "{{:: server_admin ::}}"
+      server_names:
+        - "{{:: hostname ::}}"
+      owner: root
+      location_blocks:
+        - location_match: "/"
+          properties: |
+            proxy_pass http://localhost:{{:: ssh_port ::}}/;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_redirect off;
+  - webserver-service:
+      webserver: "nginx"
+      letsencrypt_webroot: "/var/www/html"
+      use_https: true
+      letsencrypt_email: "{{:: server_admin ::}}"
+      letsencrypt_domains:
+        - "{{:: hostname ::}}"

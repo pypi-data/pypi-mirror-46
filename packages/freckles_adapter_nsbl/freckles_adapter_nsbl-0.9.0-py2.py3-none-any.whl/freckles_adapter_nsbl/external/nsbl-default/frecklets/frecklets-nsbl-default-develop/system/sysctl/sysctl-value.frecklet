@@ -1,0 +1,41 @@
+doc:
+  short_help: Set a sysctl value.
+
+args:
+  name:
+    doc:
+      short_help: The name of the sysctl variable.
+    type: string
+    required: true
+    empty: false
+  value:
+    doc:
+      short_help: The value.
+    required: true
+    empty: false
+  set:
+    doc:
+      short_help: Verify token value with the sysctl command and set with -w if necessary.
+    type: boolean
+    default: false
+  reload:
+    doc:
+      short_help: If yes, performs a /sbin/sysctl -p if the sysctl_file is updated. If no, does not reload sysctl even if the sysctl_file is updated.
+    type: boolean
+    default: true
+
+frecklets:
+  - frecklet:
+      name: sysctl
+      type: ansible-module
+      msg: "set sysctl key: {{:: name ::}} -> {{:: value ::}}"
+      idempotent: true
+      elevated: true
+      internet: false
+    task:
+      become: true
+    vars:
+      name: "{{:: name ::}}"
+      value: "{{:: value ::}}"
+      state: present
+      sysctl_set: "{{:: set ::}}"

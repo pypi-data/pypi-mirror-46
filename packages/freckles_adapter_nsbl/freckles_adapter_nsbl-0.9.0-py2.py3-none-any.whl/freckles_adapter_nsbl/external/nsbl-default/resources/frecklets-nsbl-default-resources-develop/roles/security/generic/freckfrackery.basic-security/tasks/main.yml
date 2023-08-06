@@ -1,0 +1,205 @@
+---
+# tasks file for basic-security
+# inspiration from: https://ryaneschinger.com/blog/securing-a-server-with-ansible/
+
+- name: "[setting internal default]"
+  set_fact:
+    __new_user__: false
+    __use_mosh__: false
+
+- name: "[checking if user will be created]"
+  set_fact:
+    __new_user__: true
+  when: "basic_security_user_name is defined and basic_security_user_name"
+
+- name: "[check whether there is a danger of the user locking themselves out]"
+  fail:
+    msg: "Can't disable ssh password auth and not provide ssh public key(s). To overwrite this behaviour, please set the 'basic_security_force_ssh_config' var to 'true'"
+  when: "basic_security_disable_ssh_password_auth and not basic_security_user_public_keys and not basic_security_force_ssh_config"
+  no_log: false
+
+- name: "[checking whether to use mosh]"
+  set_fact:
+      __use_mosh__: true
+  when: "'mosh' in basic_security_packages or basic_security_use_mosh"
+
+- name: "[adding mosh package if necessary]"
+  set_fact:
+      basic_security_packages: "{{ basic_security_packages }} + ['mosh']"
+  when: "'mosh' not in basic_security_packages and __use_mosh__"
+
+- name: setting root password
+  user:
+    name: root
+    password: "{{ basic_security_root_pw }}"
+  when: "basic_security_root_pw is defined and basic_security_root_pw !=''"
+  become: true
+
+- name: installing init packages
+  install:
+    packages: "{{ basic_security_packages }}"
+
+- name: "installing default shell for new user '{{ basic_security_user_name }}'"
+  install:
+    packages:
+      - "{{ basic_security_user_shell.split('/')[-1] }}"
+    pkg_mgr: "auto"
+  when: "__new_user__ and basic_security_user_shell != ''"
+
+- name: installing sudo
+  install:
+    packages:
+      - sudo
+  when: __new_user__ or basic_security_enable_passwordless_sudo
+
+- name: "adding admin user: '{{ basic_security_user_name }}'"
+  user:
+    name: "{{ basic_security_user_name }}"
+    password: "{{ basic_security_user_pw }}"
+    groups:
+      - sudo
+    append: true
+    shell: "{{ basic_security_user_shell }}"
+  when: __new_user__ or (basic_security_user_name is defined and basic_security_enable_passwordless_sudo)
+  become: true
+  no_log: true
+
+- name: "adding authorized_keys for user '{{ basic_security_user_name }}'"
+  authorized_key:
+    user: "{{ basic_security_user_name }}"
+    key: "{{ key }}"
+  loop: "{{ basic_security_user_public_keys }}"
+  loop_control:
+      loop_var: key
+  when: __new_user__
+  become: true
+
+- name: enabling password-less sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%sudo ALL\='
+    line: '%sudo ALL=(ALL) NOPASSWD:ALL'
+    validate: '/usr/sbin/visudo -cf %s'
+  become: true
+  when: basic_security_enable_passwordless_sudo
+
+- name: installing yum-cron
+  yum: name=yum-cron state=present
+  become: true
+  when: ansible_os_family == 'RedHat' and basic_security_autoupdate_enabled
+
+- name: ensure yum-cron is running and enabled on boot
+  service: name=yum-cron state=started enabled=yes
+  become: true
+  when: ansible_os_family == 'RedHat' and basic_security_autoupdate_enabled
+
+- name: configuring autoupdates (RHEL 7)
+  lineinfile:
+    dest: "/etc/yum/yum-cron.conf"
+    regexp: '^apply_updates = .+'
+    line: 'apply_updates = yes'
+  become: true
+  when: ansible_os_family == 'RedHat' and basic_security_autoupdate_enabled and ansible_distribution_major_version | int == 7
+
+- name: installing unattended-upgrades
+  apt:
+    name: unattended-upgrades
+  become: true
+  when: ansible_os_family == 'Debian' and basic_security_autoupdate_enabled
+
+- name: copying unattended-upgrades configuration files in place.
+  template:
+    src: "../templates/{{ up_file }}.j2"
+    dest: "/etc/apt/apt.conf.d/{{ up_file }}"
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  loop:
+    - 10periodic
+    # - 50unattended-upgrades
+  loop_control:
+      loop_var: up_file
+  when: ansible_os_family == 'Debian' and basic_security_autoupdate_enabled
+
+- name: installing fail2ban
+  install:
+    packages:
+      - fail2ban
+  when: basic_security_enable_fail2ban
+
+- name: installing ufw
+  install:
+    packages:
+      - ufw
+  when: basic_security_enable_ufw
+
+- name: enabling ufw
+  ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+  become: true
+  when: basic_security_enable_ufw
+
+- name: "ufw: allow ssh traffic"
+  ufw: rule=allow port={{ basic_security_ssh_port }} proto=tcp
+  become: true
+  when: basic_security_enable_ufw
+
+- name: "ufw: allow additional tcp ports"
+  ufw:
+    rule: allow
+    port: "{{ tcp_port }}"
+    proto: tcp
+  become: true
+  loop: "{{ basic_security_tcp_ports }}"
+  loop_control:
+      loop_var: tcp_port
+  when: basic_security_enable_ufw and basic_security_tcp_ports
+
+- name: "ufw: allow additional udp ports"
+  ufw:
+    rule: allow
+    port: "{{ udp_port }}"
+    proto: udp
+  become: true
+  loop: "{{ basic_security_udp_ports }}"
+  loop_control:
+      loop_var: udp_port
+  when: basic_security_enable_ufw and basic_security_udp_ports
+
+- name: "ufw: allow mosh traffic"
+  ufw: rule=allow proto=udp port={{ basic_security_mosh_from_port }}:{{ basic_security_mosh_to_port }}
+  become: true
+  when: "'mosh' in basic_security_packages and basic_security_enable_ufw"
+
+# TODO: configure logwatch
+
+- name: "changing ssh port to '{{ basic_security_ssh_port }}'"
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^Port\s"
+              line="Port {{ basic_security_ssh_port }}"
+              state=present
+  become: true
+  when: basic_security_ssh_port != 22
+  notify: restart ssh
+
+- name: disabling password authentication for ssh
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^PasswordAuthentication"
+              line="PasswordAuthentication no"
+              state=present
+  notify: restart ssh
+  become: true
+  when: basic_security_disable_ssh_password_auth
+
+- name: disabling root access via ssh
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^PermitRootLogin"
+              line="PermitRootLogin no"
+              state=present
+  notify: restart ssh
+  become: true
+  when: basic_security_disable_ssh_root_access

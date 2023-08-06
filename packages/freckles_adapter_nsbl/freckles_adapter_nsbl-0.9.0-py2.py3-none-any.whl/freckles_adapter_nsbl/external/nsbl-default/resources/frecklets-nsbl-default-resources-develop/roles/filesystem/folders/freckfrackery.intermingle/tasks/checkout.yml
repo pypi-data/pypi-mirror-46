@@ -1,0 +1,72 @@
+---
+
+#- name: "[check if source folder is remote but not absolute]"
+#  fail:
+#    msg: "Remote source folder needs to be absolute: {{ intermingle_checkout_src }}"
+#  when: "not intermingle_checkout_src.startswith('/') and not intermingle_checkout_source_is_local"
+
+- name: "[setting variables]"
+  import_tasks: checkout_set_variables.yml
+
+- name: "[check whether local folder exists]"
+  local_action: stat path="{{ __intermingle_checkout_src_absolute_path__ }}"
+  register: __local_source_folder_exists__
+- name: "[check whether remote folder exists]"
+  stat: path="{{ __intermingle_checkout_src_absolute_path__ }}"
+  register: __remote_source_folder_exists__
+  when: not intermingle_checkout_source_is_local
+
+# bit convuluted, but otherwise it's hard to set that var because the 'skipped' result will be set as the var
+- name: "[setting source folder state]"
+  set_fact:
+    __source_folder_exists__: "{{ __local_source_folder_exists__.stat.exists }}"
+  when: intermingle_checkout_source_is_local
+- name: "[setting source folder state]"
+  set_fact:
+    __source_folder_exists__: "{{ __remote_source_folder_exists__.stat.exists }}"
+  when: not intermingle_checkout_source_is_local
+
+- name: "calculate checkout method"
+  set_fact:
+    __intermingle_checkout_type_calculated__: "{{ __intermingle_checkout_src__ | calculate_checkout_method(__intermingle_checkout_src_absolute_path__, __source_folder_exists__, intermingle_checkout_source_is_local, intermingle_rsync_available) }}"
+  when: intermingle_checkout_type == "auto"
+
+- name: "[prepare destionation]"
+  import_tasks: "prepare_destination.yml"
+
+- name: "[begin checkout]"
+  include_tasks: "checkout_{{ __intermingle_checkout_type_calculated__ | default(intermingle_checkout_type) }}.yml"
+
+- name: "[change owner]"
+  file:
+    path: "{{ intermingle_checkout_dest }}"
+    owner: "{{ intermingle_checkout_folder_owner | default(omit) }}"
+    group: "{{ intermingle_checkout_folder_group | default(omit) }}"
+    mode: "{{ intermingle_checkout_folder_mode  | default(omit) }}"
+    recurse: true
+  become: "{{ intermingle_become }}"
+  when: "(intermingle_checkout_folder_owner is defined and intermingle_checkout_folder_owner) or (intermingle_checkout_folder_group is defined and intermingle_checkout_folder_group) or (ingermingle_checkout_folder_mode is defined and intermingle_checkout_folder_mode)"
+
+#- name: "[change owner]"
+#  file:
+#    path: "{{ intermingle_checkout_dest }}"
+#    owner: "{{ intermingle_checkout_folder_owner | intermingle_folder_owner | default(omit) }}"
+#    group: "{{ intermingle_checkout_folder_group | intermingle_folder_group | default(omit) }}"
+#    mode: "{{ intermingle_checkout_folder_mode | intermingle_folder_mode | default(omit) }}"
+#  when: "(intermingle_checkout_folder_owner is defined and intermingle_checkout_folder_owner) or (intermingle_checkout_folder_group is defined and intermingle_checkout_folder_group) or (ingermingle_checkout_folder_mode is defined and intermingle_checkout_folder_mode) or (intermingle_folder_owner is defined and intermingle_folder_owner) or (intermingle_folder_group is defined and intermingle_folder_group) or (ingermingle_folder_mode is defined and intermingle_folder_mode)"
+
+- name: "[read folder metadata]"
+  script: "{{ playbook_dir }}/../files/freckle_folders.sh {{ intermingle_checkout_dest }}"
+  register: __freckle_folder_metadata_raw__
+  when: intermingle_checkout_freckle_metadata_var is defined or intermingle_checkout_directories_metadata_var is defined
+
+- name: "[setting folder metadata]"
+  set_fact:
+    "{{ intermingle_checkout_freckle_metadata_var }}": "{{ __freckle_folder_metadata_raw__ | read_freckle_file_metadata }}"
+  when: intermingle_checkout_freckle_metadata_var is defined
+
+- name: "[setting folder metadata]"
+  set_fact:
+    "{{ intermingle_checkout_directories_metadata_var }}": "{{ __freckle_folder_metadata_raw__ | read_directories_metadata }}"
+  when: intermingle_checkout_directories_metadata_var is defined
+

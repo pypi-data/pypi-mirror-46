@@ -1,0 +1,31 @@
+#!/usr/bin/env frecklecute
+
+doc:
+  short_help: Display a debug message.
+
+args:
+  msg:
+    secret: true
+    type: string
+    required: true
+    doc:
+      short_help: The message
+    cli:
+      param_type: argument
+
+meta:
+  tags:
+    - debug
+
+frecklets:
+  - frecklet:
+      type: ansible-module
+      name: debug
+      msg: "print a message"
+      references:
+        "'debug' Ansible module": "https://docs.ansible.com/ansible/latest/modules/debug_module.html"
+      idempotent: false
+      become: false
+      internet: false
+    vars:
+      msg: "{{:: msg ::}}"

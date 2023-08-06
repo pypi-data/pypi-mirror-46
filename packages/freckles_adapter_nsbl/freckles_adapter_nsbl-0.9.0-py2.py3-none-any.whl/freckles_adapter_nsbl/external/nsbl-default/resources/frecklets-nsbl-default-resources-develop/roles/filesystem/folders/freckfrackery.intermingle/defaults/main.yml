@@ -1,0 +1,90 @@
+---
+# defaults file for freckfrackery.folders
+
+intermingle_checkout_stage: false                        # whether to run the 'checkout' step
+
+intermingle_stage: false                                 # whether to run the 'intermingle' step
+
+intermingle_become: false                                # optional, whether to use 'become' when creating
+                                                         # folders, copying, etc in the checkout stage...
+
+
+# ======================================================================================================================
+# checkout step
+
+# intermingle_checkout_src:                              # required if 'checkout' enabled, the source to checkout
+
+# intermingle_checkout_dest:                             # required if 'checkout', the folder to checkout into
+                                                         # defaults to 'intermingle_src'
+
+intermingle_checkout_type: auto                          # optional, force a certain 'checkout' type (e.g.
+                                                         # 'rsync', 'git', 'unarchive', etc.)
+
+intermingle_checkout_config: {}                          # optional, checkout-type specific configuration
+
+# intermingle_checkout_local_current_dir:                # optional, directory to use as a base for relative paths
+                                                         # on the control machine
+
+intermingle_checkout_source_is_local: true               # indicates whether the 'intermingle_checkout_local_current_dir'
+                                                         # (if specified) is a local or remote path
+
+# folder_checkout_folder_owner:                          # optionally set the mode of the intermingle_checkout_dest to this
+                                                         # user after checkout
+
+# folder_checkout_folder_group:                          # optionally set the owner of the intermingle_checkout_dest to this
+                                                         # group after checkout
+
+# folder_checkout_folder_mode:                           # optionally set the owner of the intermingle_checkout_dest to this
+                                                         # mode after checkout
+
+# intermingle_checkout_freckle_metadata_var:             # optionally find and read .freckle files and store their
+                                                         # content in this var
+
+# intermingle_checkout_directories_metadata_var:         # optionally find and read .freckle files and store their
+                                                         # content in this var
+
+intermingle_checkout_fail_if_exists: false               # fail if destination already exists
+
+intermingle_checkout_force: false                        # force overwriting of existing files
+
+
+# ======================================================================================================================
+# intermingle step
+
+# intermingle_src:                                       # the source to intermingle from, defaults to
+
+# intermingle_target:                                    # required if 'intermingle' enabled, the target to
+                                                         # intermingle into
+
+intermingle_type: copy                                   # chose a specific intermingle method, default is copy
+                                                         # (available: 'stow', 'copy', 'rsync', 'bind_mount',
+                                                         # 'symlink', 'git')
+
+intermingle_config:                                      # optional, type-independent configuration, will be
+  interminglings:                                        # merged with type-specific configuration
+    "{{ intermingle_checkout}}": "{{ intermingle }}"
+
+
+intermingle_config_symlink: {}                           # optional, symlink specific configuration
+intermingle_config_stow: {}                              # optional, stow specific configuration
+intermingle_config_copy: {}                              # optional, copy specific configuration
+intermingle_config_rsync: {}                             # optional, rsync specific configuration
+intermingle_config_bind_mount: {}                        # optional, bind_mount specific configuration
+#intermingle_config_git: {}                              # optional, git specific configuration
+
+intermingle_force: false                                 # force integration, overwrite conflicts
+
+# intermingle_folder_owner:                              # optionally set the owner of the intermingle_checkout_dest to this
+                                                         # user before intermingle
+
+# intermingle_folder_group:                              # optionally set the owner of the intermingle_checkout_dest to this
+                                                         # group before intermingle
+
+intermingle_fail_if_target_exists: false                 # fail if target dir already exists
+
+
+# ======================================================================================================================
+# common vars
+
+# intermingle_rsync_available: false                     # whether rsync is available on the remote host
+

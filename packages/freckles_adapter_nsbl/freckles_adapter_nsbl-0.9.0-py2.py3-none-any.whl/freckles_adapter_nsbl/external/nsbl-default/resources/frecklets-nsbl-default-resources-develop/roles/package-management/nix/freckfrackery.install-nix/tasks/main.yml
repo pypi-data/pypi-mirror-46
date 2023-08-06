@@ -1,0 +1,16 @@
+---
+# tasks file for ansible-nix-pkg-mgr
+
+- name: "[test whether nix binary exists]"
+  stat: path="{{ ansible_env.HOME }}/.nix-profile/bin/nix-env"
+  become: no
+  register: nix_env_binary
+
+# this contains the tasks that require sudo permissions
+- name: "[preparing nix install]"
+  include_tasks: prepare.yml
+  when: nix_env_binary.stat.exists == False
+
+- name: "[starting nix single install]"
+  include_tasks: nix-single.yml
+  when: nix_env_binary.stat.exists == False

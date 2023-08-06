@@ -1,0 +1,39 @@
+---
+# global vars
+
+- name: "[setting internal Apache module list]"
+  set_fact:
+    __apache_mods_internal__:
+      - rewrite.load
+
+- name: "[setting webserver defaults]"
+  set_fact:
+    __webserver_details__: "{{ platform_webserver_defaults | platform_var(__freckles_facts__['platform_matchers']) }}"
+
+- name: "[setting webserver user]"
+  set_fact:
+    webserver_user: "{{ __webserver_details__[webserver_name]['user'] }}"
+  when: webserver_user is not defined
+
+- name: "[setting webserver_group]"
+  set_fact:
+    webserver_group: "{{ __webserver_details__[webserver_name]['group'] }}"
+  when: webserver_group is not defined
+
+- name: "[setting webserver_service_name]"
+  set_fact:
+    __webserver_service_name__: "{{ __webserver_details__[webserver_name]['service_name'] }}"
+
+# category-specific vars
+
+- name: "[setting letsencrypt-related vars]"
+  include_tasks: "set_variables_https.yml"
+  when: webserver_use_https
+
+- name: "[setting php-related vars]"
+  include_tasks: "set_variables_php.yml"
+  when: webserver_use_php
+
+- name: "[setting webserver-specific variables]"
+  include_tasks: "set_variables_{{ webserver_name }}.yml"
+

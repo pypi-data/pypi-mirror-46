@@ -1,0 +1,136 @@
+---
+doc:
+  short_help: "Create and configure a certain systemd service unit exists."
+  help: |
+    Add a systemd unit for a service.
+  examples:
+    - title: Create a systemd-unit file for the 'keycloak' service.
+      vars:
+        name: keycloak
+        desc: keycloak authentication service
+        service_config:
+          - KEYCLOAK_CONFIG: "standalone.xml"
+            KEYCLOAK_MODE: "standalone"
+            KEYCLOAK_BIND: "127.0.0.1"
+        ServiceType: idle
+        ServiceEnvironment: LAUNCH_JBOSS_IN_BACKGROUND=1
+        ServiceUser: keycloak
+        ServiceGroup: keycloak
+        ExecStart: "/usr/local/bin/keycloak-launch.sh ${KEYCLOAK_MODE} ${KEYCLOAK_CONFIG} ${KEYCLOAK_BIND}"
+        UnitBefore:
+          - httpd.service
+        UnitAfter:
+          - network.target
+        ServiceTimeoutStartSec: 600
+        ServiceTimeoutStopSec: 600
+        InstallWantedBy:
+          - multi-user.target
+        enabled: true
+        started: true
+
+args:
+  _import: systemd-service-unit-file
+  name:
+    doc:
+      short_help: "The name of the service."
+    required: true
+    type: string
+    cli:
+      metavar: SERVICE_NAME
+  enabled:
+    doc:
+      short_help: "Whether to enable the service."
+    type: boolean
+    default: false
+    required: false
+    cli:
+      is_flag: true
+      show_default: true
+  started:
+    doc:
+      short_help: "Whether to start the service."
+    type: boolean
+    default: false
+    required: false
+    cli:
+      is_flag: true
+      show_default: true
+  service_config:
+    doc:
+      short_help: "A map of key/value-pairs to put into a '/etc/conf.d/<service>' file."
+      help: |
+        A map of key/value-pairs to put into a '/etc/conf.d/<service>' file.
+
+        This can be used in addition or instead of 'service_environment' and 'service_environment_file'. It is meant
+        as a short-cut, to not have to create the config file (in '/etc/conf.d') in an extra step.
+    type: dict
+    keyschema:
+      type: string
+    default: {}
+    required: false
+    empty: true
+
+meta:
+  tags:
+    - systemd
+    - systemd-unit
+    - service
+
+frecklets:
+  - systemd-service-config:
+      frecklet::skip: "{{:: service_config | true_if_empty ::}}"
+      service_name: "{{:: name ::}}"
+      env_vars: "{{:: service_config ::}}"
+  - systemd-service-unit-file:
+      frecklet::msg: "create systemd unit for service '{{:: name ::}}'"
+      frecklet::desc: |
+        Create a systemd unit for service '{{:: name ::}}' as per provided variables.
+
+      # TODO: list variables
+      path: "/etc/systemd/system/{{:: name ::}}.service"
+      owner: root
+      group: root
+      mode: "0644"
+      unit_description: "{{:: unit_description ::}}"
+      unit_documentation: "{{:: unit_documentation ::}}"
+      unit_requires: "{{:: unit_requires ::}}"
+      unit_requisite: "{{:: unit_requisite ::}}"
+      unit_wants: "{{:: unit_wants ::}}"
+      unit_binds_to: "{{:: unit_binds_to ::}}"
+      unit_part_of: "{{:: unit_part_of ::}}"
+      unit_conflicts: "{{:: unit_conflicts ::}}"
+      unit_before: "{{:: unit_before ::}}"
+      unit_after: "{{:: unit_after ::}}"
+      install_alias: "{{:: install_alias ::}}"
+      install_wanted_by: "{{:: install_wanted_by ::}}"
+      install_required_by: "{{:: install_required_by ::}}"
+      install_also: "{{:: install_also ::}}"
+      install_default_instance: "{{:: install_default_instance ::}}"
+      service_type: "{{:: service_type ::}}"
+      service_remain_after_exit: "{{:: service_remain_after_exit ::}}"
+      service_guess_main_pid: "{{:: service_guess_main_pid ::}}"
+      service_pid_file: "{{:: service_pid_file ::}}"
+      service_bus_name: "{{:: service_bus_name ::}}"
+      service_environment: "{{:: service_environment ::}}"
+      service_environment_file: "{{:: service_environment_file ::}}"
+      service_environment_file_extra: "{%:: if service_config is defined and service_config ::%}/etc/conf.d/{{:: name ::}}{%:: endif ::%}"
+      service_user: "{{:: service_user ::}}"
+      service_group: "{{:: service_group ::}}"
+      service_exec_start: "{{:: service_exec_start ::}}"
+      service_exec_start_pre: "{{:: service_exec_start_pre ::}}"
+      service_exec_start_post: "{{:: service_exec_start_post ::}}"
+      service_timeout_start_sec: "{{:: service_timeout_start_sec ::}}"
+      service_timeout_stop_sec: "{{:: service_timeout_stop_sec ::}}"
+      service_timeout_sec: "{{:: service_timeout_sec ::}}"
+      service_working_directory: "{{:: service_working_directory ::}}"
+      service_restart: "{{:: service_restart ::}}"
+      service_restart_sec: "{{:: service_restart_sec ::}}"
+      service_exec_reload: "{{:: service_exec_reload ::}}"
+      service_exec_stop: "{{:: service_exec_stop ::}}"
+      service_exec_stop_post: "{{:: service_exec_stop_post ::}}"
+      service_private_tmp: "{{:: service_private_tmp ::}}"
+      service_permissions_start_only: "{{:: service_permissions_start_only ::}}"
+  - init-service-configured:
+      name: "{{:: name ::}}"
+      enabled: "{{:: enabled ::}}"
+      started: "{{:: started ::}}"

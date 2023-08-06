@@ -1,0 +1,57 @@
+args:
+  _import: metabase-service-configuration-file
+  metabase_version:
+    doc:
+      short_help: "The version of metabase."
+    default: "0.31.2"
+    type: string
+  metabase_port:
+    doc:
+      short_help: "The port for metabase to listen on."
+    type: integer
+    required: false
+    default: 3000
+  metabase_host:
+    doc:
+      short_help: "The hostname to listen on."
+    type: string
+    required: false
+    default: localhost
+
+frecklets:
+  - java-lang-installed
+  - file-downloaded:
+      url: "http://downloads.metabase.com/v{{:: metabase_version ::}}/metabase.jar"
+      dest: "/var/lib/metabase/metabase.jar"
+      owner: metabase
+      group: metabase
+  - metabase-service-configuration-file:
+      path: /etc/metabase.env
+      owner: metabase
+      group: metabase
+      mode: "0600"
+      jetty_port: "{{:: metabase_port ::}}"
+      jetty_host: "{{:: metabase_host ::}}"
+      metabase_db_type: "{{:: metabase_db_type ::}}"
+      metabase_db_host: "{{:: metabase_db_host ::}}"
+      metabase_db_port: "{{:: metabase_db_port ::}}"
+      metabase_db_name: "{{:: metabase_db_name ::}}"
+      metabase_db_user: "{{:: metabase_db_user ::}}"
+      metabase_db_password: "{{:: metabase_db_password ::}}"
+      metabase_db_file: "{{:: metabase_db_file ::}}"
+      password_complexity: "{{:: password_complexity ::}}"
+      password_length: "{{:: password_length ::}}"
+  - systemd-service-unit:
+      name: metabase
+      desc: "metabase business intelligence service"
+      service_type: simple
+      service_working_directory: "/var/lib/metabase"
+      service_exec_start: "/usr/bin/java -Xms128m -Xmx256m -jar metabase.jar"
+      service_user: metabase
+      service_restart: "on-failure"
+      service_restart_sec: 10
+      service_environment_file: /etc/metabase.env
+      install_wanted_by:
+        - "multi-user.target"
+      enabled: true
+      started: true

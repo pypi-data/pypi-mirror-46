@@ -1,0 +1,320 @@
+doc:
+  short_help: "Installs PostgreSQL (if necessary), and makes sure a specified database exists."
+  help: |
+    Installs postgresql service on a host, and ensures a database with the provided name is present.
+
+    If ``db_user`` is provided, its value will be used as the owner of the database.
+
+    If PostgreSQL is already installed on a particular host, it's better to use the frecklet::postgresql-service
+    frecklet before this, configure the service, and use the ``no_setup_postgresql`` flag set to ``true``. Otherwise
+    PostgreSQL configuration might be overwritten by this.
+
+    When creating a user and providing a password, that password needs to be passed in encrypted (md5-hased) form.
+
+    On Linux, you can do that via:
+
+    ```
+
+    echo "md5$(echo -n "${PASSWORD}${USERNAME}" | md5sum | cut -c -32)"
+
+    # for example:
+
+    echo "md5$(echo -n "mysecretpasswordfreckles" | md5sum | cut -c -32)"
+
+    ```
+
+    And on Mac OS X you use the ``md5`` executable instead:
+
+    ```
+
+    echo "md5$(echo -n "${PASSWORD}${USERNAME}" | md5 | cut -c -32)"
+
+
+    ```
+
+    If a database dump file is provided, the database will be imported from it.
+    Otherwise an empty table will be created.
+
+
+  further_reading:
+    "Postgresql createuser documentation": https://www.postgresql.org/docs/current/app-createuser.html
+    "Postgresql 'create role' documentation": https://www.postgresql.org/docs/current/sql-createrole.html
+    "Ansible postgresql_user documentation": https://docs.ansible.com/ansible/latest/modules/postgresql_user_module.html
+    "Ansible postgresql_db documentation": https://docs.ansible.com/ansible/latest/modules/postgresql_db_module.html
+  examples:
+    - title: Install PostgreSQL, create the db 'my_database' and user 'freckles'.
+      desc: |
+        This configures PostgreSQL to listen on all network interfaces, and be accessible from all network locations
+        (0.0.0.0/0) when using md5-auth.
+      vars:
+        postgresql_listen_addresses:
+          - '*'
+        postgresql_pg_hba:
+          - method: md5
+        db_name: my_database
+        db_user: freckles
+        db_user_password: md5aee63ef475154b1b0461fc508db22950
+
+args:
+  no_setup_postgresql:
+    doc:
+      short_help: "Don't attempt to install PostgreSQL service."
+      help: |
+        If that option is enabled, any potential existing PostgreSQL server configuration is overwritten
+        by this frecklet, independent of whether PostgreSQL was installed already or not.
+    type: boolean
+    default: true
+    required: false
+  postgresql_group_id:
+    doc:
+      short_help: "The (optional) custom PostgreSQL group gid (when installing PostgreSQL)."
+    type: integer
+    required: false
+  postgresql_user_id:
+    doc:
+      short_help: "The (optional) custom PostgreSQL user uid (when installing PostgreSQL)."
+    type: integer
+    required: false
+  postgresql_listen_addresses:
+    doc:
+      short_help: "The IPs the PostgreSQL server is listening on."
+      help: |
+        The IPs the PostgreSQL server is listening on. If a PostgreSQL server is already installed,
+        the existing settings will be overwritten.
+    type: list
+    required: false
+    schema:
+      type: string
+    cli:
+      param_decls:
+        - "--listen-address"
+  postgresql_port:
+    doc:
+      short_help: "The port the PostgreSQL server is listening on."
+      help: |
+        The port the PostgreSQL server is listening on.
+
+        If a PostgreSQL server is already installed, the existing setting will be overwritten.
+    type: integer
+    required: false
+  postgresql_pg_hba:
+    doc:
+      short_help: "A list of hosts to allow connections from."
+      help: |
+        A list of hosts to allow connections from, apart from the defaul:
+
+        ```
+        local  all  postgres    trust
+        # "local" is for Unix domain socket connections only
+        local  all  all    trust
+        # IPv4 local connections:
+        host  all  all  127.0.0.1/32  trust
+        # IPv6 local connections:
+        host  all  all  ::1/128  trust
+        # Local root Unix user, passwordless access
+        local  all  postgres    peer map=root_as_postgres
+        ```
+      further_reading:
+        - "[PostgreSQL pg_hba .conf documentation](https://www.postgresql.org/docs/9.1/auth-pg-hba-conf.html)"
+    type: list
+    required: false
+    schema:
+      type: dict
+      schema:
+        type:
+          type: string
+          required: true
+          default: host
+        database:
+          type: string
+          required: true
+          default: all
+        user:
+          type: string
+          required: true
+          default: all
+        address:
+          type: string
+          required: true
+          default: "0.0.0.0/0"
+        method:
+          type: string
+          required: true
+          allowed:
+            - trust
+            - reject
+            - md5
+            - password
+            - gss
+            - sspi
+            - krb5
+            - ident
+            - peer
+            - ldap
+            - radius
+            - cert
+            - pam
+    cli:
+      enabled: false
+  db_import:
+    doc:
+      short_help: "Whether to use a sql dump file to create the database."
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+  db_dump_file:
+    doc:
+      short_help: "An (optional) database dump file."
+    type: string
+    required: false
+  db_name:
+    doc:
+      short_help: "The name of the database to use from the dump."
+    type: string
+    required: true
+  db_user:
+    doc:
+      short_help: "The name of the database user ('role' in postgres)."
+    type: string
+    required: false
+#  db_user_priv:
+#    doc:
+#      short_help: "The user/role PostgreSQL privileges in string format (table:priv1,priv2)."
+#    type: string
+#    required: false
+  db_user_password:
+    doc:
+      short_help: "The (hashed) password for the database user ('role' in PostgreSQL)."
+      help: |
+        The password needs to be passed in hashed form, please check the [Postgresql documentation](
+    type: string
+    required: false
+  db_template:
+    doc:
+      short_help: "The template used to create the database."
+    type: string
+    required: false
+  db_encoding:
+    doc:
+      short_help: "The encoding of the db (default: 'UTF-8')."
+    type: string
+    default: UTF-8
+    required: false
+    cli:
+      metavar: ENCODING
+  db_lc_collate:
+    doc:
+      short_help: "The collation order to use in the database."
+      help: |
+        Collation order (LC_COLLATE) to use in the database. Must match collation order of template database unless template0 is used as template.
+    type: string
+    required: false
+    cli:
+      metavar: LC_COLLATE
+  db_lc_ctype:
+    doc:
+      short_help: "Character classification (LC_CTYPE) to use in the database."
+      help: |
+        Character classification (LC_CTYPE) to use in the database (e.g. lower, upper, ...) Must match LC_CTYPE of template database unless template0 is used as template.
+    type: string
+    required: false
+    cli:
+      metavar: LC_CTYPE
+  postgresql_version:
+    doc:
+      short_help: "The version of postgresql"
+    type: string
+    empty: false
+    required: false
+
+meta:
+  tags:
+    - mysql
+    - postgresql
+    - database
+
+frecklets:
+  - postgresql-service:
+      frecklet::skip: "{{:: no_setup_postgresql ::}}"
+      postgresql_version: "{{:: postgresql_version ::}}"
+      postgresql_group_id: "{{:: postgresql_group_id ::}}"
+      postgresql_user_id: "{{:: postgresql_user_id ::}}"
+      listen_addresses: "{{:: postgresql_listen_addresses ::}}"
+      port: "{{:: postgresql_port ::}}"
+      pg_hba: "{{:: postgresql_pg_hba ::}}"
+  # TODO: check postresql service instead of user exists (esp. when adding 'host' var later)
+#  - task:
+#      command: lineinfile
+#      type: ansible-module
+#      check_mode: true
+#      ignore_errors: true
+#      register: __postgres_user_exists__
+#    vars:
+#      path: /etc/passwd
+#      regexp: "^postgres:"
+#      line: "dummy"
+#      state: present
+#  - task:
+#      command: debug
+#      type: ansible-module
+#    vars:
+#      var: __postgres_user_exists__
+#  - task:
+#      command: fail
+#      type: ansible-module
+#      when: true
+#    vars:
+#      msg: "'postgres' user doesn't exist, consider using the 'install_postgresql' flag."
+  - task:
+      become: true
+      become_user: postgres
+    frecklet:
+      name: postgresql_user
+      type: ansible-module
+      skip: "{{:: db_user | true_if_empty ::}}"
+      elevated: true
+      idempotent: true
+      internet: false
+      msg: "create postgresql user '{{:: db_user ::}}'"
+      references:
+        "'postgresql_user' Ansible module": "https://docs.ansible.com/ansible/latest/modules/postgresql_user_module.html"
+    vars:
+      name: "{{:: db_user ::}}"
+      password: "{{:: db_user_password ::}}"
+      encrypted: true
+  - task:
+      become: true
+      become_user: postgres
+    frecklet:
+      name: postgresql_db
+      type: ansible-module
+      skip: "{{:: db_import ::}}"
+      idempotent: true
+      elevated: true
+      internet: false
+      msg: "create database: {{:: db_name ::}}"
+      references:
+        "'postgresql_db' Ansible module": "https://docs.ansible.com/ansible/latest/modules/postgresql_db_module.html"
+    vars:
+      name: "{{:: db_name ::}}"
+      owner: "{{:: db_user ::}}"
+      encoding: "{{:: db_encoding ::}}"
+      template: "{{:: db_template ::}}"
+      lc_collate: "{{:: db_lc_collate ::}}"
+      lc_ctype: "{{:: db_lc_ctype ::}}"
+  - init-service-restarted:
+      name: postgresql
+#  - task:
+#      command: mysql_db
+#      type: ansible-module
+#      become: true
+#      become_user: postgres
+#    frecklet:
+#      skip: "{{:: db_import | negate ::}}"
+#      msg: importing mysql dump
+#    vars:
+#      state: restore
+#      name: "{{:: db_name ::}}"
+#      target: "{{:: db_dump_file ::}}"

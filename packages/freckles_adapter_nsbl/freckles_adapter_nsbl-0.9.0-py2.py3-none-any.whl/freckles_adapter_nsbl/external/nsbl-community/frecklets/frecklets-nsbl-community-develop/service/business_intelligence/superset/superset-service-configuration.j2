@@ -1,0 +1,40 @@
+---
+args:
+  db_type:
+    doc:
+      short_help: The type of db to use.
+    type: string
+    allowed:
+      - sqlite
+      - postgresql
+      - mariadb
+      - mysql
+  db_user:
+    doc:
+      short_help: The db user name.
+    type: string
+    required: false
+  db_password:
+    doc:
+      short_help: The db user password.
+    type: string
+    required: false
+  db_host_ip:
+    doc:
+      short_help: The db host.
+    type: string
+    default: 127.0.0.1
+  db_name:
+    doc:
+      short_help: The db name (or absolute path, in case of sqlite).
+    type: string
+    required: true
+---
+{%:: if db_type == "sqlite" ::%}
+SQLALCHEMY_DATABASE_URI = 'sqlite:///{{:: db_name ::}}'
+{%:: elif db_type == "postgresql" ::%}
+SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://{{:: db_user ::}}:{{:: db_password ::}}@{{:: db_host_ip ::}}/{{:: db_name ::}}'
+{%:: elif db_type == "mariadb" or db_type == "mysql" ::%}
+SQLALCHEMY_DATABASE_URI = 'mysql://{{:: db_user ::}}:{{:: db_password ::}}@{{:: db_host_ip ::}}/{{:: db_name ::}}'
+{%:: endif ::%}
+

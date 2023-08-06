@@ -1,0 +1,55 @@
+doc:
+  short_help: "Install OpenJDK if not already available."
+  help: |
+    Install OpenJDK on Linux machines.
+
+    Currently it's not possible to select a version, this will be fixed later.
+  further_reading:
+    "geerlingguy.java Ansible role": https://github.com/geerlingguy/ansible-role-java
+  examples:
+    - title: Install OpenJDK.
+
+#args:
+#  java_version:
+#    required: false
+#    doc:
+#      short_help: "The java version."
+#    default: "8"
+#    cli:
+#      param_decls:
+#        - --version
+
+meta:
+  tags:
+    - featured-frecklecutable
+    - java
+    - language
+    - openjdk
+    - install
+
+frecklets:
+#  - task:
+#      msg: "[calculating package name]"
+#      command: set_platform_fact
+#      type: ansible-module
+#      when: ansible_os_family == "Debian"
+#    vars:
+#      jdk_package_name:
+#        Debian: "openjdk-{{:: java_version ::}}-jdk"
+#        RedHat: "java-1.{{:: java_version ::}}.0-openjdk"
+
+  - task:
+      include-type: import
+      become: true
+    frecklet:
+      name: geerlingguy.java
+      type: ansible-role
+      msg: installing Java
+      idempotent: true
+      internet: true
+      elevated: true
+      references:
+        "'geerlingguy.java' Ansible role": "https://github.com/geerlingguy/ansible-role-java"
+#    vars:
+#      java_packages:
+#        - "{{ jdk_package_name }}"

@@ -1,0 +1,35 @@
+doc:
+  short_help: Restores up a devpi service backup.
+  help:
+    Import will take a minute or two, as it also creates the mirror indexes.
+
+args:
+  backup_archive_file:
+    doc:
+      short_help: The (local) backup destination file.
+    type: string
+    required: true
+
+frecklets:
+  - folder-is-empty:
+      path: /tmp/devpi-restore
+      mode: "0700"
+      owner: devpi
+      group: devpi
+  - archive-extracted:
+      src: "{{:: backup_archive_file ::}}"
+      dest: "/tmp/devpi-restore"
+      owner: devpi
+      mode: "0700"
+  - init-service-stopped:
+      name: devpi
+  - execute-command:
+      command: /home/devpi/.virtualenvs/devpi/bin/devpi-server --serverdir /home/devpi/.devpi/server --import /tmp/devpi-restore
+      become_user: devpi
+  - path-is-absent:
+      path: "/tmp/devpi-restore"
+      become: true
+  - init-service-started:
+      name: devpi
+
+

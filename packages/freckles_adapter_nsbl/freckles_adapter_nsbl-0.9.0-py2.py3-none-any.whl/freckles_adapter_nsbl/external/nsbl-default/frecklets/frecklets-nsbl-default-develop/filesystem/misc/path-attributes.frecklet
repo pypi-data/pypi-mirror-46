@@ -1,0 +1,143 @@
+doc:
+  short_help: Makes sure a file/folder has a certain owner/group.
+  help: |
+    Make sure a file/folder has a certain owner/group.
+
+    This will recursively apply the owner/group change in case the path is a directory.
+    If the path does not exist, an empty file will be created.
+
+    Root/sudo permissions will be used to do the chown.
+
+    If the owner/group does not exist on the machine, this will create them before changing the target ownership.
+  examples:
+    - title: Set group/user/mode attributes on an (existing) file.
+      vars:
+        path: /tmp/freckles.sh
+        owner: freckles
+        group: freckles
+        mode: "0775"
+      dest: |
+        If the file ``/tmp/freckles.sh`` exists, this sets its group and owner to 'freckles'. It then sets the mode
+        to be '0775' (executable). If the file doesn't exist, nothing will be done.
+    
+args:
+  path:
+    doc:
+      short_help: the path in question
+    type: string
+    required: false
+  owner:
+    doc:
+      short_help: the owner of the file/folder
+    type: string
+    required: false
+    cli:
+      metavar: USER
+  group:
+    doc:
+      short_help: the group of the file/folder
+    type: string
+    required: false
+    cli:
+      metavar: GROUP
+  mode:
+    doc:
+      short_help: The mode to apply.
+    type: string
+    required: true
+  system_user:
+    doc:
+      short_help: Whether the user and group should be of system user/group type.
+    type: boolean
+    required: false
+    cli:
+      show_default: true
+      is_flag: true
+  recursive:
+    doc:
+      short_help: "Whether to apply the changes recursively (if folder)."
+    required: false
+    default: false
+    type: boolean
+
+meta:
+  tags:
+    - filesystem
+    - file
+    - chown
+    - featured-frecklecutable
+
+frecklets:
+  - group-exists:
+      group: "{{:: group ::}}"
+      system_group: "{{:: system_user ::}}"
+      frecklet::skip: "{{:: group | true_if_empty_or('root') ::}}"
+  - user-exists:
+      name: "{{:: owner ::}}"
+      system_user: "{{:: system_user ::}}"
+      frecklet::skip: "{{:: owner | true_if_empty_or('root') ::}}"
+  - task:
+      become: true
+      register: "__f_stat__"
+    frecklet:
+      name: stat
+      type: ansible-module
+      elevated: true
+      internet: false
+      idempotent: true
+      msg: "[check stats for '{{:: path ::}}]"
+      desc: |
+        Check stats for path '{{:: path ::}}', save result in internal variable '__f_stat__'.
+    vars:
+      path: "{{:: path ::}}"
+  - task:
+      become: true
+      when: "__f_stat__.stat.exists and __f_stat__.stat.isdir"
+    frecklet:
+      name: file
+      type: ansible-module
+      elevated: true
+      internet: false
+      idempotent: true
+      msg: "change ownership of folder '{{:: path ::}}'"
+      desc: |
+        Check internal variable '__f_stat__' to determine whether '{{:: path ::}}' exists and whether it a file or a folder.
+
+        If {{:: path ::}} exists and is a folder (as root{%:: if recursive ::%}, recursively{%:: endif ::%}):
+
+          {%:: if group ::%}- set group (recursively, incl. children) to be '{{:: group ::}}'{%:: endif ::%}
+          {%:: if owner ::%}- set user to be '{{:: owner ::}}'{%:: endif ::%}
+          {%:: if mode ::%}- ensure mode for folder is '{{:: mode ::}}' (recursively, incl. children).{%:: endif ::%}
+
+    vars:
+      path: "{{:: path ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: mode ::}}"
+      recurse: "{{:: recursive ::}}"
+      state: directory
+  - task:
+      become: true
+      when: "__f_stat__.stat.exists and not __f_stat__.stat.isdir"
+    frecklet:
+      name: file
+      type: ansible-module
+      elevated: true
+      internet: false
+      idempotent: true
+      msg: "change ownership of file '{{:: path ::}}'"
+      desc: |
+        Check internal variable '__f_stat__' to determine whether '{{:: path ::}}' exists and whether it a file or a folder.
+
+        If {{:: path ::}} does not exist or is a file (as root):
+
+          - ensure the file exists (create an empty one if necessary).
+          {%:: if group ::%}- set group to be '{{:: group ::}}'{%:: endif ::%}
+          {%:: if owner ::%}- set user to be '{{:: owner ::}}'{%:: endif ::%}
+          {%:: if mode ::%}- ensure the mode of the file is '{{:: mode ::}}'{%:: endif ::%}
+      vars:
+      path: "{{:: path ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: mode ::}}"
+      state: file

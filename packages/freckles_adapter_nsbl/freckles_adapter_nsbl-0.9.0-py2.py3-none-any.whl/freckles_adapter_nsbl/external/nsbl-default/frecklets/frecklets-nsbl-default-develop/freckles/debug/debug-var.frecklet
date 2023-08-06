@@ -1,0 +1,30 @@
+#!/usr/bin/env frecklecute
+
+doc:
+  short_help: Displays the content of an (internal) Ansible variable.
+
+args:
+  var:
+    type: string
+    required: true
+    doc:
+      short_help: the Ansible variable name to debug
+    cli:
+      param_type: argument
+
+meta:
+  tags:
+    - debug
+
+frecklets:
+  - frecklet:
+      type: ansible-module
+      name: debug
+      msg: "display value of var: {{:: var ::}}"
+      idempotent: false
+      become: false
+      internet: false
+      references:
+        "'debug' Ansible module": "https://docs.ansible.com/ansible/latest/modules/debug_module.html"
+    vars:
+      var: "{{:: var ::}}"

@@ -1,0 +1,150 @@
+doc:
+  short_help: installs a complete devpi server, including nginx proxy & lets-encrypt certs
+  help: |
+    This frecklet installs a complete nginx-proxied devpi server.
+
+    If a ``backup_archive_file`` is provided, it will be uploaded to the server, unarchived, and the backed-up
+    state will be imported before the server will be started for the first time. Check the frecklet::devpi-create-backup
+    *frecklet* for details about creating such a backup archive file. The import will take a minute or two, as it also
+    (re-)creates the pypi mirror index.
+
+    If the ``use_https`` variable is set, a certificate from LetsEncrypt will be requrested and installed, along
+    with a cron job to automatically renew it before it expires. Nginx will be
+    configured to redirect all http traffic to https.
+
+  further_reading:
+    "freckfrackery.install-devpi Ansible role": https://gitlab.com/freckfrackery/freckfrackery.install-devpi
+  examples:
+    - title: Install the devpi service, incl. Nginx reverse proxy and https certificate.
+      vars:
+        host: dev.frkl.io
+        email: hello@frkl.io
+        use_https: true
+        user: devpi
+    - title: Re-create a devpi service instance from a backup, incl. Nginx reverse proxy and https certificate.
+      vars:
+        host: dev.frkl.io
+        email: hello@frkl.io
+        use_https: true
+        user: devpi
+        backup_archive_file: ~/backups/devpi_backup.tar.gz
+
+args:
+  hostname:
+    type: string
+    default: "localhost"
+    required: true
+    doc:
+      short_help: "The hostname of the server."
+  email:
+    type: string
+    doc:
+      short_help: "The email address to use with letsencrypt."
+    required: false
+  use_https:
+    type: boolean
+    required: false
+    dependencies: email
+    doc:
+      short_help: "Request a lets-encrypt certificate and serve devpi via https (needs email-address)."
+    cli:
+      is_flag: true
+  user:
+    doc:
+      short_help: "The user to run devpi as well as nginx."
+    type: string
+    required: false
+    default: devpi
+    cli:
+      show_default: true
+  letsencrypt_staging:
+    doc:
+      short_help: "Whether to use the letsencrypt staging server."
+      help: |
+        "Whether to use the letsencrypt staging server.
+
+        This is useful for developing -- the letsencrypt production server only allows a few requests per day. This option is disabled in the cli, as it is not used very often. Just use an overlay dict to enable this.
+    type: boolean
+    required: false
+    default: false
+  backup_archive_file:
+    doc:
+      short_help: A file to restore the service from.
+      help: |
+        If this is not provided, a normal, 'empty' devpi instance will be created.
+    type: string
+    required: false
+  admin_password:
+    type: string
+    required: false
+    doc:
+      short_help: "The initial admin password."
+      help: |
+        If a password is already set, this will fail and the error will be ignored.
+#  use_basic_auth:
+#    doc:
+#      short_help: "Whether to setup basic auth."
+#    type: boolean
+#    required: false
+#    default: false
+#    cli:
+#      enabled: false
+#  basic_auth_message:
+#    doc:
+#      short_help: "The message that will be displayed to the user."
+#      help: |
+#        The message that will be displayed to the user.
+#    type: string
+#    empty: false
+#    required: false
+#    default: "Please authenticate."
+#  basic_auth_users:
+#    doc:
+#      short_help: "A dict with username as key, password as value."
+#    type: dict
+#    required: false
+#    cli:
+#      enabled: false
+#  basic_auth_user_file:
+#    doc:
+#      short_help: "The file to store htpasswd information."
+#    type: string
+#    required: false
+#    default: "/etc/htpasswd"
+#    cli:
+#      show_default: true
+#      enabled: false
+
+
+meta:
+  tags:
+    - devpi
+    - python
+    - repository
+    - packages
+    - featured-frecklecutable
+    - setup
+
+frecklets:
+  - devpi-service:
+      user: "{{:: user ::}}"
+      admin_password: "{{:: admin_password ::}}"
+      backup_archive_file: "{{:: backup_archive_file ::}}"
+  - devpi-nginx-vhost-config:
+      path: "/etc/nginx/sites-enabled/vhost_devpi.conf"
+      owner: "{{:: user ::}}"
+      host: "{{:: hostname ::}}"
+      devpi_root: "/home/devpi/.devpi/server"
+      devpi_host: "localhost"
+      devpi_port: 3141
+      devpi_proto: http
+      use_https: "{{:: use_https ::}}"
+  - webserver-service:
+      webserver: nginx
+      letsencrypt_webroot: /home/devpi/.devpi/server
+      use_https: "{{:: use_https | default(false) ::}}"
+      letsencrypt_email: "{{:: email ::}}"
+      letsencrypt_staging: "{{:: letsencrypt_staging ::}}"
+      letsencrypt_domains:
+        - "{{:: hostname ::}}"
+      webserver_user: devpi

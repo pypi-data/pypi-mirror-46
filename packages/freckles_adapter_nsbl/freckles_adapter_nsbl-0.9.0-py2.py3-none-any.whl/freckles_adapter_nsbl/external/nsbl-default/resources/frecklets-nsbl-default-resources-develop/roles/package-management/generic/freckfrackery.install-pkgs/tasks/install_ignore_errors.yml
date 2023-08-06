@@ -1,0 +1,10 @@
+---
+## workaround for bug https://github.com/ansible/ansible/issues/32384
+
+- name: "installing packages"
+  install:
+    packages:
+      - "{{ item }}"
+  loop: "{{ __install_package_list_main__ | flatten(levels=1) }}"
+  ignore_errors: True
+  become: "{{ install_become | default(omit) }}"

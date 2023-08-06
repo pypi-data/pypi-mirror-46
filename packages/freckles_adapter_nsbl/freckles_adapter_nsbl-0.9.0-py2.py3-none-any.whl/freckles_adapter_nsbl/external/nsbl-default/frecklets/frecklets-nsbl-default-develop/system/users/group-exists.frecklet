@@ -1,0 +1,78 @@
+doc:
+  short_help: Ensure a group exists.
+  help: |
+    Create a group on a system if it doesn't exist yet.
+
+    If the ``group`` argument is not present or empty, this task will be skipped.
+
+    If the group exists, and the optional ``gid`` argument is specified, it'll be changed if necessary.
+    Optionally, the group can be marked as a 'system' group.
+
+  further_reading:
+    "what is a 'system' group": https://askubuntu.com/questions/523949/what-is-a-system-group-as-opposed-to-a-normal-group
+  examples:
+    - title: "Create a group called 'freckles' with gid 1111."
+      vars:
+        group: freckles
+        gid: 1111
+    - title: "Create a group called 'freckles' with a random gid."
+      vars:
+        group: freckles
+
+
+args:
+  group:
+    doc:
+      short_help: The name of the group.
+    type: string
+    required: true
+    cli:
+      param_type: argument
+      metavar: GROUP_NAME
+  gid:
+    doc:
+      short_help: The gid of the group.
+    type: integer
+    required: false
+    cli:
+      metavar: GID
+  system_group:
+    doc:
+      short_help: Whether the group should be created as 'system' group.
+    type: boolean
+    required: false
+    cli:
+      show_default: true
+      is_flag: true
+
+meta:
+  tags:
+    - group
+    - user-management
+    - system
+
+frecklets:
+
+  - task:
+      become: true
+    frecklet:
+      name: group
+      type: ansible-module
+      skip: "{{:: group | true_if_empty ::}}"
+      msg: "ensure group '{{:: group ::}}' exists"
+      desc: |
+        Create group '{{:: group ::}}'{%:: if gid ::%}, using the group id '{{:: gid ::}}'{%:: endif ::%}.
+
+        {%:: if system_group ::%}The new group should be a system group.{%:: endif ::%}
+      idempotent: true
+      elevated: true
+      internet: false
+      references:
+        "'group' Ansible module": "https://docs.ansible.com/ansible/latest/modules/group_module.html"
+    vars:
+      name: "{{:: group ::}}"
+      state: present
+      gid: "{{:: gid ::}}"
+      system: "{{:: system_group ::}}"
+
+

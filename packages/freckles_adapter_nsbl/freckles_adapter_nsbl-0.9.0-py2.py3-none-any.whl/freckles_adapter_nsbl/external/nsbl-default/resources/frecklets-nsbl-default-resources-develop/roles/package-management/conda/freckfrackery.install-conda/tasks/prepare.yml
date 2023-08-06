@@ -1,0 +1,15 @@
+---
+
+- name: installing conda dependencies for Debian-based systems
+  apt: pkg="{{item}}" state=installed update_cache=yes cache_valid_time=3600
+  with_items:
+    - bzip2
+  become: yes
+  when: 'conda_binary.stat.exists == False and ansible_os_family == "Debian"'
+
+- name: installing conda dependencies for Redhat-based systems
+  package: pkg="{{item}}" state=installed
+  with_items:
+    - bzip2
+  become: yes
+  when: 'conda_binary.stat.exists == False and ansible_os_family == "RedHat"'

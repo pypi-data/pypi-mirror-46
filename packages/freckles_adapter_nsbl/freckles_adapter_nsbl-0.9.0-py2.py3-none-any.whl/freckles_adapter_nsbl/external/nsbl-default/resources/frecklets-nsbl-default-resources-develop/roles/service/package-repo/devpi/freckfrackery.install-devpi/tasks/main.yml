@@ -1,0 +1,28 @@
+---
+# tasks file for install-devpi
+
+- name: "[setting devpi_server_exe]"
+  set_fact:
+    devpi_server_exe: "{{ devpi_virtualenv }}/bin/devpi-server"
+  when: devpi_use_virtualenv
+
+- name: "[setting devpi_server_exe]"
+  set_fact:
+    devpi_server_exe: "/usr/local/bin/devpi-server"
+  when: not devpi_use_virtualenv
+
+
+- name: "[setting devpi_client_exe]"
+  set_fact:
+    devpi_client_exe: "{{ devpi_virtualenv }}/bin/devpi"
+  when: devpi_use_virtualenv
+
+- name: "[setting devpi_client_exe]"
+  set_fact:
+    devpi_client_exe: "/usr/local/bin/devpi"
+  when: not devpi_use_virtualenv
+
+- include: install.yml
+- include: configure.yml
+- include: service.yml
+- include: post_config.yml

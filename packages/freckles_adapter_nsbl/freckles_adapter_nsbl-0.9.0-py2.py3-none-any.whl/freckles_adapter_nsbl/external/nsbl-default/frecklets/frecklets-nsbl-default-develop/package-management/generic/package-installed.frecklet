@@ -1,0 +1,86 @@
+doc:
+  short_help: "Install a single packages."
+  help: |
+    Install a single package, including the package manager that that was chosen, if necessary.
+
+    More information and examples to come, for now please refer to the [freckfrackery.install-pkgs Ansible role](https://gitlab.com/freckfrackery/freckfrackery.install-pkgs/blob/master/README.md) for more information.
+  examples:
+    - title: Install the 'htop' package.
+      desc: |
+        This uses the system package manager to install the 'htop' package. If the package is named differently on a platform, this won't work.
+      vars:
+        package: htop
+    - title: Install the 'fortunes' package using the proper package name for a platform.
+      desc: |
+        This uses the default system package manager to install the 'fortune' package. As the ['fortunes'](https://en.wikipedia.org/wiki/Fortune_(Unix)) package is named differently on different platforms, this is how to specify platform-dependent package names.
+
+        The 'name' property is not important here (except as a fall-back if so configured), but needs to be specified nonetheless.
+      vars:
+        package:
+          name: fortune
+          pkgs:
+            debian: fortune-mod
+            redhat: fortune
+            darwin: fortune
+    - title: Install the 'fortune' package using a special package name for one platform.
+      desc: |
+        This is similar to the example above, except that we assume that the 'fortune' package name will always be 'fortune', except for the platforms we specify.
+      vars:
+        package:
+          name: fortune
+          pkgs:
+            debian: fortune-mod
+            default: fortune
+    - title: Install the 'htop' package using the 'nix' package manager.
+      desc: |
+        This installs the 'nix' package manager itself if it isn't available yet.
+      vars:
+        package:
+          name: htop
+          pkg_mgr: nix
+
+args:
+  package:
+    doc:
+      short_help: "The package name."
+    required: true
+    type:
+      - string
+      - dict
+    cli:
+      param_type: argument
+  no_pkg_mgr:
+    required: false
+    type: boolean
+    cli:
+      is_flag: true
+    default: false
+    doc:
+      short_help: "Don't try to install a necessary package manager."
+  become:
+    doc:
+      short_help: "Whether to use root permissions to install the package."
+    type: boolean
+    default: True
+    required: False
+
+meta:
+  tags:
+    - install
+    - package-management
+    - package-manager
+
+frecklets:
+  - packages-installed:
+      frecklet::desc: |
+        Install the '{{:: package ::}}' package.
+
+        # TODO details
+      no_pkg_mgrs: "{{:: no_pkg_mgr ::}}"
+      become: "{{:: become ::}}"
+      packages:
+        - "{{:: package ::}}"
+
+
+
+

@@ -1,0 +1,183 @@
+doc:
+  short_help: "Ensures PostgrSQL service is installed."
+  help: |
+    This frecklet installs the PostgreSQL service using the [ANXS.postgresql](https://gitlab.com/frkl-downstream/ANXS.postgresql)
+    Ansible role.
+
+    This frecklet does not do any configuration, and uses all the defaults of the underlying
+    Ansible role. Use other tasks to do any configuration after executing this.
+
+  further_reading:
+    "ANXS.postgresql Ansible role": https://gitlab.com/frkl-downstream/ANXS.postgresql
+  examples:
+    - title: Install PostgreSQL database service.
+      desc: |
+        This installs the PostgreSQL database service, version 10, listening on all network interfaces, and allowing
+        authenticated md5-connections from everywhere ('0.0.0.0/0').
+      vars:
+        postgresql_version: '10'
+        listen_addresses:
+          - '*'
+        pg_hba:
+          - method: md5
+            address: 0.0.0.0/0
+args:
+  postgresql_version:
+    doc:
+      short_help: "The version of postgresql."
+    type: string
+    empty: false
+    required: false
+  postgresql_group_id:
+    doc:
+      short_help: "An (optional) custom PostgreSQL group id."
+    type: integer
+    required: false
+  postgresql_user_id:
+    doc:
+      short_help: "An (optional) custom PostgreSQL user id."
+    type: integer
+    required: false
+  listen_addresses:
+    doc:
+      short_help: "The network addresses this instance listens on. Default: localhost."
+    type: list
+    schema:
+      type: string
+    required: false
+    cli:
+      param_decls:
+        - "--listen-address"
+      metavar: IP
+  port:
+    doc:
+      short_help: "The port this postgresql service listens on. Default: 5432."
+    type: integer
+    required: false
+  pg_hba:
+    doc:
+      short_help: "A list of hosts to allow connections from."
+      help: |
+        A list of hosts to allow connections from, apart from the default:
+
+        ```
+        local  all  postgres    trust
+        # "local" is for Unix domain socket connections only
+        local  all  all    trust
+        # IPv4 local connections:
+        host  all  all  127.0.0.1/32  trust
+        # IPv6 local connections:
+        host  all  all  ::1/128  trust
+        # Local root Unix user, passwordless access
+        local  all  postgres    peer map=root_as_postgres
+        ```
+      further_reading:
+        - "[PostgreSQL pg_hba .conf documentation](https://www.postgresql.org/docs/9.1/auth-pg-hba-conf.html)"
+    type: list
+    required: false
+    schema:
+      type: dict
+      schema:
+        type:
+          type: string
+          required: true
+          default: host
+        database:
+          type: string
+          required: true
+          default: all
+        user:
+          type: string
+          required: true
+          default: all
+        address:
+          type: string
+          required: true
+          default: '0.0.0.0/0'
+        method:
+          type: string
+          required: true
+          allowed:
+            - trust
+            - reject
+            - md5
+            - password
+            - gss
+            - sspi
+            - krb5
+            - ident
+            - peer
+            - ldap
+            - radius
+            - cert
+            - pam
+    cli:
+      enabled: false
+
+  max_connections:
+    doc:
+      short_help: "Max. allowed connections. Default: 100"
+    type: integer
+    required: false
+  superuser_reserved_connections:
+    doc:
+      short_help: "Superuser reserved connections. Default: 3"
+    type: integer
+    required: false
+
+
+meta:
+  tags:
+    - database
+    - service
+    - postgresql
+    - featured-frecklecutable
+    - install
+
+frecklets:
+  - task:
+      become: true
+    frecklet:
+      name: group
+      type: ansible-module
+      skip: "{{:: postgresql_group_id | true_if_empty ::}}"
+      msg: "create 'postgres' group with custom group id '{{:: postgresql_group_id ::}}'"
+      idempotent: true
+      elevated: true
+      internet: false
+    vars:
+      name: postgres
+      gid: "{{:: postgresql_group_id ::}}"
+  - task:
+      become: true
+    frecklet:
+      name: user
+      type: ansible-module
+      elevated: true
+      idempotent: true
+      internet: false
+      skip: "{{:: postgresql_user_id | true_if_empty ::}}"
+      msg: "create 'postgres' user with custom user id '{{:: postgresql_user_id ::}}'"
+    vars:
+      name: postgres
+      uid: "{{:: postgresql_user_id ::}}"
+  - task:
+      become: true
+      include-type: import
+    frecklet:
+      name: ANXS.postgresql
+      type: ansible-role
+      msg: setting up postgresql
+      idempotent: true
+      elevated: true
+      internet: true
+      references:
+        "'ANXS.postgresql' Ansible role": "https://github.com/ANXS/postgresql"
+    vars:
+      postgresql_version: "{{:: postgresql_version ::}}"
+      postgresql_listen_addresses: "{{:: listen_addresses ::}}"
+      postgresql_port: "{{:: port ::}}"
+      postgresql_pg_hba_custom: "{{:: pg_hba ::}}"
+      postgresql_max_connections: "{{:: max_connections ::}}"
+      postgresql_superuser_reserved_connections: "{{:: superuser_reserved_connections ::}}"
+

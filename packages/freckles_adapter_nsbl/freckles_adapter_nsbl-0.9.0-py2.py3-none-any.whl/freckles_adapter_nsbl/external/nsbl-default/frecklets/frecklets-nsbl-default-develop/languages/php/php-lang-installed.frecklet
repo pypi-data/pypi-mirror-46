@@ -1,0 +1,42 @@
+doc:
+  short_help: "Make sure PHP is installed."
+  help: |
+    Installs PHP on RedHat/CentOS and Debian/Ubuntu servers.
+
+    Currently it's not possible selecting the version of php to install. That will be fixed later.
+  further_reading:
+     "geerlingguy.php Ansible role": https://github.com/geerlingguy/ansible-role-php
+  examples:
+    - title: "Install php."
+
+args:
+  extra_packages:
+    doc:
+      short_help: "A list of extra php packages to install."
+    type: list
+    schema:
+      type: string
+    required: false
+
+meta:
+  tags:
+    - featured-frecklecutable
+    - php
+    - language
+    - install
+
+frecklets:
+  - frecklet:
+      name: geerlingguy.php
+      type: ansible-role
+      idempotent: true
+      internet: true
+      elevated: true
+      references:
+        "'geerlingguy.php' Ansible role": "https://github.com/geerlingguy/ansible-role-php"
+    task:
+      include-type: import
+      become: true
+    vars:
+      php_packages_extra: "{{:: extra_packages ::}}"
+

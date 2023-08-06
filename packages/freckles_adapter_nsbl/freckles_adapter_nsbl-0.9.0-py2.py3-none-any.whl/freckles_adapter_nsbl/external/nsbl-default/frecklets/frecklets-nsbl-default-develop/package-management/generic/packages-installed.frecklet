@@ -1,0 +1,106 @@
+doc:
+  short_help: "Install a list of packages."
+  help: |
+    Install a list of packages, including (optionally) the package managers that are used to install them.
+
+    More information and examples to come, for now please refer to the frecklet::pkg frecklet as well as [freckfrackery.install-pkgs Ansible role](https://gitlab.com/freckfrackery/freckfrackery.install-pkgs/blob/master/README.md) for more information.
+  further_reading:
+    "'freckfrackery.install-pkgs Ansible role": https://gitlab.com/freckfrackery/freckfrackery.install-pkgs/blob/master/README.md
+  examples:
+    - title: Install the 'htop' and 'zile' packages using the system package manager.
+      desc: |
+        The easiest way to use this is to just use a list of strings as input. This will only work if the packages you
+        want to install have the same name on all the relevant target platforms.
+      vars:
+        packages:
+          - htop
+          - zile
+    - title: Install the 'htop' and 'fortune' packages using the system package manager.
+      desc: |
+        As the 'fortune' package is named differently on Debian platforms, we need to provide more details in our ``packages`` value.
+      vars:
+        packages:
+          - htop
+          - fortune:
+              pkgs:
+                debian: fortune-mod
+                default: fortune
+
+args:
+  packages:
+    doc:
+      short_help: "The list of packages to install."
+    required: true
+    type: list
+    cli:
+      param_type: "argument"
+  no_pkg_mgrs:
+    required: false
+    type: boolean
+    cli:
+      is_flag: true
+      param_decls:
+        - "--no-pkg-mgrs"
+    default: false
+    doc:
+      short_help: "Don't try to install necessary package managers."
+  become:
+    doc:
+      short_help: "Whether to use root permissions to install the packages."
+    type: boolean
+    default: True
+    required: False
+meta:
+  tags:
+    - featured-frecklecutable
+    - install
+    - package-management
+    - package-manager
+
+frecklets:
+
+  - task:
+      include-type: include
+      roles:
+        - freckfrackery.install-pkg-mgrs
+        - freckfrackery.install-conda
+        - freckfrackery.install-nix
+        - freckfrackery.install-vagrant
+        - geerlingguy.homebrew
+        - elliotweiser.osx-command-line-tools
+    frecklet:
+      name: freckfrackery.install-pkgs
+      type: ansible-role
+      skip: "{{:: no_pkg_mgrs ::}}"
+      idempotent: true
+      elevated: "{{:: become ::}}"
+      msg: "install packages (incl. pkg-mgrs)"
+      desc: |
+        Install the following packages:
+
+        {{:: packages | to_yaml ::}}
+
+        # TODO details
+    vars:
+      install_become: "{{:: become ::}}"
+      install_packages: "{{:: packages ::}}"
+  - task:
+      loop: "{{:: packages ::}}"
+    frecklet:
+      name: install
+      type: ansible-module
+      skip: "{{:: no_pkg_mgrs | negate ::}}"
+      idempotent: true
+      msg: "install packages (no pkg-mgrs)"
+      desc: |
+        Install the following packages:
+
+        {{:: packages | to_yaml ::}}
+
+        # TODO details
+
+        Install all missing packages managers that are necessary for this list of packages.
+    vars:
+      install_become: "{{:: become ::}}"
+      packages:
+        - "{{ item }}"

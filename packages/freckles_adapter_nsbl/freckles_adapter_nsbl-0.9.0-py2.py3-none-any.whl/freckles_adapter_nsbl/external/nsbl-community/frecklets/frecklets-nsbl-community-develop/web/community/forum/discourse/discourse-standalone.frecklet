@@ -1,0 +1,147 @@
+doc:
+  short_help: Install and configure a Discourse instance.
+  help: |
+    Install and configure a [discourse](https://discourse.org) instance.
+
+    This uses the ['30 minute guide'](https://github.com/discourse/discourse/blob/master/docs/INSTALL-cloud.md) from the
+    official [Discourse GitHub repository](https://github.com/discourse/discourse).
+
+  furter_reading:
+    "Discourse install documentation": https://github.com/discourse/discourse/blob/master/docs/INSTALL-cloud.md
+  notes:
+    - this may fail if the host machine already has a swap file in /swapfile which is smaller than 2GB. If this happens, the 'discourse-setup' scripts fault.
+  examples:
+    - title: Install Discourse.
+      desc: |
+        This needs mail setup beforehand (refer to Discourse documentation for this).
+      vars:
+        domain: friends.of.freckles.io
+        admin_email: hello@frkl.io
+        smtp_server: smtp.postmarkapp.com
+        smtp_port: 587
+        smtp_user: uuid-uuid-uuid-uuid...
+        smtp_password: super-secret-password...
+
+args:
+  use_https:
+    doc:
+      short_help: "Whether to use https with letsencrypt."
+    type: boolean
+    default: true
+    cli:
+      param_decls:
+        - "--use-https/--no-use-https"
+  hostname:
+    doc:
+      short_help: "The discourse hostname."
+    type: string
+    required: true
+  admin_emails:
+    doc:
+      short_help: "A list of email addresses that will be admins after install."
+      help: |
+        The first email will also be set as the letsencrypt contact email.
+    required: true
+    type: list
+    schema:
+      type: string
+    empty: false
+    cli:
+      param_decls:
+        - "--admin-email"
+      metavar: EMAIL
+  discourse_version:
+    doc:
+      short_help: The version of discourse.
+    type: string
+    default: stable
+    required: false
+    cli:
+      show_default: true
+  discourse_smtp_address:
+    doc:
+      short_help: The SMTP server address.
+    type: string
+    required: true
+  discourse_smtp_port:
+    doc:
+      short_help: The SMTP port.
+    type: integer
+    required: true
+  discourse_smtp_user_name:
+    doc:
+      short_help: The SMTP user name.
+    type: string
+    required: true
+  discourse_smtp_password:
+    doc:
+      short_help: The SMTP password.
+    type: string
+    required: true
+  discourse_smtp_enable_start_tls:
+    doc:
+      short_help: Whether to use START_TLS when connecting to the SMTP server.
+    type: boolean
+    default: true
+    required: true
+    cli:
+      param_decls:
+        - "--start-tls/--no-start-tls"
+  set_from_email:
+    doc:
+      short_help: "A custom 'from' email address (e.g. noreply@example.com)."
+      help: |
+        This only needs to be set/run once, at install time. Needs to be an address that is supported by your smtp settings.
+    type: string
+    required: false
+  discourse_plugins:
+    doc:
+      short_help: "A list of discourse plugin urls."
+    type: list
+    schema:
+      type: string
+    required: false
+    default: []
+    empty: true
+    cli:
+      metavar: "PLUGIN"
+      show_default: true
+
+meta:
+  tags:
+    - featured-frecklecutable
+    - discourse
+    - forum
+    - setup
+    - docker
+    - standalone
+
+frecklets:
+  - docker-service:
+      users:
+        - discourse
+  - git-repo-synced:
+      dest: /var/discourse
+      repo: https://github.com/discourse/discourse_docker.git
+      owner: root
+  - discourse-config-file:
+      path: /var/discourse/containers/app.yml
+      owner: root
+      group: root
+      mode: '700'
+      hostname: "{{:: hostname ::}}"
+      use_https: "{{:: use_https ::}}"
+      admin_emails: "{{:: admin_emails ::}}"
+      discourse_version: "{{:: discourse_version ::}}"
+      set_from_email: "{{:: set_from_email ::}}"
+      discourse_smtp_address: "{{:: discourse_smtp_address ::}}"
+      discourse_smtp_port: "{{:: discourse_smtp_port ::}}"
+      discourse_smtp_user_name: "{{:: discourse_smtp_user_name ::}}"
+      discourse_smtp_password: "{{:: discourse_smtp_password ::}}"
+      discourse_smtp_enable_start_tls: "{{:: discourse_smtp_enable_start_tls ::}}"
+      discourse_plugins: "{{:: discourse_plugins ::}}"
+  - execute-command:
+      frecklet::msg: setting up discourse, this will take quite a while (really, don't give up...)
+      command: /var/discourse/launcher rebuild app
+      chdir: /var/discourse
+      become_user: root

@@ -1,0 +1,47 @@
+doc:
+  short_help: Ensure a file or folder is absent.
+  help:
+    Ensure a file or folder is absent.
+
+    If the path is a folder, it will be deleted recursively.
+  examples:
+    - title: Delete a file (if it exists).
+      vars:
+        path: /tmp/freckles.sh
+
+args:
+  path:
+    doc:
+      short_help: The path.
+    type: string
+    required: true
+    empty: false
+    cli:
+      param_type: argument
+  become:
+    doc:
+      short_help: Whether to use elevated privileges when deleting a file/tree.
+    type: boolean
+    required: false
+    default: false
+
+frecklets:
+
+  - task:
+      become: "{{:: become ::}}"
+    frecklet:
+      name: file
+      type: ansible-module
+      msg: "delete file (if exists): {{:: path ::}}"
+      idempotent: true
+      internet: false
+      elevated: "{{:: become ::}}"
+      desc: |
+        Delete file or folder '{{:: path ::}}' if it exists (recursively, if folder).
+      references:
+        "'file' Ansible module": "https://docs.ansible.com/ansible/latest/modules/file_module.html"
+    vars:
+      path: "{{:: path ::}}"
+      state: absent
+
+

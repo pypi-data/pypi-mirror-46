@@ -1,0 +1,34 @@
+---
+
+- name: "[getting destination details]"
+  stat:
+    path: "{{ intermingle_checkout_dest }}"
+  register: __intermingle_checkout_dest_details__
+
+- name: "[setting folder facts]"
+  set_fact:
+    __intermingle_checkout_dest_exists__: "{{ __intermingle_checkout_dest_details__.stat.exists }}"
+    __intermingle_checkout_dest_is_dir__: false
+
+- name: "[setting more folder facts]"
+  set_fact:
+    __intermingle_checkout_dest_is_dir__: "{{ __intermingle_checkout_dest_details__.stat.isdir }}"
+  when: __intermingle_checkout_dest_exists__
+
+- name: "[cleaning up source path]"
+  set_fact:
+    __intermingle_checkout_src__: "{{ intermingle_checkout_src | cleanup_path( lookup('env', 'HOME') ) }}"
+
+- name: "[set local current_dir]"
+  set_fact:
+    intermingle_checkout_local_current_dir: "{{ __nsbl_run_pwd__ | default('') }}"
+  when: intermingle_checkout_local_current_dir is not defined
+
+- name: "[setting absolute path for source folder]"
+  set_fact:
+    __intermingle_checkout_src_absolute_path__: "{{ __intermingle_checkout_src__ }}"
+  when: "__intermingle_checkout_src__.startswith('/')"
+- name: "[setting absolute path for source folder]"
+  set_fact:
+    __intermingle_checkout_src_absolute_path__: "{{ intermingle_checkout_local_current_dir }}/{{ __intermingle_checkout_src__ }}"
+  when: "not __intermingle_checkout_src__.startswith('/')"

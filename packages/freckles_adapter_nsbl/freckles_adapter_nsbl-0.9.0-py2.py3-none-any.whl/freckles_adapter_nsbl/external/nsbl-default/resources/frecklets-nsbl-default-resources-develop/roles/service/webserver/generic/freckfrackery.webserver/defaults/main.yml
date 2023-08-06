@@ -1,0 +1,76 @@
+---
+# defaults file for webserver
+
+# ------------------------------------------------
+# webserver defaults
+
+# webserver_user: www-data        # optional, default depends on platform
+# webserver_group: www-data       # optional, default depends on platform
+
+
+# ------------------------------------------------
+# site defaults
+
+webserver_name: nginx             # the webserver to install, currently supported: nginx, apache
+
+webserver_listen_port: 80         # might be used by any of the underlying roles
+webserver_listen_port_ssl: 443    # might be used by any of the underlying roles
+
+
+# ------------------------------------------------
+# basic auth defaults
+
+webserver_use_basic_auth: false
+webserver_basic_auth_users: {}
+webserver_basic_auth_user_file: "/etc/htpasswd"
+
+# ------------------------------------------------
+# letsencrypt defaults
+
+webserver_use_https: false
+webserver_skip_cert_request: false         # if use_https is set, this can be used to skip the certificate request process (in case a cert is already present)
+webserver_letsencrypt_staging: false       # for when developing, to not send too many cert request to letsencrypt production server
+# webserver_letsencrypt_domains:           # the site domains used (needs to be provided when 'webserver_use_https' is specified), e.g.:
+# webserver_letsencrypt_domains
+#  - dev.cutecode.co
+# webserver_letsencrypt_email:             # required when using https
+# webserver_letsencrypt_webroot: /var/www/html   # required when using https
+
+
+# ------------------------------------------------
+# php defaults
+webserver_use_php: false                # whether to install & enable php
+webserver_php_packages: {}
+# A map of platform-specific extra packages to install, e.g.:
+# webserver_php_packages:
+#  debian:
+#    - php-zip
+#    - php-curl
+#  redhat:
+#    - <pkg_name>
+#    - ...
+# webserver_php_fpm_user:        # optional fpm user
+# webserver_php_fpm_group:       # optional fpm group
+webserver_php_fpm_config: {}
+webserver_php_config: {}         # variables to be forwarded to the geerlingguy.php role
+
+#    - proxy.load
+#- proxy_fcgi.load
+# ------------------------------------------------
+# apache specific defaults
+
+webserver_apache_config:
+    apache_mods_enabled: []
+    apache_mods_disabled: []
+#    sites_enabled: []
+#    sites_disabled: []
+
+webserver_nginx_config:
+    vhost_extra_parameters: ""
+    locations: ""
+
+# ------------------------------------------------
+# nginx specific defaults
+#webserver_nginx_vhost_extra_parameters: ""
+#webserver_nginx_locations: ""
+

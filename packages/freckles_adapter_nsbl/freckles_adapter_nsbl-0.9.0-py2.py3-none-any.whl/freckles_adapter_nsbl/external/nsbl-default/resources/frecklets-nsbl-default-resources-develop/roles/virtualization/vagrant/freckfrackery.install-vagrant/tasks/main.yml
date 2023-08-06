@@ -1,0 +1,16 @@
+---
+# tasks file for freckfrackery.install_vagrant
+- name: "[checking for executable: vagrant]"
+  required_executable_facts:
+    executables_to_check:
+      - vagrant
+
+# don't quite know why I can't get that working in the 'when' clause directly
+- name: "[setting install_package fact]"
+  set_fact:
+    install_package: "{{ 'vagrant' in executables_missing or vagrant_force_update }}"
+
+- name: "[install tasks]"
+  include_tasks: install.yml
+  #when: "'vagrant' in executables_missing or vagrant_force_update"
+  when: install_package

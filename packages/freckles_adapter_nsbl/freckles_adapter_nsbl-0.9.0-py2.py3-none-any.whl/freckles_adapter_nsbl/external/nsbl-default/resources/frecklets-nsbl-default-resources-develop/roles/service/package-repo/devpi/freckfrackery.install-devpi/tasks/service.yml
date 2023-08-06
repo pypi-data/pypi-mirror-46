@@ -1,0 +1,37 @@
+---
+# service setup for install-devpi
+
+- name: "create folder for devpi service pid"
+  file:
+    path: "{{ devpi_pid_folder }}"
+    state: "directory"
+    owner: "{{ devpi_user }}"
+  become: true
+  become_user: "{{ devpi_user }}"
+
+
+- name: "adding systemd unit for devpi"
+  import_role:
+      name: tumf.systemd-service
+  vars:
+      systemd_service_name: devpi
+      systemd_service_Unit_Description: devpi service
+      systemd_service_Service_ExecStart: '{{ devpi_server_exe }} --start --port={{ devpi_port }} --host={{ devpi_host }} --serverdir={{ devpi_server_base_folder }} --restrict-modify=root'
+      systemd_service_Service_ExecStop: "{{ devpi_server_exe }} --stop"
+      systemd_service_Unit_Requires: network-online.target
+      systemd_service_Unit_After: network-online.target
+      systemd_service_Service_Type: forking
+      systemd_service_Service_PIDFile: "/home/{{ devpi_user }}/.devpi/server/.xproc/devpi-server/xprocess.PID"
+      systemd_service_Service_Restart: always
+      systemd_service_Service_User: "{{ devpi_user }}"
+      systemd_service_Service_SuccessExitStatus: SIGKILL
+      systemd_service_Install_WantedBy: multi-user.target
+  become: true
+  notify: restart devpi service
+
+- name: "enabling and starting devpi"
+  service:
+    name: devpi
+    enabled: true
+    state: started
+  become: true

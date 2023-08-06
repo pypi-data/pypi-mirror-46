@@ -1,0 +1,32 @@
+---
+
+- name: "creating destination folder"
+  file:
+    path: "{{ intermingle_checkout_dest }}"
+    owner: "{{ intermingle_checkout_folder_owner | default(omit) }}"
+    group: "{{ intermingle_checkout_folder_group | default(omit) }}"
+    state: directory
+    recurse: true
+  become: "{{ intermingle_become }}"
+
+- name: "checking for remote source"
+  set_fact:
+    __remote_src__: true
+    __intermingle_url__: "{{ intermingle_checkout_src }}"
+  when: "'://' in intermingle_checkout_src"
+
+# TODO: investigate, there seems to be an issue with local archives to be transferred onto the target machine, maybe Ansible issue?
+
+- name: "extracting archive '{{ intermingle_source }}'"
+  include_role:
+    name: freckfrackery.install-pkgs
+  vars:
+    install_ignore_errors: false
+    install_packages:
+      - name: "{{ intermingle_checkout_src }}"
+        pkg_mgr: unarchive
+        src: "{{ __intermingle_url__ | default(__intermingle_checkout_src_absolute_path__) }}"
+        dest: "{{ intermingle_checkout_dest }}"
+        remote_src: "{{ __remote_src__ | default(not intermingle_checkout_source_is_local) }}"
+        become: "{{ intermingle_become }}"
+        keep_newer: "{{ not intermingle_checkout_force }}"

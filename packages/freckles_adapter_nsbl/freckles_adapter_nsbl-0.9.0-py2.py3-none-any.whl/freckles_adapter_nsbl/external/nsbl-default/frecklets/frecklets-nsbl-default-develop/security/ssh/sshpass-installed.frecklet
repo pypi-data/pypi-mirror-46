@@ -1,0 +1,50 @@
+doc:
+  short_help: "Install the sshpass package."
+  help: |
+    Install the '[sshpass](https://www.cyberciti.biz/faq/noninteractive-shell-script-ssh-password-provider/)' utility.
+
+    'sshpass' is a small application that helps using ssh within scripts. There are some security implications to using it,
+    so make sure to check out the webpage.
+
+    If this is used on CentOS, the 'epel-release' repository package will also be installed and enabled.
+
+  furter_reading:
+    "sshpass homepage": https://www.cyberciti.biz/faq/noninteractive-shell-script-ssh-password-provider/
+  examples:
+    - title: Install the 'sshpass' package using the system package manager.
+    - title: Install the 'sshpass' package using the 'nix' package manager.
+      vars:
+        pkg_mgr: nix
+
+args:
+  pkg_mgr:
+    doc:
+      short_help: the package manager to use
+    type: string
+    default: auto
+    required: false
+    idempotent: true
+    internet: true
+    cli:
+      metavar: PKG-MGR
+
+meta:
+  tags:
+    - sshpass
+    - install
+    - pkg
+
+frecklets:
+  - packages-installed:
+      pkg_mgr: "{{:: pkg_mgr ::}}"
+      packages:
+        - name: epel-release
+          pkgs:
+            centos:
+              - epel-release
+            default: ignore
+  - packages-installed:
+      become: "{{:: pkg_mgr | false_if_equal('conda') ::}}"
+      packages:
+        - name: sshpass
+          pkg_mgr: "{{:: pkg_mgr ::}}"

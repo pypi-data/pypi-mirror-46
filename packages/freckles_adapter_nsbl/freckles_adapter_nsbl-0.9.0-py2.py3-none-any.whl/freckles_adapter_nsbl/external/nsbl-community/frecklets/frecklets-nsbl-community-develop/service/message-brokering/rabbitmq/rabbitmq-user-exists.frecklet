@@ -1,0 +1,38 @@
+doc:
+  short_help: Create rabbitmq user with full privileges for a specific vhost.
+args:
+  user:
+    doc: The name of the user.
+    type: string
+    required: true
+  password:
+    doc: The users password.
+    type: string
+    required: true
+    secret: true
+  vhost:
+    doc: The vhost name.
+    type: string
+    required: true
+
+frecklets:
+  - rabbitmq-vhost-exists:
+      name: "{{:: vhost ::}}"
+  - frecklet:
+      name: rabbitmq_user
+      type: ansible-module
+      elevated: true
+      idempotent: true
+      internet: false
+    task:
+      become: true
+    vars:
+      user: "{{:: user ::}}"
+      password: "{{:: password ::}}"
+      vhost: "{{:: vhost ::}}"
+      state: present
+      configure_priv: ".*"
+      read_priv: ".*"
+      write_priv: ".*"
+
+

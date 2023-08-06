@@ -1,0 +1,78 @@
+---
+
+doc:
+  short_help: "Create an executable file from a template, execute it, delete it."
+  examples:
+    - title: "An example 'hello world' ad-hoc script."
+      desc: |
+        If stored in a file ``example.frecklet``, this can be executed like so:
+
+        ```console
+        frecklecute example.frecklet --name World
+        ```
+      vars:
+        script_template: |
+          #!/usr/bin/env bash
+
+          echo "hello {{:: name ::}}!" >> /tmp/hello_world
+
+args:
+  script_template:
+    doc:
+      short_help: "The content of the script."
+    type: string
+    required: true
+    cli:
+      metavar: SCRIPT_CONTENT
+  become:
+    doc:
+      short_help: "Whether to use elevated permissions to execute the script."
+    type: boolean
+    required: false
+    default: false
+  become_user:
+    doc:
+      short_help: "The user to execute the command as."
+    type: string
+    required: false
+
+frecklets:
+
+  - task:
+      become: "{{:: become ::}}"
+      become_user: "{{:: become_user ::}}"
+      register: "__temp_script_file__"
+    frecklet:
+      name: tempfile
+      type: ansible-module
+      msg: "create temporary script file"
+      idempotent: false
+      elevated: "{{:: become ::}}"
+      internet: false
+      references:
+        "'tempfile' Ansible module": "https://docs.ansible.com/ansible/latest/modules/tempfile_module.html"
+    vars:
+      prefix: ad_hoc_script_
+      state: file
+  - file-with-content:
+      path: "{{ __temp_script_file__.path }}"
+      content: "{{:: script_template ::}}"
+      owner: "{{:: become_user ::}}"
+      become: "{{:: become ::}}"
+  - task:
+      become: "{{:: become ::}}"
+      become_user: "{{:: become_user ::}}"
+    frecklet:
+      name: command
+      type: ansible-module
+      msg: "execute ad-hoc script"
+      idempotent: false
+      become: "{{:: become ::}}"
+      references:
+        "'command' Ansible module": "https://docs.ansible.com/ansible/latest/modules/command_module.html"
+    vars:
+      free_form: "sh {{ __temp_script_file__.path }}"
+  - path-is-absent:
+      path: "{{ __temp_script_file__.path }}"
+      become: "{{:: become ::}}"
+

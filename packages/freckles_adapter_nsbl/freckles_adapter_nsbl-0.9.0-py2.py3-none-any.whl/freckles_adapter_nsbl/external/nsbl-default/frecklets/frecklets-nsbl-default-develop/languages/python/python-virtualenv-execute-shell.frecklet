@@ -1,0 +1,50 @@
+doc:
+  short_help: Executes a command inside a virtualenv.
+  help: |
+    Changes directory to be the virtualenv root, then executes the specified command.
+args:
+  virtualenv_path:
+    doc:
+      short_help: The virtualenv (base) path.
+    type: string
+    required: true
+  command:
+    doc:
+      short_help: The command to execute.
+      help: |
+        This needs to be an executable that is located in the ``virtualenv_path``/bin/ folder.
+  become_user:
+    doc:
+      short_help: The user to execute this command as.
+    type: string
+    empty: false
+    required: false
+  ignore_error:
+    doc:
+      short_help: Whether to ignore any potential errors.
+    type: boolean
+    required: false
+    default: false
+  no_log:
+    doc:
+      short_help: Whether to hide the log of this command (because for example the command contains sensitive information).
+    type: boolean
+    default: false
+    required: false
+  environment:
+    doc:
+      short_help: A dictionary of environment variables to add/set.
+    type: dict
+    required: false
+    keyschema:
+      type: string
+
+frecklets:
+  - execute-shell:
+      command: "{{:: virtualenv_path ::}}/bin/{{:: command ::}}"
+      chdir: "{{:: virtualenv_path ::}}"
+      become_user: "{{:: become_user ::}}"
+      ignore_error: "{{:: ignore_error ::}}"
+      no_log: "{{:: no_log ::}}"
+      environment: "{{:: environment ::}}"
+

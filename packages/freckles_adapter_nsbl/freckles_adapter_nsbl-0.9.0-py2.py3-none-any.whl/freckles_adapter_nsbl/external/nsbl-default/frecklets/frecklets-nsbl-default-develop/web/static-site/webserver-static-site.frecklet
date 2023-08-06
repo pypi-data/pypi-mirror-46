@@ -1,0 +1,114 @@
+doc:
+  short_help: Install and configure webserver for static site.
+  help: |
+    This is under development, for now only 'nginx' is supported.
+
+  further_reading:
+    "blog post": https://medium.com/@jgefroh/a-guide-to-using-nginx-for-static-websites-d96a9d034940
+
+args:
+  hostname:
+    doc:
+      short_help: The domain name the webserver should listen on.
+    type: string
+    required: false
+    default: localhost
+  use_https:
+    doc:
+      short_help: Whether to use https (and request a letsencrypt certificate).
+    type: boolean
+    required: false
+    default: false
+  document_root:
+    doc:
+      short_help: The document root.
+    type: string
+    required: false
+    default: /var/www/html
+  webserver_user:
+    doc:
+      short_help: The webserver user.
+    type: string
+    required: false
+  gzip_enabled:
+    doc:
+      short_help: Whether to enable gzip (only supported for nginx for now).
+    type: boolean
+    required: false
+    default: true
+    cli:
+      param_decls:
+        - "--gzip-enabled/--gzip-disabled"
+  index:
+    doc:
+      short_help: The index file name(s).
+    type: list
+    schema:
+      type: string
+    default:
+      - index.html
+      - index.htm
+    required: false
+    cli:
+      metavar: FILENAME
+      show_default: true
+  letsencrypt_staging:
+    doc:
+      short_help: "Whether to use the letsencrypt staging server (for developing -- production only allows a few requests per day)."
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+  server_admin:
+    doc:
+      short_help: "The server admin email."
+    type: string
+    required: false
+    cli:
+      metavar: EMAIL
+  skip_cert_request:
+    doc:
+      short_help: "Skip letsencrypt certificate request."
+      help: |
+        Useful if the https certificate(s) is/are already set up.
+    type: boolean
+    default: false
+    required: false
+  webserver:
+    doc:
+      short_help: "The webserver type."
+    type: string
+    allowed:
+      - nginx
+      - apache
+    default: nginx
+
+frecklets:
+  - nginx-vhost-from-folder:
+      frecklet::skip: "{{:: webserver | false_if_equal('nginx') ::}}"
+      hostname: "{{:: hostname ::}}"
+      use_https: "{{:: use_https ::}}"
+      document_root: "{{:: document_root ::}}"
+      gzip_enabled: "{{:: gzip_enabled ::}}"
+      index: "{{:: index ::}}"
+      server_admin: "{{:: server_admin ::}}"
+  - apache-vhost-from-folder:
+      frecklet::skip: "{{:: webserver | false_if_equal('apache') ::}}"
+      hostname: "{{:: hostname ::}}"
+      use_https: "{{:: use_https ::}}"
+      document_root: "{{:: document_root ::}}"
+      server_admin: "{{:: server_admin ::}}"
+      index: "{{:: index ::}}"
+  - webserver-service:
+      webserver: "{{:: webserver ::}}"
+      letsencrypt_webroot: "{{:: document_root ::}}"
+      use_https: "{{:: use_https ::}}"
+      skip_cert_request: "{{:: skip_cert_request ::}}"
+      letsencrypt_email: "{{:: server_admin ::}}"
+      letsencrypt_staging: "{{:: letsencrypt_staging ::}}"
+      letsencrypt_domains:
+        - "{{:: hostname ::}}"
+      webserver_user: "{{:: webserver_user ::}}"
+
+

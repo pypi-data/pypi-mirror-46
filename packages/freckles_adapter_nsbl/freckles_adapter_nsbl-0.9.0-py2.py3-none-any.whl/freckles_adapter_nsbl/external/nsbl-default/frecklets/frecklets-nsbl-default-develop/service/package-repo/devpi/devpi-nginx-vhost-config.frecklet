@@ -1,0 +1,121 @@
+---
+
+doc:
+  short_help: "Creates a vhost for devpi on Nginx."
+  examples:
+    - title: Create vhost config for devpi.
+      desc: |
+        This here creates a configuration for Nginx to reverse proxy the local devpi service, incl. redirecting all http traffic to https.
+      vars:
+        path: "/etc/nginx/sites-enabled/vhost_devpi.conf"
+        owner: devpi
+        host: dev.frkl.io
+        devpi_root: "/home/devpi/.devpi/server"
+        devpi_host: "localhost"
+        devpi_port: 3141
+        devpi_proto: http
+        use_https: true
+
+args:
+  path:
+    doc:
+      short_help: "The path to the config file."
+    required: false
+    default: "/etc/nginx/sites-available/vhost_devpi.conf"
+    type: string
+  owner:
+    doc:
+      short_help: "The owner of the file."
+    required: false
+    default: "devpi"
+    type: string
+  hostname:
+    doc:
+      short_help: "The domain-name for the Nginx web-server."
+    required: false
+    default: localhost
+    type: string
+  devpi_host:
+    doc:
+      short_help: "The host where devpi is running."
+    required: false
+    default: localhost
+    type: string
+    cli:
+      show_default: true
+  devpi_port:
+    doc:
+      short_help: "The port devpi is listening to."
+    default: 3141
+    required: false
+    type: integer
+    cli:
+      show_default: true
+  devpi_proto:
+    doc:
+      short_help: "The devpi server protocol."
+    type: string
+    allowed:
+      - http
+      - https
+    required: false
+    default: http
+    cli:
+      show_default: true
+  use_https:
+    doc:
+      short_help: "Whether https is used."
+    type: boolean
+    default: false
+    required: false
+    cli:
+      is_flag: true
+  devpi_root:
+    doc:
+      short_help: "The devpi server directory."
+    required: false
+    default: "/home/devpi/.devpi/server"
+    type: string
+    cli:
+      show_default: true
+
+frecklets:
+  - nginx-server-block-file:
+      path: "{{:: path ::}}"
+      owner: "{{:: owner ::}}"
+      become: true
+      server_names:
+        - "{{:: hostname ::}}"
+      use_https: "{{:: use_https | default(false) ::}}"
+      document_root: "{{:: devpi_root ::}}"
+      gzip_enabled: true
+      gzip:
+        gzip_min_length: 2000
+        gzip_proxied: any
+        gzip_types: text/html application/json
+      proxy_read_timeout: 60s
+      client_max_body_size: 64M
+      location_blocks:
+        - location_match: "/\\+f/"
+          location_modifier: "~"
+          properties: |
+            error_page 418 = @proxy_to_app;
+            if ($request_method !~ (GET)|(HEAD)) {
+              return 418;
+            }
+
+            expires max;
+            try_files /+files$uri @proxy_to_app;
+        - location_match: "/\\+doc/"
+          location_modifier: "~"
+          properties: |
+            try_files $uri @proxy_to_app;
+        - location_match: "/"
+          properties: |
+            error_page 418 = @proxy_to_app;
+            return 418;
+        - location_match: "@proxy_to_app"
+          properties: |
+            proxy_pass {{:: devpi_proto ::}}://{{:: devpi_host ::}}:{{:: devpi_port ::}};
+            proxy_set_header X-outside-url $scheme://$host:$server_port;
+            proxy_set_header X-Real-IP $remote_addr;

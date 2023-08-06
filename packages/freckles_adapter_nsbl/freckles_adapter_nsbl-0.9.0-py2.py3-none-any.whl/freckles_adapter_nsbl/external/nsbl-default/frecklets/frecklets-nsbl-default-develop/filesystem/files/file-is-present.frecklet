@@ -1,0 +1,131 @@
+doc:
+  short_help: Ensure a file exists.
+  help: |
+    Ensure a file exists, create the necessary user (owner), as well as parent directories if necessary.
+
+    If a user needs to be created, it won't have any password set, so you might have to do that in a different (ideally earlier - to have more control) step.
+
+    If intermediate parent directories have to be created, they will inherit the owner/group information of the file to be created. If any of those
+    parent directories already exist, they won't be touched at all.
+
+    If the ``owner`` variable is specified, this frecklet will use elevated permissions.
+
+  examples:
+    - title: Create file if it doesn't exist yet.
+      desc: |
+        Create a file as child of an existing folder. The owner will be whoever runs the *frecklet*.
+      vars:
+        path: /tmp/freckles.txt
+    - title: Create file (incl. parent folders) if it doesn't exist yet.
+      desc: |
+        Create folder structure ``/tmp/parent_1/parent_2``, then create child file ``freckles.txt``. Owner will be whoever runs the *frecklet*.
+      vars:
+        path: /tmp/parent_1/parent_2/freckles.txt
+    - title: Create file if it doesn't exist and make it to be executable.
+      desc: |
+        Creates an (empty) file if it doesn't exist, sets the mode to '775'.
+      vars:
+        path: /tmp/example_script.sh
+        mode: '0775'
+    - title: Create file with custom owner & group.
+      desc: |
+        Create the user and group 'freckles' if they don't exist yet, then the file ``/tmp/freckles.txt`` and set the
+        user/group properties to 'freckles'.
+
+        Here we need to set the ``become`` variable, because otherwise we would not have permission to create the file.
+      vars:
+        path: /tmp/freckles.txt
+        owner: freckles
+        group: freckles
+        become: true
+
+
+args:
+  path:
+    doc:
+      short_help: "The path to the file."
+    type: string
+    required: true
+    cli:
+      param_type: argument
+  owner:
+    doc:
+      short_help: "The owner of the file."
+    type: string
+    required: false
+    cli:
+      metavar: USER
+  group:
+    doc:
+      short_help: "The group of the file."
+    type: string
+    required: false
+    cli:
+      metavar: GROUP
+  mode:
+    doc:
+      short_help: "The permissions of the file."
+    type: string
+    required: false
+    cli:
+      metavar: MODE
+  parent_dir_mode:
+    doc:
+      short_help: "The permissions of the parent directory."
+    type: string
+    required: false
+    cli:
+      metavar: MODE
+#  become:
+#    doc:
+#      short_help: "Whether to use root privileges to create the file."
+#    type: boolean
+#    default: false
+#    required: false
+#    cli:
+#      is_flag: true
+  system_user:
+    doc:
+      short_help: Whether the user and group should be of system user/group type.
+    type: boolean
+    default: false
+    required: false
+    cli:
+      show_default: true
+      is_flag: true
+meta:
+  is_interface: true
+  tags:
+    - file
+    - filesystem
+    - touch
+    - featured-frecklecutable
+
+frecklets:
+  - parent-folder-exists:
+      path: "{{:: path ::}}"
+      owner: "{{:: owner  ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: parent_dir_mode ::}}"
+  - task:
+      become: "{{:: owner | true_if_not_empty ::}}"
+    frecklet:
+      name: file
+      type: ansible-module
+      msg: "[create file (if it doesn't exist): {{:: path ::}}']"
+      idempotent: true
+      desc: |
+        Create file '{{:: path ::}}' if it doesn't exist yet.
+
+        {%:: if mode ::%}Ensure the file mode is '{{:: mode ::}}'{%:: else ::%}Leave file mode as is (or default if file has to be created){%:: endif ::%}. {%:: if group ::%}Set group to be '{{:: group ::}}'{%:: else ::%}Use the executing users main group (or leave be if file already exists){%:: endif ::%} and {%:: if owner ::%}set user to be '{{:: owner ::}}'{%:: else ::%}use the executing users name as the owner (or leave be if file already exists){%:: endif ::%}.
+      references:
+        "'file' Ansible module": "https://docs.ansible.com/ansible/latest/modules/file_module.html"
+      internet: false
+      elevated: "{{:: owner | true_if_not_empty ::}}"
+    vars:
+      path: "{{:: path ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: mode ::}}"
+      state: touch
+

@@ -1,0 +1,47 @@
+---
+# tasks file for freckfrackery.install-pkgs
+
+- name: "[preparing package list]"
+  install:
+    package_list_var: "__install_package_list__"
+    packages: "{{ install_packages }}"
+    no_run: true
+
+- name: "[filter ansible_roles]"
+  set_fact:
+    __install_package_list_main__: "{{ __install_package_list__ | filter_non_ansible_role }}"
+    __install_package_list_roles__: "{{ __install_package_list__ | filter_ansible_role }}"
+
+- name: "[installing package managers if necessary]"
+  include_role:
+     name: freckfrackery.install-pkg-mgrs
+#  when: "{{ install_pkg_mgrs }}"
+  vars:
+     install_pkg_mgrs_packages: "{{ __install_package_list_main__ }}"
+
+- name: "[installing packages that require roles]"
+  include_tasks: install_with_role.yml
+  vars:
+    __role_name__: "{{ __role_details__.get('role') }}"
+    __role_vars__: "{{ __role_details__.get('vars') }}"
+    __role_become__: "{{ __role_details__.get('become') }}"
+  with_items: "{{ __install_package_list_roles__ }}"
+  loop_control:
+    loop_var: __role_details__
+
+#- name: "installing packages"
+#  install:
+#    packages:
+#      - "{{ item }}"
+#  loop: "{{ __install_package_list_main__ | flatten(levels=1) }}"
+#  ignore_errors: "{{ install_ignore_errors }}"
+
+
+## workaround for bug https://github.com/ansible/ansible/issues/32384
+- name: "[installing packages (ignoring errors)]"
+  include_tasks: install_ignore_errors.yml
+  when: install_ignore_errors
+
+- name: "[installing packages]"
+  include_tasks: install_dont_ignore_errors.yml
+  when: not install_ignore_errors

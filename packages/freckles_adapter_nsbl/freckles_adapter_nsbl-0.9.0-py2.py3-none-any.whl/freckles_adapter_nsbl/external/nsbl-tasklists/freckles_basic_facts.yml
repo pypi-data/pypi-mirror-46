@@ -1,0 +1,20 @@
+---
+#
+# Copyright (c) 2018, Markus Binsteiner
+#
+# Licensed under The Parity Public license, Version 3.0.0 (the "license");
+# and you may not use this file except in compliance with the license.
+# You may obtain a copy of the License at
+#
+#  https://licensezero.com/licenses/parity
+#
+
+- name: "gathering very basic facts"
+  script: "{{ playbook_dir }}/../files/freckles_facts.sh"
+#  environment: "{{ freckles_environment | default(omit) }}"
+  register: box_very_basics_out
+  changed_when: false
+
+- name: "[setting box_very_basics var]"
+  set_fact:
+      box_very_basics: "{{ box_very_basics_out | very_basics_filter }}"

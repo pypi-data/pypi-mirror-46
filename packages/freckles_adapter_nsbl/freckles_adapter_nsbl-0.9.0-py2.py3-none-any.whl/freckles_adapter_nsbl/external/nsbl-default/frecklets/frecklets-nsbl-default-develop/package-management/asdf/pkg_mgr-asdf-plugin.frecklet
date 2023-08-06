@@ -1,0 +1,48 @@
+doc:
+  short_help: Install a plugin for asdf.
+  examples:
+    - title: Install the asdf Python plugin and Python version 3.6.8.
+      vars:
+        plugin: python
+        version: 3.6.8
+
+args:
+  plugin:
+    doc:
+      short_help: The asdf plugin to use.
+    type: string
+    required: true
+    cli:
+      param_decls:
+        - "-p"
+        - "--plugin"
+  version:
+    doc:
+      short_help: The version of the language runtime to install.
+    required: false
+    type: string
+  user:
+    doc:
+      short_help: The user to install the plugin for.
+    type: string
+    required: false
+
+frecklets:
+  - user-exists:
+      frecklet::skip: "{{:: user | true_if_empty ::}}"
+      name: "{{:: user ::}}"
+  - frecklet:
+      type: ansible-module
+      name: asdf
+      idempotent: true
+      elevated: "{{:: user | false_if_empty ::}}"
+      msg: "install asdf plugin: {{:: plugin ::}}{%:: if version ::%}, version {{:: version ::}}{%:: endif ::%}"
+      references:
+        "'asdf' Ansible module (unofficial)": "https://gitlab.com/nsbl/nsbl-plugins/blob/master/library/asdf.py"
+    task:
+      become: "{{:: user | false_if_empty ::}}"
+      become_user: "{{:: user ::}}"
+    vars:
+      plugin: "{{:: plugin ::}}"
+      version: "{{:: version ::}}"
+      state: "present"

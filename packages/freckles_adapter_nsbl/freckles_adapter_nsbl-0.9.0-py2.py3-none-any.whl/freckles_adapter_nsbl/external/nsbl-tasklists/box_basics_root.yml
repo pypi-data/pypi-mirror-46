@@ -1,0 +1,102 @@
+---
+#
+# Copyright (c) 2018, Markus Binsteiner
+#
+# Licensed under The Parity Public license, Version 6.0.0 (the "license");
+# and you may not use this file except in compliance with the license.
+# You may obtain a copy of the License at
+#
+#  https://licensezero.com/licenses/parity
+#
+
+- name: installing python
+  raw: sh -c "test -e /usr/bin/python || ( ( test -e /usr/bin/apt && (apt -qqy update || apt -qqy update) && apt install -qqy python-minimal libpython-stdlib) || ( test -e /usr/bin/dnf && /usr/bin/dnf -qy install python) || ( test -e /usr/bin/yum && /usr/bin/yum -qy install python) )"
+  register: output
+  become: yes
+  when: box_very_basics["install_python"]
+  changed_when: output.stdout != ""
+
+- name: rechecking very basics facts if necessary
+  include_tasks: freckles_basic_facts.yml
+  when:  output.changed
+
+# TODO: make that more finegrained. So far, only zipfile was ever missing, which would need the libpython2.7-stdlib on Ubuntu
+- name: installing full python if there are any missing modules
+  raw: sh -c "( ( test -e /usr/bin/apt && (apt -qqy update || apt -qqy update) && apt install -qqy python2.7) || ( test -e /usr/bin/dnf && /usr/bin/dnf -qy install python) || ( test -e /usr/bin/yum && /usr/bin/yum -qy install python) )"
+  become: true
+  when: box_very_basics["missing_python_modules"]
+
+- name: setting python interpreter
+  set_fact:
+    ansible_python_interpreter: "{{ box_very_basics['python'] }}"
+
+- name: "[gathering facts]"
+  setup:
+  tags: always
+
+#- name: "[debug facts]"
+#  debug: var=ansible_env
+
+- name: "updating apt cache"
+  raw: apt-get update || apt-get update
+  become: yes
+  when: "ansible_pkg_mgr == 'apt'"
+
+- name: "ensure rsync is installed"
+  command: "apt-get install -y rsync"
+  become: yes
+  when: "ansible_pkg_mgr == 'apt'"
+
+# TODO: refactor the below out into install-pkg-mgrs?
+- name: "ensuring python3-dnf and rsync are installed"
+  command: "dnf install -y python3-dnf rsync"
+  become: yes
+  when: "ansible_pkg_mgr == 'dnf'"
+
+- name: "ensuring yum is installed"
+  command: "dnf install -y yum"
+  become: yes
+  when: "ansible_pkg_mgr == 'dnf'"
+
+# - name: "ensure python2-yum is installed"
+  # command: "yum install -y python2-yum"
+  # become: yes
+  # when: "ansible_pkg_mgr == 'yum' and (pkg_mgr is not defined or pkg_mgr in ['auto', 'yum'])"
+
+- name: "enabling selinux python bindings (using 'dnf')"
+  command: "dnf install -y libselinux-python"
+  become: yes
+  when: "ansible_os_family == 'RedHat' and ansible_pkg_mgr == 'dnf'"
+
+- name: "enabling selinux python bindings (using 'yum')"
+  command: "yum install -y libselinux-python"
+  become: yes
+  when: "ansible_os_family == 'RedHat' and ansible_pkg_mgr == 'yum'"
+
+- name: "[creating freckles share folder]"
+  file:
+#    path: "{{ ansible_env.HOME }}/.local/share/nsbl"
+    path: "~/.local/share/freckles"
+    state: directory
+    recurse: true
+
+- name: "[getting box basic facts again]"
+  include_tasks: "{{ playbook_dir }}/../task_lists/freckles_basic_facts.yml"
+
+- name: "[creating box basics marker file]"
+  file:
+#    path: "{{ ansible_env.HOME }}/.local/share/nsbl/.nsbl_box_basics_root_done"
+    path: "~/.local/share/freckles/.box_basics"
+    state: touch
+
+- name: "[recording python interpreter metadata]"
+  lineinfile:
+    path: "~/.local/share/freckles/.box_basics"
+    regexp: '^python_interpreter:'
+    line: "python_interpreter: {{ box_very_basics['python'] }}"
+
+- name: "[recording box metadata for later runs]"
+  lineinfile:
+    path: "~/.local/share/freckles/.box_basics"
+    regexp: '^root_init_done:'
+    line: "root_init_done: true"

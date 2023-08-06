@@ -1,0 +1,181 @@
+doc:
+  short_help: "Add and authorize a new member to an existing zerotier network."
+  help: |
+    Installs the [ZeroTier client](https://www.zerotier.com/download.shtml), adds a service init job (systemd, etc) so it will start on boot, and joins the network with the specified id.
+
+    If the ``access_token`` is provided, this auto-registers the new machine via the ZeroTier API and sets an (optionally provided) static ip address.
+  long_help: |
+    ## Zerotier
+
+    Zerotier is a virtual networking layer. It has a lot of use-cases, the main one for me is that it makes it very easy to create a private network where I can connect all my cloud VMs as well as local machines, without having to worry too much about securing services that are by default unsecured (e.g. the Prometheus service and its node-exporters).
+
+    ### Preparations
+
+    First, [register a zerotier account](https://my.zerotier.com/login). Then create an 'API Access Token' on the main zerotier profile page, make a note of it, we'll need that later on.
+
+    Now, go to the "Netwoks" tab and 'Create' a new network, note the network id (the hash-like string under the auto-created network name). Click on the newly created network, give it a proper name (I'll name mine 'freckles'), and make a note of the IP range that is used on the right side (under 'IPv4 Auto-Assign'). Change that if you want, I'll use the default (10.147.18.*).
+
+    ### Adding a machine to our zerotier network
+
+    For this, we'll use the [zerotier-network-member frecklet](https://gitlab.com/frecklets/frecklets-nsbl-default/blob/develop/networking/vpn/zerotier/zerotier-network-member.frecklet).
+
+    Here's the configuration:
+
+    ``` yaml
+    - zerotier-network-member:
+        network_id: [NETWORK_ID]
+        access_token: [ACCESS_TOKEN]
+        ips:
+          - 10.147.18.10
+        description: grafana service
+    ```
+
+    This is pretty straight-forward, we need to provide the ``network_id`` and ``access_token``. As with all examples, we are storing the password (the ``access_token``) as a plain-text string. You might want to check out [this page](https://TODO) to learn how to do that in a more secure way.
+
+    Providing a list of ``ips`` for this host is optional, if we don't specify any the host will get one assigned dynamically. Most of the time it's better to have a static one, though. Lastly, we can set a ``description``. This is also optional, but nice to have so we, as it gets displayed on the zerotier network page.
+
+    Let's store this in a file called 'zerotier.frecklet', and execute:
+
+    ```
+    $ frecklecute zerotier.frecklet
+
+    ╭─ starting: 'zerotier'
+    ├╼ connector: nsbl
+    │  ├╼ host: localhost
+    │  │  ├╼ starting playbook
+    │  │  │  ╰╼ ok
+    │  │  │  ├╼ Add ZeroTier PGP key
+    │  │  │  │  ╰╼ ok
+    │  │  │  ├╼ Add ZeroTier APT repository
+    │  │  │  │  ╰╼ ok
+    │  │  │  ├╼ Install zerotier-one
+    │  │  │  │  ╰╼ ok
+    │  │  │  ├╼ Start zerotier-one service
+    │  │  │  │  ╰╼ ok
+    │  │  │  ├╼ Get Zerotier NodeID
+    │  │  │  │  ╰╼ ok
+    │  │  │  ├╼ Set NodeID as fact
+    │  │  │  │  ╰╼ ok
+    │  │  │  ├╼ Authorize members to network
+    │  │  │  │  ╰╼ ok
+    │  │  │  ├╼ Configure members in network
+    │  │  │  │  ╰╼ ok
+    │  │  │  ├╼ Join ZeroTier network
+    │  │  │  │  ╰╼ ok
+    │  │  │  ╰╼ ok
+    │  │  ╰╼ ok
+    │  ╰╼ ok
+    ╰─ ok
+    ```
+
+    Done. This setup the zerotier client on our host, started it and auto-registered our host.
+
+    If you go back to the zerotier network page now, you should see your new host added to the network. If it worked, you should be able to ping it from another machine in that same network.
+  examples:
+    - title: Add a newly deployed machine to a ZeroTier network using a static IP and auto-register it.
+      desc: |
+        In this example we add a machine we just set up to an existing ZeroTier network, using a static IP address. Once that frecklet has run, it might take a few moments for the new machine to appear on the ZeroTier network page.
+      vars:
+        network_id: a84ac5c10a9510f0
+        access_token: oHwurk99bHT8OkVkfFc2EHpTcal2SbLz
+        ips:
+          - 10.242.1.1
+    - title: Add a newly deployed machine to a ZeroTier network, using a dynamic IP address and manually authorize the machine
+      desc: |
+        Here we join a newly deployed machine to a ZeroTier network. We let ZeroTier choose the IP address (the 'IPv4 Auto-Assign' feature needs to be enabled on the network page for this to work). Once that frecklet has run, we need to visit the network page on the web and manually check the 'Auth?' checkbox in the appropriate row (under 'Members').
+      vars:
+        network_id: a84ac5c10a9510f0
+
+  further_reading:
+    "ZeroTier homepage": https://zerotier.com
+    "ZeroTier client": https://www.zerotier.com/download.shtml
+    "ZeroTier manual": https://www.zerotier.com/manual.shtml
+
+
+args:
+  network_id:
+    doc:
+      short_help: The Zerotier network id.
+    type: string
+    required: false
+    empty: false
+  access_token:
+    doc:
+      short_help: The Zerotier access token.
+      help: |
+        The Zerotier access token.
+
+        You can generate one in your account settings at https://my.zerotier.com. If this is left out then the newly joined member will not be automatically authorized.
+    type: string
+    required: false
+    secret: true
+    empty: false
+  short_hostname:
+    doc:
+      short_help: Whether to register the short hostname without FQDN)
+    required: false
+    type: boolean
+    default: false
+  description:
+    doc:
+      short_help: The description for this server.
+    type: string
+    required: false
+    empty: false
+  ips:
+    doc:
+      short_help: The IP-addresses to assign.
+      help: |
+        The IP-addresses to assign.
+
+        The member will be automatically assigned an address on the network if left out. This won't have any effect if the
+        ``access_token`` is not provided.
+    type: list
+    required: false
+    empty: true
+    default: []
+    schema:
+      type: string
+    cli:
+      show_default: false
+      metavar: IP
+      param_decls:
+        - "--ip"
+
+
+frecklets:
+
+  - task:
+      become: true
+      include-type: import
+    frecklet:
+      name: m4rcu5nl.zerotier
+      type: ansible-role
+      idempotent: true
+      elevated: true
+      internet: true
+      references:
+        "'m4rcu5nl.zerotier' Ansible role": "https://github.com/m4rcu5nl/ansible-role-zerotier"
+      msg: adding machine to zerotier network
+      desc: |
+        Installing the Zerotier client on the target machine and setup, enable and start a service for it.
+
+        {%:: if network_id ::%}Request access to the Zerotier network with the id '{{:: network_id ::}}'.
+        {%:: if access_token ::%}Use the provided access token to instantly approve the request.
+        {%:: if short_hostname ::%}Use short hostname instead of a long(er) one. {%:: endif ::%}{%:: if description ::%}Set the description of the host on the Zerotier network page to be '{{:: description ::}}'. {%:: endif ::%}
+        {%:: if ips ::%}Assign the following IP address(es) to the target machine in the Zerotier network:
+        {%:: for ip in ips ::%}
+          - {{:: ip ::}}
+        {%:: endfor ::%}
+        {%:: endif ::%}
+
+        {%:: endif ::%}
+        {%:: endif ::%}
+
+
+    vars:
+      zerotier_network_id: "{{:: network_id ::}}"
+      zerotier_accesstoken: "{{:: access_token ::}}"
+      zerotier_register_short_hostname: "{{:: short_hostname ::}}"
+      zerotier_member_ip_assignments: "{{:: ips ::}}"
+      zerotier_member_description: "{{:: description ::}}"

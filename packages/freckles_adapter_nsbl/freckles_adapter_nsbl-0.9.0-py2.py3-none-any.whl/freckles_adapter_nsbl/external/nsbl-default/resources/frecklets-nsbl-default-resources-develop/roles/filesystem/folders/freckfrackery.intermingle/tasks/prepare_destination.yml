@@ -1,0 +1,17 @@
+---
+
+- name: "[fail if existing folder not allowed]"
+  fail:
+    msg: "Destination folder '{{ intermingle_checkout_dest }}' already exists, and 'fail_if_dest_exists' set to true."
+  when: __intermingle_checkout_dest_exists__ and intermingle_checkout_fail_if_exists
+
+- name: "creating destination parent folder"
+  file:
+    path: "{{ intermingle_checkout_dest | dirname }}"
+    owner: "{{ intermingle_checkout_folder_owner | default(omit) }}"
+    group: "{{ intermingle_checkout_folder_group | default(omit) }}"
+    state: directory
+    recurse: true
+  become: "{{ intermingle_become }}"
+  when: not __intermingle_checkout_dest_exists__
+

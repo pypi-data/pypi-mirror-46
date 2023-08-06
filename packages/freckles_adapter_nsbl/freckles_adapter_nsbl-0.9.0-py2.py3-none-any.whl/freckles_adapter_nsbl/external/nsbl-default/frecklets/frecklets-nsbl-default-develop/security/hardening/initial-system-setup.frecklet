@@ -1,0 +1,183 @@
+doc:
+  short_help: Basic security setup for a new server, incl. setup of admin user."
+  help: |
+    This frecklet can be used to harden a freshly installed server. It sets up an admin user account with password-less sudo enabled, disables password-auth and root login for ssh, and also optionally enables automatic update and mosh as an ssh alternative.
+
+    If no ``admin_password`` argument is provided, the created user won't be able do login via ssh via
+    password auth, and they won't be able to do sudo if passwordless sudo is not enabled for the user.
+
+  notes:
+    - running this will disable root ssh login as well as password-based ssh-logins. Don't run it if that is not what you want!
+  furter_reading:
+    "encrypt passwords": https://docs.ansible.com/ansible/latest/reference_appendices/faq.html#how-do-i-generate-crypted-passwords-for-the-user-module
+  examples:
+    - title: Basic initial server setup, incl. creating admin user, setting up firewall, etc.
+      desc: |
+        Common server setup, incl. open firewall ports for a webserver and Prometheus monitoring.
+      vars:
+        admin_user: admin
+        admin_password: $6$D86xex4X...
+        admin_pub_keys:
+          - ssh-rsa AAAAB3NzaC1yc2... freckles@think
+          - ssh-rsa AAAAB3NzaC1yc2... other_user@whatever
+        passwordless_sudo: true
+        ssh_password_auth: false
+        ssh_root_access: false
+        ufw_enabled: true
+        ufw_open_tcp_ports:
+          - 80
+          - 443
+          - 9100
+          - 9090
+          - 3000
+        fail2ban_enabled: true
+        auto_updates_enabled: true
+
+
+args:
+  admin_user:
+    doc:
+      short_help: "The name of the admin user."
+    type: string
+    required: true
+    default: admin
+  admin_password:
+    doc:
+      short_help: "The admin password."
+      help: |
+        This sets the admin password in plain text. The user input will be sha512-hashed before forwareded to the connector.
+
+        If not provided, the user won't be able to login via password auth, and can't do
+        sudo if passwordless sudo is not configured.
+    type: string
+    coerce: sha512_crypt
+    required: false
+    secret: true
+    cli:
+      metavar: PWD
+  admin_pub_keys:
+    doc:
+      short_help: "A list of public ssh keys for the admin user."
+    type: list
+    schema:
+      type: string
+    required: false
+  auto_updates_enabled:
+    type: boolean
+    required: false
+    default: false
+    doc:
+      short_help: "Whether to enable automatic updates."
+    cli:
+      is_flag: true
+  ssh_password_auth:
+    doc:
+      short_help: "Whether to enable ssh password auth."
+    default: false
+    required: false
+    cli:
+      is_flag: true
+      show_default: true
+  passwordless_sudo:
+    doc:
+      short_help: "Whether to enable passwordless sudo for admin user."
+    default: true
+    type: boolean
+    required: false
+    cli:
+      param_decls:
+        - "--passwordless-sudo/--no-passwordless-sudo"
+      show_default: true
+  ssh_root_access:
+    doc:
+      short_help: "Whether to enable ssh root access."
+    default: false
+    required: false
+    cli:
+      is_flag: true
+      show_default: true
+  ufw_enabled:
+    doc:
+      short_help: "Whether to install and enable the ufw firewall."
+    type: boolean
+    default: false
+    required: false
+    cli:
+      is_flag: true
+  ufw_open_tcp_ports:
+    doc:
+      short_help: "A list of tcp ports to open (if ufw enabled)."
+    type: list
+    schema:
+      type: integer
+    required: false
+  ufw_open_udp_ports:
+    doc:
+      short_help: "A list of udp ports to open (if ufw enabled)."
+    type: list
+    schema:
+      type: integer
+    required: false
+  mosh_enabled:
+    doc:
+      short_help: "Whether to install and configure mosh."
+    type: boolean
+    default: false
+    required: false
+    cli:
+      is_flag: true
+  fail2ban_enabled:
+    doc:
+      short_help: "Whether to install and enable fail2ban."
+    default: false
+    required: false
+    cli:
+      is_flag: true
+  extra_packages:
+    doc:
+      short_help: "A list of extra system packages to install."
+    required: false
+    type: list
+    schema:
+      type: string
+meta:
+  tags:
+    - featured-frecklecutable
+    - hardening
+    - security
+    - firewall
+    - admin
+    - ssh
+    - fail2ban
+    - ufw
+    - mosh
+    - sudo
+    - passwordless-sudo
+
+frecklets:
+  - frecklet:
+      name: freckfrackery.basic-security
+      type: ansible-role
+      elevated: true
+      idempotent: true
+      references:
+        "'freckfrackery.basic-security' Ansible role": "https://gitlab.com/freckfrackery/freckfrackery.basic-security"
+      msg: initial server setup
+    task:
+      become: true
+    vars:
+      basic_security_user_name: "{{:: admin_user ::}}"
+      basic_security_user_pw: "{{:: admin_password ::}}"
+      basic_security_enable_passwordless_sudo: "{{:: passwordless_sudo ::}}"
+      basic_security_user_public_keys: "{{:: admin_pub_keys ::}}"
+      basic_security_enable_ufw: "{{:: ufw_enabled ::}}"
+      basic_security_tcp_ports: "{{:: ufw_open_tcp_ports ::}}"
+      basic_security_udp_ports: "{{:: ufw_open_udp_ports ::}}"
+      basic_security_disable_ssh_password_auth: "{{:: ssh_password_auth | negate ::}}"
+      basic_security_disable_ssh_root_access: "{{:: ssh_root_access | negate ::}}"
+      basic_security_use_mosh: "{{:: mosh_enabled ::}}"
+      basic_security_autoupdate_enabled: "{{:: auto_updates_enabled ::}}"
+      basic_security_enable_fail2ban: "{{:: fail2ban_enabled ::}}"
+      basic_security_packages: "{{:: extra_packages ::}}"
+
+

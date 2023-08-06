@@ -1,0 +1,86 @@
+args:
+  proxy_url:
+    doc:
+      short_help: The url to proxy.
+    required: true
+    type: string
+  proxy_options:
+    doc:
+      short_help: A list of options to set in the proxy location block.
+    type: list
+    schema:
+      type: string
+#    empty: true
+    required: false
+#    default: []
+    cli:
+      metavar: OPTION_LINE
+      param_decls:
+        - "--proxy-option"
+  use_https:
+    doc:
+      short_help: Whether to use https.
+      help: |
+        Whether to use https.
+
+        All http traffic will be redirected to https.
+    type: boolean
+    required: false
+    default: false
+  server_admin:
+    doc:
+      short_help: "The server admin email."
+    type: string
+    required: false
+    cli:
+      metavar: EMAIL
+  server_names:
+    doc:
+      short_help: "The server names."
+      further_reading:
+        - "[Nginx server documentation](https://www.nginx.com/resources/wiki/start/topics/examples/server_blocks/#wildcard-subdomains-in-a-parent-folder)"
+    type: list
+    required: true
+    empty: false
+    schema:
+      type: string
+    default:
+      - localhost
+    cli:
+      param_decls:
+        - "--server-name"
+        - "-n"
+  access_log:
+    doc:
+      short_help: "The access log."
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  error_log:
+    doc:
+      short_help: "The error log path and (optional) log level."
+      further_reading:
+        - "[Nginx core documentation](http://nginx.org/en/docs/ngx_core_module.html#error_log)"
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+
+frecklets:
+  - nginx-server-block-file:
+      path: "{{:: path ::}}"
+      use_https: "{{:: use_https ::}}"
+      server_admin: "{{:: server_admin ::}}"
+      access_log: "{{:: access_log ::}}"
+      error_log: "{{:: error_log ::}}"
+      server_names: "{{:: server_names ::}}"
+      owner: root
+      location_blocks:
+        - location_match: "/"
+          properties: |
+            proxy_pass {{:: proxy_url ::}};
+            {%:: for h in proxy_options ::%}
+            {%:: if h ::%}{{:: h ::}}{%:: endif ::%}{%:: if not h.endswith(";") ::%};{%:: endif ::%}
+            {%:: endfor ::%}
+

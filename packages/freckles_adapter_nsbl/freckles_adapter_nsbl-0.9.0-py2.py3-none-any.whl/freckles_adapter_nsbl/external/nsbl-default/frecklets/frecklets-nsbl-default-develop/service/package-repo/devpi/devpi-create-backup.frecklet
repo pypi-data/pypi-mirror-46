@@ -1,0 +1,39 @@
+doc:
+  short_help: Backs-up a devpi service.
+  help: |
+    Note, this *frecklet* does not create the local destination parent folder for the fetched backup archive.
+
+args:
+  backup_archive_file:
+    doc:
+      short_help: The (local) destination file/folder.
+      help: |
+        Specify a trailinug '/' in this var to use the (timestamped) default file-name.
+    type: string
+    default: "~/Downloads/"
+
+frecklets:
+  - folder-is-empty:
+      path: /tmp/devpi-backup
+      mode: "0700"
+      owner: devpi
+      group: devpi
+  - execute-command:
+      command: /home/devpi/.virtualenvs/devpi/bin/devpi-server --export /tmp/devpi-backup
+      become_user: devpi
+  - path-archived:
+      path: /tmp/devpi-backup/*
+      become: true
+      mode: "0700"
+      owner: "{{ ansible_env.USER }}"
+      dest: "/tmp/devpi-backup-{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
+  - path-is-absent:
+      path: "/tmp/devpi-backup"
+      become: true
+  - file-fetched:
+      src: "/tmp/devpi-backup-{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
+      dest: "{{:: backup_archive_file ::}}"
+  - path-is-absent:
+      path: "/tmp/devpi-backup-{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
+      become: true
+

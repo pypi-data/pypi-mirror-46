@@ -1,0 +1,19 @@
+---
+
+- name: "installing python-passlib"
+  install:
+    packages:
+      - python-passlib
+  when: webserver_use_basic_auth
+
+- name: "[setting basic auth users]"
+  htpasswd:
+    path: "{{ webserver_basic_auth_user_file }}"
+    name: "{{ item.key }}"
+    password: "{{ item.value }}"
+    owner: "{{ webserver_user }}"
+    group: "{{ webserver_group }}"
+    mode: 0640
+  with_dict: "{{ webserver_basic_auth_users }}"
+  become: true
+  when: webserver_use_basic_auth

@@ -1,0 +1,78 @@
+doc:
+  short_help: "Ensures the devpi service is installed and running."
+  help: |
+    Install a devpi Python package repository.
+
+    If a password is provided but one is already set on the service, this will fail and the error will be ignored.
+
+  further_reading:
+    "freckfrackery.install-devpi Ansible role": https://gitlab.com/freckfrackery/freckfrackery.install-devpi
+  examples:
+    - title: Install the devpi python package in it's own virtualenv.
+      vars:
+        devpi_user: devpi
+        devpi_host: localhost
+        devpi_root_password: password123
+
+args:
+  user:
+    default: "{{ ansible_env.USER }}"
+    doc:
+      short_help: "The user to run the devpi service."
+    required: false
+  host:
+    default: "localhost"
+    doc:
+      short_help: "The domain/ip to listen on, defaults to 'localhost'."
+    required: false
+  port:
+    default: 3141
+    type: integer
+    doc:
+      short_help: "The port to listen on."
+    required: false
+  admin_password:
+    type: string
+    required: false
+    doc:
+      short_help: "The initial admin password."
+      help: |
+        If a password is already set, this will fail and the error will be ignored.
+  devpi_virtualenv:
+    doc:
+      short_help: The folder for the devpi virtualenv.
+      help: |
+        Only set that if you know what you are doing.
+    type: string
+    required: false
+  devpi_server_base:
+    doc:
+      short_help: The folder for the devpi server folder.
+      help: |
+        Only set that if you know what you are doing.
+    type: string
+    required: false
+
+meta:
+  tags:
+    - devpi
+    - python
+    - repository
+    - packages
+    - featured-frecklecutable
+    - install
+
+frecklets:
+  - frecklet:
+      type: ansible-role
+      name: freckfrackery.install-devpi
+    task:
+      roles:
+        - tumf.systemd-service
+    vars:
+      devpi_user: "{{:: user ::}}"
+      devpi_port: "{{:: port ::}}"
+      devpi_host: "{{:: host ::}}"
+      devpi_root_password: "{{:: admin_password ::}}"
+      devpi_virtualenv: "{{:: devpi_virtualenv ::}}"
+      devpi_server_base_folder: "{{:: devpi_server_base ::}}"

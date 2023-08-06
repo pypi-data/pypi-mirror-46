@@ -1,0 +1,65 @@
+doc:
+  short_help: "Configure an init service."
+  help: |
+    Configure an init service.
+
+    You can use this to 'enable', 'disable', 'start' and 'stop' a service.
+  examples:
+    - title: Enable and start the 'apache2' service.
+      vars:
+        name: apache2
+        enabled: true
+        started: true
+
+args:
+  name:
+    doc:
+      short_help: "The name of the service."
+    type: string
+    required: true
+    cli:
+      metavar: SERVICE_NAME
+      param_type: argument
+  enabled:
+    doc:
+      short_help: "Whether to enable the service or not."
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+  started:
+    doc:
+      short_help: "Whether to start the service or not."
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+
+meta:
+  tags:
+    - init
+    - systemd
+    - service
+    - standalone
+
+frecklets:
+
+  - task:
+      become: true
+    frecklet:
+      type: ansible-module
+      name: service
+      msg: "configure service: {{:: name ::}}"
+      idempotent: true
+      internet: false
+      elevated: true
+      references:
+        "'service' Ansible module'": "https://docs.ansible.com/ansible/latest/modules/service_module.html"
+    vars:
+      name: "{{:: name ::}}"
+      enabled: "{{:: enabled ::}}"
+      state: "{{:: started | string_for_boolean('started', 'stopped') ::}}"
+      daemon_reload: true
+

@@ -1,0 +1,41 @@
+---
+args:
+  postgresql_driver_jar:
+    doc: The location to the postgres driver jar.
+    type: string
+    required: true
+  keycloak_db_name:
+    doc: The name of the keycloak db.
+    type: string
+    required: true
+    default: keycloak
+  keycloak_db_password:
+    doc: The password for the keycloak db.
+    type: string
+    secret: true
+    required: true
+    default: keycloak
+  keycloak_db_user:
+    doc: The user for the keycloak db.
+    type: string
+    required: true
+    default: keycloak
+---
+embed-server --server-config=standalone.xml --std-out=echo
+
+batch
+#
+# remove the default provided datasource
+#
+/subsystem=datasources/data-source=KeycloakDS/:remove
+
+#
+# add it back using PostgreSQL
+#
+module add --name=org.postgres --resources={{:: postgresql_driver_jar ::}} --dependencies=javax.api,javax.transaction.api
+
+/subsystem=datasources/jdbc-driver=postgres:add(driver-name="postgres",driver-module-name="org.postgres",driver-class-name=org.postgresql.Driver)
+
+/subsystem=datasources/data-source=KeycloakDS/:add(connection-url=jdbc:postgresql://localhost:5432/{{:: keycloak_db_name ::}},driver-name=postgres,jndi-name=java:jboss/datasources/KeycloakDS,password={{:: keycloak_db_password ::}},user-name={{:: keycloak_db_user ::}})
+
+run-batch

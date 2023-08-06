@@ -1,0 +1,50 @@
+doc:
+  short_help: Installs the PostgreSQL-jdbc driver if necessary.
+args:
+  pg_jdbc_version:
+    doc:
+      short_help: "The version of the driver."
+    type: string
+    default: 42.2.5
+    required: false
+  keycloak_home:
+    doc:
+      short_help: "The home of the keycloak installation."
+    type: string
+    default: "/opt/keycloak"
+    required: false
+  keycloak_db_name:
+    doc:
+      short_help: "The keycloak database name."
+    type: string
+    required: true
+  keycloak_db_user:
+    doc:
+      short_help: "The keycloak database user."
+    type: string
+    required: true
+  keycloak_db_password:
+    doc:
+      short_help: "The keycloak postgres database password."
+    type: string
+    secret: true
+    required: true
+frecklets:
+  - file-downloaded:
+      url: "https://jdbc.postgresql.org/download/postgresql-{{:: pg_jdbc_version ::}}.jar"
+      dest: "/tmp/postgresql-{{:: pg_jdbc_version ::}}.jar"
+      become: true
+  - keycloak-postgresql-helper-script-file:
+      path: "/tmp/postgres.config.cli"
+      postgresql_driver_jar: "/tmp/postgresql-{{:: pg_jdbc_version ::}}.jar"
+      keycloak_db_user: "{{:: keycloak_db_user ::}}"
+      keycloak_db_name: "{{:: keycloak_db_name ::}}"
+      keycloak_db_password: "{{:: keycloak_db_password ::}}"
+  - execute-command:
+      command: "{{:: keycloak_home ::}}/bin/jboss-cli.sh --file=/tmp/postgres.config.cli"
+      become_user: "keycloak"
+      ignore_error: true
+      no_log: false
+  - path-is-absent:
+      path: "/tmp/postgres.config.cli"
+

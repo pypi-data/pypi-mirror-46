@@ -1,0 +1,106 @@
+doc:
+  short_help: "Makes sure netdata service is installed and running."
+  help: |
+    Install [netdata](https://my-netdata.io/) using the [mrlesmithjr.ansible-netdata](https://github.com/mrlesmithjr/ansible-netdata) Ansible role.
+  furter_reading:
+    "netdata homepage": https://github.com/firehol/netdata/
+    "mrlesmithjr.ansible-netdata Ansible role": https://github.com/mrlesmithjr/ansible-netdata
+  examples:
+    - title: Install netdata, listening on all interfaces.
+      vars:
+        bind:
+          - '*'
+
+
+
+args:
+  bind:
+    doc:
+      short_help: "The ip address and port to listen to."
+      help: |
+        The IP address and port to listen to. This is a space separated list of
+        IPv4 or IPv6 address and ports. The default will bind to all IP addresses.
+    type: list
+    schema:
+      type: string
+    required: false
+    default:
+      - "*"
+    cli:
+      metavar: IP
+      show_default: true
+  is_registry:
+    doc:
+      short_help: "Whether this instance should act as netdata registry."
+      furter_reading:
+        - https://github.com/firehol/netdata/wiki/mynetdata-menu-item
+    type: boolean
+    default: false
+    required: false
+    cli:
+      is_flag: true
+  registry:
+    doc:
+      short_help: "The registry to use."
+      furter_reading:
+        - https://github.com/firehol/netdata/wiki/mynetdata-menu-item
+    type: string
+    default: "https://registry.my-netdata.io"
+    required: false
+    cli:
+      show_default: true
+      metavar: URL
+  stream:
+    doc:
+      short_help: "Whether netdata streawming should be configured."
+      furter_reading:
+        - https://github.com/firehol/netdata/wiki/Monitoring-ephemeral-nodes
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+      show_default: true
+  api_key:
+    doc:
+      short_help: "Netdata api key."
+    type: string
+    required: false
+    cli:
+      metavar: API_KEY
+  stream_master_node:
+    doc:
+      short_help: "Stream master node."
+    type: string
+    required: false
+    cli:
+      metavar: IP
+
+#TODO: archive args
+
+meta:
+  tags:
+    - netadata
+    - monitoring
+    - featured-frecklecutable
+    - setup
+
+frecklets:
+  frecklet:
+    name: mrlesmithjr.ansible-netdata
+    type: ansible-role
+    msg: installing netdata
+    elevated: true
+    idempotent: true
+    internet: true
+    references:
+      "'mrlesmithjr.ansible-netdata'": "https://github.com/mrlesmithjr/ansible-netdata"
+  task:
+    become: true
+  vars:
+    netdata_bind_to: "{{:: bind ::}}"
+    netdata_registry_enabled: "{{:: is_registry ::}}"
+    netdata_registry_to_announce: "{{:: registry ::}}"
+    netdata_stream_enabled: "{{:: stream ::}}"
+    netdata_stream_api_key: "{{:: api_key ::}}"
+    netdata_stream_master_node: "{{:: stream_master_node ::}}"

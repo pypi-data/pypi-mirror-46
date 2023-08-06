@@ -1,0 +1,52 @@
+doc:
+  short_help: Setup a service executing an application from within a virtualenv.
+
+args:
+  _import:
+    - python-virtualenv
+  app_module:
+    doc:
+      short_help: The entry point.
+  project_config:
+    doc:
+      short_help: Environment variables to configure app.
+    type: dict
+    keyschema:
+      type: string
+    empty: true
+    required: false
+    default: {}
+
+frecklets:
+  - python-virtualenv:
+      venv_name: "{{:: project_name ::}}"
+      #pip_extra_args: "-U"
+      python_packages: "{{:: python_packages | and_items('gunicorn', 'gevent') ::}}"
+      python_type: pyenv
+      python_version: "{{:: python_version ::}}"
+      user: "{{:: project_name | slugify ::}}"
+      group: "{{:: project_name | slugify ::}}"
+  - systemd-service-unit:
+      name: "{{:: project_name | slugify ::}}"
+      unit_description: "{{:: project_name ::}} service daemon (gunicorn)"
+      service_config: "{{:: project_config ::}}"
+      service_type: "simple"
+      service_user: "{{:: project_name | slugify ::}}"
+      service_group: "{{:: project_name | slugify ::}}"
+      service_exec_start: "/home/{{:: project_name | slugify ::}}/.pyenv/versions/{{:: project_name | slugify ::}}/bin/gunicorn -w 10 -k gevent --timeout 120 -b 0.0.0.0:8088 --limit-request-line 0 --limit-request-field_size 0 {{:: app_module ::}} --pid /run/{{:: project_name | slugify ::}}/{{:: project_name | slugify ::}}.pid"
+      service_exec_reload: "+/bin/kill -s HUP $MAINPID"
+      service_exec_stop: "+/bin/kill -s TERM $MAINPID"
+      service_private_tmp: True
+      service_pid_file: "/run/{{:: project_name | slugify ::}}/{{:: project_name | slugify ::}}.pid"
+      service_working_directory:  "/home/{{:: project_name | slugify ::}}/.pyenv/versions/{{:: project_name | slugify ::}}/"
+      service_exec_start_pre:
+        - "+/bin/mkdir /run/{{:: project_name | slugify ::}}"
+        - "+/bin/chown -R {{:: project_name | slugify ::}}:{{:: project_name | slugify ::}} /run/{{:: project_name | slugify ::}}"
+      service_exec_stop_post:
+        - "+/bin/rm -rf /run/{{:: project_name | slugify ::}}"
+      unit_after:
+        - network.target
+      install_wanted_by:
+        - multi-user.target
+      enabled: true
+      started: true

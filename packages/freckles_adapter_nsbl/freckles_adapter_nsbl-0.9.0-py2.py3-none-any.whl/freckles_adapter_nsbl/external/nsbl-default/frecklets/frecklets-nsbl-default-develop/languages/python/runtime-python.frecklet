@@ -1,0 +1,22 @@
+args:
+  python_version:
+    doc:
+      short_help: The version of Python to install.
+
+frecklets:
+  - frecklet:
+      name: avanov.pyenv
+      type: ansible-role
+    task:
+      become: true
+    vars:
+      pyenv_env: "user"
+      pyenv_path: /home/vagrant/pyenv
+      pyenv_owner: vagrant
+      pyenv_global: "{{:: python_version ::}}"
+      pyenv_virtualenvs:
+        - venv_name: "frkl"
+          py_version: "{{:: python_version ::}}"
+      pyenv_python_versions:
+        - "{{:: python_version::}}"
+

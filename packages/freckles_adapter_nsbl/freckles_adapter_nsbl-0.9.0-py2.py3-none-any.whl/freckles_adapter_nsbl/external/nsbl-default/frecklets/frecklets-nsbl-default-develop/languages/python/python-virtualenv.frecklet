@@ -1,0 +1,81 @@
+doc:
+  short_help: Create a Python virtualenv.
+  help: |
+    Installs Python using [pyenv](https://github.com/pyenv/pyenv), then uses that to create a virtualenv with the
+    specified name and Python version. Also lets you specify (optional) system dependencies as well as packages to
+    install in the virtualenv.
+
+    It will also add a piece of code to ``$HOME/.bashrc`` to load pyenv when the user logs in. If you use this to install
+    Python for a user different to the executing one, make sure to specify the 'base_path' argument (absolute path required,
+    relative or using '~'/'$HOME' won't work).
+
+args:
+  _import:
+  - python-virtualenv-exists
+  - python-packages-in-virtualenv
+  system_dependencies:
+    doc:
+      short_help: System packages the application depends on.
+    type: list
+    empty: true
+    required: false
+    default: []
+    cli:
+      param_decls:
+        - "--system-dependency"
+        - "-s"
+  python_packages:
+    doc:
+      short_help: All necessary Python packages.
+    type: list
+    empty: true
+    required: true
+    default: []
+    schema:
+      type: string
+    cli:
+      param_decls:
+        - "--python-pkg"
+        - "-p"
+  pip_extra_args:
+    doc:
+      short_help: "Extra arguments forwarded to 'pip'."
+    type: string
+    required: false
+  update:
+    doc:
+      short_help: "Update packages if already installed."
+    type: boolean
+    default: false
+    cli:
+      param_decls:
+        - "--update"
+frecklets:
+  - packages-installed:
+      frecklet::skip: "{{:: system_dependencies | true_if_empty ::}}"
+      packages: "{{:: system_dependencies ::}}"
+  - python-virtualenv-exists:
+      group: "{{:: group ::}}"
+      system_user: "{{:: system_user ::}}"
+      user: "{{:: user ::}}"
+      uid: "{{:: uid ::}}"
+      python_base_path: "{{:: python_base_path ::}}"
+      python_build_opts: "{{:: python_build_opts ::}}"
+      python_version: "{{:: python_version ::}}"
+      python_type: "{{:: python_type ::}}"
+      venv_name: "{{:: venv_name ::}}"
+      venv_base_path: "{{:: venv_base_path ::}}"
+      venv_python_exe: "{{:: venv_python_exe ::}}"
+  - python-packages-in-virtualenv:
+      frecklet::skip: "{{:: python_packages | true_if_empty ::}}"
+      user: "{{:: user ::}}"
+      venv_name: "{{:: venv_name ::}}"
+      venv_base_path: "{{:: venv_base_path ::}}"
+      python_version: "{{:: python_version ::}}"
+      python_type: "{{:: python_type ::}}"
+      venv_python_exe: "{{:: venv_python_exe ::}}"
+      pip_extra_args: "{{:: pip_extra_args ::}}"
+      python_packages: "{{:: python_packages ::}}"
+      update: "{{:: update ::}}"
+
+

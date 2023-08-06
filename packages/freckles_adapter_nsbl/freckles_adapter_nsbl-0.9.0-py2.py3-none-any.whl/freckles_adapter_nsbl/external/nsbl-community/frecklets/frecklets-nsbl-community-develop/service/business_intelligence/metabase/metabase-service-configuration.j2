@@ -1,0 +1,110 @@
+---
+args:
+  password_complexity:
+    doc:
+      short_help: "Allowed password complexity (weak|normal|strong)."
+    type: string
+    allowed:
+      - weak
+      - normal
+      - strong
+    required: false
+    default: normal
+  password_length:
+    doc:
+      short_help: "Minimal password length."
+    type: integer
+    required: false
+    default: 8
+  jetty_host:
+    doc:
+      short_help: "Host on which the inbuilt jetty server listens,"
+    type: string
+    required: false
+    default: "localhost"
+  jetty_port:
+    doc:
+      short_help: "Port on which the inbuilt jetty server listens,"
+    type: integer
+    required: false
+    default: 3000
+  metabase_db_type:
+    doc:
+      short_help: "Database type to connect to."
+    type: string
+    required: false
+    default: h2
+    allowed:
+      - h2
+      - postgres
+      - mysql
+  metabase_db_host:
+    doc:
+      short_help: "The database host."
+    type: string
+    required: false
+    default: "localhost"
+  metabase_db_port:
+    doc:
+      short_help: "The database port."
+    required: false
+    type: integer
+  metabase_db_user:
+    doc:
+      short_help: "The database user."
+    required: false
+    type: string
+    default: metabase
+  metabase_db_name:
+    doc:
+      short_help: "The name of the database."
+    type: string
+    default: metabase
+    required: false
+  metabase_db_password:
+    doc:
+      short_help: "The database password."
+    required: false
+    type: string
+  metabase_db_file:
+    doc:
+      short_help: "The path to the database file, in case of h2."
+    type: string
+    required: false
+  metabase_emoji_in_logs:
+    doc:
+      short_help: "Setting it true will include emojis in logs, to disable set it to false."
+    type: boolean
+    default: true
+    required: false
+
+---
+
+# Password complexity for Metabase user, allowed values <weak|normal|strong>
+MB_PASSWORD_COMPLEXITY={{:: password_complexity ::}}
+# Password length for Metabase user
+MB_PASSWORD_LENGTH={{:: password_length ::}}
+
+# Host and Port on which the inbuilt jetty server listens,
+MB_JETTY_HOST={{:: jetty_host ::}}
+MB_JETTY_PORT={{:: jetty_port ::}}
+
+# Provide Intranet or Private IP address of PostgresSQL server
+MB_DB_TYPE={{:: metabase_db_type ::}}
+MB_DB_HOST={{:: metabase_db_host ::}}
+MB_DB_PORT={{:: metabase_db_port ::}}
+
+# Provide the database name
+MB_DB_DBNAME={{:: metabase_db_name ::}}
+# Provide the username of database user
+MB_DB_USER={{:: metabase_db_user ::}}
+# Provide the password of database user
+MB_DB_PASS={{:: metabase_db_password ::}}
+{%:: if metabase_db_file ::%}
+MY_DB_FILE={{:: metabase_db_file ::}}
+{%:: endif ::%}
+
+
+# Setting it true will include emojis in logs, to disable set it to false
+MB_EMOJI_IN_LOGS={{:: metabase_emoji_in_logs | string_for_boolean('true', 'false') ::}}
+

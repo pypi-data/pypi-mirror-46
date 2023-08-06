@@ -1,0 +1,48 @@
+args:
+  version:
+    doc:
+      short_help: "The version of mailtrain."
+    type: string
+    required: false
+
+frecklets:
+  - user-exists:
+      name: mailtrain
+      group: mailtrain
+  - pkg_mgr-asdf-plugin:
+      plugin: nodejs
+      user: mailtrain
+      versions:
+        - 11.2.0
+  - git-repo-synced:
+      dest: /opt/mailtrain
+      repo: https://github.com/Mailtrain-org/mailtrain.git
+      become: true
+      owner: mailtrain
+      group: mailtrain
+      version: "{{:: version ::}}"
+  - task:
+      become: true
+      become_user: mailtrain
+    frecklet:
+      type: ansible-module
+      name: shell
+      msg: "installing mailtrain"
+    vars:
+      free_form: bash -c ". ~/.asdf/asdf.sh && npm install --production"
+      chdir: /opt/mailtrain
+#  - mariadb-database-exists:
+##      db_import: "{{:: wp_db_import ::}}"
+##      db_dump_file: "{{:: wp_db_dump_file | default(omit) ::}}"
+#      db_name: "mailtrain"
+#      db_user: "mailtrain"
+#      db_user_password: "mailtrain"
+##  - pkgs:
+##      pkg_mgrs: false
+##      packages:
+##      - pkg_mgr: npm
+###        executable: /home/mailtrain/.asdf/shims/npm
+##        path: /opt/mailtrain
+##        production: true
+##        become: true
+##        become_user: mailtrain

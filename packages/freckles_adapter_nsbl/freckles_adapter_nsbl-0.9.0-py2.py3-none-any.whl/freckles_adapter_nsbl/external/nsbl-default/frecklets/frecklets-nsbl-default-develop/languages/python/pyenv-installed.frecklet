@@ -1,0 +1,72 @@
+doc:
+  short_help: "Install a Python runtime for a user."
+  help: |
+    Install a Python environment for a user, using [pyenv](https://github.com/pyenv/pyenv).
+
+    This will install all dependencies required to build Python, then it will download the specified version of Python,
+    compile it, and use the 'pyenv global' command (which will write that information into the file $HOME/.pyenv/version)
+    to make it the default version for the user.
+
+    It will also add a piece of code to ``$HOME/.bashrc`` to load pyenv when the user logs in. If you use this to install
+    Python for a user different to the executing one, make sure to specify the 'path' argument (absolute path required,
+    relative or using '~'/'$HOME' won't work).
+  further_reading:
+    "pyenv homepage": "https://github.com/pyenv/pyenv"
+    "'avanov.pyenv' Ansible role": "https://github.com/avanov/ansible-galaxy-pyenv"
+  examples:
+    - title: Install the latest version of Python.
+    - title: Install Python version 3.6.8 for user 'freckles'.
+      vars:
+        version: "3.6.8"
+        user: freckles
+
+args:
+  version:
+    doc:
+      short_help: The version of Python to install.
+    default: 3.7.3
+    required: true
+  user:
+    doc:
+      short_help: The user to install pyenv for.
+    type: string
+    required: false
+  path:
+    doc:
+      short_help: The path to install pyenv into.
+      help: |
+        Defaults to $HOME/.pyenv
+    type: string
+    required: false
+  set_global:
+    doc:
+      short_help: Don't set 'global' version.
+    type: boolean
+    required: false
+    default: true
+
+frecklets:
+  - user-exists:
+      frecklet::skip: "{{:: user | true_if_empty ::}}"
+      name: "{{:: user ::}}"
+  - frecklet:
+      name: avanov.pyenv
+      type: ansible-role
+      idempotent: true
+      internet: true
+      elevated: true
+      references:
+        "'avanov.pyenv' Ansible role": "https://github.com/avanov/ansible-galaxy-pyenv"
+        "pyenv homepage": "https://github.com/pyenv/pyenv"
+    task:
+      include-type: include
+#      become: true
+    vars:
+      pyenv_env: "user"
+      pyenv_path: "{{:: path ::}}"
+      pyenv_owner: "{{:: user ::}}"
+      pyenv_global: "{%:: if set_global ::%}{{:: version ::}}{%:: endif ::%}"
+      pyenv_virtualenvs: []
+      pyenv_python_versions:
+        - "{{:: version::}}"
+

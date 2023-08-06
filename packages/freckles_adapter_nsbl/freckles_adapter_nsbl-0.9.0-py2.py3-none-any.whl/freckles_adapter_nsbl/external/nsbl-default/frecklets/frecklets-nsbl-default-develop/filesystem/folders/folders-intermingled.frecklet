@@ -1,0 +1,172 @@
+---
+
+doc:
+  short_help: "Merge a target folder with another."
+  help: |
+    TO BE DONE -- This requires a bit of time to explain...
+  further_reading:
+    "[freckfrackery.intermingle Ansible role": https://gitlab.com/freckfrackery/freckfrackery.intermingle
+
+args:
+  checkout_src:
+    doc:
+      short_help: "The checkout source (local, remote, archive, ...)."
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  checkout_dest:
+    doc:
+      short_help: "The (intermediate) checkout destination on the target host."
+    type: string
+    required: true
+    cli:
+      metavar: PATH
+  intermingle_src:
+    doc:
+      short_help: "The source folder on the target."
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  intermingle_target:
+    doc:
+      short_help: "The target folder that gets intermingled."
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  checkout_stage:
+    doc:
+      short_help: "Whether to perform the checkout phase."
+    type: boolean
+    required: false
+    default: false
+  checkout_type:
+    doc:
+      short_help: "The checkout type."
+    type: string
+    required: false
+    default: auto
+    allowed:
+      - auto
+      - copy
+      - rsync
+      - git
+      - unarchive
+    cli:
+      metavar: TYPE
+      show_default: true
+  checkout_force:
+    doc:
+      short_help: "Whether to force-overwrite files on the checkout phase."
+    type: boolean
+    required: false
+    default: false
+  checkout_fail_if_exists:
+    doc:
+      short_help: "Whether to fail if the destination folder exists."
+    type: boolean
+    required: false
+    default: false
+  fail_if_target_exists:
+    doc:
+      short_help: "Whether to fail if the target folder exists."
+    type: boolean
+    required: false
+    default: false
+  become:
+    doc:
+      short_help: "Whether to use elevated privileges to intermingle."
+    type: boolean
+    default: false
+    required: false
+  intermingle_stage:
+    doc:
+      short_help: "Whether to perform the intermingle phase."
+    type: boolean
+    required: false
+    default: false
+  intermingle_type:
+    doc:
+      short_help: "The intermingle type."
+    type: string
+    required: false
+    default: copy
+    allowed:
+      - symlink
+      - copy
+      - rsync
+      - stow
+      - bind-mount
+    cli:
+      metavar: TYPE
+      show_default: true
+  intermingle_config:
+    doc:
+      short_help: "The intermingle config."
+    type: dict
+    required: false
+    cli:
+      enabled: false
+    schema:
+      interminglings:
+        type: dict
+        keyschema:
+          type: string
+        valueschema:
+          type: string
+  checkout_folder_owner:
+    doc:
+      short_help: "The owner of the checkout folder."
+    type: string
+    required: false
+  checkout_folder_group:
+    doc:
+      short_help: "The group of the checkout folder."
+    type: string
+    required: false
+  intermingle_folder_owner:
+    doc:
+      short_help: "The owner of the checkout folder."
+    type: string
+    required: false
+  intermingle_folder_group:
+    doc:
+      short_help: "The group of the checkout folder."
+    type: string
+    required: false
+
+frecklets:
+
+  - task:
+      roles:
+        - freckfrackery.install-pkg-mgrs
+        - freckfrackery.install-pkgs
+    frecklet:
+      name: freckfrackery.intermingle
+      type: ansible-role
+      idempotent: true
+      msg: "intermingle folders"
+      elevated: "{{:: become ::}}"
+      references:
+        "'freckfrackery.intermingle' Ansible role": "https://gitlab.com/freckfrackery/freckfrackery.intermingle"
+    vars:
+      intermingle_become: "{{:: become ::}}"
+      intermingle_checkout_stage: "{{:: checkout_stage ::}}"
+      intermingle_checkout_src: "{{:: checkout_src ::}}"
+      intermingle_checkout_dest: "{{:: checkout_dest ::}}"
+      intermingle_checkout_type: "{{:: checkout_type ::}}"
+      intermingle_checkout_force: "{{:: checkout_force ::}}"
+      intermingle_checkout_folder_owner: "{{:: checkout_folder_owner ::}}"
+      intermingle_checkout_folder_group: "{{:: checkout_folder_group ::}}"
+      intermingle_checkout_fail_if_exists: "{{:: checkout_fail_if_exists ::}}"
+      intermingle_stage: "{{:: intermingle_stage ::}}"
+      intermingle_src: "{{:: intermingle_src ::}}"
+      intermingle_target: "{{:: intermingle_target ::}}"
+      intermingle_type: "{{:: intermingle_type ::}}"
+      intermingle_config: "{{:: intermingle_config ::}}"
+      intermingle_folder_owner: "{{:: intermingle_folder_owner ::}}"
+      intermingle_folder_group: "{{:: intermingle_folder_group ::}}"
+      intermingle_fail_if_target_exists: "{{:: fail_if_target_exists ::}}"
+

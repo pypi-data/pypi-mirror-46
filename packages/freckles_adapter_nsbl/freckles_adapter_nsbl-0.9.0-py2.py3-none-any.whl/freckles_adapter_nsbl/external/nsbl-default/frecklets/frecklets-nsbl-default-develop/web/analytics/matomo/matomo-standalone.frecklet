@@ -1,0 +1,251 @@
+doc:
+  short_help: Install Matomo analytics service.
+  help: |
+    Install [Matomo](https://matomo.org/) web analytics service.
+
+    This also installs Nginx as a reverse proxy, and, optionally, configures https with a letsencrypt certificate.
+
+    Make sure to specify the 'server_admin' email address
+    when using this with https. There is no validation check for this yet.
+  further_reading:
+    "Matomo homepage": https://matomo.org/
+  examples:
+    - title: Install Matomo with Nginx and letsencrypt certificate.
+      vars:
+        hostnames:
+          - dev.frkl.io
+        server_admin: hello@frkl.io
+        use_https: true
+
+args:
+  path:
+    doc:
+      short_help: "The path to the vhost file."
+    required: false
+    default: "/etc/nginx/sites-enabled/matomo.conf"
+    type: string
+    cli:
+      show_default: true
+  base_path:
+    doc:
+      short_help: "The matomo webapp parent directory."
+    type: string
+    required: false
+    default: "/var/www"
+    cli:
+      show_default: true
+  hostnames:
+    doc:
+      short_help: "The hostname(s) of the server."
+      help: |
+        The hostname(s) of the server.
+
+        Will be used in the vhost configuration, as well as to request https certificates from letsencrypt.
+    type: list
+    schema:
+      type: string
+    default:
+      - "localhost"
+    required: true
+    cli:
+      metavar: HOST
+      param_decls:
+        - "--hostname"
+  letsencrypt_staging:
+    doc:
+      short_help: "Whether to use the letsencrypt staging server."
+      help: |
+        "Whether to use the letsencrypt staging server.
+
+        This is useful for developing -- the letsencrypt production server only allows a few requests per day. This option is disabled in the cli, as it is not used very often. Just use an overlay dict to enable this.
+    type: boolean
+    required: false
+    default: false
+  server_admin:
+    type: string
+    doc:
+      short_help: "The email address to use in the vhost file and with letsencrypt."
+    required: false
+  use_https:
+    type: boolean
+    required: false
+    doc:
+      short_help: "Request a lets-encrypt certificate and serve devpi via https (needs 'server_admin' set)."
+    cli:
+      is_flag: true
+  webserver_user:
+    doc:
+      short_help: "The user to run the webserver as."
+    type: string
+    required: false
+    default: www-data
+    cli:
+      metavar: USERNAME
+  webserver_group:
+    doc:
+      short_help: "The group to run the webserver as (if applicable)."
+    type: string
+    required: false
+    default: www-data
+    cli:
+      metavar: GROUP
+  listen_ip:
+    doc:
+      short_help: The ip to listen to.
+      help: |
+        The address to listen to, can be any of the following, optionally followed by a colon and a port number (or *):
+          - The IP address of the virtual host;
+          - A fully qualified domain name for the IP address of the virtual host (not recommended);
+          - The character *, which acts as a wildcard and matches any IP address.
+          - The string _default_, which is an alias for *
+      further_reading:
+        - "[Apache VirtualHost documentation](https://httpd.apache.org/docs/current/mod/core.html#virtualhost)"
+    type: string
+    required: false
+    default: '_default_'
+  matomo_db_user:
+    doc:
+      short_help: "The db user."
+    type: string
+    required: true
+    cli:
+      metavar: DB_USER
+  matomo_db_password:
+    doc:
+      short_help: "The password for the database."
+    type: string
+    secret: true
+    required: true
+  matomo_db_import:
+    doc:
+      short_help: "Whether to import a sql dump."
+    type: boolean
+    default: false
+    required: false
+    cli:
+      is_flag: true
+  matomo_db_dump_file:
+    doc:
+      short_help: "An (optional) database dump file."
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  matomo_db_name:
+    doc:
+      short_help: "The name of the database to use."
+    type: string
+    cli:
+      metavar: DB_NAME
+
+frecklets:
+  - folder-exists:
+      path: "{{:: base_path ::}}"
+      owner: "{{:: webserver_user ::}}"
+      group: "{{:: webserver_group ::}}"
+      become: true
+  - unzip-installed
+  - archive-extracted:
+      src: https://builds.piwik.org/piwik.zip
+      dest: /var/www
+      owner: "{{:: webserver_user ::}}"
+      group: "{{:: webserver_user ::}}"
+      creates: "{{:: base_path ::}}/piwik"
+      remote_src: true
+  # creating database & installing server if necessary
+  - mariadb-database-exists:
+      db_import: "{{:: matomo_db_import ::}}"
+      db_dump_file: "{{:: matomo_db_dump_file ::}}"
+      db_name: "{{:: matomo_db_name ::}}"
+      db_user: "{{:: matomo_db_user ::}}"
+      db_user_password: "{{:: matomo_db_password ::}}"
+
+#  # creating matomo vhost
+  - nginx-server-block-file:
+      path: "{{:: path ::}}"
+      owner: root
+      become: true
+      server_names: "{{:: hostnames ::}}"
+      use_https: "{{:: use_https ::}}"
+      document_root: "{{:: base_path ::}}/piwik"
+      index:
+        - index.php
+      add_header: "Referrer-Policy origin"
+      server_admin: "{{:: server_admin ::}}"
+      location_blocks:
+        # for details, check: https://github.com/matomo-org/matomo-nginx/blob/master/sites-available/matomo.conf
+        - location_match: "^/(index|matomo|piwik|js/index).php"
+          location_modifier: "~"
+          properties: |
+            include snippets/fastcgi-php.conf; # if your Nginx setup doesn't come with a default fastcgi-php config replace this with the one from this repository
+            fastcgi_param HTTP_PROXY ""; # prohibit httpoxy: https://httpoxy.org/
+            # fastcgi_pass unix:/var/run/php/php7.2-fpm.sock; #replace with the path to your PHP socket file
+            fastcgi_pass 127.0.0.1:9000;
+        - location_match: "/plugins/HeatmapSessionRecording/configs.php"
+          location_modifier: "="
+          properties: |
+            include snippets/fastcgi-php.conf;
+            fastcgi_param HTTP_PROXY "";
+            # fastcgi_pass unix:/var/run/php/php7.2-fpm.sock; #replace with the path to your PHP socket file
+            fastcgi_pass 127.0.0.1:9000; # uncomment if you are using PHP via TCP sockets
+        - location_match: "^.+\\.php$"
+          location_modifier: "~*"
+          properties: |
+            deny all;
+            return 403;
+        - location_match: "/"
+          properties: |
+            try_files $uri $uri/ =404;
+        - location_match: "/(config|tmp|core|lang)"
+          location_modifier: "~"
+          properties: |
+            deny all;
+            return 403; # replace with 404 to not show these directories exist
+        - location_match: "/\\.ht"
+          location_modifier: "~"
+          properties: |
+            deny  all;
+            return 403;
+        - location_match: "\\.(gif|ico|jpg|png|svg|js|css|htm|html|mp3|mp4|wav|ogg|avi|ttf|eot|woff|woff2|json)$"
+          location_modifier: "~"
+          properties: |
+            allow all;
+            ## Cache images,CSS,JS and webfonts for an hour
+            ## Increasing the duration may improve the load-time, but may cause old files to show after an Matomo upgrade
+            expires 1h;
+            add_header Pragma public;
+            add_header Cache-Control "public";
+        - location_match: "/(libs|vendor|plugins|misc/user)"
+          location_modifier: "~"
+          properties: |
+            deny all;
+            return 403;
+        - location_match: "/(.*\\.md|LEGALNOTICE|LICENSE)"
+          location_modifier: "~"
+          properties: |
+            default_type text/plain;
+
+#  # installing webserver and dependencies (php, https-cert...)
+  - webserver-service:
+      webserver: nginx
+      letsencrypt_webroot: "{{:: base_path ::}}/piwik"
+      use_https: "{{:: use_https | default(false) ::}}"
+      letsencrypt_email: "{{:: server_admin ::}}"
+      letsencrypt_staging: "{{:: letsencrypt_staging ::}}"
+      letsencrypt_domains: "{{:: hostnames ::}}"
+      webserver_user: "{{:: webserver_user ::}}"
+      webserver_group: "{{:: webserver_group ::}}"
+      use_php: true
+#      php_fpm_config:
+#        php_fpm_listen_allowed_clients: "{{:: host ::}}"
+      php_packages:
+        debian:
+          - php-curl
+          - php-gd
+          - php-cli
+          - php-mysql
+          - php-xml
+          - php-zip
+          - php-mbstring
+
+

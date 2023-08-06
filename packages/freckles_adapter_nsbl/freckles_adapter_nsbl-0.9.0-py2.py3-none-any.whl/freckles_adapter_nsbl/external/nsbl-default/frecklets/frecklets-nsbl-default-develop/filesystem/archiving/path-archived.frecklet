@@ -1,0 +1,114 @@
+doc:
+  short_help: "Archives a file or folder."
+  further_reading:
+    "'archive' Ansible module documentation": https://docs.ansible.com/ansible/latest/modules/archive_module.html
+  examples:
+    - title: Archive a folder.
+      desc: |
+        Archive the contents of folder '/tmp/folder_to_archive' into the archive '/tmp/archive.tar.gz'. Set the archive file mode
+        to '0700' and its owner (which will be created if it doesn't exist yet) to 'freckles'.
+      vars:
+        path: /tmp/folder_to_archive/*
+        mode: "0700"
+        owner: "freckles"
+        dest: /tmp/archive.tar.gz
+
+args:
+  path:
+    doc:
+      short_help: Remote absolute path or glob of the file or files to compress or archive.
+    type: string
+    required: true
+  dest:
+    doc:
+      short_help: The file name of the destination archive.
+    type: string
+    required: true
+  exclude_path:
+    doc:
+      short_help: Path or glob to exclude from the archive.
+    type: string
+    required: false
+  format:
+    doc:
+      short_help: The type of compression to use.
+    type: string
+    required: false
+    default: gz
+    allowed:
+      - bz2
+      - gz
+      - tar
+      - xz
+      - zip
+  owner:
+    doc:
+      short_help: "The owner of the archive file."
+    type: string
+    required: false
+    cli:
+      metavar: USER
+  group:
+    doc:
+      short_help: "The group of the archive file."
+    type: string
+    required: false
+    cli:
+      metavar: GROUP
+  mode:
+    doc:
+      short_help: "The permissions of the archive file."
+    type: string
+    required: false
+    cli:
+      metavar: MODE
+  parent_dir_mode:
+    doc:
+      short_help: "The permissions of the archive parent directory."
+    type: string
+    required: false
+    cli:
+      metavar: MODE
+  become:
+    doc:
+      short_help: "Whether to use root permissions to archive the path."
+    type: boolean
+    required: false
+    default: false
+
+
+frecklets:
+  - user-exists:
+      frecklet::skip: "{{:: owner | true_if_empty_or('root') ::}}"
+      name: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+#      system_user: "{{:: system_user ::}}"
+  - parent-folder-exists:
+      path: "{{:: dest ::}}"
+      owner: "{{:: owner  ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: parent_dir_mode ::}}"
+  - frecklet:
+      name: archive
+      type: ansible-module
+      msg: "archive path: {{:: path ::}} -> {{:: dest ::}}"
+      desc: |
+        Create archive '{{:: dest ::}}' (archive format: {{:: format ::}}) from contents of file/folder/glob '{{:: path ::}}'. {%:: if exclude_path ::%}Exclude paths that match '{{:: exclude_path ::}}' from archive.{%:: endif ::%}
+
+        {%:: if group ::%}Set the group of the archive to be '{{:: group ::}}'. {%:: endif ::%}{%:: if owner ::%}Set the owner of the archive to be '{{:: owner ::}}'.{%:: endif ::%} {%:: if mode ::%}Set the mode of the archive to: '{{:: mode ::}}'.{%:: endif ::%}
+      references:
+        "'archive' Ansible module": https://docs.ansible.com/ansible/latest/modules/archive_module.html
+      idempotent: true
+      elevated: "{{:: become ::}}"
+      internet: false
+    task:
+      become: "{{:: become ::}}"
+    vars:
+      dest: "{{:: dest ::}}"
+      path: "{{:: path ::}}"
+      exclude_path: "{{:: exclude_path ::}}"
+      format: "{{:: format ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: mode ::}}"
+

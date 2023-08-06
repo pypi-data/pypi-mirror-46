@@ -1,0 +1,63 @@
+---
+- name: "[install pyenv requirements]"
+  include_tasks: requirements.yml
+
+- name: "[make sure base path exists]"
+  file:
+    path: "{{ __pyenv_base_path__ }}"
+    state: directory
+
+- name: install pyenv
+  git:
+    repo: https://github.com/pyenv/pyenv.git
+    dest: "{{ __pyenv_base_path__ }}"
+    update: "{{ python_update_components }}"
+
+- name: install pyenv virtualenv plugin
+  git:
+    repo: https://github.com/yyuu/pyenv-virtualenv.git
+    dest: "{{ __pyenv_base_path__ }}/plugins/pyenv-virtualenv"
+    update: "{{ python_update_components }}"
+
+- name: install pyenv-update plugin
+  git:
+    repo: https://github.com/pyenv/pyenv-update.git
+    dest: "{{ __pyenv_base_path__ }}/plugins/pyenv-update"
+    update: "{{ python_update_components }}"
+
+- name: "install pyenv config file: {{ __pyenv_base_path__ }}/.pyenvrc"
+  template:
+    src: ".pyenvrc.j2"
+    dest: "{{ __pyenv_base_path__ }}/.pyenvrc"
+  when: "python_owner == ansible_env.USER"
+
+- name: "install pyenv config file: {{ __pyenv_base_path__ }}/.pyenvrc"
+  template:
+    src: ".pyenvrc.j2"
+    dest: "{{ __pyenv_base_path__ }}/.pyenvrc"
+  become: true
+  become_user: root
+  when: "python_owner != ansible_env.USER"
+
+- name: "[fixing permissions for pyenv config file]"
+  file:
+    path: "{{ __pyenv_base_path__ }}/.pyenvrc"
+    owner: "{{ python_owner }}"
+    mode: "0664"
+  become: true
+  become_user: root
+  when: "python_owner != ansible_env.USER"
+
+- name: "load pyenv env variables in {{ __pyenv_setting_path__ }}"
+  lineinfile: dest="{{ __pyenv_setting_path__ }}"
+              regexp="\.pyenvrc$"
+              line="source {{ __pyenv_base_path__ }}/.pyenvrc"
+              state=present
+              create=yes
+
+- name: "add pyenv autocomplete in {{ __pyenv_setting_path__ }}"
+  lineinfile: dest="{{ __pyenv_setting_path__ }}"
+              regexp="pyenv\.bash$"
+              line="source {{ __pyenv_base_path__ }}/completions/pyenv.bash"
+              state=present
+

@@ -1,0 +1,19 @@
+---
+
+# TODO: lookup dotfiles_folder_files if not defined
+
+- name: "calculating package folders"
+  set_fact:
+    __package_folders__: "{{ dotfiles_folder_files | get_subfolders(dotfiles_folder) }}"
+
+- name: "[install folder packages]"
+  include_tasks: install_folder_packages.yml
+  when: not dotfiles_unstow and not dotfiles_skip_folder_packages
+
+- name: "[install extra packages]"
+  include_tasks: install_extra_packages.yml
+  when: dotfiles_packages and not dotfiles_unstow and not dotfiles_skip_extra_packages
+
+- name: "[stow config]"
+  include_tasks: stow_config.yml
+  when: not dotfiles_no_stow

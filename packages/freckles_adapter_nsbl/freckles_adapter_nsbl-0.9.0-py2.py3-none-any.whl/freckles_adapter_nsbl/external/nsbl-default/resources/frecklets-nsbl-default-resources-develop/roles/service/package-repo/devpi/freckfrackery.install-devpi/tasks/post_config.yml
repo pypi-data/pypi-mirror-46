@@ -1,0 +1,11 @@
+---
+# post-configuration tasks for install-devpi
+
+- name: "trying to set devpi root user password"
+  shell: "{{ devpi_client_exe }} use http://localhost:{{ devpi_port }} && {{ devpi_client_exe }} login root --password '' && {{ devpi_client_exe }} user -m root password={{ devpi_root_password }}"
+  no_log: true
+  become: true
+  become_user: "{{ devpi_user }}"
+  when: "devpi_root_password is defined and devpi_root_password !=''"
+  ignore_errors: true
+

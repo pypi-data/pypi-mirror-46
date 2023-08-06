@@ -1,0 +1,80 @@
+doc:
+  short_help: "Makes sure Docker is installed."
+  help: |
+    Installs Docker on a Linux machine.
+
+    If the ``users`` variable is set, those users will be created if they don't exist yet. Do this seperately if you need to have more
+    control about user creation (e.g. to provide password, ssh-pub-keys, etc.)
+
+    Windows and Mac OS X are not supported just yet.
+
+  further_reading:
+    "docker homepage": https://docker.com
+    "geerlingguy.docker Ansible role": https://github.com/geerlingguy/ansible-role-docker
+  examples:
+    - title: Install docker, adding the 'freckles' user to the 'docker' group.
+      vars:
+        users:
+          - freckles
+
+args:
+  users:
+    doc:
+      short_help: "A list of users who will be added to the 'docker' group."
+    required: false
+    type: list
+    cli:
+      param_decls:
+        - "--user"
+        - "-u"
+      metavar: USER
+
+meta:
+  tags:
+    - install
+    - docker
+    - container
+    - featured-frecklecutable
+    - virtualization
+
+frecklets:
+  - frecklet:
+      name: install
+      type: ansible-module
+      msg: "install git"
+      idempotent: true
+      internet: true
+      references:
+        "'install' Ansible module (unofficial)": "https://gitlab.com/nsbl/nsbl-plugins/blob/master/action_plugins/install.py"
+    vars:
+      become: true
+      packages:
+        - git
+  - pip-requirements-present
+  - task:
+      become: true
+    frecklet:
+      name: pip
+      type: ansible-module
+      msg: install docker client pip package
+      idempotent: true
+      elevated: true
+      internet: true
+      references:
+        "'pip' Ansible module": "https://docs.ansible.com/ansible/latest/modules/pip_module.html"
+    vars:
+      name: docker
+  - task:
+      become: true
+      include-type: import
+    frecklet:
+      name: geerlingguy.docker
+      type: ansible-role
+      msg: install docker service
+      idempotent: true
+      internet: true
+      elevated: true
+      references:
+        "'geerlingguy.docker' Ansible role": "https://github.com/geerlingguy/ansible-role-docker"
+    vars:
+      docker_users: "{{:: users ::}}"

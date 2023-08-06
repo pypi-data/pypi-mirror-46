@@ -1,0 +1,14 @@
+---
+- debug: var=__intermingle_checkout_src_absolute_path__
+
+# workaround for: https://github.com/ansible/ansible/issues/39144
+- set_fact:
+    __rsync_opts__: ["--ignore-existing"]
+  when: not intermingle_checkout_force
+
+- name: "rsyncing folder {{ intermingle_checkout_src }} -> {{ intermingle_checkout_dest }}"
+  synchronize:
+    src: "{{ __intermingle_checkout_src_absolute_path__ }}"
+    dest: "{{ intermingle_checkout_dest }}"
+    rsync_opts: "{{ __rsync_opts__ | default(omit) }}"
+  become: "{{ intermingle_become }}"

@@ -1,0 +1,32 @@
+doc:
+  short_help: Standalone metabase service.
+
+args:
+  _import: metabase-service
+  metabase_db_password:
+    doc:
+      short_help: The password for the db connection.
+    default: metabase_password
+    type: string
+    required: false
+
+frecklets:
+  - postgresql-database-exists:
+      db_name: "metabase"
+      db_user: "metabase"
+      db_user_password: "{{:: metabase_db_password | postgresql_password_hash('metabase') ::}}"
+      postgresql_listen_addresses:
+#        - "{{:: metabase_host ::}}"
+        - 127.0.0.1
+        - 10.0.0.22
+      postgresql_pg_hba:
+        - method: md5
+  - metabase-service:
+      metabase_db_type: postgres
+      metabase_db_name: metabase
+      metabase_db_user: metabase
+      metabase_db_password: "{{:: metabase_db_password ::}}"
+      metabase_db_host: "localhost"
+      metabase_db_port: 5432
+      metabase_host: "{{:: metabase_host ::}}"
+      metabase_port: "{{:: metabase_port ::}}"

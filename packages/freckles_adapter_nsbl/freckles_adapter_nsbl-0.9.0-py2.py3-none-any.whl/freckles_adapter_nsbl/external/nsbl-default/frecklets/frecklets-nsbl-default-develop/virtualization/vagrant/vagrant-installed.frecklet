@@ -1,0 +1,63 @@
+doc:
+  short_help: "Ensures Vagrant is installed."
+  help: |
+    Installs the [Vagrant](https://vagrantup.com) package.
+  further_reading:
+    "Vagrant homepage": https://vagrantup.com
+    "freckfrackery.install-vagrant Ansible role": https://gitlab.com/freckfrackery/freckfrackery.install-vagrant
+  examples:
+    - title: Install Vagrant, version 2.2.2, force re-install even if already present.
+      vars:
+        version: 2.2.2
+        force: true
+
+args:
+  force_update:
+    required: false
+    default: false
+    type: boolean
+    doc:
+      short_help: "Install/update Vagrant, even if it is already installed."
+    cli:
+      is_flag: true
+  version:
+     required: false
+     type: string
+     default: 2.2.2
+     doc:
+       short_help: "The version of Vagrant to install."
+     cli:
+       metavar: VERSION
+#  virtualbox:
+#     required: false
+#     type: boolean
+#     doc:
+#       short_help: "Whether to also install Virtualbox."
+#     cli:
+#       is_flag: true
+
+meta:
+  tags:
+    - install
+    - vagrant
+    - container
+    - vm
+    - virtualization
+    - featured-frecklecutable
+
+frecklets:
+  - frecklet:
+      name: freckfrackery.install-vagrant
+      msg: installing Vagrant
+      type: ansible-role
+      elevated: true
+      idempotent: true
+      internet: true
+      references:
+        "'freckfrackery.install-vagrant' Ansible role": "https://gitlab.com/freckfrackery/freckfrackery.install-vagrant"
+    vars:
+      vagrant_version: "{{:: version ::}}"
+      vagrant_force_update: "{{:: force_update ::}}"
+#  - task:
+#      name: install-virtualbox
+#      __skip__: true

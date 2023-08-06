@@ -1,0 +1,193 @@
+---
+args:
+  use_https:
+    doc:
+      short_help: "Whether to use https with letsencrypt."
+    type: boolean
+    default: true
+  cli:
+    param_decls:
+      "--use-https/--no-use-https"
+  hostname:
+    doc:
+      short_help: "The discourse hostname."
+    type: string
+    required: true
+  admin_emails:
+    doc:
+      short_help: "A list of email addresses that will be admins after install."
+      help: |
+        The first email will also be set as the letsencrypt contact email.
+    required: true
+    type: list
+    schema:
+      type: string
+    empty: false
+    cli:
+      param_decls:
+        - "--admin-email"
+      metavar: EMAIL
+  discourse_version:
+    doc:
+      short_help: The version of discourse.
+    type: string
+    default: "stable"
+    required: false
+  discourse_smtp_address:
+    doc:
+      short_help: The SMTP server address.
+    type: string
+    required: true
+  discourse_smtp_port:
+    doc:
+      short_help: The SMTP port.
+    type: integer
+    required: true
+  discourse_smtp_user_name:
+    doc:
+      short_help: The SMTP user name.
+    type: string
+    required: true
+    # might be the same token as password, that's why it's secret
+    secret: true
+  discourse_smtp_password:
+    doc:
+      short_help: The SMTP password.
+    type: string
+    required: true
+    secret: true
+  discourse_smtp_enable_start_tls:
+    doc:
+      short_help: Whether to use START_TLS when connecting to the SMTP server.
+    type: boolean
+    default: true
+    required: true
+    cli:
+      param_decls:
+        - "--start-tls/--no-start-tls"
+  set_from_email:
+    doc:
+      short_help: "A custom 'from' email address (e.g. noreply@example.com)."
+      help: |
+        This only needs to be set/run once, at install time. Needs to be an address that is supported by your smtp settings.
+    type: string
+    required: false
+  discourse_plugins:
+    doc:
+      short_help: "A list of discourse plugin urls."
+    type: list
+    schema:
+      type: string
+    required: false
+    default: []
+    empty: true
+    cli:
+      metavar: "PLUGIN"
+      show_default: true
+---
+## this is the all-in-one, standalone Discourse Docker container template
+##
+## After making changes to this file, you MUST rebuild
+## /var/discourse/launcher rebuild app
+##
+## BE *VERY* CAREFUL WHEN EDITING!
+## YAML FILES ARE SUPER SUPER SENSITIVE TO MISTAKES IN WHITESPACE OR ALIGNMENT!
+## visit http://www.yamllint.com/ to validate this file as needed
+
+templates:
+  - "templates/postgres.template.yml"
+  - "templates/redis.template.yml"
+  - "templates/web.template.yml"
+  - "templates/web.ratelimited.template.yml"
+## Uncomment these two lines if you wish to add Lets Encrypt (https)
+{%:: if use_https ::%}
+  - "templates/web.ssl.template.yml"
+  - "templates/web.letsencrypt.ssl.template.yml"
+{%:: endif ::%}
+
+## which TCP/IP ports should this container expose?
+## If you want Discourse to share a port with another webserver like Apache or nginx,
+## see https://meta.discourse.org/t/17247 for details
+expose:
+  - "80:80"   # http
+  - "443:443" # https
+
+params:
+  db_default_text_search_config: "pg_catalog.english"
+
+  ## Set db_shared_buffers to a max of 25% of the total memory.
+  ## will be set automatically by bootstrap based on detected RAM, or you can override
+  db_shared_buffers: "256MB"
+
+  ## can improve sorting performance, but adds memory usage per-connection
+  #db_work_mem: "40MB"
+
+  ## Which Git revision should this container use? (default: tests-passed)
+  version: "{{:: discourse_version ::}}"
+
+env:
+  LANG: en_US.UTF-8
+  # DISCOURSE_DEFAULT_LOCALE: en
+
+  ## How many concurrent web requests are supported? Depends on memory and CPU cores.
+  ## will be set automatically by bootstrap based on detected CPUs, or you can override
+  UNICORN_WORKERS: 4
+
+  ## TODO: The domain name this Discourse instance will respond to
+  ## Required. Discourse will not work with a bare IP number.
+  DISCOURSE_HOSTNAME: "{{:: hostname ::}}"
+
+  ## Uncomment if you want the container to be started with the same
+  ## hostname (-h option) as specified above (default "$hostname-$config")
+  #DOCKER_USE_HOSTNAME: true
+
+  ## TODO: List of comma delimited emails that will be made admin and developer
+  ## on initial signup example 'user1@example.com,user2@example.com'
+  DISCOURSE_DEVELOPER_EMAILS: {{:: admin_emails | join(',') ::}}
+
+  ## TODO: The SMTP mail server used to validate new accounts and send notifications
+  # SMTP ADDRESS, username, and password are required
+  # WARNING the char '#' in SMTP password can cause problems!
+  DISCOURSE_SMTP_ADDRESS: "{{:: discourse_smtp_address ::}}"
+  DISCOURSE_SMTP_PORT: {{:: discourse_smtp_port ::}}
+  DISCOURSE_SMTP_USER_NAME: "{{:: discourse_smtp_user_name ::}}"
+  DISCOURSE_SMTP_PASSWORD: "{{:: discourse_smtp_password ::}}"
+  DISCOURSE_SMTP_ENABLE_START_TLS: {{:: discourse_smtp_enable_start_tls | string_for_boolean("true", "false") ::}}           # (optional, default true)
+
+  ## If you added the Lets Encrypt template, uncomment below to get a free SSL certificate
+  {%:: if use_https ::%}
+  LETSENCRYPT_ACCOUNT_EMAIL: {{:: admin_emails[0] ::}}
+  {%:: endif ::%}
+  ## The CDN address for this Discourse instance (configured to pull)
+  ## see https://meta.discourse.org/t/14857 for details
+  #DISCOURSE_CDN_URL: //discourse-cdn.example.com
+
+## The Docker container is stateless; all data is stored in /shared
+volumes:
+  - volume:
+      host: /var/discourse/shared/standalone
+      guest: /shared
+  - volume:
+      host: /var/discourse/shared/standalone/log/var-log
+      guest: /var/log
+
+## Plugins go here
+## see https://meta.discourse.org/t/19157 for details
+hooks:
+  after_code:
+    - exec:
+        cd: $home/plugins
+        cmd:{%:: for plugin in discourse_plugins ::%}
+          - git clone {{:: plugin ::}}{%:: endfor ::%}
+
+
+
+## Any custom commands to run after building
+run:
+  - exec: echo "Beginning of custom commands"
+  ## If you want to set the 'From' email address for your first registration, uncomment and change:
+  ## After getting the first signup email, re-comment the line. It only needs to run once.
+  {%:: if set_from_email ::%}
+  - exec: rails r "SiteSetting.notification_email='{{:: set_from_email ::}}'"
+  {%:: endif ::%}
+  - exec: echo "End of custom commands"

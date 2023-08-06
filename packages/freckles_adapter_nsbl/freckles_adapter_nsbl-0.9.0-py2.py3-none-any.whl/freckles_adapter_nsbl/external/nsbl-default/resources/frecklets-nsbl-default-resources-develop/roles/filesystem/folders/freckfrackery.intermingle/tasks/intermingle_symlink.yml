@@ -1,0 +1,23 @@
+---
+
+- name: "creating target parent dirs"
+  file:
+    path: "{{ intermingle_target }}/{{ __intermingling_target_item__.1 }}"
+    owner: "{{ intermingle_folder_owner | default(omit) }}"
+    group: "{{ intermingle_folder_group | default(omit) }}"
+    recurse: true
+    state: directory
+  loop: "{{ intermingle_config['interminglings'] | dictsort }}"
+  become: "{{ intermingle_become }}"
+  loop_control:
+    loop_var: __intermingling_target_item__
+    label: "{{ __intermingling_target_item__.1 }}"
+
+- name: "intermingling (via symlink)"
+  shell: "ln -sf -t {{ intermingle_target }}/{{ __intermingling_item__[1] }} {{ intermingle_src }}/{{ __intermingling_item__[0] }}"
+  loop: "{{ intermingle_config['interminglings'] | dictsort }}"
+  loop_control:
+    loop_var: __intermingling_item__
+  become: "{{ intermingle_become }}"
+
+

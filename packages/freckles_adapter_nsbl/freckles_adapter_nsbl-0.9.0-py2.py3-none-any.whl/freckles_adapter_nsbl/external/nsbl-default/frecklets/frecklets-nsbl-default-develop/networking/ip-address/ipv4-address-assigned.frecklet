@@ -1,0 +1,76 @@
+doc:
+  short_help: Make sure an IPv4 address is assigned to an interface.
+  help: |
+    Add an IP address to an interface.
+
+    This is often relevant for cloud services that offer so-called 'floating' IP addresses. Those are a useful, because you can point a dns record to them, and then easily switch the underlaying virtual machine. Otherwise you'd have to change the dns record, which would mean you'd have to wait for that change to propagate through all the dns layers. That usually takes a few hours, or even a day in some cases.
+
+    This frecklet does not check whether the interface was already added at a different location than the value of ``iface_file_name``.
+    Also, this only adds a very basic interface, in the form of:
+
+    ```
+    auto <interface>
+    iface <interface> inet static
+      address <ip>
+      netmask 32
+    ```
+
+    Currently this task also restarts the 'networking' service, independent of whether the interface was changed or not.
+
+  examples:
+    - title: Add a floating IP to a Hetzner cloud VM
+      desc: |
+        In our example, we assume we use the [Hetzner cloud](https://hetzner.cloud) as they don't add a floating IP to a network interface automatically (like, for example, DigitalOcean does). We create a floating IP address on their web-interface, and a server. Then we assign the floating IP address to our new server, and boot it up. For details on how to do this manually check the Hetzner documentation.
+
+        Once this frecklet has run, you should be able to login to your server via the secondary IP address.
+      vars:
+        iface: eth0:1
+        ip: 195.201.251.122
+
+
+args:
+  ip:
+    doc:
+      short_help: "The ip to assign."
+    type: string
+    required: true
+  iface:
+    doc:
+      short_help: "The name of the network interface."
+    type: string
+    default: eth0:1
+    required: false
+    cli:
+      show_default: true
+  iface_file_name:
+    doc:
+      short_help: "The name of the interface file under /etc/network/interfaces.d."
+    type: string
+    default: 60-floating-ip.cfg
+    required: false
+    cli:
+#      enabled: false
+      show_default: true
+
+meta:
+  tags:
+    - networking
+    - ip-address
+    - cloud
+    - floating-ip
+
+frecklets:
+  - file-with-content:
+      path: "/etc/network/interfaces.d/{{:: iface_file_name ::}}"
+      owner: root
+      group: root
+      mode: "0644"
+#      become: true
+      content: |
+          auto {{:: iface ::}}
+          iface {{:: iface ::}} inet static
+            address {{:: ip ::}}
+            netmask 32
+
+  - init-service-restarted:
+      name: networking

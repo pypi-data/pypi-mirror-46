@@ -1,0 +1,68 @@
+doc:
+  short_help: Makes sure a server with the specified name/id exists in your Hetzner hcloud account.
+  help: |
+    Makes sure a server with the specified name/id exists.
+
+    If a server exists, the 'image' and 'server_type' arguments are ignored.
+args:
+  api_token:
+    doc:
+      short_help: The hcloud API token.
+    type: string
+    required: true
+    secret: true
+  server_name:
+    doc:
+      short_help: The name of the cloud server to manage.
+    type: string
+    required: false
+  server_id:
+    doc:
+      short_help: The ID of the Hetzner Cloud server to manage. Only required if no server name is given.
+    required: false
+  server_type:
+    doc:
+      short_help: The type of server to create.
+    type: string
+    allowed:
+      - cx11
+      - cx21
+      - cx31
+      - cx41
+      - cx51
+      - cx11-ceph
+      - cx21-ceph
+      - cx31-ceph
+      - cx41-ceph
+      - cx51-ceph
+      - ccx11
+      - ccx21
+      - ccx31
+      - ccx41
+      - ccx51
+    default: cx11
+  image:
+    doc:
+      short_help: The OS image of the server.
+    type: string
+    required: false
+    default: ubuntu-18.04
+
+frecklets:
+  - frecklet:
+      name: hcloud_server
+      type: ansible-module
+      elevated: false
+      internet: true
+      idempotent: true
+    task:
+      become: false
+      pip_dependencies:
+        - hcloud
+    vars:
+      api_token: "{{:: api_token ::}}"
+      name: "{{:: server_name ::}}"
+      id: "{{:: server_id ::}}"
+      server_type: "{{:: server_type ::}}"
+      image: ubuntu-18.04
+      state: present

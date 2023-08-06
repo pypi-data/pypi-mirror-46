@@ -1,0 +1,16 @@
+---
+
+- name: getting folder(s) facts
+  script: "{{ freckles_facts_script }}"
+  environment:
+    FRECKLES_CHECK_DIRECTORIES: "{{ dotfile_folders | join_folders_filter(':') }}"
+    FRECKLES_CHECK_FRECKLE_FILES: "{{ dotfile_folders | join_folders_filter(':') }}"
+  register: __dotfile_folder_facts_raw__
+
+- name: "[parsing facts output]"
+  set_fact:
+    __dotfile_folder_facts__: "{{ __dotfile_folder_facts_raw__ | very_basics_filter }}"
+
+- name: "[finding first-level subfolders]"
+  set_fact:
+    __freckle_folders__: "{{ __dotfile_folder_facts__['freckle_files'] | parse_freckle_metadata }}"

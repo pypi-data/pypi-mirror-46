@@ -1,0 +1,38 @@
+---
+
+- name: "[setting webserver defaults]"
+  set_fact:
+    php_packages_extra: "{{ webserver_php_packages | platform_var(__freckles_facts__['platform_matchers']) }}"
+
+- name: "[setting fpm var]"
+  set_fact:
+    php_enable_php_fpm: true
+
+- debug: var=webserver_php_fpm_config
+- name: "[setting fpm vars]"     # this could also go into the next task, but I figured it's cleaner to separate the two
+  set_fact:
+    "{{ __php_fpm_config_item__.0 }}": "{{ __php_fpm_config_item__.1 }}"
+  loop: "{{ webserver_php_fpm_config | dictsort }}"
+  loop_control:
+    loop_var: __php_fpm_config_item__
+
+- name: "[setting advanced vars]"
+  set_fact:
+    "{{ __php_config_item__.0 }}": "{{ __php_config_item__.1 }}"
+  loop: "{{ webserver_php_config | dictsort }}"
+  loop_control:
+    loop_var: __php_config__
+
+- name: "[adding ssl module to apache module list]"
+  set_fact:
+    __apache_mods_internal__: "{{ __apache_mods_internal__ }} + [ 'proxy.load', 'proxy_fcgi.load' ]"
+
+- name: "[setting fpm group]"
+  set_fact:
+    php_fpm_pool_group: "{{ webserver_php_fpm_group }}"
+  when: webserver_php_fpm_group is defined
+
+- name: "[setting fpm user]"
+  set_fact:
+    php_fpm_pool_user: "{{ webserver_php_fpm_user }}"
+  when: webserver_php_fpm_user is defined

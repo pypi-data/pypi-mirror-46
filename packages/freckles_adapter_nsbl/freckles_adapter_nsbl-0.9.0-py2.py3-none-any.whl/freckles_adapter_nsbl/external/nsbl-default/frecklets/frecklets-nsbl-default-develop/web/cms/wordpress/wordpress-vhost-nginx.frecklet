@@ -1,0 +1,98 @@
+doc:
+  short_help: "Create Nginx wordpress virtual host config."
+  examples:
+    - title: "Nginx wordpress vhost config."
+      vars:
+        vhost_name: my_wordpress_site
+        wp_title: "My wordpress site"
+        use_https: true
+        host: dev.frkl.io
+        base_path: "/var/www/wordpress"
+
+args:
+#  vhost_name:
+#    doc:
+#      short_help: "The name of the vhost file."
+#    required: false
+#    type: string
+  base_path:
+    doc:
+      short_help: "The wordpress project folders parent directory."
+    type: string
+    required: false
+    default: "/var/www"
+    cli:
+      show_default: true
+  host:
+    type: string
+    default: "localhost"
+    required: true
+    doc:
+      short_help: "The hostname of the server."
+  server_admin:
+    type: string
+    doc:
+      short_help: "The email address to use in the vhost file and with letsencrypt, falls back to 'wp_admin_email."
+    required: false
+  use_https:
+    type: boolean
+    required: false
+    doc:
+      short_help: "Request a lets-encrypt certificate and serve devpi via https (needs 'server_admin' or 'wp_admin_email' set)."
+    cli:
+      is_flag: true
+  wp_title:
+    doc:
+      short_help: "The name of the wordpress instance."
+    type: string
+    required: true
+    cli:
+      metavar: TITLE
+
+frecklets:
+  # creating wordpress apache vhost
+  - nginx-server-block-file:
+      path: "/etc/nginx/sites-enabled/{{:: wp_title | clean_string | lower ::}}.conf"
+      owner: root
+      become: true
+      index:
+        - index.php
+      server_names:
+        - "{{:: host ::}}"
+      use_https: "{{:: use_https ::}}"
+      document_root: "{{:: base_path ::}}/{{:: wp_title | clean_string | lower ::}}"
+      server_admin: "{{:: server_admin ::}}"
+      upstream:
+        - name: php
+          properties: |
+            server unix:/tmp/php-cgi.socket;
+            server 127.0.0.1:9000;
+      location_blocks:
+        - location_match: "/favicon.ico"
+          location_modifier: "="
+          properties: |
+            log_not_found off;
+            access_log off;
+        - location_match: "/robots.txt"
+          location_modifier: "="
+          properties: |
+            allow all;
+            log_not_found off;
+            access_log off;
+        - location_match: "/"
+          properties: |
+            try_files $uri $uri/ /index.php?$args;
+        - location_match: "\\.php$"
+          location_modifier: "~"
+          properties: |
+            #NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+            include fastcgi.conf;
+            fastcgi_intercept_errors on;
+            fastcgi_pass php;
+        - location_match: "\\.(js|css|png|jpg|jpeg|gif|ico)$"
+          location_modifier: "~*"
+          properties: |
+            expires max;
+            log_not_found off;
+
+

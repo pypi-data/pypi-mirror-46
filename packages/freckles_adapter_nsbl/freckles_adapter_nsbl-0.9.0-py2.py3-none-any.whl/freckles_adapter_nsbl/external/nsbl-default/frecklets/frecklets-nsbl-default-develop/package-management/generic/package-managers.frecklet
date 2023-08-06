@@ -1,0 +1,65 @@
+doc:
+  short_help: "Install one or several package managers."
+  help: |
+    This is mainly used in conjunction with the frecklet::pkg and frecklet::pkgs frecklets, so they
+    can transparently install package managers that are used there.
+
+    Supported package managers currently:
+
+    - conda
+    - git
+    - homebrew
+    - nix
+    - pip
+    - vagrant-plugin
+
+    More information and examples to come, for now please refer to the [freckfrackery.install-pkg_mgrs Ansible role](https://gitlab.com/freckfrackery/freckfrackery.install-pkg_mgrs/blob/master/README.md) for more information.
+
+  further_reading:
+    "'freckfrackery.install-pkg-mgrs' Ansible role": https://gitlab.com/freckfrackery/freckfrackery.install-pkg-mgrs
+  examples:
+    - title: Install the 'nix' package manager.
+      vars:
+        package_managers:
+          - nix
+    - title: Install the 'nix' and 'conda' package managers.
+      vars:
+        package_managers:
+          - nix
+          - conda
+
+args:
+  package_managers:
+    required: true
+    type: list
+    cli:
+      param_type: "argument"
+
+meta:
+  tags:
+    - featured-frecklecutable
+    - install
+    - package-management
+    - package-manager
+    - install
+
+frecklets:
+  - task:
+      include-type: include
+      roles:
+        - freckfrackery.install-conda
+        - freckfrackery.install-nix
+        - freckfrackery.install-vagrant
+        - geerlingguy.homebrew
+        - elliotweiser.osx-command-line-tools
+    frecklet:
+      name: freckfrackery.install-pkg-mgrs
+      type: ansible-role
+      desc: |
+        Install the following package managers:
+        {%:: for p in package_managers ::%}
+        - {{:: p ::}}
+        {%:: endfor ::%}
+      idempotent: true
+    vars:
+      install_pkg_mgrs: "{{:: package_managers ::}}"

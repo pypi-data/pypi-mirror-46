@@ -1,0 +1,26 @@
+---
+
+- name: "[setting intermingle variables]"
+  include_tasks: intermingle_set_variables.yml
+
+- name: "[checking if dest exists]"
+  fail:
+    msg: "Destination {{ intermingle_src }} does not exist."
+  when: not __intermingle_src_exists__
+
+- name: "[prepare target]"
+  import_tasks: "prepare_target.yml"
+
+- debug: var=intermingle_type
+- name: "[begin intermingle]"
+  include_tasks: "intermingle_{{ intermingle_type }}.yml"
+
+- name: "[change owner & group]"
+  file:
+    path: "{{ intermingle_target }}"
+    owner: "{{ intermingle_folder_owner | default(omit) }}"
+    group: "{{ intermingle_folder_group | default(omit) }}"
+    mode: "{{ intermingle__folder_mode  | default(omit) }}"
+    recurse: true
+  become: "{{ intermingle_become }}"
+  when: "(intermingle_folder_owner is defined and intermingle_folder_owner) or (intermingle_folder_group is defined and intermingle_folder_group) or (ingermingle_folder_mode is defined and intermingle_folder_mode)"

@@ -1,0 +1,22 @@
+- name: "read public key"
+  slurp:
+    src: "{{ __path_to_key__ }}.pub"
+  register: __slurped_public_ssh_key__
+  become: "{{ __become__ }}"
+  become_user: "{{ __become_user__ }}"
+- name: "add ssh key as gitlab deploy key for project: {{ __project_name__ }}"
+  become: false
+  gitlab_deploy_key:
+    api_url: https://gitlab.com/api
+    private_token: "{{ __gitlab_private_access_token__ }}"
+    project: "{{ __project_name__ }}"
+    title: "{{ __deploy_key_title__ }}"
+    state: present
+    key: "{{ __slurped_public_ssh_key__.content | b64decode }}"
+# need to add this public key to known_hosts, otherwise checkout from private repos won't work
+- name: "add gitlab.com ssh key fingerprint to known hosts"
+  known_hosts:
+    name: gitlab.com
+    key: "gitlab.com,35.231.145.151 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsj2bNKTBSpIYDEGk9KxsGh3mySTRgMtXL583qmBpzeQ+jqCMRgBqB98u3z++J1sKlXHWfM9dyhSevkMwSbhoR8XIq/U0tCNyokEi/ueaBMCvbcTHhO7FcwzY92WK4Yt0aGROY5qX2UKSeOvuP4D6TPqKF1onrSzH9bx9XUf2lEdWT/ia1NEKjunUqu1xOB/StKDHMoX4/OKyIzuS0q/T1zOATthvasJFoPrAjkohTyaDUz2LN5JoH839hViyEG82yB+MjcFV5MU3N1l1QL3cVUCh93xSaua1N85qivl+siMkPGbO5xR/En4iEY6K2XPASUEMaieWVNTRCtJ4S8H+9"
+  become: "{{ __become__ }}"
+  become_user: "{{ __become_user__ }}"
