@@ -1,0 +1,45 @@
+<section class="portlet portletExistingContent ${view/data/portlet_class}"
+    i18n:domain="plone"
+    tal:define="
+      title view/title;
+      description view/description;
+      text view/text;
+      ">
+
+  <header class="portletHeader"
+      tal:condition="title">
+    ${title}
+  </header>
+
+  <section class="portletDescription discreet" tal:condition="description">
+    ${description}
+  </section>
+
+  <section class="portletContent" tal:condition="text">
+    <div tal:replace="structure text" />
+  </section>
+
+  <tal:comment tal:condition="False">
+  <!-- let's think about that another time -->
+  <!-- <footer class="portletFooter" tal:condition="view/has_image">
+    <figure class="portletImage"
+        tal:define="
+          existing_content_item nocall:view/existing_content_item;
+          image_scale view/data/image_scale;
+          scale_func existing_content_item/@@images;
+          scaled_image python: scale_func.scale('image', scale=image_scale);
+          large_image python: scale_func.scale('image', scale='large');
+          image_caption view/image_caption;
+          ">
+      <a class="pat-plone-modal"
+          href="${large_image/url}"
+          data-pat-plone-modal="image: true"
+          data-modal-srcset="${large_image/srcset_attribute}"
+          tal:omit-tag="not: view/data/allow_image_popup">
+        <img tal:replace="structure python: scaled_image.tag()" />
+        <figcaption tal:condition="image_caption">${image_caption}</figcaption>
+      </a>
+    </figure>
+  </footer> -->
+  </tal:comment>
+</section>
