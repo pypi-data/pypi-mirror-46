@@ -1,0 +1,192 @@
+Metadata-Version: 2.1
+Name: cryptofeed
+Version: 0.22.2
+Summary: Cryptocurrency feed handler and synthetic NBBO feed
+Home-page: https://github.com/bmoscon/cryptofeed
+Author: Bryant Moscon
+Author-email: bmoscon@gmail.com
+License: XFree86
+Keywords: cryptocurrency,bitcoin,btc,feed handler,market feed,market data
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Description-Content-Type: text/x-rst
+Requires-Dist: requests (>=2.18.4)
+Requires-Dist: websockets (>=7.0)
+Requires-Dist: sortedcontainers (>=1.5.9)
+Requires-Dist: pandas
+Requires-Dist: pyyaml
+Requires-Dist: aiohttp
+Requires-Dist: aiodns
+Requires-Dist: cchardet
+Provides-Extra: arctic
+Requires-Dist: arctic ; extra == 'arctic'
+Provides-Extra: kafka
+Requires-Dist: aiokafka ; extra == 'kafka'
+Provides-Extra: mongo
+Requires-Dist: motor ; extra == 'mongo'
+Provides-Extra: redis
+Requires-Dist: aioredis ; extra == 'redis'
+Provides-Extra: zmq
+Requires-Dist: pyzmq ; extra == 'zmq'
+
+Cryptocurrency Exchange Feed Handler
+====================================
+
+|License| |Python| |Build Status| |Codacy Badge| |PyPi|
+
+Handles multiple cryptocurrency exchange data feeds and returns
+normalized and standardized results to client registered callbacks for
+events like trades, book updates, ticker updates, etc. Utilizes
+websockets when possible, but can also poll data via REST endpoints if a
+websocket is not provided.
+
+Please see the
+`examples <https://github.com/bmoscon/cryptofeed/tree/master/examples>`__
+for more code samples, the
+`documentation <https://github.com/bmoscon/cryptofeed/blob/master/docs/README.md>`__
+or the
+`FAQ <https://github.com/bmoscon/cryptofeed/tree/master/FAQ.md>`__ for
+some oddities and gotchas.
+
+.. code:: python
+
+   from cryptofeed import FeedHandler
+
+   fh = FeedHandler()
+
+   # ticker, trade, and book are user defined functions that
+   # will be called when ticker, trade and book updates are received
+   ticker_cb = {TICKER: TickerCallback(ticker)}
+   trade_cb = {TRADES: TradeCallback(trade)}
+   gemini_cb = {TRADES: TradeCallback(trade), L2_BOOK: BookCallback(book)}
+
+
+   fh.add_feed(Coinbase(pairs=['BTC-USD'], channels=[TICKER], callbacks=ticker_cb)
+   fh.add_feed(Bitfinex(pairs=['BTC-USD'], channels=[TICKER], callbacks=ticker_cb)
+   fh.add_feed(Poloniex(pairs=['BTC-USDT'], channels=[TRADES], callbacks=trade_cb))
+   fh.add_feed(Gemini(pairs=['BTC-USD'], callbacks=gemini_cb)
+
+   fh.run()
+
+Supports the following exchanges:
+
+-  Bitfinex
+-  Coinbase
+-  Poloniex
+-  Gemini
+-  HitBTC
+-  Bitstamp
+-  BitMEX
+-  Kraken
+-  Binance
+-  EXX
+-  Huobi
+-  HuobiUS
+-  OKCoin
+-  OKEx
+-  Coinbene
+
+Also provides a synthetic NBBO (National Best Bid/Offer) feed that
+aggregates the best bids and asks from the user specified feeds.
+
+.. code:: python
+
+   from cryptofeed.feedhandler import FeedHandler
+   from cryptofeed.exchanges import Coinbase, Bitfinex, HitBTC
+
+
+   def nbbo_ticker(pair, bid, ask, bid_feed, ask_feed):
+       print('Pair: {} Bid: {} Bid Feed: {} Ask: {} Ask Feed: {}'.format(pair,
+                                                                         bid,
+                                                                         bid_feed,
+                                                                         ask,
+                                                                         ask_feed))
+
+
+   fh = FeedHandler()
+   fh.add_nbbo([Coinbase, Bitfinex, HitBTC], ['BTC-USD'], nbbo_ticker)
+   fh.run()
+
+Supported Channels
+------------------
+
+Cryptofeed supports the following channels:
+
+-  L2_BOOK - Price aggregated sizes. Some exchanges provide the entire
+   depth, some provide a subset.
+-  L3_BOOK - Price aggregated orders. Like the L2 book, some exchanges
+   may only provide partial depth.
+-  TRADES - Note this reports the taker's side, even for exchanges that
+   report the maker side
+-  TICKER
+-  VOLUME
+-  FUNDING
+-  BOOK_DELTA - Subscribed to with L2 or L3 books, receive book deltas
+   rather than the entire book on updates. Full updates will be
+   periodically sent on the L2 or L3 channel. If BOOK_DELTA is enabled,
+   only L2 or L3 book can be enabled, not both. To received both create
+   two ``feedhandler`` objects. Not all exchanges are supported, as some
+   exchanges send complete books on every update.
+
+Backends
+--------
+
+Cryptofeeds supports ``backend`` callbacks that will write directly to
+storage or other interfaces
+
+Supported Backends:
+
+-  Redis
+-  `Arctic <https://github.com/manahl/arctic>`__
+-  ZeroMQ
+-  UDP Sockets
+-  TCP Sockets
+-  Unix Domain Sockets
+-  `InfluxDB <https://github.com/influxdata/influxdb>`__
+-  MongoDB
+
+Rest API
+--------
+
+Cryptofeed supports some REST interfaces for retrieving historical data
+and placing orders. See the
+`rest <https://github.com/bmoscon/cryptofeed/tree/master/cryptofeed/rest>`__
+package.
+
+Planned Work
+============
+
+Future Feeds
+------------
+
+-  CEX
+-  BTCC
+-  Many more...
+
+REST
+----
+
+Continue to build out rest endpoints and standardize exchange interfaces
+and data
+
+.. _additional-callback-methods--backends:
+
+Additional Callback Methods / Backends
+--------------------------------------
+
+-  Postgres
+-  RabbitMQ
+
+.. |License| image:: https://img.shields.io/badge/license-XFree86-blue.svg
+   :target: LICENSE
+.. |Python| image:: https://img.shields.io/badge/Python-3.6+-green.svg
+.. |Build Status| image:: https://travis-ci.org/bmoscon/cryptofeed.svg?branch=master
+   :target: https://travis-ci.org/bmoscon/cryptofeed
+.. |Codacy Badge| image:: https://api.codacy.com/project/badge/Grade/efa4e0d6e10b41d0b51454d08f7b33b1
+   :target: https://www.codacy.com/app/bmoscon/cryptofeed?utm_source=github.com&utm_medium=referral&utm_content=bmoscon/cryptofeed&utm_campaign=Badge_Grade
+.. |PyPi| image:: https://img.shields.io/badge/PyPi-cryptofeed-brightgreen.svg
+   :target: https://pypi.python.org/pypi/cryptofeed
+
+
