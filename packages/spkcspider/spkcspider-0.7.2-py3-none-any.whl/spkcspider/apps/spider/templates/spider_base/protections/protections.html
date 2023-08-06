@@ -1,0 +1,23 @@
+{% extends "spider_base/protections/base.html" %}
+{% load spider_protections i18n spider_rdf %}
+
+{% block main_classes %}{{block.super}} color-front-{{uc.untrusted_strength}}{% endblock %}
+{% block body_class %}{{block.super}} color-back-{{uc.untrusted_strength}}{% endblock %}
+
+{% block content %}
+{% extract_protections "protections" as protections %}
+<form class="w3-padding" action="{{ request.get_full_path }}" name="SPKCProtectionForm" method="post">
+  {% csrf_token %}
+  <data hidden="hidden" property="spkc:protections.amount" datatype="xsd:nonNegativeInteger">{{protections|length}}</data>
+  <data hidden="hidden" property="spkc:strength" datatype="xsd:integer">{{uc.untrusted_strength}}</data>
+  <fieldset rel="protections" style="overflow-y: auto; max-height:600px">
+    <legend><h1>{% trans 'Protections' %}</h1></legend>
+    {% for prot in protections %}
+      {% include "spider_base/protections/protection_item.html" with prot=prot %}
+    {% endfor %}
+  </fieldset>
+  <button class="w3-button w3-grey">
+    {% trans 'Send' %}
+  </button>
+</form>
+{% endblock %}
