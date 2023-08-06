@@ -1,0 +1,48 @@
+# Test files describe situations and their expected outcomes
+# We can run this test on our command line using `openfisca-run-test income_tax.yaml`
+
+- name: Market income for someone making 10000 of salary
+  period: 2017
+  input:
+    all_income_excluding_transfers: 10000
+    employee_contributions_pensions: 100
+    employer_contributions_pensions: 50
+    employee_contributions_health: 25
+    employer_contributions_health: 25
+    personal_income_tax: 200
+    cash_transfers: 100
+    social_insurance: 150
+    nontaxable_income: 34
+    value_added_tax: 29
+    sales_tax: 21
+    fuel_subsidies: 25
+    primary_education: 30
+    school_fees: 15
+    health_contributory: 10
+    health_copay_fees: 5
+  output:
+    market_income: 10000
+    market_income_plus_pensions: 10000 - 150
+    direct_taxes: 200
+    net_market_income: 10000 - 400
+    direct_transfers: 250
+    gross_income: 10000 - 150 + 250
+    taxable_income: 10000 - 150 + 250 - 34
+    disposable_income: 10000 - 400 + 250
+    consumable_income: 10000 - 400 + 250 + 25 - 50
+    education_net_transfers: 15
+    health_net_transfers: 5
+    in_kind_transfers: 20
+    final_income: 10000 - 400 + 250 + 25 - 50 + 20
+
+
+- name: "Market income for someone making 10000 of salary with 10% going to contributory pensions"
+  period: 2017
+  input:
+    all_income_excluding_transfers: 10000
+    employee_contributions_pensions: 300
+    employer_contributions_pensions: 700
+  output:
+    market_income: 10000
+    contributions_pensions: 1000
+    market_income_plus_pensions: 9000
