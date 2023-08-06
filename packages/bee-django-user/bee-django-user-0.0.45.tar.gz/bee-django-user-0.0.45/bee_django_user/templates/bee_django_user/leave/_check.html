@@ -1,0 +1,23 @@
+{% if record.is_check %}
+    已由【{{ record.check_by.first_name }}】于{{ record.check_at }}审核
+{% else %}
+    {% if perms.bee_django_user.change_check %}
+        <button onclick="click_check('{{ record.id }}')" class="btn btn-default">审核</button>
+    {% endif %}
+{% endif %}
+{% block scripts %}
+    <script>
+        function click_check(r_id) {
+            if (!confirm('确认要执行这个操作？')) {
+                return false;
+            }
+            var url = "{% url 'bee_django_user:leave_check' %}";
+            $.post(url, {"record_id": r_id}).done(function (data) {
+                alert(data.message);
+                if (data.error == "0") {
+                    location.reload();
+                }
+            });
+        }
+    </script>
+{% endblock %}

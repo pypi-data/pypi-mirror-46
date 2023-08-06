@@ -1,0 +1,32 @@
+{% extends "bee_django_user/base.html" %}
+{% load bee_django_user_filter %}
+{% block content %}
+    {% include 'bee_django_user/logo.html' %}
+    {% include 'bee_django_user/nav.html' %}
+    <h4>班级详情</h4>
+    {% if perms.user_class.change %}
+        <a href="{% url 'bee_django_user:class_update'  class.id %}">修改</a>
+    {% endif %}
+    <table class="table">
+        <tr>
+            <td class="col-xs-3">班级名称</td>
+            <td>{{ class.name }}</td>
+        </tr>
+
+        <tr>
+            <td>班级助教</td>
+            <td>{{ class.assistant.first_name }}</td>
+        </tr>
+        <tr>
+            <td>班级学生</td>
+            <td>
+                {% for user in  class.get_students %}
+                    {{ user.first_name }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+
+            </td>
+        </tr>
+
+
+    </table>
+{% endblock %}

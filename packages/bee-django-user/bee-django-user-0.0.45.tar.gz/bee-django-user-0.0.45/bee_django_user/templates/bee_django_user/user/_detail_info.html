@@ -1,0 +1,68 @@
+{% if perms.bee_django_user.change_userprofile %}
+    <a href="{% url 'bee_django_user:user_update'  user.id %}">修改</a>
+{% endif %}
+<table class="table">
+    <tr>
+        <td>头像</td>
+        <td><img src="{{ user.userprofile.avatar.url }}"></td>
+    </tr>
+    <tr>
+        <td class="col-xs-3">姓名</td>
+        <td>{{ user.first_name }}</td>
+    </tr>
+    <tr>
+        <td class="col-xs-3">统一缦客号</td>
+        <td>
+            MK{{ user.userprofile.sn|default:"" }}
+            {% if perms.bee_django_user.can_change_user_sn %}
+                <a href="{% url 'bee_django_user:user_sn_update' pk=user.userprofile.id %}">修改</a>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="col-xs-3">用户名</td>
+        <td>{{ user.username }}</td>
+    </tr>
+    {% if perms.bee_django_user.reset_user_password %}
+        <tr>
+            <td class="col-xs-3">密码</td>
+            <td><a href="{% url 'bee_django_user:user_password_reset' user.id %}">重置密码</a></td>
+        </tr>
+    {% endif %}
+    <tr>
+        <td class="col-xs-3">用户组</td>
+        <td>{% for group in user.groups.all %}{{ group.name }}{% if not forloop.last %} /
+        {% endif %}{% endfor %}
+            {% if perms.bee_django_user.can_change_user_group %}
+                <a href="{% url 'bee_django_user:user_group_update'  user.id %}">修改</a>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td>班级</td>
+        <td>{{ user.userprofile.user_class|default:'' }}</td>
+    </tr>
+    <tr>
+        <td>助教</td>
+        <td>{{ user.userprofile.user_class.assistant.first_name|default:'' }}</td>
+    </tr>
+    <tr>
+        <td>直播间id</td>
+        <td>{{ user.userprofile.room_id|default:'' }}</td>
+    </tr>
+    <tr>
+        <td>开课日期</td>
+        <td>{{ user.userprofile.start_date|default:"" }}</td>
+    </tr>
+    <tr>
+        <td>结课日期</td>
+        <td>{{ user.get_expire_date|default:"" }}
+            <a href="{% url 'bee_django_user:leave_list' user.id %}">全部记录</a>
+            {% if perms.bee_django_user.add_userleaverecord %}
+                <a href="{% url 'bee_django_user:leave_add' user.id %}">修改</a>
+            {% endif %}
+        </td>
+    </tr>
+
+
+</table>

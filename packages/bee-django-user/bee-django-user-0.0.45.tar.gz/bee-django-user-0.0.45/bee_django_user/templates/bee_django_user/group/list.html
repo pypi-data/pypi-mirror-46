@@ -1,0 +1,50 @@
+{% extends "bee_django_user/base.html" %}
+{% load bee_django_user_filter %}
+
+{% block content %}
+    {% include 'bee_django_user/logo.html' %}
+    {% include 'bee_django_user/nav.html' %}
+    <h3>我的权限</h3>
+
+    {% for group in request.user.groups.all %}
+
+        <div> {% for perm in group.permissions.all %}
+            {{ perm.name }}
+        {% endfor %}
+        </div>
+    {% endfor %}
+
+    <div class="text-center"><h3>
+        用户组权限
+    </h3>
+    </div>
+    <div style="margin: 5px auto"><a href="/admin/" class="btn btn-default">设置</a></div>
+    <table class="table table-bordered table-hover">
+        <thead>
+        <tr>
+            <th></th>
+            <th colspan="2" class="text-center">用户</th>
+            <th colspan="2" class="text-center">班级</th>
+        </tr>
+        <tr>
+            <th>用户组</th>
+            <th>管理页</th>
+            <th>修改用户组</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for group in group_list %}
+            <tr>
+                <td>{{ group.name }}</td>
+                <td>{% if group|has_permission:"can_manage" %}√{% endif %}</td>
+                <td>{% if group|has_permission:"can_change_user_group" %}√{% endif %}</td>
+
+
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'bee_django_user/paginator.html' %}
+{% endblock %}

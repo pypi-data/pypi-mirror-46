@@ -1,0 +1,79 @@
+{% extends "bee_django_user/base.html" %}
+{% load bee_django_user_filter %}
+
+{% block content %}
+    {% include 'bee_django_user/logo.html' %}
+    {% include 'bee_django_user/nav.html' %}
+
+    <div class="text-center"><h3>
+        {{ user.first_name }}的请假/延期记录
+    </h3>
+    </div>
+    <div>
+        当前状态：
+        {% get_leave_status user as status %}
+        {% if status %} 请假中 {% else %} 正常{% endif %}<br>
+        结课时间：{{ user.userprofile.expire_date|default:"无" }}
+    </div>
+    {% if perms.bee_django_user.add_userleaverecord %}
+    <div class="text-right">
+        <a class="btn btn-default" href="{% url 'bee_django_user:leave_add' user.id %}">添加</a>
+    </div>
+    {% endif %}
+
+    <table class="table">
+        <thead>
+        <tr>
+
+            <th>类型</th>
+            <th>时间</th>
+            <th>添加人</th>
+            <th>添加时间</th>
+            <th>详情</th>
+            <th>操作</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for record in record_list %}
+            <tr>
+                <td>{{ record.get_type }}</td>
+                <td>{{ record.start|default:"" }}-{{ record.end|default:"" }}</td>
+                <td>{{ record.created_by.first_name }}</td>
+                <td>{{ record.created_at }}</td>
+
+                <td>
+                    <a href="{% url 'bee_django_user:leave_detail' record.id %}  ">详情</a>
+                    {#                    {% include 'bee_django_user/leave/_check.html' %}#}
+
+
+                </td>
+                <td>
+                    {% include 'bee_django_user/leave/_cancel.html' %}
+                    {% if not record.is_check %}
+                        <a href="#" class="btn btn-default" id="delete_{{ record.id }}"
+                           data-confirm="{% url "bee_django_user:leave_delete" record.id %}"
+                           onclick="click_del(this)">删除</a>
+                    {% endif %}
+                </td>
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'bee_django_user/paginator.html' %}
+{% endblock %}
+{% block scripts %}
+    <script>
+        function click_del(_this) {
+            if (!confirm('确认要执行这个操作？')) {
+                return false;
+            }
+            var url = $(_this).attr('data-confirm');
+            $.post(url).done(function (data) {
+                alert('删除成功!');
+                location.reload();
+            });
+        }
+    </script>
+{% endblock %}
