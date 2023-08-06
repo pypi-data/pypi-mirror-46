@@ -1,0 +1,593 @@
+Metadata-Version: 2.1
+Name: python-grid5000
+Version: 0.0.17
+Summary: UNKNOWN
+Home-page: https://gitlab.inria.fr/msimonin/python-grid5000
+Author: Matthieu Simonin
+Author-email: matthieu.simonin@inria.fr
+License: UNKNOWN
+Keywords: REST,evaluation,reproducible research,Grid5000
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: System Administrators
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Requires-Dist: requests (<2.22,>=2.21)
+Requires-Dist: pyyaml (<5.2,>=5.1)
+Requires-Dist: ipython (<8.0.0,>=7.3.0)
+
+===============
+python-grid5000
+===============
+
+
+``python-grid5000`` is a python package wrapping the Grid’5000 REST API. You can
+use it as a library in your python project or you can explore the Grid’5000
+resources interactively using the embedded shell.
+
+.. warning::
+
+    The code is currently being developed heavily. Jump to the contributing section
+    if you want to be involved.
+
+1 Thanks
+--------
+
+The core code is borrowed from `python-gitlab <https://github.com/python-gitlab/python-gitlab>`_ with small adaptations to
+conform with the Grid5000 API models (with an ’s’!)
+
+2 Contributing
+--------------
+
+- To contribute, you can drop me an email or open an issue for a bug report, or feature request.
+
+- There are many areas where this can be improved some of them are listed here:
+
+  - The complete coverage of the API isn’t finished (yet) but this should be fairly easy to reach.
+    Most of the logic go in ```grid5000.objects`` <https://gitlab.inria.fr/msimonin/python-grid5000/blob/master/grid5000/objects.py>`_. And to be honnest I only
+    implemented the feature that I needed the most.
+
+  - Returned `status code <https://www.grid5000.fr/mediawiki/index.php/API#Status_Codes>`_ aren’t yet well treated.
+
+3 Comparison with ...
+---------------------
+
+- `RESTfully <https://api.grid5000.fr/doc/4.0/tools/restfully.html>`_: 
+  It consumes REST API following the `HATEOAS <https://en.m.wikipedia.org/wiki/HATEOAS>`_ principles. This allows the client
+  to fully discover the resources and actions available. Most of the G5K API
+  follow theses principles but, for instance the `Storage API <https://www.grid5000.fr/mediawiki/index.php/Storage_Manager>`_ don’t. Thus
+  RESTfully isn’t compatible with all the features offered by the Grid’5000 API.
+  It’s a ruby library. Python-grid5000 borrows the friendly syntax for resource
+  browsing, but in python.
+
+- `Execo <http://execo.gforge.inria.fr>`_: 
+  Written in Python. The api module gathers a lot of utils functions leveraging
+  the Grid’5000 API. Resources aren’t exposed in a syntax friendly manner,
+  instead functions for some classical operations are exposed (mainly getters).
+  It has a convenient way of caching the reference API. Python-grid5000 is a
+  wrapper around the Grid’5000 that seeks 100% coverage. Python-grid5000 is
+  resource oriented.
+
+- `Raw requests <http://docs.python-requests.org>`_: 
+  **The** reference for HTTP library in python. Good for prototyping but low-level.
+  python-grid5000 encapsulates this library.
+
+4 Installation and examples
+---------------------------
+
+- Please refer to `https://api.grid5000.fr/doc/4.0/reference/spec.html <https://api.grid5000.fr/doc/4.0/reference/spec.html>`_ for 
+  the complete specification.
+
+- All the examples are exported in the examples subdirectory so you can
+  easily test and adapt them.
+
+- The configuration is read from a configuration file located in the home
+  directory (should be compatible with the restfully one). 
+  It can be created with the following:
+
+::
+
+    echo '
+    username: MYLOGIN
+    password: MYPASSWORD
+    ' > ~/.python-grid5000.yaml
+
+.. hint::
+
+    Inside Grid’5000, you’l probably need to set ``verify_ssl: False``
+
+- Using a virtualenv is recommended (python 3.5+ is required)
+
+::
+
+    virtualenv -p python3 venv
+    source venv/bin/activate
+    pip install python-grid5000
+
+4.1 Grid’5000 shell
+~~~~~~~~~~~~~~~~~~~
+
+If you call ``grid5000`` on the command line you should land in a ipython shell.
+Before starting, the file ``$HOME/.python-grid5000.yaml`` will be loaded.
+
+::
+
+    $) grid5000
+
+    Python 3.6.5 (default, Jun 17 2018, 21:32:15) 
+    Type 'copyright', 'credits' or 'license' for more information
+    IPython 7.3.0 -- An enhanced Interactive Python. Type '?' for help.
+
+    In [1]: gk.sites.list()                                                                                                                                                                                            
+    Out[1]: 
+    [<Site uid:grenoble>,
+     <Site uid:lille>,
+     <Site uid:luxembourg>,
+     <Site uid:lyon>,
+     <Site uid:nancy>,
+     <Site uid:nantes>,
+     <Site uid:rennes>,
+     <Site uid:sophia>]
+
+    In [2]: # gk is your entry point    
+
+4.2 Reference API
+~~~~~~~~~~~~~~~~~
+
+4.2.1 Get node information
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    import logging
+    import os
+
+    from grid5000 import Grid5000
+
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    gk = Grid5000.from_yaml(conf_file)
+
+    node_info = gk.sites["nancy"].clusters["grisou"].nodes["grisou-1"]
+    print("grisou-1 has {threads} threads and has {ram} bytes of RAM".format(
+        threads=node_info.architecture["nb_threads"],
+        ram=node_info.main_memory["ram_size"]))
+
+4.2.2 Get Versions of resources
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    import logging
+    import os
+
+    from grid5000 import Grid5000
+
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    gk = Grid5000.from_yaml(conf_file)
+
+    root_versions = gk.root.get().versions.list()
+    print(root_versions)
+
+    rennes = gk.sites["rennes"]
+    site_versions = rennes.versions.list()
+    print(site_versions)
+
+    cluster = rennes.clusters["paravance"]
+    cluster_versions = cluster.versions.list()
+    print(cluster_versions)
+
+    node_versions = cluster.nodes["paravance-1"]
+    print(node_versions)
+
+4.3 Monitoring API
+~~~~~~~~~~~~~~~~~~
+
+4.3.1 Get Statuses of resources
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    import logging
+    import os
+
+    from grid5000 import Grid5000
+
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    gk = Grid5000.from_yaml(conf_file)
+
+    rennes = gk.sites["rennes"]
+    site_statuses = rennes.status.list()
+    print(site_statuses)
+
+    cluster = rennes.clusters["paravance"]
+    cluster_statuses = cluster.status.list()
+
+4.4 Job API
+~~~~~~~~~~~
+
+4.4.1 Job filtering
+^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    import logging
+    import os
+
+    from grid5000 import Grid5000
+
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    gk = Grid5000.from_yaml(conf_file)
+
+    # state=running will be placed in the query params
+    running_jobs = gk.sites["rennes"].jobs.list(state="running")
+    print(running_jobs)
+
+    # get a specific job by its uid
+    job = gk.sites["rennes"].jobs.get("424242")
+    print(job)
+    # or using the bracket notation
+    job = gk.sites["rennes"].jobs["424242"]
+    print(job)
+
+4.4.2 Submit a job
+^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    import logging
+    import os
+    import time
+
+    from grid5000 import Grid5000
+
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    gk = Grid5000.from_yaml(conf_file)
+
+    # This is equivalent to gk.sites.get("rennes")
+    site = gk.sites["rennes"]
+
+    job = site.jobs.create({"name": "pyg5k",
+                            "command": "sleep 3600"})
+
+    while job.state != "running":
+        job.refresh()
+        print("Waiting for the job [%s] to be running" % job.uid)
+        time.sleep(10)
+
+    print(job)
+    print("Assigned nodes : %s" % job.assigned_nodes)
+
+4.5 Deployment API
+~~~~~~~~~~~~~~~~~~
+
+4.5.1 Deploy an environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    import logging
+    import os
+    import time
+
+    from grid5000 import Grid5000
+
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    gk = Grid5000.from_yaml(conf_file)
+
+    # This is equivalent to gk.sites.get("rennes")
+    site = gk.sites["rennes"]
+
+    job = site.jobs.create({"name": "pyg5k",
+                            "command": "sleep 3600",
+                            "types": ["deploy"]})
+
+    while job.state != "running":
+        job.refresh()
+        print("Waiting the job [%s] to be running" % job.uid)
+        time.sleep(10)
+
+    print("Assigned nodes : %s" % job.assigned_nodes)
+
+    deployment = site.deployments.create({"nodes": job.assigned_nodes,
+                                          "environment": "debian9-x64-min"})
+    # To get SSH access to your nodes you can pass your public key
+    #
+    # from pathlib import Path
+    #
+    # key_path = Path.home().joinpath(".ssh", "id_rsa.pub")
+    #
+    #
+    # deployment = site.deployments.create({"nodes": job.assigned_nodes,
+    #                                       "environment": "debian9-x64-min"
+    #                                       "key": key_path.read_text()})
+
+    while deployment.status != "terminated":
+        deployment.refresh()
+        print("Waiting for the deployment [%s] to be finished" % deployment.uid)
+        time.sleep(10)
+
+    print(deployment.result)
+
+4.6 Storage API
+~~~~~~~~~~~~~~~
+
+4.6.1 Get Storage accesses
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    import logging
+    import os
+
+    from grid5000 import Grid5000
+
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    gk = Grid5000.from_yaml(conf_file)
+
+    print(gk.sites["rennes"].storage["msimonin"].access.list())
+
+4.6.2 Set storage accesses (e.g for vms)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    from netaddr import IPNetwork
+    import logging
+    import os
+    import time
+
+    from grid5000 import Grid5000
+
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    gk = Grid5000.from_yaml(conf_file)
+    site = gk.sites["rennes"]
+
+    job = site.jobs.create({"name": "pyg5k",
+                            "command": "sleep 3600",
+                            "resources": "slash_22=1+nodes=1"})
+
+    while job.state != "running":
+        job.refresh()
+        print("Waiting the job [%s] to be running" % job.uid)
+        time.sleep(5)
+
+    subnet = job.resources_by_type['subnets'][0]
+    ip_network = [str(ip) for ip in IPNetwork(subnet)]
+
+    # create acces for all ips in the subnet
+    access = site.storage["msimonin"].access.create({"ipv4": ip_network,
+                                                      "termination": {"job": job.uid,
+                                                                      "site": site.uid}})
+
+4.7 Vlan API
+~~~~~~~~~~~~
+
+4.7.1 Get vlan(s)
+^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    import logging
+    import os
+
+    from grid5000 import Grid5000
+
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    gk = Grid5000.from_yaml(conf_file)
+
+    site = gk.sites["rennes"]
+
+    # Get all vlans
+    vlans = site.vlans.list()
+    print(vlans)
+
+    # Get on specific
+    vlan = site.vlans.get("4")
+    print(vlan)
+
+    vlan = site.vlans["4"]
+    print(vlan)
+
+    # Get vlan of some nodes
+    print(site.vlansnodes.submit({"nodes": ["paravance-1.rennes.grid5000.fr", "paravance-2.rennes.grid5000.fr"]}))
+
+
+    # Get nodes in vlan
+    print(site.vlans["4"].nodes.list())
+
+4.7.2 Set nodes in vlan
+^^^^^^^^^^^^^^^^^^^^^^^
+
+- Putting primary interface in a vlan
+
+  .. code:: python
+
+      import logging
+      import os
+      import time
+
+      from grid5000 import Grid5000
+
+
+      logging.basicConfig(level=logging.DEBUG)
+
+      conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+      gk = Grid5000.from_yaml(conf_file)
+      site = gk.sites["rennes"]
+
+      job = site.jobs.create({"name": "pyg5k",
+                              "command": "sleep 3600",
+                              "resources": "{type='kavlan'}/vlan=1+nodes=1",
+                              "types": ["deploy"]})
+
+      while job.state != "running":
+          job.refresh()
+          print("Waiting the job [%s] to be runnning" % job.uid)
+          time.sleep(5)
+
+      deployment = site.deployments.create({"nodes": job.assigned_nodes,
+                                            "environment": "debian9-x64-min",
+                                            "vlan": job.resources_by_type["vlans"][0]})
+
+      while deployment.status != "terminated":
+          deployment.refresh()
+          print("Waiting for the deployment [%s] to be finished" % deployment.uid)
+          time.sleep(10)
+
+      print(deployment.result)
+
+- Putting the secondary interface in a vlan
+
+  .. code:: python
+
+      import logging
+      import os
+      import time
+
+      from grid5000 import Grid5000
+
+
+      logging.basicConfig(level=logging.DEBUG)
+
+
+      def _to_network_address(host, interface):
+          """Translate a host to a network address
+          e.g:
+          paranoia-20.rennes.grid5000.fr -> paranoia-20-eth2.rennes.grid5000.fr
+          """
+          splitted = host.split('.')
+          splitted[0] = splitted[0] + "-" + interface
+
+          return ".".join(splitted)
+
+
+      conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+      gk = Grid5000.from_yaml(conf_file)
+
+      site = gk.sites["rennes"]
+
+      job = site.jobs.create({"name": "pyg5k",
+                              "command": "sleep 3600",
+                              "resources": "{type='kavlan'}/vlan=1+{cluster='paranoia'}nodes=1",
+                              "types": ["deploy"]
+      })
+
+      while job.state != "running":
+          job.refresh()
+          print("Waiting the job [%s] to be runnning" % job.uid)
+          time.sleep(5)
+
+      vlanid = job.resources_by_type["vlans"][0]
+
+      # we hard code the interface but this can be discovered in the node info
+      # TODO: write the code here to discover
+      nodes = [_to_network_address(n, "eth2") for n in job.assigned_nodes]
+      print(nodes)
+
+      # set in vlan
+      site.vlans[vlanid].submit({"nodes": nodes})
+
+4.8 More snippets
+~~~~~~~~~~~~~~~~~
+
+4.8.1 Site of a cluster
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    import logging
+    import os
+
+    from grid5000 import Grid5000
+
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    clusters = ["dahu", "parasilo", "chetemi"]
+
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    gk = Grid5000.from_yaml(conf_file)
+
+    sites = gk.sites.list()
+    matches = []
+    for site in sites:
+        candidates = site.clusters.list()
+        matching = [c.uid for c in candidates if c.uid in clusters]
+        if len(matching) == 1:
+            matches.append((site, matching[0]))
+            clusters.remove(matching[0])
+    print("We found the following matches %s" % matches)
+
+4.8.2 Get all job with a given name on all the sites
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+
+    import logging
+    import os
+
+    from grid5000 import Grid5000
+
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    NAME = "pyg5k"
+
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    gk = Grid5000.from_yaml(conf_file)
+
+    sites = gk.sites.list()
+    site = gk.sites["rennes"]
+    sites = [gk.sites["rennes"], gk.sites["nancy"], gk.sites["grenoble"]]
+
+    # creates some jobs
+    jobs = []
+    for site in sites:
+        job = site.jobs.create({"name": "pyg5k",
+                                "command": "sleep 3600"})
+        jobs.append(job)
+
+    _jobs = []
+    for site in sites:
+        _jobs.append((site.uid, site.jobs.list(name=NAME,
+                                               state="waiting,launching,running")))
+
+    print("We found %s" % _jobs)
+
+    # deleting the jobs
+    for job in jobs:
+        job.delete()
+
+
