@@ -1,0 +1,1231 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Creating a pipeline &mdash; Kedro 0.14.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+        <script type="text/javascript" src="../_static/copybutton.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/qb1-sphinx-rtd.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme-overrides.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/copybutton.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Packaging a project" href="05_package_a_project.html" />
+    <link rel="prev" title="Setting up the data" href="03_set_up_data.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Kedro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.14
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../01_introduction/01_introduction.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../01_introduction/01_introduction.html#what-is-kedro">What is Kedro?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../01_introduction/01_introduction.html#learning-about-kedro">Learning about Kedro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../01_introduction/01_introduction.html#assumptions">Assumptions</a><ul>
+<li class="toctree-l3"><a class="reference external" href="https://www.python.org/">Official Python programming language website</a></li>
+<li class="toctree-l3"><a class="reference external" href="https://github.com/EbookFoundation/free-programming-books/blob/master/free-programming-books.md#python">List of free programming books and tutorials</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../02_getting_started/01_prerequisites.html">Installation prerequisites</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/01_prerequisites.html#macos-linux">macOS / Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/01_prerequisites.html#windows">Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/01_prerequisites.html#python-virtual-environments">Python virtual environments</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../02_getting_started/01_prerequisites.html#using-conda">Using <code class="docutils literal notranslate"><span class="pre">conda</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../02_getting_started/01_prerequisites.html#create-an-environment-with-conda">Create an environment with <code class="docutils literal notranslate"><span class="pre">conda</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../02_getting_started/01_prerequisites.html#activate-an-environment-with-conda">Activate an environment with <code class="docutils literal notranslate"><span class="pre">conda</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../02_getting_started/01_prerequisites.html#other-conda-commands">Other <code class="docutils literal notranslate"><span class="pre">conda</span></code> commands</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../02_getting_started/01_prerequisites.html#alternatives-to-conda">Alternatives to <code class="docutils literal notranslate"><span class="pre">conda</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../02_getting_started/02_install.html">Installation guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_getting_started/03_new_project.html">Creating a new project</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/03_new_project.html#create-a-new-project-interactively">Create a new project interactively</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/03_new_project.html#create-a-new-project-from-a-configuration-file">Create a new project from a configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/03_new_project.html#starting-with-an-existing-project">Starting with an existing project</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../02_getting_started/04_hello_world.html">A “Hello World” example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/04_hello_world.html#project-directory-structure">Project directory structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/04_hello_world.html#project-source-code">Project source code</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../02_getting_started/04_hello_world.html#writing-code">Writing code</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/04_hello_world.html#project-components">Project components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/04_hello_world.html#data">Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/04_hello_world.html#example-pipeline">Example pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/04_hello_world.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../02_getting_started/04_hello_world.html#project-specific-configuration">Project-specific configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../02_getting_started/04_hello_world.html#sensitive-or-personal-configuration">Sensitive or personal configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/04_hello_world.html#running-the-example">Running the example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../02_getting_started/04_hello_world.html#summary">Summary</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="01_workflow.html">Typical Kedro workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="01_workflow.html#development-workflow">Development workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="01_workflow.html#set-up-the-project-template">1. Set up the project template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="01_workflow.html#set-up-the-data">2. Set up the data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="01_workflow.html#create-the-pipeline">3. Create the pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="01_workflow.html#package-the-project">4. Package the project</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="01_workflow.html#git-workflow">Git workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="01_workflow.html#creating-a-project-repository">Creating a project repository</a></li>
+<li class="toctree-l3"><a class="reference internal" href="01_workflow.html#submitting-your-changes-to-github">Submitting your changes to GitHub</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="02_tutorial_template.html">Kedro Spaceflights tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="02_tutorial_template.html#creating-the-tutorial-project">Creating the tutorial project</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="02_tutorial_template.html#project-configuration">Project configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="03_set_up_data.html">Setting up the data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="03_set_up_data.html#adding-your-datasets-to-data">Adding your datasets to <code class="docutils literal notranslate"><span class="pre">data</span></code></a><ul>
+<li class="toctree-l3"><a class="reference external" href="https://github.com/quantumblacklabs/kedro/tree/develop/docs/source/03_tutorial/data/reviews.csv">reviews.csv</a></li>
+<li class="toctree-l3"><a class="reference external" href="https://github.com/quantumblacklabs/kedro/tree/develop/docs/source/03_tutorial/data/companies.csv">companies.csv</a></li>
+<li class="toctree-l3"><a class="reference external" href="https://github.com/quantumblacklabs/kedro/tree/develop/docs/source/03_tutorial/data/shuttles.xlsx">shuttles.xlsx</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="03_set_up_data.html#reference-all-datasets">Reference all datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03_set_up_data.html#creating-custom-datasets">Creating custom datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="03_set_up_data.html#contributing-a-custom-dataset-implementation">Contributing a custom dataset implementation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Creating a pipeline</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#node-basics">Node basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#assemble-nodes-into-a-pipeline">Assemble nodes into a pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#persisting-pre-processed-data">Persisting pre-processed data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-kedro-projects-from-jupyter">Working with Kedro projects from Jupyter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-a-master-table">Creating a master table</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#working-in-a-jupyter-notebook">Working in a Jupyter notebook</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extending-the-project-s-code">Extending the project’s code</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-multiple-pipelines">Working with multiple pipelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#partial-pipeline-runs">Partial pipeline runs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-decorators-for-nodes-and-pipelines">Using decorators for nodes and pipelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#decorating-the-nodes">Decorating the nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#decorating-the-pipeline">Decorating the pipeline</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#kedro-runners">Kedro runners</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="05_package_a_project.html">Packaging a project</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="05_package_a_project.html#add-documentation-to-your-project">Add documentation to your project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_package_a_project.html#package-your-project">Package your project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_package_a_project.html#what-is-next">What is next?</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../04_user_guide/01_setting_up_vscode.html">Setting up Visual Studio Code</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/01_setting_up_vscode.html#advanced-for-those-using-venv-virtualenv">Advanced: For those using <code class="docutils literal notranslate"><span class="pre">venv</span></code> / <code class="docutils literal notranslate"><span class="pre">virtualenv</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/01_setting_up_vscode.html#setting-up-tasks">Setting up tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/01_setting_up_vscode.html#debugging">Debugging</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/01_setting_up_vscode.html#advanced-remote-interpreter-debugging">Advanced: Remote Interpreter / Debugging</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../04_user_guide/02_setting_up_pycharm.html">Setting up PyCharm</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/02_setting_up_pycharm.html#set-up-run-configurations">Set up Run configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/02_setting_up_pycharm.html#debugging">Debugging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/02_setting_up_pycharm.html#advanced-remote-ssh-interpreter">Advanced: Remote SSH interpreter</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../04_user_guide/03_configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/03_configuration.html#local-and-base-configuration">Local and base configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/03_configuration.html#loading">Loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/03_configuration.html#additional-configuration-environments">Additional configuration environments</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../04_user_guide/04_data_catalog.html">The Data Catalog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#using-the-data-catalog-within-kedro-configuration">Using the Data Catalog within Kedro configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#using-the-data-catalog-with-the-yaml-api">Using the Data Catalog with the YAML API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#loading-multiple-datasets-that-have-similar-configuration">Loading multiple datasets that have similar configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#versioning-datasets-and-ml-models">Versioning datasets and ML models</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#using-the-data-catalog-with-the-code-api">Using the Data Catalog with the Code API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#configuring-a-data-catalog">Configuring a data catalog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#loading-datasets">Loading datasets</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#behind-the-scenes">Behind the scenes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#viewing-the-available-data-sources">Viewing the available data sources</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#saving-data">Saving data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#saving-data-to-memory">Saving data to memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#saving-data-to-a-sql-database-for-querying">Saving data to a SQL database for querying</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#saving-data-in-parquet">Saving data in parquet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../04_user_guide/04_data_catalog.html#creating-your-own-dataset">Creating your own dataset</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html">Nodes and pipelines</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#nodes">Nodes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#creating-a-pipeline-node">Creating a pipeline node</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#node-definition-syntax">Node definition syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#syntax-for-input-variables">Syntax for input variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#syntax-for-output-variables">Syntax for output variables</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#running-nodes">Running nodes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#applying-decorators-to-nodes">Applying decorators to nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#applying-multiple-decorators-to-nodes">Applying multiple decorators to nodes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#building-pipelines">Building pipelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#merging-pipelines">Merging pipelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#fetching-pipeline-nodes">Fetching pipeline nodes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#bad-pipelines">Bad pipelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#pipeline-with-bad-nodes">Pipeline with bad nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#pipeline-with-circular-dependencies">Pipeline with circular dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#running-pipelines">Running pipelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#runners">Runners</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#applying-decorators-on-pipelines">Applying decorators on pipelines</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#running-pipelines-with-io">Running pipelines with IO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#outputting-to-a-file">Outputting to a file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#partial-pipelines">Partial pipelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#partial-pipeline-starting-from-inputs">Partial pipeline starting from inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#partial-pipeline-starting-from-nodes">Partial pipeline starting from nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#partial-pipeline-from-nodes-with-tags">Partial pipeline from nodes with tags</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#running-only-some-nodes">Running only some nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html#recreating-missing-outputs">Recreating Missing Outputs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../04_user_guide/06_logging.html">Logging</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/06_logging.html#configure-logging">Configure logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/06_logging.html#use-logging">Use logging</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../04_user_guide/07_advanced_io.html">Advanced IO</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../kedro.io.AbstractDataSet.html">AbstractDataSet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../kedro.io.DataSetError.html">DataSetError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/07_advanced_io.html#error-handling">Error handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/07_advanced_io.html#abstractdataset">AbstractDataSet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/07_advanced_io.html#versioning">Versioning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/07_advanced_io.html#version-namedtuple"><code class="docutils literal notranslate"><span class="pre">version</span></code> namedtuple</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/07_advanced_io.html#versioning-using-the-yaml-api">Versioning using the YAML API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/07_advanced_io.html#versioning-using-the-code-api">Versioning using the Code API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/07_advanced_io.html#supported-datasets">Supported datasets</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../04_user_guide/08_pyspark.html">Working with PySpark</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/08_pyspark.html#initialising-a-sparksession">Initialising a <code class="docutils literal notranslate"><span class="pre">SparkSession</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/08_pyspark.html#creating-a-sparkdataset">Creating a <code class="docutils literal notranslate"><span class="pre">SparkDataSet</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/08_pyspark.html#code-api">Code API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../04_user_guide/08_pyspark.html#yaml-api">YAML API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/08_pyspark.html#working-with-pyspark-and-kedro-pipelines">Working with PySpark and Kedro pipelines</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../04_user_guide/09_developing_plugins.html">Developing Kedro plugins</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/09_developing_plugins.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/09_developing_plugins.html#initialisation">Initialisation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/09_developing_plugins.html#global-and-project-commands">global and project commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/09_developing_plugins.html#working-with-click">Working with <code class="docutils literal notranslate"><span class="pre">click</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../04_user_guide/09_developing_plugins.html#example-of-a-simple-plugin">Example of a simple plugin</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../06_resources/01_faq.html">Frequently asked questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/01_faq.html#what-is-kedro">What is Kedro?</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../06_resources/01_faq.html#philosophy">Philosophy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../06_resources/01_faq.html#principles">Principles</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/01_faq.html#what-version-of-python-does-kedro-use">What version of Python does Kedro use?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/01_faq.html#what-are-the-primary-advantages-of-kedro">What are the primary advantages of Kedro?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/01_faq.html#how-does-kedro-compare-to-other-projects">How does Kedro compare to other projects?</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../06_resources/01_faq.html#kedro-vs-workflow-schedulers">Kedro vs workflow schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../06_resources/01_faq.html#kedro-vs-other-etl-frameworks">Kedro vs other ETL frameworks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/01_faq.html#what-is-data-engineering-convention">What is data engineering convention?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/01_faq.html#what-best-practice-should-i-follow-to-avoid-leaking-confidential-data">What best practice should I follow to avoid leaking confidential data?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/01_faq.html#where-do-i-store-my-custom-editor-configuration">Where do I store my custom editor configuration?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/01_faq.html#how-do-i-look-up-an-api-function">How do I look up an API function?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/01_faq.html#how-do-i-build-documentation-for-my-project">How do I build documentation for my project?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/01_faq.html#how-do-i-build-documentation-about-kedro">How do I build documentation about Kedro?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/01_faq.html#how-can-i-find-out-more-about-kedro">How can I find out more about Kedro?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../06_resources/02_commands_reference.html">Guide to CLI commands</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/02_commands_reference.html#global-kedro-commands">Global Kedro commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/02_commands_reference.html#project-specific-kedro-commands">Project-specific Kedro commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../06_resources/02_commands_reference.html#kedro-run"><code class="docutils literal notranslate"><span class="pre">kedro</span> <span class="pre">run</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../06_resources/02_commands_reference.html#kedro-install"><code class="docutils literal notranslate"><span class="pre">kedro</span> <span class="pre">install</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../06_resources/02_commands_reference.html#kedro-test"><code class="docutils literal notranslate"><span class="pre">kedro</span> <span class="pre">test</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../06_resources/02_commands_reference.html#kedro-package"><code class="docutils literal notranslate"><span class="pre">kedro</span> <span class="pre">package</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../06_resources/02_commands_reference.html#kedro-build-docs"><code class="docutils literal notranslate"><span class="pre">kedro</span> <span class="pre">build-docs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../06_resources/02_commands_reference.html#kedro-jupyter-notebook-kedro-jupyter-lab-kedro-ipython"><code class="docutils literal notranslate"><span class="pre">kedro</span> <span class="pre">jupyter</span> <span class="pre">notebook</span></code>, <code class="docutils literal notranslate"><span class="pre">kedro</span> <span class="pre">jupyter</span> <span class="pre">lab</span></code>, <code class="docutils literal notranslate"><span class="pre">kedro</span> <span class="pre">ipython</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../06_resources/02_commands_reference.html#kedro-activate-nbstripout"><code class="docutils literal notranslate"><span class="pre">kedro</span> <span class="pre">activate-nbstripout</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/02_commands_reference.html#using-python">Using Python</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../06_resources/03_ipython.html">Working with Kedro and IPython</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../06_resources/03_ipython.html#loading-datacatalog-in-ipython">Loading <code class="docutils literal notranslate"><span class="pre">DataCatalog</span></code> in IPython</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../06_resources/04_lint.html">Linting your Kedro project</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Docs</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../kedro.html">kedro</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../kedro.io.html">kedro.io</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.io.html#data-catalog">Data Catalog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.DataCatalog.html">kedro.io.DataCatalog</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.io.html#data-sets">Data Sets</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.CSVLocalDataSet.html">kedro.io.CSVLocalDataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.CSVS3DataSet.html">kedro.io.CSVS3DataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.HDFLocalDataSet.html">kedro.io.HDFLocalDataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.JSONLocalDataSet.html">kedro.io.JSONLocalDataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.LambdaDataSet.html">kedro.io.LambdaDataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.MemoryDataSet.html">kedro.io.MemoryDataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.ParquetLocalDataSet.html">kedro.io.ParquetLocalDataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.PickleLocalDataSet.html">kedro.io.PickleLocalDataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.PickleS3DataSet.html">kedro.io.PickleS3DataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.SQLTableDataSet.html">kedro.io.SQLTableDataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.SQLQueryDataSet.html">kedro.io.SQLQueryDataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.TextLocalDataSet.html">kedro.io.TextLocalDataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.ExcelLocalDataSet.html">kedro.io.ExcelLocalDataSet</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.io.html#errors">Errors</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.DataSetAlreadyExistsError.html">kedro.io.DataSetAlreadyExistsError</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.DataSetError.html">kedro.io.DataSetError</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.DataSetNotFoundError.html">kedro.io.DataSetNotFoundError</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.io.html#base-classes">Base Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.AbstractDataSet.html">kedro.io.AbstractDataSet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.ExistsMixin.html">kedro.io.ExistsMixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.FilepathVersionMixIn.html">kedro.io.FilepathVersionMixIn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.S3PathVersionMixIn.html">kedro.io.S3PathVersionMixIn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.io.Version.html">kedro.io.Version</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../kedro.config.html">kedro.config</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.config.ConfigLoader.html">kedro.config.ConfigLoader</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../kedro.pipeline.html">kedro.pipeline</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.pipeline.Pipeline.html">kedro.pipeline.Pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.pipeline.node.Node.html">kedro.pipeline.node.Node</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.pipeline.node.html">kedro.pipeline.node</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../kedro.runner.html">kedro.runner</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.runner.AbstractRunner.html">kedro.runner.AbstractRunner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.runner.SequentialRunner.html">kedro.runner.SequentialRunner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.runner.ParallelRunner.html">kedro.runner.ParallelRunner</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../kedro.contrib.html">kedro.contrib</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.contrib.io.html">kedro.contrib.io</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.contrib.io.catalog_with_default.html">kedro.contrib.io.catalog_with_default package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.contrib.io.azure.html">kedro.contrib.io.azure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.contrib.io.bioinformatics.html">kedro.contrib.io.bioinformatics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.contrib.io.pyspark.html">kedro.contrib.io.pyspark package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.contrib.colors.html">kedro.contrib.colors package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.contrib.colors.html#subpackages">Subpackages</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../kedro.contrib.decorators.html">kedro.contrib.decorators package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.contrib.decorators.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../kedro.contrib.decorators.html#module-kedro.contrib.decorators.decorators">kedro.contrib.decorators.decorators module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kedro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Creating a pipeline</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="creating-a-pipeline">
+<h1>Creating a pipeline<a class="headerlink" href="#creating-a-pipeline" title="Permalink to this headline">¶</a></h1>
+<p>This section covers how to create a pipeline from a set of <code class="docutils literal notranslate"><span class="pre">node</span></code>s, which are Python functions, as described in more detail in the <a class="reference internal" href="../04_user_guide/05_nodes_and_pipelines.html"><span class="doc">nodes and pipelines user guide</span></a> documentation.</p>
+<ol class="simple">
+<li>As you draft experimental code, you can use a <a class="reference internal" href="#working-with-kedro-projects-from-jupyter"><span class="std std-ref">Jupyter Notebook</span></a> or <a class="reference internal" href="../06_resources/03_ipython.html#working-with-kedro-and-ipython"><span class="std std-ref">IPython session</span></a>. If you include <a class="reference external" href="https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings"><code class="docutils literal notranslate"><span class="pre">docstrings</span></code></a> to explain what your functions do, you can take advantage of <a class="reference external" href="http://www.sphinx-doc.org/en/master/">auto-generated Sphinx documentation</a> later on. Once you are happy with how you have written your <code class="docutils literal notranslate"><span class="pre">node</span></code> functions, you will copy &amp; paste the code into the <code class="docutils literal notranslate"><span class="pre">src/kedro_tutorial/nodes/</span></code> folder as a <code class="docutils literal notranslate"><span class="pre">.py</span></code> file.</li>
+<li>When you are ready with a node you should add it to the pipeline in <code class="docutils literal notranslate"><span class="pre">src/kedro_tutorial/pipeline.py</span></code>, specifying its inputs and outputs.</li>
+<li>Finally, you will choose how you would like to run your pipeline: sequentially or in parallel, by specifying your preference in <code class="docutils literal notranslate"><span class="pre">src/kedro_tutorial/run.py</span></code>.</li>
+</ol>
+<div class="section" id="node-basics">
+<h2>Node basics<a class="headerlink" href="#node-basics" title="Permalink to this headline">¶</a></h2>
+<p>You previously registered the raw datasets for your Kedro project, so you can now start processing the data and preparing it for model building. Let’s pre-process two of the datasets (<a class="reference external" href="https://github.com/quantumblacklabs/kedro/tree/develop/docs/source/03_tutorial/data/companies.csv">companies.csv</a> and <a class="reference external" href="https://github.com/quantumblacklabs/kedro/tree/develop/docs/source/03_tutorial/data/shuttles.xlsx">shuttles.xlsx</a>) by creating Python functions for each.</p>
+<p>Create a file called <code class="docutils literal notranslate"><span class="pre">data_engineering.py</span></code> inside your <code class="docutils literal notranslate"><span class="pre">nodes</span></code> folder and add the following functions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+
+<span class="k">def</span> <span class="nf">_is_true</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;t&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_percentage</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">100</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_money</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">preprocess_companies</span><span class="p">(</span><span class="n">companies</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Preprocess the data for companies.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            companies: Source data.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Preprocessed data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">companies</span><span class="p">[</span><span class="s2">&quot;iata_approved&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">companies</span><span class="p">[</span><span class="s2">&quot;iata_approved&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_is_true</span><span class="p">)</span>
+
+    <span class="n">companies</span><span class="p">[</span><span class="s2">&quot;company_rating&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">companies</span><span class="p">[</span><span class="s2">&quot;company_rating&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_parse_percentage</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">companies</span>
+
+
+<span class="k">def</span> <span class="nf">preprocess_shuttles</span><span class="p">(</span><span class="n">shuttles</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Preprocess the data for shuttles.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shuttles: Source data.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Preprocessed data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shuttles</span><span class="p">[</span><span class="s2">&quot;d_check_complete&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shuttles</span><span class="p">[</span><span class="s2">&quot;d_check_complete&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_is_true</span><span class="p">)</span>
+
+    <span class="n">shuttles</span><span class="p">[</span><span class="s2">&quot;moon_clearance_complete&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shuttles</span><span class="p">[</span><span class="s2">&quot;moon_clearance_complete&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+        <span class="n">_is_true</span>
+    <span class="p">)</span>
+
+    <span class="n">shuttles</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shuttles</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_parse_money</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">shuttles</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="assemble-nodes-into-a-pipeline">
+<h2>Assemble nodes into a pipeline<a class="headerlink" href="#assemble-nodes-into-a-pipeline" title="Permalink to this headline">¶</a></h2>
+<p>Now you have functions which take one dataframe and output a pre-processed version of that dataframe. Next you should add these functions as nodes into the pipeline in <code class="docutils literal notranslate"><span class="pre">pipeline.py</span></code>, so the <code class="docutils literal notranslate"><span class="pre">create_pipeline()</span></code> function looks as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_pipeline</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create the project&#39;s pipeline.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        kwargs: Ignore any additional arguments added in the future.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Pipeline: The resulting pipeline.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">preprocess_companies</span><span class="p">,</span> <span class="s2">&quot;companies&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_companies&quot;</span><span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">preprocess_shuttles</span><span class="p">,</span> <span class="s2">&quot;shuttles&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_shuttles&quot;</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pipeline</span>
+</pre></div>
+</div>
+<p>You will also need to import <code class="docutils literal notranslate"><span class="pre">node</span></code>, and your functions by adding them to the beginning of the <code class="docutils literal notranslate"><span class="pre">pipeline.py</span></code> file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">kedro.pipeline</span> <span class="kn">import</span> <span class="n">node</span>
+<span class="kn">from</span> <span class="nn">kedro_tutorial.nodes.data_engineering</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">preprocess_companies</span><span class="p">,</span>
+    <span class="n">preprocess_shuttles</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Now check if your pipeline is running without any errors by typing this in your terminal window:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro run
+</pre></div>
+</div>
+<p>You should see output similar to the following</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro run
+
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:15,206 - root - INFO - ** Kedro project kedro-tutorial
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:15,207 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/base/logging.yml
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:15,221 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/base/catalog.yml
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:15,225 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/local/credentials.yml
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:15,227 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/base/parameters.yml
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:15,233 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>companies<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:15,365 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>preprocessed_companies<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:15,366 - kedro.runner.sequential_runner - INFO - Completed <span class="m">1</span> out of <span class="m">2</span> tasks
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:15,367 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>shuttles<span class="sb">`</span> <span class="o">(</span>ExcelLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:35,738 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>preprocessed_shuttles<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:35,745 - kedro.runner.sequential_runner - INFO - Completed <span class="m">2</span> out of <span class="m">2</span> tasks
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:35,745 - kedro.runner.sequential_runner - INFO - Pipeline execution completed successfully.
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:35,746 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>preprocessed_shuttles<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-18 <span class="m">19</span>:16:35,748 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>preprocessed_companies<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+</pre></div>
+</div>
+</div>
+<div class="section" id="persisting-pre-processed-data">
+<h2>Persisting pre-processed data<a class="headerlink" href="#persisting-pre-processed-data" title="Permalink to this headline">¶</a></h2>
+<p>Now each of our 2 newly added data preprocessing nodes outputs a new dataset: <code class="docutils literal notranslate"><span class="pre">preprocessed_companies</span></code> and <code class="docutils literal notranslate"><span class="pre">preprocessed_shuttles</span></code> respectively. Node inputs and outputs are used by the pipeline to determine interdependencies between the nodes, and hence, their execution order.</p>
+<p>When Kedro ran the pipeline, it determined that those datasets were not registered in the data catalog (<code class="docutils literal notranslate"><span class="pre">conf/base/catalog.yml</span></code>). If a dataset is not registered, Kedro stores it in memory as a Python object using the <code class="docutils literal notranslate"><span class="pre">MemoryDataSet</span></code> class. Once all nodes depending on it have been executed, a <code class="docutils literal notranslate"><span class="pre">MemoryDataSet</span></code> is cleared and its memory released by the Python garbage collector.</p>
+<p>If you prefer, you can persist any preprocessed data by adding the following to the <code class="docutils literal notranslate"><span class="pre">conf/base/catalog.yml</span></code> file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">preprocessed_companies</span><span class="p">:</span>
+  <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">CSVLocalDataSet</span>
+  <span class="nt">filepath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">data/02_intermediate/preprocessed_companies.csv</span>
+
+<span class="nt">preprocessed_shuttles</span><span class="p">:</span>
+  <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">CSVLocalDataSet</span>
+  <span class="nt">filepath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">data/02_intermediate/preprocessed_shuttles.csv</span>
+</pre></div>
+</div>
+<p>By doing so you explicitly declare that <code class="docutils literal notranslate"><span class="pre">CSVLocalDataSet</span></code> should be used instead of <code class="docutils literal notranslate"><span class="pre">MemoryDataSet</span></code>. <code class="docutils literal notranslate"><span class="pre">CSVLocalDataSet</span></code> will save the data as a CSV file to the local <code class="docutils literal notranslate"><span class="pre">filepath</span></code> specified. There is no need to change any code in your preprocessing functions to accommodate this change. <code class="docutils literal notranslate"><span class="pre">DataCatalog</span></code> will take care of saving those datasets automatically the next time you run the pipeline:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro run
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">CSVLocalDataSet</span></code> is chosen for its simplicity, but you can choose any other available dataset implementation class to save the data, for example, to a database table, cloud storage (like <a class="reference external" href="https://aws.amazon.com/s3/">AWS S3</a>, <a class="reference external" href="https://azure.microsoft.com/en-gb/services/storage/blobs/">Azure Blob Storage</a>, etc.) and others. If you cannot find the dataset implementation you need, you can easily implement your own as <a class="reference internal" href="03_set_up_data.html#creating-custom-datasets"><span class="std std-ref">you already did earlier</span></a> and share it with the world by contributing back to Kedro!</p>
+</div>
+<div class="section" id="working-with-kedro-projects-from-jupyter">
+<h2>Working with Kedro projects from Jupyter<a class="headerlink" href="#working-with-kedro-projects-from-jupyter" title="Permalink to this headline">¶</a></h2>
+<p>Currently, the pipeline consists of just two nodes and performs just some data pre-processing. Let’s expand it by adding more nodes.</p>
+<p>When you are developing new nodes for your pipeline, you can write them as regular Python functions, but you may want to use Jupyter Notebooks for experimenting with your code before committing to a specific implementation. To take advantage of Kedro’s Jupyter session, you can run this in your terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro jupyter notebook
+</pre></div>
+</div>
+<p>This will open a Jupyter Notebook in your browser. Navigate to <code class="docutils literal notranslate"><span class="pre">notebooks</span></code> folder and create a notebook there with a Kedro kernel. After opening the newly created notebook you can check what the data looks like by pasting this into the first cell of the notebook and selecting <strong>Run</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;preprocessed_shuttles&#39;</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You should be able to see the first 5 rows of the loaded dataset as follows:</p>
+<p><img alt="../_images/jupyter_notebook_ch3.png" src="../_images/jupyter_notebook_ch3.png" /></p>
+<blockquote>
+<div><em>Note:</em>
+<br/>If you see an error message stating that <code class="docutils literal notranslate"><span class="pre">io</span></code> is undefined, you can see what went wrong by using <code class="docutils literal notranslate"><span class="pre">print(startup_error)</span></code>, where <code class="docutils literal notranslate"><span class="pre">startup_error</span></code> is available as a variable in Python.
+<br/>If you cannot access <code class="docutils literal notranslate"><span class="pre">startup_error</span></code> please make sure you have run <strong><code class="docutils literal notranslate"><span class="pre">kedro</span></code></strong><code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code> from the project’s root directory. Running without the <code class="docutils literal notranslate"><span class="pre">kedro</span></code> command (that is, just running a <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code>) will not load the Kedro session for you.
+<br/>When you add new datasets to your <code class="docutils literal notranslate"><span class="pre">catalog.yml</span></code> file you need to reload Kedro’s session by running <code class="docutils literal notranslate"><span class="pre">%reload_kedro</span></code> in your cell.</div></blockquote>
+</div>
+<div class="section" id="creating-a-master-table">
+<h2>Creating a master table<a class="headerlink" href="#creating-a-master-table" title="Permalink to this headline">¶</a></h2>
+<p>We need to add a function to join together the three dataframes into a single master table in a cell in the notebook as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="k">def</span> <span class="nf">create_master_table</span><span class="p">(</span>
+    <span class="n">shuttles</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">companies</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">reviews</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Combines all data to create a master table.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shuttles: Preprocessed data for shuttles.</span>
+<span class="sd">            companies: Preprocessed data for companies.</span>
+<span class="sd">            reviews: Source data for reviews.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Master table.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rated_shuttles</span> <span class="o">=</span> <span class="n">shuttles</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">reviews</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;shuttle_id&quot;</span><span class="p">)</span>
+
+    <span class="n">with_companies</span> <span class="o">=</span> <span class="n">rated_shuttles</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">companies</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;company_id&quot;</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;id&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">master_table</span> <span class="o">=</span> <span class="n">with_companies</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s2">&quot;shuttle_id&quot;</span><span class="p">,</span> <span class="s2">&quot;company_id&quot;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">master_table</span> <span class="o">=</span> <span class="n">master_table</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">master_table</span>
+</pre></div>
+</div>
+<div class="section" id="working-in-a-jupyter-notebook">
+<h3>Working in a Jupyter notebook<a class="headerlink" href="#working-in-a-jupyter-notebook" title="Permalink to this headline">¶</a></h3>
+<p>To create a new node to join all tables to form a master table, you need to add the three dataframes to a cell in the Jupyter notebook:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">preprocessed_shuttles</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;preprocessed_shuttles&quot;</span><span class="p">)</span>
+<span class="n">preprocessed_companies</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;preprocessed_companies&quot;</span><span class="p">)</span>
+<span class="n">reviews</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;reviews&quot;</span><span class="p">)</span>
+
+<span class="n">master</span> <span class="o">=</span> <span class="n">create_master_table</span><span class="p">(</span><span class="n">preprocessed_shuttles</span><span class="p">,</span> <span class="n">preprocessed_companies</span><span class="p">,</span> <span class="n">reviews</span><span class="p">)</span>
+<span class="n">master</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="extending-the-project-s-code">
+<h3>Extending the project’s code<a class="headerlink" href="#extending-the-project-s-code" title="Permalink to this headline">¶</a></h3>
+<p>Having tested that all is working with the master table, it is now time to add the code you’ve worked on to the Spaceflights project code. First, add the <code class="docutils literal notranslate"><span class="pre">create_master_table()</span></code> function from the snippet above to <code class="docutils literal notranslate"><span class="pre">data_engineering.py</span></code> (you do not need to copy the import statement <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">pandas</span> <span class="pre">as</span> <span class="pre">pd</span></code>).</p>
+<p>Then you should add it to the pipeline in <code class="docutils literal notranslate"><span class="pre">pipeline.py</span></code> by adding the node as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">node</span><span class="p">(</span>
+    <span class="n">create_master_table</span><span class="p">,</span>
+    <span class="p">[</span><span class="s2">&quot;preprocessed_shuttles&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_companies&quot;</span><span class="p">,</span> <span class="s2">&quot;reviews&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;master_table&quot;</span>
+<span class="p">),</span>
+</pre></div>
+</div>
+<p>By adding this code to the project, you are telling Kedro that the function <code class="docutils literal notranslate"><span class="pre">create_master_table</span></code> should be called with the data loaded from datasets <code class="docutils literal notranslate"><span class="pre">preprocessed_shuttles</span></code>, <code class="docutils literal notranslate"><span class="pre">preprocessed_companies</span></code>, and <code class="docutils literal notranslate"><span class="pre">reviews</span></code> and the output should be saved to dataset <code class="docutils literal notranslate"><span class="pre">master_table</span></code>.</p>
+<p>You will also need to add an import statement for <code class="docutils literal notranslate"><span class="pre">create_master_table</span></code> at the top of the file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">kedro_tutorial.nodes.data_engineering</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">preprocess_companies</span><span class="p">,</span>
+    <span class="n">preprocess_shuttles</span><span class="p">,</span>
+    <span class="n">create_master_table</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>If you want your data to be saved to file rather than used in-memory, you also need to add an entry to the <code class="docutils literal notranslate"><span class="pre">catalog.yml</span></code> file like this:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">master_table</span><span class="p">:</span>
+  <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">CSVLocalDataSet</span>
+  <span class="nt">filepath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">data/03_primary/master_table.csv</span>
+</pre></div>
+</div>
+<p>You may want to test that all is working with your code at this point:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro run
+
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:21,748 - root - INFO - ** Kedro project kedro-tutorial
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:21,749 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/base/logging.yml
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:21,762 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/base/catalog.yml
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:21,769 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/local/credentials.yml
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:21,771 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/base/parameters.yml
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:21,777 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>companies<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:21,909 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>preprocessed_companies<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:22,224 - kedro.runner.sequential_runner - INFO - Completed <span class="m">1</span> out of <span class="m">3</span> tasks
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:22,224 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>shuttles<span class="sb">`</span> <span class="o">(</span>ExcelLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:44,310 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>preprocessed_shuttles<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:44,993 - kedro.runner.sequential_runner - INFO - Completed <span class="m">2</span> out of <span class="m">3</span> tasks
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:44,994 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>preprocessed_shuttles<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:45,132 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>preprocessed_companies<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:45,178 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>reviews<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">15</span>:44:47,909 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>master_table<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">15</span>:45:02,448 - kedro.runner.sequential_runner - INFO - Completed <span class="m">3</span> out of <span class="m">3</span> tasks
+<span class="m">2019</span>-04-19 <span class="m">15</span>:45:02,449 - kedro.runner.sequential_runner - INFO - Pipeline execution completed successfully.
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="working-with-multiple-pipelines">
+<h2>Working with multiple pipelines<a class="headerlink" href="#working-with-multiple-pipelines" title="Permalink to this headline">¶</a></h2>
+<p>Having merged three input datasets to create a master table, you are now ready to make another pipeline for a price prediction model. It will be called the data science pipeline.</p>
+<p>For this example, we will use a <a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html"><code class="docutils literal notranslate"><span class="pre">LinearRegression</span></code></a> implementation from the <a class="reference external" href="https://scikit-learn.org/stable/">scikit-learn</a> library.</p>
+<p>You can start by updating the dependencies in <code class="docutils literal notranslate"><span class="pre">src/requirements.txt</span></code> with the following:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>scikit-learn==0.20.2
+</pre></div>
+</div>
+<p>You can find out more about requirements files <a class="reference external" href="https://pip.pypa.io/en/stable/user_guide/#requirements-files">here</a>.</p>
+<p>Then, from within the project directory, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro install
+</pre></div>
+</div>
+<p>Next, create a file <code class="docutils literal notranslate"><span class="pre">src/kedro_tutorial/nodes/price_prediction.py</span></code> and add the following code to it:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LinearRegression</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">r2_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+
+
+<span class="k">def</span> <span class="nf">split_data</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Splits data into training and test sets.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data: Source data.</span>
+<span class="sd">            parameters: Parameters defined in parameters.yml.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            A list containing split data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span>
+        <span class="p">[</span>
+            <span class="s2">&quot;engines&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;passenger_capacity&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;crew&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;d_check_complete&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;moon_clearance_complete&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;test_size&quot;</span><span class="p">],</span> <span class="n">random_state</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;random_state&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">train_model</span><span class="p">(</span><span class="n">X_train</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y_train</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinearRegression</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Train the linear regression model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            X_train: Training data of independent features.</span>
+<span class="sd">            y_train: Training data for price.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Trained model.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">regressor</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">()</span>
+    <span class="n">regressor</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">regressor</span>
+
+
+<span class="k">def</span> <span class="nf">evaluate_model</span><span class="p">(</span><span class="n">regressor</span><span class="p">:</span> <span class="n">LinearRegression</span><span class="p">,</span> <span class="n">X_test</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y_test</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the coefficient of determination and log the result.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            regressor: Trained model.</span>
+<span class="sd">            X_test: Testing data of independent features.</span>
+<span class="sd">            y_test: Testing data for price.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">regressor</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">r2_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Model has a coefficient R^2 of </span><span class="si">%.3f</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Add the following to <code class="docutils literal notranslate"><span class="pre">conf/base/parameters.yml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">test_size</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.2</span>
+<span class="nt">random_state</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+</pre></div>
+</div>
+<p>These are the parameters fed into the <code class="docutils literal notranslate"><span class="pre">DataCatalog</span></code> when the pipeline is executed (see the details in <code class="docutils literal notranslate"><span class="pre">create_catalog()</span></code> and <code class="docutils literal notranslate"><span class="pre">main()</span></code> in <code class="docutils literal notranslate"><span class="pre">src/kedro_tutorial/run.py</span></code>).</p>
+<p>Next, register the dataset, which will save the trained model, by adding the following definition to <code class="docutils literal notranslate"><span class="pre">conf/base/catalog.yml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">regressor</span><span class="p">:</span>
+  <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">PickleLocalDataSet</span>
+  <span class="nt">filepath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">data/06_models/regressor.pickle</span>
+  <span class="nt">versioned</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+<blockquote>
+<div><em>Note:</em> Versioning is enabled for <code class="docutils literal notranslate"><span class="pre">regressor</span></code>, which means that the pickled output of the <code class="docutils literal notranslate"><span class="pre">regressor</span></code> will be versioned and saved every time the pipeline is run. This allows us to keep the history of the models built using this pipeline. See the details in the <a class="reference internal" href="../04_user_guide/07_advanced_io.html#versioning"><span class="std std-ref">Versioning</span></a> section of the User Guide.</div></blockquote>
+<p>Now to create a pipeline for the price prediction model. In <code class="docutils literal notranslate"><span class="pre">src/kedro_tutorial/nodes/pipeline.py</span></code>, update <code class="docutils literal notranslate"><span class="pre">create_pipeline()</span></code> to add an extra import statement as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">kedro_tutorial.nodes.price_prediction</span> <span class="kn">import</span> <span class="n">split_data</span><span class="p">,</span> <span class="n">train_model</span><span class="p">,</span> <span class="n">evaluate_model</span>
+</pre></div>
+</div>
+<p>Then add a separate pipeline, by replacing the code in <code class="docutils literal notranslate"><span class="pre">create_pipeline()</span></code> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_pipeline</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create the project&#39;s pipeline.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        kwargs: Ignore any additional arguments added in the future.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Pipeline: The resulting pipeline.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">de_pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">preprocess_companies</span><span class="p">,</span> <span class="s2">&quot;companies&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_companies&quot;</span><span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">preprocess_shuttles</span><span class="p">,</span> <span class="s2">&quot;shuttles&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_shuttles&quot;</span><span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span>
+                <span class="n">create_master_table</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;preprocessed_shuttles&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_companies&quot;</span><span class="p">,</span> <span class="s2">&quot;reviews&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;master_table&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">ds_pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">node</span><span class="p">(</span>
+                <span class="n">split_data</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;master_table&quot;</span><span class="p">,</span> <span class="s2">&quot;parameters&quot;</span><span class="p">],</span>
+                <span class="p">[</span><span class="s2">&quot;X_train&quot;</span><span class="p">,</span> <span class="s2">&quot;X_test&quot;</span><span class="p">,</span> <span class="s2">&quot;y_train&quot;</span><span class="p">,</span> <span class="s2">&quot;y_test&quot;</span><span class="p">],</span>
+            <span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">train_model</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;X_train&quot;</span><span class="p">,</span> <span class="s2">&quot;y_train&quot;</span><span class="p">],</span> <span class="s2">&quot;regressor&quot;</span><span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">evaluate_model</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;regressor&quot;</span><span class="p">,</span> <span class="s2">&quot;X_test&quot;</span><span class="p">,</span> <span class="s2">&quot;y_test&quot;</span><span class="p">],</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">de_pipeline</span> <span class="o">+</span> <span class="n">ds_pipeline</span>
+</pre></div>
+</div>
+<p>The first node of the <code class="docutils literal notranslate"><span class="pre">ds_pipeline</span></code> outputs 4 objects: <code class="docutils literal notranslate"><span class="pre">X_train</span></code>, <code class="docutils literal notranslate"><span class="pre">X_test</span></code>, <code class="docutils literal notranslate"><span class="pre">y_train</span></code>, <code class="docutils literal notranslate"><span class="pre">y_test</span></code>, which are not registered in <code class="docutils literal notranslate"><span class="pre">conf/base/catalog.yml</span></code>. (If you recall, if a dataset is not specified in the catalog, Kedro will automatically save it in memory using the <code class="docutils literal notranslate"><span class="pre">MemoryDataSet</span></code>). Normally you would add dataset definitions of your model features into <code class="docutils literal notranslate"><span class="pre">conf/base/catalog.yml</span></code> with the save location in <code class="docutils literal notranslate"><span class="pre">data/04_features/</span></code>.</p>
+<p>The two pipelines are merged together in <code class="docutils literal notranslate"><span class="pre">de_pipeline</span> <span class="pre">+</span> <span class="pre">ds_pipeline</span></code>. Both pipelines will be executed when you invoke the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro run
+</pre></div>
+</div>
+<p>You should see output similar to the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro run
+
+<span class="m">2019</span>-04-19 <span class="m">16</span>:02:47,383 - root - INFO - ** Kedro project kedro-tutorial
+<span class="m">2019</span>-04-19 <span class="m">16</span>:02:47,385 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/base/logging.yml
+<span class="m">2019</span>-04-19 <span class="m">16</span>:02:47,398 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/base/catalog.yml
+<span class="m">2019</span>-04-19 <span class="m">16</span>:02:47,405 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/local/credentials.yml
+<span class="m">2019</span>-04-19 <span class="m">16</span>:02:47,407 - anyconfig - INFO - Loading: /projects/kedro-tutorial/conf/base/parameters.yml
+<span class="m">2019</span>-04-19 <span class="m">16</span>:02:47,414 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>companies<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:02:47,540 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>preprocessed_companies<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:02:47,854 - kedro.runner.sequential_runner - INFO - Completed <span class="m">1</span> out of <span class="m">6</span> tasks
+<span class="m">2019</span>-04-19 <span class="m">16</span>:02:47,854 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>shuttles<span class="sb">`</span> <span class="o">(</span>ExcelLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:10,498 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>preprocessed_shuttles<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:11,163 - kedro.runner.sequential_runner - INFO - Completed <span class="m">2</span> out of <span class="m">6</span> tasks
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:11,163 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>preprocessed_shuttles<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:11,307 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>preprocessed_companies<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:11,355 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>reviews<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:14,627 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>master_table<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:29,827 - kedro.runner.sequential_runner - INFO - Completed <span class="m">3</span> out of <span class="m">6</span> tasks
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:29,827 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>master_table<span class="sb">`</span> <span class="o">(</span>CSVLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:32,491 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>parameters<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:32,950 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>y_test<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:32,952 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>y_train<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:32,953 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>X_train<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:32,993 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>X_test<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:33,062 - kedro.runner.sequential_runner - INFO - Completed <span class="m">4</span> out of <span class="m">6</span> tasks
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:33,062 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>X_train<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:33,134 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>y_train<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:33,399 - kedro.io.data_catalog - INFO - Saving data to <span class="sb">`</span>regressor<span class="sb">`</span> <span class="o">(</span>PickleLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:33,469 - kedro.runner.sequential_runner - INFO - Completed <span class="m">5</span> out of <span class="m">6</span> tasks
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:33,469 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>regressor<span class="sb">`</span> <span class="o">(</span>PickleLocalDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:33,470 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>X_test<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:33,487 - kedro.io.data_catalog - INFO - Loading data from <span class="sb">`</span>y_test<span class="sb">`</span> <span class="o">(</span>MemoryDataSet<span class="o">)</span>...
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:33,538 - kedro_tutorial.nodes.price_prediction - INFO - Model has a coefficient R^2 of <span class="m">0</span>.456.
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:33,573 - kedro.runner.sequential_runner - INFO - Completed <span class="m">6</span> out of <span class="m">6</span> tasks
+<span class="m">2019</span>-04-19 <span class="m">16</span>:03:33,573 - kedro.runner.sequential_runner - INFO - Pipeline execution completed successfully.
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">de_pipeline</span></code> will preprocess the data, and <code class="docutils literal notranslate"><span class="pre">ds_pipeline</span></code> will then create features, train and evaluate the model.</p>
+<blockquote>
+<div><em>Note:</em> The order in which you add the pipelines together is not significant and <code class="docutils literal notranslate"><span class="pre">ds_pipeline</span> <span class="pre">+</span> <span class="pre">de_pipeline</span></code> will result in the same pipeline, since Kedro automatically detects the correct execution order for all the nodes in the resulting pipeline.</div></blockquote>
+</div>
+<div class="section" id="partial-pipeline-runs">
+<h2>Partial pipeline runs<a class="headerlink" href="#partial-pipeline-runs" title="Permalink to this headline">¶</a></h2>
+<p>In some cases, you may want to partially run the pipeline. For example, you may need to only run the <code class="docutils literal notranslate"><span class="pre">ds_pipeline</span></code> to tune the hyperparameters of the price prediction model and skip <code class="docutils literal notranslate"><span class="pre">de_pipeline</span></code> execution. The most obvious way of doing this is by modifying your Python code for pipeline definition, however, this method sometimes introduces errors.</p>
+<p>A better way to run partial pipelines without changing your code is to use tags. Each node within the pipeline can be tagged by passing <strong><code class="docutils literal notranslate"><span class="pre">name</span></code></strong> into the <code class="docutils literal notranslate"><span class="pre">Pipeline()</span></code>. Update the <code class="docutils literal notranslate"><span class="pre">create_pipeline()</span></code> code in <code class="docutils literal notranslate"><span class="pre">pipeline.py</span></code> one more time:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_pipeline</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create the project&#39;s pipeline.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        kwargs: Ignore any additional arguments added in the future.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Pipeline: The resulting pipeline.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">de_pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">preprocess_companies</span><span class="p">,</span> <span class="s2">&quot;companies&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_companies&quot;</span><span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">preprocess_shuttles</span><span class="p">,</span> <span class="s2">&quot;shuttles&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_shuttles&quot;</span><span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span>
+                <span class="n">create_master_table</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;preprocessed_shuttles&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_companies&quot;</span><span class="p">,</span> <span class="s2">&quot;reviews&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;master_table&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;de&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">ds_pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">node</span><span class="p">(</span>
+                <span class="n">split_data</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;master_table&quot;</span><span class="p">,</span> <span class="s2">&quot;parameters&quot;</span><span class="p">],</span>
+                <span class="p">[</span><span class="s2">&quot;X_train&quot;</span><span class="p">,</span> <span class="s2">&quot;X_test&quot;</span><span class="p">,</span> <span class="s2">&quot;y_train&quot;</span><span class="p">,</span> <span class="s2">&quot;y_test&quot;</span><span class="p">],</span>
+            <span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">train_model</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;X_train&quot;</span><span class="p">,</span> <span class="s2">&quot;y_train&quot;</span><span class="p">],</span> <span class="s2">&quot;regressor&quot;</span><span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">evaluate_model</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;regressor&quot;</span><span class="p">,</span> <span class="s2">&quot;X_test&quot;</span><span class="p">,</span> <span class="s2">&quot;y_test&quot;</span><span class="p">],</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ds&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">de_pipeline</span> <span class="o">+</span> <span class="n">ds_pipeline</span>
+</pre></div>
+</div>
+<p>Should you need to, you can add more than one tag to the pipeline by adding <code class="docutils literal notranslate"><span class="pre">name=['tag1',</span> <span class="pre">'tag2']</span></code>.</p>
+<p>To run a partial pipeline:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro run --tag<span class="o">=</span>ds
+</pre></div>
+</div>
+<p>This will skip the execution of the pipeline with tag <code class="docutils literal notranslate"><span class="pre">de</span></code> and only run the <code class="docutils literal notranslate"><span class="pre">ds</span></code> nodes (found within the <code class="docutils literal notranslate"><span class="pre">ds_pipeline</span></code>). If you want to run the whole pipeline:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro run
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro run --tag<span class="o">=</span>ds --tag<span class="o">=</span>de
+</pre></div>
+</div>
+<blockquote>
+<div><em>Note:</em> You can also attach tags to the individual nodes by passing the <code class="docutils literal notranslate"><span class="pre">tags</span></code> keyword to the <code class="docutils literal notranslate"><span class="pre">node()</span></code> function, and these are used in addition to any tags specified at the pipeline level. To tag a node as <code class="docutils literal notranslate"><span class="pre">my-regressor-node</span></code>:</div></blockquote>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">node</span><span class="p">(</span>
+    <span class="n">train_model</span><span class="p">,</span> 
+    <span class="p">[</span><span class="s2">&quot;X_train&quot;</span><span class="p">,</span> <span class="s2">&quot;y_train&quot;</span><span class="p">],</span> 
+    <span class="s2">&quot;regressor&quot;</span><span class="p">,</span> 
+    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;my-regressor-node&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-decorators-for-nodes-and-pipelines">
+<h2>Using decorators for nodes and pipelines<a class="headerlink" href="#using-decorators-for-nodes-and-pipelines" title="Permalink to this headline">¶</a></h2>
+<p>In this section, you will learn about Kedro’s built-in decorators as well as how to create your own node and pipeline decorators.</p>
+<p><a class="reference external" href="https://wiki.python.org/moin/PythonDecorators">Python decorators</a> can be applied to Kedro nodes. Let’s walk through an example of building our own decorator for logging the execution time of each node.</p>
+<div class="section" id="decorating-the-nodes">
+<h3>Decorating the nodes<a class="headerlink" href="#decorating-the-nodes" title="Permalink to this headline">¶</a></h3>
+<p>Logging the execution time for each node can be performed by creating a function and adding it to each node as a decorator.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">data_engineering.py</span></code>, add the following decorator function near the top of the file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="k">def</span> <span class="nf">log_running_time</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Decorator for logging node execution time.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            func: Function to be executed.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Decorator for logging the running time.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">with_time</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="n">t_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">t_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="n">t_end</span> <span class="o">-</span> <span class="n">t_start</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running </span><span class="si">%r</span><span class="s2"> took </span><span class="si">%.2f</span><span class="s2"> seconds&quot;</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">elapsed</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">return</span> <span class="n">with_time</span>
+</pre></div>
+</div>
+<p>And apply it to each data engineering function by prepending <code class="docutils literal notranslate"><span class="pre">&#64;log_running_time</span></code> to the definition:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@log_running_time</span>
+<span class="k">def</span> <span class="nf">preprocess_companies</span><span class="p">(</span><span class="n">companies</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="o">...</span>
+
+<span class="nd">@log_running_time</span>
+<span class="k">def</span> <span class="nf">preprocess_shuttles</span><span class="p">(</span><span class="n">shuttles</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Then, if you run your pipeline from the command line, you should see a similar output:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro run
+
+...
+kedro_tutorial.nodes.data_engineering - INFO - Running <span class="s1">&#39;preprocess_companies&#39;</span> took XXX seconds
+...
+kedro_tutorial.nodes.data_engineering - INFO - Running <span class="s1">&#39;preprocess_shuttles&#39;</span> took XXX seconds
+</pre></div>
+</div>
+</div>
+<div class="section" id="decorating-the-pipeline">
+<h3>Decorating the pipeline<a class="headerlink" href="#decorating-the-pipeline" title="Permalink to this headline">¶</a></h3>
+<p>A decorator can also be applied to the pipeline rather than each node. In <code class="docutils literal notranslate"><span class="pre">src/kedro_tutorial/nodes/pipeline.py</span></code>, update the imports from <code class="docutils literal notranslate"><span class="pre">data_engineering.py</span></code> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">kedro_tutorial.nodes.data_engineering</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">preprocess_companies</span><span class="p">,</span>
+    <span class="n">preprocess_shuttles</span><span class="p">,</span>
+    <span class="n">create_master_table</span><span class="p">,</span>
+    <span class="n">log_running_time</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Then add the decorators to the pipeline:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_pipeline</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create the project&#39;s pipeline.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        kwargs: Ignore any additional arguments added in the future.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Pipeline: The resulting pipeline.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">de_pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">preprocess_companies</span><span class="p">,</span> <span class="s2">&quot;companies&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_companies&quot;</span><span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">preprocess_shuttles</span><span class="p">,</span> <span class="s2">&quot;shuttles&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_shuttles&quot;</span><span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span>
+                <span class="n">create_master_table</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;preprocessed_shuttles&quot;</span><span class="p">,</span> <span class="s2">&quot;preprocessed_companies&quot;</span><span class="p">,</span> <span class="s2">&quot;reviews&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;master_table&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;de&quot;</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">decorate</span><span class="p">(</span><span class="n">log_running_time</span><span class="p">)</span>
+
+    <span class="n">ds_pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">node</span><span class="p">(</span>
+                <span class="n">split_data</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;master_table&quot;</span><span class="p">,</span> <span class="s2">&quot;parameters&quot;</span><span class="p">],</span>
+                <span class="p">[</span><span class="s2">&quot;X_train&quot;</span><span class="p">,</span> <span class="s2">&quot;X_test&quot;</span><span class="p">,</span> <span class="s2">&quot;y_train&quot;</span><span class="p">,</span> <span class="s2">&quot;y_test&quot;</span><span class="p">],</span>
+            <span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">train_model</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;X_train&quot;</span><span class="p">,</span> <span class="s2">&quot;y_train&quot;</span><span class="p">],</span> <span class="s2">&quot;regressor&quot;</span><span class="p">),</span>
+            <span class="n">node</span><span class="p">(</span><span class="n">evaluate_model</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;regressor&quot;</span><span class="p">,</span> <span class="s2">&quot;X_test&quot;</span><span class="p">,</span> <span class="s2">&quot;y_test&quot;</span><span class="p">],</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ds&quot;</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">decorate</span><span class="p">(</span><span class="n">log_running_time</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">de_pipeline</span> <span class="o">+</span> <span class="n">ds_pipeline</span>
+</pre></div>
+</div>
+<p>This decorator is commonly used and Kedro already includes it as a built-in decorator called <code class="docutils literal notranslate"><span class="pre">kedro.pipeline.decorators.log_time</span></code>.</p>
+<p>Another built-in decorator is <code class="docutils literal notranslate"><span class="pre">kedro.pipeline.decorators.mem_profile</span></code>, which will log the maximum memory usage of your node.</p>
+</div>
+</div>
+<div class="section" id="kedro-runners">
+<h2>Kedro runners<a class="headerlink" href="#kedro-runners" title="Permalink to this headline">¶</a></h2>
+<p>Having specified the data catalog and the pipeline, you are now ready to run the pipeline. There are two different runners you can specify:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">SequentialRunner</span></code> - runs your nodes sequentially; once a node has completed its task then the next one starts.</li>
+<li><code class="docutils literal notranslate"><span class="pre">ParallelRunner</span></code> - runs your nodes in parallel; independent nodes are able to run at the same time, allowing you to take advantage of multiple CPU cores.</li>
+</ul>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">src/kedro_tutorial/run.py</span></code> uses a <code class="docutils literal notranslate"><span class="pre">SequentialRunner</span></code>, which is instantiated when you execute <code class="docutils literal notranslate"><span class="pre">kedro</span> <span class="pre">run</span></code> from the command line. Switching to use <code class="docutils literal notranslate"><span class="pre">ParallelRunner</span></code> is as simple as providing an additional flag when running the pipeline from the command line as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kedro run --parallel
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ParallelRunner</span></code> executes the pipeline nodes in parallel, and is more efficient when there are independent branches in your pipeline.</p>
+<blockquote>
+<div><em>Note:</em> <code class="docutils literal notranslate"><span class="pre">ParallelRunner</span></code> performs task parallelisation, which is different from data parallelisation as seen in PySpark.</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="05_package_a_project.html" class="btn btn-neutral float-right" title="Packaging a project" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="03_set_up_data.html" class="btn btn-neutral float-left" title="Setting up the data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2019, QuantumBlack Visual Analytics Limited
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
