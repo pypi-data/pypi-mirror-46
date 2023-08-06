@@ -1,0 +1,12 @@
+- name: Creating Console auxiliary directories...
+  file:
+    path: '{{ item }}'
+    state: directory
+    recurse: yes
+  with_items:
+    - /var/log/nginx
+    - '{{ settings.console.uwsgi.pid_filename | dirname }}'
+    - '{{ settings.console.stdout_log_filename | dirname }}'
+    - '{{ settings.console.stderr_log_filename | dirname }}'
+  ignore_errors: yes
+  failed_when: False

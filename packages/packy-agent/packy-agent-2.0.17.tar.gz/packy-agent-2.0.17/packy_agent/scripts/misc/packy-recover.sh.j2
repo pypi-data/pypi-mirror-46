@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+date
+if [ ! -f {{ expected_version_file_path }} ]; then
+    echo "==> Expected version file was not found: {{ expected_version_file_path }}"
+    exit
+fi
+source {{ expected_version_file_path }}
+
+PACKY_CURRENT_VERSION=`{{ venv_bin_dir }}/packy-agent-version` || :
+
+if [ "$PACKY_EXPECTED_VERSION" != "" -a "$PACKY_CURRENT_VERSION" != "" -a "$PACKY_EXPECTED_VERSION" == "$PACKY_CURRENT_VERSION" ]; then
+    source /etc/packy-agent-worker-version || :
+    source /etc/packy-agent-console-version || :
+    source /etc/packy-agent-watchdog-version || :
+    if [ "$PACKY_AGENT_WORKER_VERSION" == "$PACKY_EXPECTED_VERSION" -a "$PACKY_AGENT_CONSOLE_VERSION" == "$PACKY_EXPECTED_VERSION" -a "$PACKY_AGENT_WATCHDOG_VERSION" == "$PACKY_EXPECTED_VERSION" ]; then
+         echo '==> All good. No recovery is required'
+         exit
+    fi
+fi
+
+# This if-clause is required to support dockerized version
+if [ "$PACKY_SERVER_BASE_URL" == "" ]; then
+    # TODO(dmu) MEDIUM: Following if-clause is for backward-compatibility only. Refactor
+    #                   once all agents upgrade to v0.3.3 or higher
+    if [ "$DEFAULT_PACKY_SERVER_BASE_URL" == "" ]; then
+        export PACKY_SERVER_BASE_URL={{ server_base_url }}
+    else
+        export PACKY_SERVER_BASE_URL=$DEFAULT_PACKY_SERVER_BASE_URL
+    fi
+fi
+
+{% if pip_extra_args %}
+export PIP_EXTRA_ARGS='{{ pip_extra_args }}'
+{% endif %}
+
+{% with with_shebang=False, download_args=None %}{% include 'packy-run-install-script.sh.j2' %}{% endwith %}

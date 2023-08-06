@@ -1,0 +1,37 @@
+- name: Setting nginx log directory access mode...
+  file:
+    path: /var/log/nginx
+    mode: a+rwx
+- name: Creating nginx configuration file directories...
+  file:
+    path: '{{ item }}'
+    state: directory
+    recurse: yes
+  with_items:
+    - /etc/nginx/sites-available
+    - /etc/nginx/sites-enabled
+- name: Creating nginx main configuration file...
+  template:
+    src: ../../../configuration/templates/nginx_alpine.conf.j2
+    dest: /etc/nginx/nginx.conf
+  when: ansible_distribution == 'Alpine'
+- name: Creating nginx configuration file...
+  template:
+    src: ../../../configuration/templates/nginx.conf.j2
+    dest: /etc/nginx/sites-available/packy-agent.conf
+- name: Creating nginx configuration file link...
+  file:
+    state: link
+    force: yes
+    src: /etc/nginx/sites-available/packy-agent.conf
+    dest: '{{ settings.console.nginx.configuration_filename }}'
+- name: Removing default nginx config...
+  file:
+    state: absent
+    path: /etc/nginx/sites-enabled/default
+  when: remove_nginx_default_landing
+- name: Restarting nginx...
+  service:
+    name: nginx
+    state: restarted
+  when: not is_inside_docker_container

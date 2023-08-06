@@ -1,0 +1,6 @@
+SUPERVISOR = 'supervisor'
+CONSOLE = 'console'
+WORKER = 'worker'
+WATCHDOG = 'watchdog'
+
+NESTING_PREFIXES = (SUPERVISOR, CONSOLE, WORKER, WATCHDOG)

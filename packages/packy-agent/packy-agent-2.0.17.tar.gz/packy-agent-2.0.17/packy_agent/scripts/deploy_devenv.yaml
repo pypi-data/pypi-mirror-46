@@ -1,0 +1,28 @@
+- name: Deploy development environment
+  hosts: '*'
+  vars:
+    package_name: .
+    server_base_url: "{{ lookup('env', 'PACKY_SERVER_BASE_URL') | default('https://dashboard.packy.io', true) }}"
+    settings_filename: "{{ lookup('env', 'PACKY_AGENT_SETTINGS_FILENAME') | default('/etc/packy-agent-settings.yaml', true) }}"
+
+    is_development: true
+    is_inside_docker_container: false
+
+    agent_data_directory: "{{ ansible_facts.env['PWD'] }}/local"
+    is_debug_mode: true
+  tasks:
+    - shell: which python
+      register: which_python
+    - set_fact:
+        venv_dir: "{{ which_python.stdout | dirname | dirname }}"
+    - set_fact:
+        venv_bin_dir: '{{ venv_dir }}/bin'
+
+    - include_tasks: components/common/facts.yaml
+    - include_tasks: components/common/directories.yaml
+    - include_tasks: components/common/configuration.yaml
+
+    - include_tasks: components/worker/directories.yaml
+    - include_tasks: components/console/directories.yaml
+    - include_tasks: components/console/uwsgi.yaml
+    - include_tasks: components/watchdog/directories.yaml

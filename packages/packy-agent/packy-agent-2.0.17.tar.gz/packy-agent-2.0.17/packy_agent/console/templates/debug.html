@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% from "_formhelpers.html" import render_field %}
+{% block content %}
+        {% for priority, (label, items) in enumerated_settings %}
+          <div class="row">
+            <div class="col-xs-12">
+              <div class="panel panel-default panel-border-color panel-border-color-primary">
+                <div class="panel-heading panel-heading-divider">Settings<span class="panel-subtitle">{{ priority }}: {{ label }}</span></div>
+                <div class="panel-body">
+                  <table class="table"><thead><tr><th>Key</th><th>Value</th></tr></thead>
+                    <tbody>
+                      {% for key, value in items %}
+                        <tr><td style="width:20%;">{{ key }}</td><td>{{ value }}</td></tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+        {% for log_title, log_filename, log_content in logs %}
+          <div class="row">
+            <div class="col-xs-12">
+              <div class="panel panel-default panel-border-color panel-border-color-primary">
+                <div class="panel-heading panel-heading-divider">{{ log_title }}<span class="panel-subtitle">{{ log_filename }}</span></div>
+                <div class="panel-body">
+<pre><code>
+{{ log_content }}
+</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+{% endblock %}

@@ -1,0 +1,75 @@
+[supervisord]
+logfile={{ settings.supervisor.log_filename }}
+logfile_maxbytes=1MB
+logfile_backups=3
+loglevel=info
+pidfile={{ settings.supervisor.run_directory }}/supervisor.pid
+umask=022
+nodaemon=false
+nocleanup=false
+
+[unix_http_server]
+file={{ settings.supervisor.run_directory }}/supervisor.sock
+username=
+password=
+chmod=0700
+
+[supervisorctl]
+serverurl=unix://{{ settings.supervisor.run_directory }}/supervisor.sock
+username=
+password=
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory=supervisor.rpcinterface:make_main_rpcinterface
+
+[program:console]
+command={{ venv_bin_dir }}/uwsgi --ini {{ settings.console.uwsgi.configuration_filename }}
+stopsignal=INT
+numprocs=1
+stdout_logfile={{ settings.console.stdout_log_filename }}
+stdout_logfile_maxbytes=1MB
+stdout_logfile_backups=3
+stderr_logfile={{ settings.console.stderr_log_filename }}
+stderr_logfile_maxbytes=1MB
+stderr_logfile_backups=3
+autostart=true
+autorestart=true
+startsecs=5
+startretries=10
+environment=OLD_PATH="%(ENV_PATH)s",PATH="{{ venv_bin_dir }}:%(ENV_PATH)s"
+
+[program:worker]
+command={{ venv_bin_dir }}/packy-agent-worker
+numprocs=1
+stdout_logfile={{ settings.worker.stdout_log_filename }}
+stdout_logfile_maxbytes=1MB
+stdout_logfile_backups=5
+stderr_logfile={{ settings.worker.stderr_log_filename }}
+stderr_logfile_maxbytes=1MB
+stderr_logfile_backups=5
+autostart=true
+autorestart=true
+startsecs=5
+environment=OLD_PATH="%(ENV_PATH)s",PATH="{{venv_bin_dir}}:%(ENV_PATH)s"
+
+[program:watchdog]
+command={{ venv_bin_dir }}/packy-agent-watchdog
+numprocs=1
+stdout_logfile={{ settings.watchdog.stdout_log_filename }}
+stdout_logfile_maxbytes=1MB
+stdout_logfile_backups=3
+stderr_logfile={{ settings.watchdog.stderr_log_filename }}
+stderr_logfile_maxbytes=1MB
+stderr_logfile_backups=3
+autostart=true
+autorestart=true
+startsecs=5
+startretries=20
+environment=OLD_PATH="%(ENV_PATH)s",PATH="{{ venv_bin_dir }}:%(ENV_PATH)s"
+
+{% if is_inside_docker_container %}
+[program:nginx]
+command=/usr/sbin/nginx -g "daemon off;"
+stdout_events_enabled=true
+stderr_events_enabled=true
+{% endif %}

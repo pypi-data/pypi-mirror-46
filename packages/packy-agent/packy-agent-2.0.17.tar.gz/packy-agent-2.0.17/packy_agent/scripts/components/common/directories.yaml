@@ -1,0 +1,12 @@
+- name: Creating Common auxiliary directories...
+  file:
+    path: '{{ item }}'
+    state: directory
+    recurse: yes
+  with_items:
+    - '{{ settings.supervisor.configuration_filename | dirname }}'
+    - '{{ settings.supervisor.log_filename | dirname }}'
+    - '{{ settings.supervisor.run_directory }}'
+    - '{{ agent_data_directory }}'
+  ignore_errors: yes
+  failed_when: False

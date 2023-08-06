@@ -1,0 +1,42 @@
+# TODO(dmu) MEDIUM: Consider using `systemctl is-active log2ram.service` command
+- name: Migrating configuration...
+  shell: "source {{ temp_venv_dir }}/bin/activate 1 > /dev/null 2>&1 && packy-agent-migrate1to2; deactivate 1 > /dev/null 2>&1"
+  args:
+    executable: /bin/bash
+  when: is_upgrading and packy_agent_version_prev < '2'
+- name: Checking log2ram service status...
+  shell: "service log2ram status"
+  args:
+    warn: False
+  register: log2ram
+  failed_when: False
+- name: Restarting log2ram service...
+  # This makes log2ram service to dump logs from /var/log (RAM) to /var/log.hdd (SD card)
+  # to have new directories properly persisted (they are created in /var/log.hdd too)
+  service:
+    name: log2ram
+    state: reloaded
+  when: "log2ram.rc == 0 or ('Loaded: not-found (Reason: No such file or directory)' not in log2ram.stdout)"
+  ignore_errors: yes
+- name:
+  set_fact:
+    supervisord_executable: '{{ venv_bin_dir }}/supervisord'
+    supervisorctl_executable: '{{ venv_bin_dir }}/supervisorctl'
+    supervisor_log_directory: '{{ settings.supervisor.log_filename | dirname }}'
+    supervisor_run_directory: '{{ settings.supervisor.run_directory }}'
+    supervisor_configuration_file: '{{ settings.supervisor.configuration_filename }}'
+- name: Creating initd script...
+  template:
+    src: ../../configuration/templates/control-scripts/ubuntu/initd.sh.j2
+    dest: /etc/init.d/packy
+    mode: u+x
+  when: not is_inside_docker_container
+- name: Creating systemd unit...
+  template:
+    src: ../../configuration/templates/control-scripts/ubuntu/packy.service.j2
+    dest: /lib/systemd/system/packy.service
+  when: not is_inside_docker_container
+- name: Reloading systemd configuration...
+  systemd:
+    daemon_reload: yes
+  when: not is_inside_docker_container

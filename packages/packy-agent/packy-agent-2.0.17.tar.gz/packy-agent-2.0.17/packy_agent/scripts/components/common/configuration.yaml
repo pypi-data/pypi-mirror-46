@@ -1,0 +1,9 @@
+- name: Creating supervisor configuration file...
+  template:
+    src: ../../../configuration/templates/supervisord.conf.j2
+    dest: '{{ settings.supervisor.configuration_filename }}'
+- name: Save custom settings file...
+  copy:
+    content: "{{ settings_custom | to_nice_yaml }}"
+    dest: '{{ settings_filename }}'
+  when: not is_development

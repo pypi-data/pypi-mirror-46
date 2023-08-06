@@ -1,0 +1,73 @@
+- name: Getting installing version...
+  shell: "source {{ temp_venv_dir }}/bin/activate 1 > /dev/null 2>&1 && packy-agent-version; deactivate 1 > /dev/null 2>&1"
+  register: packy_agent_version
+  args:
+    executable: /bin/bash
+- set_fact:
+    packy_agent_version: '{{ packy_agent_version.stdout.strip() }}'
+
+- name: Dumping defaults as JSON...
+  shell: python -c 'import json; from packy_agent.configuration.sources.defaults_dict import defaults; print(json.dumps(defaults))' > /tmp/packy-agent-defaults.json
+- name: Retrieving default settings as variable...
+  include_vars:
+    file: /tmp/packy-agent-defaults.json
+    name: settings
+
+- stat:
+    path: '{{ settings_filename }}'
+  register: settings_file_stat
+- name: Retrieving custom settings file as variable...
+  include_vars:
+    file: '{{ settings_filename }}'
+    name: settings_custom
+  when: settings_file_stat.stat.exists
+
+- name: Is upgrading...
+  stat:
+    path: '{{ venv_dir }}'
+  register: venv_dir_stat
+- set_fact:
+    is_upgrading: '{{ venv_dir_stat.stat.exists }}'
+- name: From version...
+  shell: "source {{ venv_dir }}/bin/activate 1 > /dev/null 2>&1 && python -c 'import packy_agent; print(packy_agent.__version__)' || echo ''; deactivate 1 > /dev/null 2>&1 || :"
+  args:
+    executable: /bin/bash
+  register: packy_agent_version_prev
+  when: is_upgrading
+- set_fact:
+    packy_agent_version_prev: '{{ packy_agent_version_prev.stdout.strip() if is_upgrading else None }}'
+  when: is_upgrading
+
+- set_fact:
+    settings_custom: '{{ settings_custom | default({}) }}'
+
+- name: Setting Packy Server Base URL...
+  set_fact:
+    settings_custom: "{{ settings_custom | combine({'server_base_url': server_base_url.rstrip('/') + '/'}, recursive=True) }}"
+
+- name: Setting Packy Agent Console port...
+  set_fact:
+    settings_custom: "{{ settings_custom | combine({'console': {'http_port': lookup('env', 'PACKY_CONSOLE_HTTP_PORT')|int}}, recursive=True) }}"
+  when: lookup('env', 'PACKY_CONSOLE_HTTP_PORT')
+
+- name: Overriding custom configuration with preset values...
+  set_fact:
+    settings_custom: "{{ settings_custom | combine({'version': packy_agent_version, 'debug_mode': is_debug_mode}, recursive=True) }}"
+
+- name: Updating custom configuration with `database_filename` value...
+  set_fact:
+    settings_custom: "{{ settings_custom | combine({'database_filename': agent_data_directory + '/packy-agent.sqlite3'}, recursive=True) }}"
+  when: "'database_filename' not in settings_custom"
+
+- name: Updating custom configuration with `vendored_hardware` value...
+  set_fact:
+    settings_custom: "{{ settings_custom | combine({'vendored_hardware': lookup('env', 'PACKY_IS_VENDORED_HARDWARE') == 'True'}, recursive=True) }}"
+  when: lookup('env', 'PACKY_IS_VENDORED_HARDWARE')
+
+- name: Merging default and custom configuration variables...
+  set_fact:
+    settings: "{{ settings | combine(settings_custom, recursive=True) }}"
+
+- name: Getting Packy Agent Console port...
+  set_fact:
+    console_http_port: "{{ settings['console']['http_port'] }}"
