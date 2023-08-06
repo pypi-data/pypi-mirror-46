@@ -1,0 +1,71 @@
+<html>
+<head>
+        <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+
+    <!-- Custom fonts for this template-->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
+
+    <!-- Page level plugin CSS-->
+    <link href="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.css') }}" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="{{ url_for('static', filename='css/sb-admin.css') }}" rel="stylesheet">
+</head>
+   <body>
+      <form action = "./uploader?project={{f}}&experiment={{e}}" method = "POST"
+         enctype = "multipart/form-data">
+
+
+
+<div class="container">
+  <table class="table">
+    <tbody>
+      <tr>
+        <td>
+		           <div class="form-group" style="padding-left: 80px;">
+            <label for="exampleInputFile">File input</label>
+            <input type="file" class="form-control-file" id="exampleInputFile" aria-describedby="fileHelp" name="file"/>
+            <small id="fileHelp" class="form-text text-muted">Select the file which you want to test.</small>
+                 <br>
+            <input type = "submit" class="btn btn-primary" />
+
+               <br>
+               <br>
+               <label for="onee">{{uploadstatues}}</label>
+          </div>
+
+		</td>
+      <td><a href="./testimage?project={{f}}&timestamp={{foldername}}&testimage={{filename}}" target="_blank">
+          <img src="./testimage?project={{f}}&timestamp={{foldername}}&testimage={{filename}}" style="width:150px" ></a>
+      </td>
+
+        <td>
+		          <div class="container">
+              <h2>Results</h2>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+
+               {% for key, value in m.items() %}
+                      <tr>
+                        <td>Class Name</td>
+                        <td>{{ value.classname }}</td>
+                      </tr>
+               {% endfor %}
+                </tbody>
+              </table>
+            </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+      </form>
+   </body>
+</html>
