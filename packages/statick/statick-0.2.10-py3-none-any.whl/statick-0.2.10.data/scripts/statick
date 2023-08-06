@@ -1,0 +1,45 @@
+#!python
+"""
+Executable script for running statick against a single package.
+"""
+
+from __future__ import print_function
+
+import sys
+
+from statick_tool.args import Args
+from statick_tool.statick import Statick
+
+
+def main():
+    """
+    Run statick.
+    """
+    args = Args("Statick tool")
+    args.parser.add_argument("path", help="Path of package to scan")
+
+    statick = Statick(args.get_user_paths())
+    statick.gather_args(args.parser)
+    parsed_args = args.get_args()
+    statick.get_config(parsed_args)
+    statick.get_exceptions(parsed_args)
+
+    path = parsed_args.path
+    issues, success = statick.run(path, parsed_args)
+    if issues is None:
+        print("Something went wrong, issues do not exist. Statick exiting "
+              "with errors.")
+        sys.exit(1)
+    for tool in issues:
+        if issues[tool]:
+            success = False
+    if not success:
+        print("Statick exiting with errors.")
+        sys.exit(1)
+    else:
+        print("Statick exiting with success.")
+        sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
