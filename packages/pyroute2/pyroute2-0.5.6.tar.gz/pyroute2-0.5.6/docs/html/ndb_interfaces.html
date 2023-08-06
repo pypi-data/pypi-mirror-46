@@ -1,0 +1,232 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Network interfaces &#8212; pyroute2 0.5.6 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Database" href="ndb_schema.html" />
+    <link rel="prev" title="NDB module" href="ndb.html" />
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-121787797-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-121787797-2');
+</script>
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ndb_schema.html" title="Database"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ndb.html" title="NDB module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item"><a href="http://pyroute2.org">Project home</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyroute2 0.5.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="ndb.html" accesskey="U">NDB module</a> &#187;</li> 
+      </ul>
+        </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pyroute2.ndb.objects.interface">
+<span id="network-interfaces"></span><h1>Network interfaces<a class="headerlink" href="#module-pyroute2.ndb.objects.interface" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="list-interfaces">
+<h2>List interfaces<a class="headerlink" href="#list-interfaces" title="Permalink to this headline">¶</a></h2>
+<p>List interface keys:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">NDB</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="s1">&#39;on&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ndb</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>NDB views support some dict methods: <cite>items()</cite>, <cite>values()</cite>, <cite>keys()</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">NDB</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="s1">&#39;on&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ndb</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">nic</span> <span class="ow">in</span> <span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">nic</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">,</span> <span class="s1">&#39;up&#39;</span><span class="p">)</span>
+        <span class="n">nic</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="get-interface-objects">
+<h2>Get interface objects<a class="headerlink" href="#get-interface-objects" title="Permalink to this headline">¶</a></h2>
+<p>The keys may be used as selectors to get interface objects:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">NDB</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="s1">&#39;on&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ndb</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Also possible selector formats are <cite>dict()</cite> and simple string. The latter
+means the interface name:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">eth0</span> <span class="o">=</span> <span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="p">[</span><span class="s1">&#39;eth0&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Dict selectors are necessary to get interfaces by other properties:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wrk1_eth0</span> <span class="o">=</span> <span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="p">[{</span><span class="s1">&#39;target&#39;</span><span class="p">:</span> <span class="s1">&#39;worker1.sample.com&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;ifname&#39;</span><span class="p">:</span> <span class="s1">&#39;eth0&#39;</span><span class="p">}]</span>
+
+<span class="n">wrk2_eth0</span> <span class="o">=</span> <span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="p">[{</span><span class="s1">&#39;target&#39;</span><span class="p">:</span> <span class="s1">&#39;worker2.sample.com&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;address&#39;</span><span class="p">:</span> <span class="s1">&#39;52:54:00:22:a1:b7&#39;</span><span class="p">}]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="change-nic-properties">
+<h2>Change nic properties<a class="headerlink" href="#change-nic-properties" title="Permalink to this headline">¶</a></h2>
+<p>Changing MTU and MAC address:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">NDB</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="s1">&#39;on&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ndb</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="p">[</span><span class="s1">&#39;eth0&#39;</span><span class="p">]</span> <span class="k">as</span> <span class="n">eth0</span><span class="p">:</span>
+        <span class="n">eth0</span><span class="p">[</span><span class="s1">&#39;mtu&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1248</span>
+        <span class="n">eth0</span><span class="p">[</span><span class="s1">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;00:11:22:33:44:55&#39;</span>
+    <span class="c1"># --&gt; &lt;-- eth0.commit() is called by the context manager</span>
+<span class="c1"># --&gt; &lt;-- ndb.close() is called by the context manager</span>
+</pre></div>
+</div>
+<p>One can change a property either using the assignment statement, or
+using the <cite>.set()</cite> routine:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># same code</span>
+<span class="k">with</span> <span class="n">NDB</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="s1">&#39;on&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ndb</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="p">[</span><span class="s1">&#39;eth0&#39;</span><span class="p">]</span> <span class="k">as</span> <span class="n">eth0</span><span class="p">:</span>
+        <span class="n">eth0</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;mtu&#39;</span><span class="p">,</span> <span class="mi">1248</span><span class="p">)</span>
+        <span class="n">eth0</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;address&#39;</span><span class="p">,</span> <span class="s1">&#39;00:11:22:33:44:55&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <cite>.set()</cite> routine returns the object itself, that makes possible
+chain calls:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># same as above</span>
+<span class="k">with</span> <span class="n">NDB</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="s1">&#39;on&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ndb</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="p">[</span><span class="s1">&#39;eth0&#39;</span><span class="p">]</span> <span class="k">as</span> <span class="n">eth0</span><span class="p">:</span>
+        <span class="n">eth0</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;mtu&#39;</span><span class="p">,</span> <span class="mi">1248</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;address&#39;</span><span class="p">,</span> <span class="s1">&#39;00:11:22:33:44:55&#39;</span><span class="p">)</span>
+
+<span class="c1"># or</span>
+<span class="k">with</span> <span class="n">NDB</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="s1">&#39;on&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ndb</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="p">[</span><span class="s1">&#39;eth0&#39;</span><span class="p">]</span> <span class="k">as</span> <span class="n">eth0</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">eth0</span>
+         <span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;mtu&#39;</span><span class="p">,</span> <span class="mi">1248</span><span class="p">)</span>
+         <span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;address&#39;</span><span class="p">,</span> <span class="s1">&#39;00:11:22:33:44:55&#39;</span><span class="p">))</span>
+
+<span class="c1"># or without the context manager, call commit() explicitly</span>
+<span class="k">with</span> <span class="n">NDB</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="s1">&#39;on&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ndb</span><span class="p">:</span>
+    <span class="p">(</span><span class="n">ndb</span>
+     <span class="o">.</span><span class="n">interfaces</span><span class="p">[</span><span class="s1">&#39;eth0&#39;</span><span class="p">]</span>
+     <span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;mtu&#39;</span><span class="p">,</span> <span class="mi">1248</span><span class="p">)</span>
+     <span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;address&#39;</span><span class="p">,</span> <span class="s1">&#39;00:11:22:33:44:55&#39;</span><span class="p">)</span>
+     <span class="o">.</span><span class="n">commit</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-virtual-interfaces">
+<h2>Create virtual interfaces<a class="headerlink" href="#create-virtual-interfaces" title="Permalink to this headline">¶</a></h2>
+<p>Create a bridge and add a port, <cite>eth0</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">ndb</span>
+ <span class="o">.</span><span class="n">interfaces</span>
+ <span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">ifname</span><span class="o">=</span><span class="s1">&#39;br0&#39;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;bridge&#39;</span><span class="p">)</span>
+ <span class="o">.</span><span class="n">commit</span><span class="p">())</span>
+
+<span class="p">(</span><span class="n">ndb</span>
+ <span class="o">.</span><span class="n">interfaces</span><span class="p">[</span><span class="s1">&#39;eth0&#39;</span><span class="p">]</span>
+ <span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;master&#39;</span><span class="p">,</span> <span class="n">ndb</span><span class="o">.</span><span class="n">interfaces</span><span class="p">[</span><span class="s1">&#39;br0&#39;</span><span class="p">][</span><span class="s1">&#39;index&#39;</span><span class="p">])</span>
+ <span class="o">.</span><span class="n">commit</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Network interfaces</a><ul>
+<li><a class="reference internal" href="#list-interfaces">List interfaces</a></li>
+<li><a class="reference internal" href="#get-interface-objects">Get interface objects</a></li>
+<li><a class="reference internal" href="#change-nic-properties">Change nic properties</a></li>
+<li><a class="reference internal" href="#create-virtual-interfaces">Create virtual interfaces</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ndb.html"
+                        title="previous chapter">NDB module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ndb_schema.html"
+                        title="next chapter">Database</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/ndb_interfaces.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ndb_schema.html" title="Database"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ndb.html" title="NDB module"
+             >previous</a> |</li>
+        <li class="nav-item"><a href="http://pyroute2.org">Project home</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyroute2 0.5.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="ndb.html" >NDB module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2013, Peter V. Saveliev.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>

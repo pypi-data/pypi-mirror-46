@@ -1,0 +1,241 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>RemoteIPRoute &#8212; pyroute2 0.5.6 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="NDB module" href="ndb.html" />
+    <link rel="prev" title="IPRoute module" href="iproute.html" />
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-121787797-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-121787797-2');
+</script>
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ndb.html" title="NDB module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="iproute.html" title="IPRoute module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item"><a href="http://pyroute2.org">Project home</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyroute2 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+        </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="remoteiproute">
+<span id="remote"></span><h1>RemoteIPRoute<a class="headerlink" href="#remoteiproute" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="caveats">
+<h2>Caveats<a class="headerlink" href="#caveats" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The class implies a serious performance penalty. Please consider
+other options if you expect high loads of the netlink traffic.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The class requires the mitogen library that should be installed
+separately: <a class="reference external" href="https://mitogen.readthedocs.io/en/latest/">https://mitogen.readthedocs.io/en/latest/</a></p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The object of this class implicitly spawn child processes. Beware.</p>
+</div>
+<p>Here are some reasons why this class is not used as a general class instead
+of specific IPRoute for local RTNL, and NetNS for local netns management:</p>
+<ul class="simple">
+<li>The performance of the Python parser for the binary netlink protocol
+is not so good, but using such proxies makes it even worse.</li>
+<li>Local IPRoute and NetNS access is the core functionality and must
+work with no additional libraries installed.</li>
+</ul>
+</div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to run IPRoute instances remotely using the mitogen
+library. The remote node must have same python version installed,
+but no additional libraries are required there: all the code will
+be imported from the host where you start your script.</p>
+<p>The simplest case, run IPRoute on a remote Linux host via ssh
+(assume the keys are deployed):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyroute2</span> <span class="k">import</span> <span class="n">RemoteIPRoute</span>
+
+<span class="n">rip</span> <span class="o">=</span> <span class="n">RemoteIPRoute</span><span class="p">(</span><span class="n">protocol</span><span class="o">=</span><span class="s1">&#39;ssh&#39;</span><span class="p">,</span>
+                    <span class="n">hostname</span><span class="o">=</span><span class="s1">&#39;test01&#39;</span><span class="p">,</span>
+                    <span class="n">username</span><span class="o">=</span><span class="s1">&#39;ci&#39;</span><span class="p">)</span>
+<span class="n">rip</span><span class="o">.</span><span class="n">get_links</span><span class="p">()</span>
+
+<span class="c1"># ...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="indirect-access">
+<h2>Indirect access<a class="headerlink" href="#indirect-access" title="Permalink to this headline">¶</a></h2>
+<p>Building mitogen proxy chains you can access nodes indirectly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mitogen.master</span>
+<span class="kn">from</span> <span class="nn">pyroute2</span> <span class="k">import</span> <span class="n">RemoteIPRoute</span>
+
+<span class="n">broker</span> <span class="o">=</span> <span class="n">mitogen</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">Broker</span><span class="p">()</span>
+<span class="n">router</span> <span class="o">=</span> <span class="n">mitogen</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">Router</span><span class="p">(</span><span class="n">broker</span><span class="p">)</span>
+<span class="c1"># login to the gateway</span>
+<span class="n">gw</span> <span class="o">=</span> <span class="n">router</span><span class="o">.</span><span class="n">ssh</span><span class="p">(</span><span class="n">hostname</span><span class="o">=</span><span class="s1">&#39;test-gateway&#39;</span><span class="p">,</span>
+                <span class="n">username</span><span class="o">=</span><span class="s1">&#39;ci&#39;</span><span class="p">)</span>
+<span class="c1"># login from the gateway to the target node</span>
+<span class="n">host</span> <span class="o">=</span> <span class="n">router</span><span class="o">.</span><span class="n">ssh</span><span class="p">(</span><span class="n">via</span><span class="o">=</span><span class="n">gw</span><span class="p">,</span>
+                  <span class="n">hostname</span><span class="o">=</span><span class="s1">&#39;test01&#39;</span><span class="p">,</span>
+                  <span class="n">username</span><span class="o">=</span><span class="s1">&#39;ci&#39;</span><span class="p">)</span>
+
+<span class="n">rip</span> <span class="o">=</span> <span class="n">RemoteIPRoute</span><span class="p">(</span><span class="n">router</span><span class="o">=</span><span class="n">router</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">host</span><span class="p">)</span>
+
+<span class="n">rip</span><span class="o">.</span><span class="n">get_links</span><span class="p">()</span>
+
+<span class="c1"># ...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="run-with-privileges">
+<h2>Run with privileges<a class="headerlink" href="#run-with-privileges" title="Permalink to this headline">¶</a></h2>
+<p>It requires the mitogen sudo proxy to run IPRoute with root permissions:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mitogen.master</span>
+<span class="kn">from</span> <span class="nn">pyroute2</span> <span class="k">import</span> <span class="n">RemoteIPRoute</span>
+
+<span class="n">broker</span> <span class="o">=</span> <span class="n">mitogen</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">Broker</span><span class="p">()</span>
+<span class="n">router</span> <span class="o">=</span> <span class="n">mitogen</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">Router</span><span class="p">(</span><span class="n">broker</span><span class="p">)</span>
+<span class="n">host</span> <span class="o">=</span> <span class="n">router</span><span class="o">.</span><span class="n">ssh</span><span class="p">(</span><span class="n">hostname</span><span class="o">=</span><span class="s1">&#39;test01&#39;</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s1">&#39;ci&#39;</span><span class="p">)</span>
+<span class="n">sudo</span> <span class="o">=</span> <span class="n">router</span><span class="o">.</span><span class="n">sudo</span><span class="p">(</span><span class="n">via</span><span class="o">=</span><span class="n">host</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s1">&#39;root&#39;</span><span class="p">)</span>
+
+<span class="n">rip</span> <span class="o">=</span> <span class="n">RemoteIPRoute</span><span class="p">(</span><span class="n">router</span><span class="o">=</span><span class="n">router</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">sudo</span><span class="p">)</span>
+
+<span class="n">rip</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="n">ifname</span><span class="o">=</span><span class="s1">&#39;br0&#39;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;bridge&#39;</span><span class="p">)</span>
+
+<span class="c1"># ...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="remote-network-namespaces">
+<h2>Remote network namespaces<a class="headerlink" href="#remote-network-namespaces" title="Permalink to this headline">¶</a></h2>
+<p>You also can access remote network namespaces with the same RemoteIPRoute
+object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mitogen.master</span>
+<span class="kn">from</span> <span class="nn">pyroute2</span> <span class="k">import</span> <span class="n">RemoteIPRoute</span>
+
+<span class="n">broker</span> <span class="o">=</span> <span class="n">mitogen</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">Broker</span><span class="p">()</span>
+<span class="n">router</span> <span class="o">=</span> <span class="n">mitogen</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">Router</span><span class="p">(</span><span class="n">broker</span><span class="p">)</span>
+<span class="n">host</span> <span class="o">=</span> <span class="n">router</span><span class="o">.</span><span class="n">ssh</span><span class="p">(</span><span class="n">hostname</span><span class="o">=</span><span class="s1">&#39;test01&#39;</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s1">&#39;ci&#39;</span><span class="p">)</span>
+<span class="n">sudo</span> <span class="o">=</span> <span class="n">router</span><span class="o">.</span><span class="n">sudo</span><span class="p">(</span><span class="n">via</span><span class="o">=</span><span class="n">host</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s1">&#39;root&#39;</span><span class="p">)</span>
+
+<span class="n">rip</span> <span class="o">=</span> <span class="n">RemoteIPRoute</span><span class="p">(</span><span class="n">router</span><span class="o">=</span><span class="n">router</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">sudo</span><span class="p">,</span> <span class="n">netns</span><span class="o">=</span><span class="s1">&#39;test-netns&#39;</span><span class="p">)</span>
+
+<span class="n">rip</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="n">ifname</span><span class="o">=</span><span class="s1">&#39;br0&#39;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;bridge&#39;</span><span class="p">)</span>
+
+<span class="c1"># ...</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">RemoteIPRoute</a><ul>
+<li><a class="reference internal" href="#caveats">Caveats</a></li>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#indirect-access">Indirect access</a></li>
+<li><a class="reference internal" href="#run-with-privileges">Run with privileges</a></li>
+<li><a class="reference internal" href="#remote-network-namespaces">Remote network namespaces</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="iproute.html"
+                        title="previous chapter">IPRoute module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ndb.html"
+                        title="next chapter">NDB module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/remote.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ndb.html" title="NDB module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="iproute.html" title="IPRoute module"
+             >previous</a> |</li>
+        <li class="nav-item"><a href="http://pyroute2.org">Project home</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyroute2 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2013, Peter V. Saveliev.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>

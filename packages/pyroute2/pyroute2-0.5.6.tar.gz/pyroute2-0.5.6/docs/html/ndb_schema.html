@@ -1,0 +1,221 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Database &#8212; pyroute2 0.5.6 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="RTNL sources" href="ndb_sources.html" />
+    <link rel="prev" title="Network interfaces" href="ndb_interfaces.html" />
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-121787797-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-121787797-2');
+</script>
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ndb_sources.html" title="RTNL sources"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ndb_interfaces.html" title="Network interfaces"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item"><a href="http://pyroute2.org">Project home</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyroute2 0.5.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="ndb.html" accesskey="U">NDB module</a> &#187;</li> 
+      </ul>
+        </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pyroute2.ndb.schema">
+<span id="database"></span><span id="ndbschema"></span><h1>Database<a class="headerlink" href="#module-pyroute2.ndb.schema" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="backends">
+<h2>Backends<a class="headerlink" href="#backends" title="Permalink to this headline">¶</a></h2>
+<p>NDB stores all the records in an SQL database. By default it uses
+the SQLite3 module, which is a part of the Python stdlib, so no
+extra packages are required:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># SQLite3 -- simple in-memory DB</span>
+<span class="n">ndb</span> <span class="o">=</span> <span class="n">NDB</span><span class="p">()</span>
+
+<span class="c1"># SQLite3 -- file DB</span>
+<span class="n">ndb</span> <span class="o">=</span> <span class="n">NDB</span><span class="p">(</span><span class="n">db_provider</span><span class="o">=</span><span class="s1">&#39;sqlite3&#39;</span><span class="p">,</span> <span class="n">db_spec</span><span class="o">=</span><span class="s1">&#39;test.db&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It is also possible to use a PostgreSQL database via psycopg2
+module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># PostgreSQL -- local DB</span>
+<span class="n">ndb</span> <span class="o">=</span> <span class="n">NDB</span><span class="p">(</span><span class="n">db_provider</span><span class="o">=</span><span class="s1">&#39;psycopg2&#39;</span><span class="p">,</span>
+          <span class="n">db_spec</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;dbname&#39;</span><span class="p">:</span> <span class="s1">&#39;test&#39;</span><span class="p">})</span>
+
+<span class="c1"># PostgreSQL -- remote DB</span>
+<span class="n">ndb</span> <span class="o">=</span> <span class="n">NDB</span><span class="p">(</span><span class="n">db_provider</span><span class="o">=</span><span class="s1">&#39;psycopg2&#39;</span><span class="p">,</span>
+          <span class="n">db_spec</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;dbname&#39;</span><span class="p">:</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;host&#39;</span><span class="p">:</span> <span class="s1">&#39;db1.example.com&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sql-schema">
+<h2>SQL schema<a class="headerlink" href="#sql-schema" title="Permalink to this headline">¶</a></h2>
+<p>A file based SQLite3 DB or PostgreSQL may be useful for inspection
+of the collected data. Here is an example schema:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rtnl</span><span class="o">=</span><span class="c1"># \dt</span>
+            <span class="n">List</span> <span class="n">of</span> <span class="n">relations</span>
+ <span class="n">Schema</span> <span class="o">|</span>      <span class="n">Name</span>       <span class="o">|</span> <span class="n">Type</span>  <span class="o">|</span> <span class="n">Owner</span>
+<span class="o">--------+-----------------+-------+-------</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">addresses</span>       <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">ifinfo_bond</span>     <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">ifinfo_bridge</span>   <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">ifinfo_gre</span>      <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">ifinfo_vlan</span>     <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">ifinfo_vrf</span>      <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">ifinfo_vti</span>      <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">ifinfo_vti6</span>     <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">ifinfo_vxlan</span>    <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">interfaces</span>      <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">neighbours</span>      <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">nh</span>              <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">routes</span>          <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">sources</span>         <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">sources_options</span> <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">root</span>
+<span class="p">(</span><span class="mi">15</span> <span class="n">rows</span><span class="p">)</span>
+
+<span class="n">rtnl</span><span class="o">=</span><span class="c1"># select f_index, f_ifla_ifname from interfaces;</span>
+ <span class="n">f_index</span> <span class="o">|</span> <span class="n">f_ifla_ifname</span>
+<span class="o">---------+---------------</span>
+       <span class="mi">1</span> <span class="o">|</span> <span class="n">lo</span>
+       <span class="mi">2</span> <span class="o">|</span> <span class="n">eth0</span>
+      <span class="mi">28</span> <span class="o">|</span> <span class="n">ip_vti0</span>
+      <span class="mi">31</span> <span class="o">|</span> <span class="n">ip6tnl0</span>
+      <span class="mi">32</span> <span class="o">|</span> <span class="n">ip6_vti0</span>
+   <span class="mi">36445</span> <span class="o">|</span> <span class="n">br0</span>
+   <span class="mi">11434</span> <span class="o">|</span> <span class="n">dummy0</span>
+       <span class="mi">3</span> <span class="o">|</span> <span class="n">eth1</span>
+<span class="p">(</span><span class="mi">8</span> <span class="n">rows</span><span class="p">)</span>
+
+<span class="n">rtnl</span><span class="o">=</span><span class="c1"># select f_index, f_ifla_br_stp_state from ifinfo_bridge;</span>
+ <span class="n">f_index</span> <span class="o">|</span> <span class="n">f_ifla_br_stp_state</span>
+<span class="o">---------+---------------------</span>
+   <span class="mi">36445</span> <span class="o">|</span>                   <span class="mi">0</span>
+<span class="p">(</span><span class="mi">1</span> <span class="n">row</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>There are also some useful views, that join <cite>ifinfo</cite> tables with
+<cite>interfaces</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rtnl</span><span class="o">=</span><span class="c1"># \dv</span>
+       <span class="n">List</span> <span class="n">of</span> <span class="n">relations</span>
+ <span class="n">Schema</span> <span class="o">|</span>  <span class="n">Name</span>  <span class="o">|</span> <span class="n">Type</span> <span class="o">|</span> <span class="n">Owner</span>
+<span class="o">--------+--------+------+-------</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">bond</span>   <span class="o">|</span> <span class="n">view</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">bridge</span> <span class="o">|</span> <span class="n">view</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">gre</span>    <span class="o">|</span> <span class="n">view</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">vlan</span>   <span class="o">|</span> <span class="n">view</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">vrf</span>    <span class="o">|</span> <span class="n">view</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">vti</span>    <span class="o">|</span> <span class="n">view</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">vti6</span>   <span class="o">|</span> <span class="n">view</span> <span class="o">|</span> <span class="n">root</span>
+ <span class="n">public</span> <span class="o">|</span> <span class="n">vxlan</span>  <span class="o">|</span> <span class="n">view</span> <span class="o">|</span> <span class="n">root</span>
+<span class="p">(</span><span class="mi">8</span> <span class="n">rows</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Database</a><ul>
+<li><a class="reference internal" href="#backends">Backends</a></li>
+<li><a class="reference internal" href="#sql-schema">SQL schema</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ndb_interfaces.html"
+                        title="previous chapter">Network interfaces</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ndb_sources.html"
+                        title="next chapter">RTNL sources</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/ndb_schema.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ndb_sources.html" title="RTNL sources"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ndb_interfaces.html" title="Network interfaces"
+             >previous</a> |</li>
+        <li class="nav-item"><a href="http://pyroute2.org">Project home</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyroute2 0.5.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="ndb.html" >NDB module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2013, Peter V. Saveliev.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>
