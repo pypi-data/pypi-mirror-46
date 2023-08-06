@@ -1,0 +1,31 @@
+{% load cms_tags static sekizai_tags i18n %}
+
+{% addtoblock 'css' %}
+    <link rel="stylesheet" href="{% static 'djangocms_animate_on_scroll/aos.css' %}">
+{% endaddtoblock %}
+
+{% addtoblock 'js' %}
+    <script src="{% static 'djangocms_animate_on_scroll/aos.js' %}"></script>
+    <script>
+        AOS.init({
+            disable: 'phone'
+        });
+        //disable: window.innerWidth < 1024
+    </script>
+{% endaddtoblock %}
+
+<div data-aos="{{ instance.aos_animation }}"
+        {% if instance.aos_easing %}data-aos-easing="{{ instance.aos_easing }}"{% endif %}
+        {% if instance.aos_anchor_placement %}data-aos-anchor-placement="{{ instance.aos_anchor_placement }}"{% endif %}
+        {% if instance.aos_anchor %}data-aos-anchor="{{ instance.aos_anchor.id_name }}"{% endif %}
+
+        {% if instance.aos_offset %}data-aos-offset="{{ instance.aos_offset }}"{% endif %}
+        {% if instance.aos_duration %}data-aos-duration="{{ instance.aos_duration }}"{% endif %}
+        {% if instance.aos_delay %}data-aos-delay="{{ instance.aos_delaye }}"{% endif %}
+        {% if instance.aos_once %}data-aos-once="{{ instance.aos_once }}"{% endif %}
+
+        {% if instance.id_name %} id="{{ instance.id_name }}"{% endif %}
+        {% if instance.additional_classes %}class="{{ instance.get_additional_classes }}"{% endif %}
+        {{ instance.attributes_str }}>
+    {% for plugin in instance.child_plugin_instances %}{% render_plugin plugin %}{% endfor %}
+</div>
