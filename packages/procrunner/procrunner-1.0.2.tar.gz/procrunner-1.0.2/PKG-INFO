@@ -1,0 +1,204 @@
+Metadata-Version: 1.1
+Name: procrunner
+Version: 1.0.2
+Summary: Versatile utility function to run external processes
+Home-page: https://github.com/DiamondLightSource/python-procrunner
+Author: Markus Gerstel
+Author-email: scientificsoftware@diamond.ac.uk
+License: BSD license
+Description: ==========
+        ProcRunner
+        ==========
+        
+        
+        .. image:: https://img.shields.io/pypi/v/procrunner.svg
+                :target: https://pypi.python.org/pypi/procrunner
+                :alt: PyPI release
+        
+        .. image:: https://img.shields.io/conda/vn/conda-forge/procrunner.svg
+                :target: https://anaconda.org/conda-forge/procrunner
+                :alt: Conda Version
+        
+        .. image:: https://travis-ci.org/DiamondLightSource/python-procrunner.svg?branch=master
+                :target: https://travis-ci.org/DiamondLightSource/python-procrunner
+                :alt: Build status
+        
+        .. image:: https://ci.appveyor.com/api/projects/status/jtq4brwri5q18d0u/branch/master
+                :target: https://ci.appveyor.com/project/Anthchirp/python-procrunner
+                :alt: Build status
+        
+        .. image:: https://readthedocs.org/projects/procrunner/badge/?version=latest
+                :target: https://procrunner.readthedocs.io/en/latest/?badge=latest
+                :alt: Documentation Status
+        
+        .. image:: https://pyup.io/repos/github/DiamondLightSource/python-procrunner/shield.svg
+                :target: https://pyup.io/repos/github/DiamondLightSource/python-procrunner/
+                :alt: Updates
+        
+        .. image:: https://img.shields.io/pypi/pyversions/procrunner.svg
+                :target: https://pypi.python.org/pypi/procrunner
+                :alt: Supported Python versions
+        
+        .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+                :target: https://github.com/ambv/black
+                :alt: Code style: black
+        
+        Versatile utility function to run external processes
+        
+        * Free software: BSD license
+        * Documentation: https://procrunner.readthedocs.io.
+        
+        
+        Features
+        --------
+        
+        * runs an external process and waits for it to finish
+        * does not deadlock, no matter the process stdout/stderr output behaviour
+        * returns the exit code, stdout, stderr (separately, both as bytestrings),
+          and the total process runtime as a dictionary
+        * process can run in a custom environment, either as a modification of
+          the current environment or in a new environment from scratch
+        * stdin can be fed to the process, the returned dictionary contains
+          information how much was read by the process
+        * stdout and stderr is printed by default, can be disabled
+        * stdout and stderr can be passed to any arbitrary function for
+          live processing (separately, both as unicode strings)
+        * optionally enforces a time limit on the process
+        
+        Credits
+        -------
+        
+        This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+        
+        .. _Cookiecutter: https://github.com/audreyr/cookiecutter
+        .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+        
+        
+        =======
+        History
+        =======
+        
+        1.0.2 (2019-05-20)
+        ------------------
+        
+        * Stop environment override variables leaking into the process environment
+        
+        1.0.1 (2019-04-16)
+        ------------------
+        
+        * Minor fixes on the return object (implement equality,
+          mark as unhashable)
+        
+        1.0.0 (2019-03-25)
+        ------------------
+        
+        * Support file system path objects (PEP-519) in arguments
+        * Change the return object to make it similar to
+          subprocess.CompletedProcess, introduced with Python 3.5+
+        
+        0.9.1 (2019-02-22)
+        ------------------
+        
+        * Have deprecation warnings point to correct code locations
+        
+        0.9.0 (2018-12-07)
+        ------------------
+        
+        * Trap UnicodeEncodeError when printing output. Offending characters
+          are replaced and a warning is logged once. Hints at incorrectly set
+          PYTHONIOENCODING.
+        
+        0.8.1 (2018-12-04)
+        ------------------
+        
+        * Fix a few deprecation warnings
+        
+        0.8.0 (2018-10-09)
+        ------------------
+        
+        * Add parameter working_directory to set the working directory
+          of the subprocess
+        
+        0.7.2 (2018-10-05)
+        ------------------
+        
+        * Officially support Python 3.7
+        
+        0.7.1 (2018-09-03)
+        ------------------
+        
+        * Accept environment variable overriding with numeric values.
+        
+        0.7.0 (2018-05-13)
+        ------------------
+        
+        * Unicode fixes. Fix crash on invalid UTF-8 input.
+        * Clarify that stdout/stderr values are returned as bytestrings.
+        * Callbacks receive the data decoded as UTF-8 unicode strings
+          with unknown characters replaced by \ufffd (unicode replacement
+          character). Same applies to printing of output.
+        * Mark stdin broken on Windows.
+        
+        0.6.1 (2018-05-02)
+        ------------------
+        
+        * Maintenance release to add some tests for executable resolution.
+        
+        0.6.0 (2018-05-02)
+        ------------------
+        
+        * Fix Win32 API executable resolution for commands containing a dot ('.') in
+          addition to a file extension (say '.bat').
+        
+        0.5.1 (2018-04-27)
+        ------------------
+        
+        * Fix Win32API dependency installation on Windows.
+        
+        0.5.0 (2018-04-26)
+        ------------------
+        
+        * New keyword 'win32resolve' which only takes effect on Windows and is enabled
+          by default. This causes procrunner to call the Win32 API FindExecutable()
+          function to try and lookup non-.exe files with the corresponding name. This
+          means .bat/.cmd/etc.. files can now be run without explicitly specifying
+          their extension. Only supported on Python 2.7 and 3.5+.
+        
+        0.4.0 (2018-04-23)
+        ------------------
+        
+        * Python 2.7 support on Windows. Python3 not yet supported on Windows.
+        
+        0.3.0 (2018-04-17)
+        ------------------
+        
+        * run_process() renamed to run()
+        * Python3 compatibility fixes
+        
+        0.2.0 (2018-03-12)
+        ------------------
+        
+        * Procrunner is now Python3 3.3-3.6 compatible.
+        
+        0.1.0 (2018-03-12)
+        ------------------
+        
+        * First release on PyPI.
+        
+Keywords: procrunner
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
