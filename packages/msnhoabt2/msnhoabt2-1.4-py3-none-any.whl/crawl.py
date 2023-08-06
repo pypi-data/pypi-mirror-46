@@ -1,0 +1,64 @@
+import scrapy
+from scrapy.crawler import CrawlerProcess
+import textwrap
+import os
+import json
+import media_helper as mediah
+import draw_helper as draw
+from w3lib.html import remove_tags
+from w3lib.html import strip_html5_whitespace
+from w3lib.html import remove_tags_with_content
+
+class MSNSpider(scrapy.Spider):
+    name = "MSNSpider"
+    parent_path="/var/msn"
+    bg_sound_path="/var/msn/bg/01.wav"
+    output="/var/msn/tmp/x1.avi"
+
+    def filterText(self, text):
+        return strip_html5_whitespace((remove_tags(remove_tags_with_content(text, which_ones=('sup', 'script')))))
+    def parse(self, response):
+        tmp_path = os.path.join(self.parent_path, "tmp")
+        font_file = os.path.join(self.parent_path, "fonts/Arial-Unicode-Bold.ttf")
+        if not os.path.exists(tmp_path):
+            os.mkdir(tmp_path)
+        arr_imageT = response.xpath('//div[@id="maincontent"]//span/img/@data-src').extract()
+        arr_image = []
+        for imageT in arr_imageT:
+            imgObj = json.loads(imageT)
+            arr_image.append(mediah.makefullhd("http:"+imgObj['default']['src'],tmp_path))
+
+        arr_text = response.xpath('//div[@id="maincontent"]//p[not (descendant::img)]').extract()
+        draw.balance_image(arr_image, arr_text)
+        i=0
+        arr_vid=[]
+        while(i<len(arr_image)):
+            img_source=arr_image[i]
+            text_input=self.filterText(arr_text[i])
+            if text_input==None or text_input =="":
+                soundI = mediah.make_sound_null(6,tmp_path)
+            else:
+                img_source = draw.content(arr_image[i], text_input,font_file,tmp_path)
+                textTran=";;".join(textwrap.wrap(text_input.replace("\"","\\\""),190))
+                soundI = os.popen("php trans.php --tmp=\""+tmp_path+"\" --text=\"" + textTran + "\"").read()
+                duration = mediah.duration(soundI)
+                if (duration < 1):
+                    soundI = mediah.make_sound_null(6,tmp_path)
+            arr_vid.append(mediah.makevid(img_source,soundI,tmp_path))
+            i+=1
+        for img in arr_image:
+            try:
+                os.remove(img)
+            except:
+                pass
+        merged_vid=mediah.mergvid(arr_vid,tmp_path)
+        mediah.mix_sound_bg(merged_vid,self.bg_sound_path,tmp_path,self.output)
+
+def run(parent_path,bg_sound_path,start_urls,output):
+    process = CrawlerProcess({
+        'USER_AGENT': 'Googlebot-News',
+        'LOG_ENABLED':False
+    })
+    #process.crawl(MSNSpider,bg_sound_path="D:/Developer/Python/reup/msn/bg/01.wav",parent_path="D:/Developer/Python/reup/msn", start_urls=["https://www.msn.com/vi-vn/entertainment/news/v%C3%AC-sao-ng%E1%BB%8Dc-trinh-kh%C3%B4ng-%C4%91%C3%B3ng-phim-v%E1%BA%ABn-c%C3%B3-m%E1%BA%B7t-g%C3%A2y-b%C3%A3o-th%E1%BA%A3m-%C4%91%E1%BB%8F-lhp-cannes/ar-AABD8AV"])
+    process.crawl(MSNSpider,bg_sound_path=bg_sound_path,parent_path=parent_path,start_urls=start_urls,output=output)
+    process.start()
