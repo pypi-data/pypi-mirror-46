@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ project_name }}-app
+spec:
+  template:
+    spec:
+      containers:
+      - name: {{ project_name }}-app
+        image: {{ registry_image }}
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8000
+      imagePullSecrets:
+        - name: {{ project_name }}-registry
