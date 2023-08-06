@@ -1,0 +1,44 @@
+{% if title is not none %}
+<h1>{{title}}</h1>
+{%endif%}
+{% macro header_footer(limit, total_rows, total_cols, partitions) %}
+
+<div class="info_items">Viewing {{limit}} of {{total_rows}} rows / {{total_cols}} columns</div>
+<div class="info_items">{{partitions}} partition(s)</div>
+{% endmacro %}
+
+{{header_footer(limit, total_rows, total_cols, partitions)}}
+<table class="optimus_table">
+    <thead>
+    <tr>
+        {%for col in cols: %}
+        <th>
+            <div class="column_name">{{col[0]}}</div>
+            <div class="data_type">{{loop.index}} ({{col[1]}})</div>
+            <div class="data_type">
+                {% if col[2] == true %}
+                nullable
+                {% else %}
+                not nullable
+                {% endif %}
+            </div>
+        </th>
+        {% endfor %}
+    </tr>
+
+    </thead>
+    <tbody>
+    {%for r in data:%}
+    <tr>
+        {%for k,v in r.items(): %}
+        <td>
+            <div class="{% if v is none or v is not defined %}none{% endif %} {% if v is sameas true %}true{% endif %}"
+                 title='{{v|string|replace(" ", "&#8901;")|safe}}'>{{v|string|replace(" ",  "&#8901;")|truncate(128)|safe}}
+            </div>
+        </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{{header_footer(limit, total_rows, total_cols,partitions)}}
