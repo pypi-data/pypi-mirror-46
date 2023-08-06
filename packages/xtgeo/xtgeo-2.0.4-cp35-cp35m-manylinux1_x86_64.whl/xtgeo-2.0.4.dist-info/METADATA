@@ -1,0 +1,137 @@
+Metadata-Version: 2.1
+Name: xtgeo
+Version: 2.0.4
+Summary: XTGeo is a Python library for 3D grids, surfaces, wells, etc
+Home-page: https://github.com/equinor/xtgeo
+Author: Equinor R&T
+License: LGPL-3.0
+Keywords: xtgeo
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Physics
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Utilities
+Description-Content-Type: text/markdown
+Requires-Dist: numpy (>=1.10.4)
+Requires-Dist: shapely (>=1.6)
+Requires-Dist: matplotlib (>=1.5)
+Requires-Dist: scipy (>=0.17)
+Requires-Dist: segyio (>=1.4)
+Requires-Dist: pandas (>=0.17)
+Requires-Dist: six (>=1.11)
+
+# XTGeo #
+[![Build Status](https://travis-ci.com/equinor/xtgeo.svg?branch=master)](https://travis-ci.com/equinor/xtgeo)
+[![PyPI version](https://badge.fury.io/py/xtgeo.svg)](https://badge.fury.io/py/xtgeo)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c209aeed6a2a40b08ea859aeadf31cb0)](https://www.codacy.com/app/jcrivenaes/xtgeo?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=equinor/xtgeo&amp;utm_campaign=Badge_Grade)
+
+## Introduction ##
+
+XTGeo is a LGPL licensed Python library with C backend to support
+manipulation of (oil industry) subsurface reservoir modelling. Typical
+users are geoscientist and reservoir engineers working with
+reservoir modelling, in relation with RMS. XTGeo is developed in Equinor.
+
+## Feature summary ##
+
+   * Python 2.7+ and 3.4+ is supported
+   * Focus on high speed, using numpy and pandas with C backend
+   * Regular surfaces, i.e. 2D maps with regular sampling and rotation
+   * 3D grids (corner-point), supporting several formats such as
+     RMS and Eclipse
+   * Support of seismic cubes, using
+     [segyio](https://github.com/equinor/segyio) as backend for SEGY format
+   * Support of well data, line and polygons (still somewhat immature)
+   * Operations between the data types listed above; e.g. slice a surface
+     with a seismic cube
+   * Integration to ROXAR API python for several data types is supported
+     (see note later)
+   * Currently, Linux only is supported
+
+## Installation ##
+
+For some versions, PYPI installation is possible:
+
+```
+pip install xtgeo
+```
+For detailed installation instructions (implies C compiling), see
+the documentation.
+
+## Documentation ##
+
+XTGeo will be present at readthedocs soon. In the mean time, clone the project
+and run
+
+```
+make docs
+```
+
+
+## Getting started ##
+
+```python
+from xtgeo.surface import RegularSurface
+
+# create an instance of a surface, read from file
+mysurf = RegularSurface('myfile.gri')  # Irap binary as default
+
+print('Mean is {}'.format(mysurf.values.mean()))
+
+# change date so all values less than 2000 becomes 2000
+# The values attribute gives the Numpy array
+
+mysurface.values[mysurface.values < 2000] = 2000
+
+# export the modified surface:
+mysurface.to_file('newfile.gri')
+```
+
+## Note on RMS Roxar API integration ##
+
+The following applies to the part of the XTGeo API that is
+connected to Roxar API (RMS):
+
+> RMS is neither an open source software nor a free software and
+> any use of it needs a software license agreement in place.
+
+
+# History (changelog) #
+
+  ## 2.0.4 ##
+
+  * Technical fixes regarding numpy versions vs py version, swig setup and setup.py
+
+  ## 2.0.3 ##
+
+  * Deploy to python 3.4 and 3.5 also. Numpy versions tuned to match roxar library.
+
+  ## 2.0.2 ##
+
+  * Adding services for code improvements (codacy, bandit)
+
+  ## 2.0.1 ##
+
+  * Minor improvements in setup and documentation
+  * Travis automatic deploy works now
+
+  ## 2.0.0 ##
+
+  * First version after Open Sourcing to LGPL v3+
+
+  ## Version 0 and 1 ##
+
+See github for commit and tag history:
+
+https://github.com/equinor/xtgeo
+
+
