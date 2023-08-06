@@ -1,0 +1,76 @@
+# Import any user defined rules.
+try-import %workspace%/user.bazelrc
+
+# Add C++14 compiler flags.
+build --cxxopt=-std=c++14
+build --host_cxxopt=-std=c++14
+
+# Default to an optimized build.
+build -c opt
+
+# lexyacc
+build --extra_toolchains=@dreal//third_party/com_github_google_kythe/tools/build_rules:lexyacc_remote_toolchain
+
+# Default build options.
+build --force_pic
+build --strip=never
+build --strict_system_includes
+
+# Default test options.
+test --test_output=errors
+
+### Cpplint. ###
+# By default, cpplint tests are run as part of `bazel test` alongside all of
+# the other compilation and test targets.  This is a convenience shortcut to
+# only do the cpplint testing and nothing else.
+test:cpplint --build_tests_only
+test:cpplint --test_tag_filters=cpplint
+
+### ASan build. ###
+build:asan --action_env=ASAN_OPTIONS
+build:asan --copt -fsanitize=address
+build:asan --copt -O1
+build:asan --copt -fno-omit-frame-pointer
+build:asan --linkopt -fsanitize=address
+test:asan --test_tag_filters=-no_asan,-no_lsan
+test:asan --test_timeout=120,600,1800,7200
+
+### LSan build. ###
+build:lsan --action_env=LSAN_OPTIONS
+build:lsan --copt -fsanitize=leak
+build:lsan --copt -O1
+build:lsan --copt -fno-omit-frame-pointer
+build:lsan --linkopt -fsanitize=leak
+test:lsan --test_tag_filters=-no_asan,-no_lsan
+test:lsan --test_timeout=120,600,1800,7200
+
+### TSan build. ###
+build:tsan --action_env=TSAN_OPTIONS
+build:tsan --copt -fsanitize=thread
+build:tsan --copt -O1
+build:tsan --copt -fno-omit-frame-pointer
+build:tsan --linkopt -fsanitize=thread
+test:tsan --test_tag_filters=-no_tsan
+test:tsan --test_timeout=180,900,2700,10800
+
+### UBSan build. ###
+build:ubsan --copt -g
+build:ubsan --copt -fsanitize=undefined
+build:ubsan --copt -fno-sanitize=float-divide-by-zero
+build:ubsan --copt -O1
+build:ubsan --copt -fno-omit-frame-pointer
+build:ubsan --linkopt -fsanitize=undefined
+# https://groups.google.com/forum/#!topic/bazel-discuss/15h4GPixeGI
+build:ubsan --linkopt -lubsan
+test:ubsan --test_tag_filters=-no_ubsan
+test:ubsan --test_timeout=120,600,1800,7200
+
+### Kcov coverage build. ###
+build:kcov --copt -g
+build:kcov --copt -O0
+test:kcov --spawn_strategy=local
+test:kcov --run_under //tools:kcov
+test:kcov --local_test_jobs=1
+test:kcov --test_tag_filters=-cpplint,-pycodestyle,-no_kcov
+test:kcov --nocache_test_results
+test:kcov --test_timeout=120,600,1800,7200
