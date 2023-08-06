@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+{% load request_static %}
+
+{% block gui_init_scripts %}
+    {% if user.is_authenticated %}
+        <!-- app-gui-page -->
+    {% endif %}
+
+    <script type="text/javascript">
+        window.csrf_data = {
+            csrfHeaderName: "{{ csrf_header_name|default:'X-CSRFToken' }}",
+            csrfCookieName: "{{ csrf_cookie_name|default:'csrftoken' }}",
+            token: "{{ csrf_token }}"
+        };
+
+        var hostname = '{{host_url}}';
+        var server_status_types = '{{server_status_types|safe}}';
+
+        var gui_version = '{{gui_version}}';
+        var api_version = 'v2';
+
+        var gui_logout_url = hostname + '{{logout_url}}';
+
+        {% if user.is_authenticated %}
+            var my_user_id = '{{user.id}}'
+        {% else %}
+            var my_user_id = undefined
+        {% endif %}
+
+        {% if user.is_authenticated %}
+            var is_authenticated = true
+        {% else %}
+            var is_authenticated = false
+        {% endif %}
+
+        var is_superuser = false
+        var is_staff = false
+
+        {% if user.is_superuser %}
+            is_superuser = true
+        {% endif %}
+
+        {% if user.is_staff %}
+             is_staff = true
+        {% endif %}
+
+        window.my_user_first_name = '{{user.first_name}}';
+        window.my_user_last_name = '{{user.last_name}}';
+        window.my_user_email = '{{user.email}}';
+
+        window.guiStaticPath = "{% static '' %}";
+        window.isDebug = {% if debug %}true{% else %}false{% endif %}
+        window.timeZone = '{{timezone}}';
+        window.enable_gravatar = {% if enable_gravatar %}true{% else %}false{% endif %}
+        window.openapi_url = '{{ openapi_url }}';
+    </script>
+{% endblock %}
+
+{% block style %}
+    {% block gui_init_inline_styles %}
+        <style>
+            #LoadingProgressBar *::-webkit-scrollbar {
+                width: 0px;
+            }
+
+            #LoadingProgressBar {
+                background: #ecf0f5;
+                width: 100%;
+                height: 100%;
+                position: fixed;
+                top: 0px;
+                left: 0px;
+                z-index: 2000;
+            }
+
+            #LoadingProgressBar .loadWrapper {
+                width: 200px;
+                height: 7px;
+                position: absolute;
+                top: 130px;
+                left: 50%;
+                transform: translate(-50%,-50%);
+                background: #E0E0E0;
+                border-radius: 7px;
+            }
+
+            #LoadingProgressBar .loadProgress {
+                position: absolute;
+                top: 0;
+                left: 0;
+                border-radius: 7px;
+                background: #3F51B5;
+                height: 100%;
+                width: 100%;
+                transition: all 100ms ease-out;
+            }
+
+            #LoadingProgressBar .status {
+                position: absolute;
+                top: 110px;
+                left: 50%;
+                transform: translate(-50%, -45%);
+                font-family: 'Ubuntu Mono', monospace;
+                color: #607D8B;
+            }
+
+            #LoadingProgressBar .statusCont {
+                font-family: 'Ubuntu Mono', monospace;
+            }
+
+            #LoadingProgressBar .titleP {
+                position: absolute;
+                top: 25px;
+                left: 50%;
+                transform: translate(-50%,25%);
+                font-family: 'Ubuntu Mono', monospace;
+                color: #3F51B5;
+                text-transform: uppercase;
+
+
+                font-size: 36px;
+                margin-top: 20px;
+                margin-bottom: 10px;
+                font-weight: 500;
+                line-height: 1.1;
+                margin: .67em 0;
+                box-sizing: border-box;
+            }
+
+            .loadInfoWrapper a{
+                position: absolute;
+                border-radius: 7px;
+                padding: 5px 15px;
+                background-color: #E0E0E0;
+                top: 140px;
+                left: 50%;
+                transform: translate(-50%,25%);
+                font-family: 'Ubuntu Mono', monospace;
+                color: #3F51B5;
+                text-transform: uppercase;
+                text-decoration: none;
+                box-sizing: border-box;
+                font-weight: 400;
+                font-size: 14px;
+            }
+
+            .loadInfoWrapper a:hover{
+                background-color: #d0d0d0;
+            }
+
+            .LoadingProgressBar-logger-wrapper {
+                position: absolute;
+                top: 190px;
+                left: 50%;
+                transform: translate(-50%, 0%);
+                font-family: 'Ubuntu Mono', monospace;
+                font-size: 12px;
+                font-weight: 500;
+                line-height: 1.1;
+                box-sizing: border-box;
+                padding: 0;
+                margin: 0 auto;
+                width: 90vw;
+                height: calc(100vh - 206px);
+                background-color: #dedede;
+                overflow: scroll;
+            }
+
+            .LoadingProgressBar-error {
+                margin: 0;
+                padding: 10px 0px;
+                color: #b53f3f;
+                white-space: pre-wrap;
+                white-space: -moz-pre-wrap;
+                white-space: -o-pre-wrap;
+                word-wrap: break-word;
+            }
+
+             .LoadingProgressBar-success {
+                margin: 0;
+                padding: 0;
+                color: green;
+                 white-space: pre-wrap;
+                white-space: -moz-pre-wrap;
+                white-space: -o-pre-wrap;
+                word-wrap: break-word;
+            }
+
+             .LoadingProgressBar-error-msg {
+                color: #b53f3f;
+            }
+
+            .loadInfoWrapper.need-reload span{
+                animation-name: blinker;
+                animation-iteration-count: infinite;
+                animation-timing-function: cubic-bezier(1, -0.75, 0, 2.08);
+                animation-duration: 1s;
+                color: #f00;
+                font-weight: bold;
+            }
+
+            @keyframes blinker {
+              from { opacity: 1.0; }
+              to { opacity: 0.3; }
+            }
+
+        </style>
+    {% endblock %}
+
+    {% block bootstrap_theme %}
+        {{ block.super }}
+    {% endblock %}
+
+    {% block flavicon %}{{ block.super }}{% endblock %}
+
+    {% block custom_style %}
+        {{ block.super }}
+    {% endblock %}
+
+
+{% endblock %}
+
+{% block resource_list %}
+    <script>
+        window.resourceList = [
+            { prioritet:0, type:'js', name: "{% static 'admin/js/vendor/jquery/jquery.min.js' %}?v={{gui_version}}"},
+            { prioritet:1, type:'js', name: "{% static 'js/libs/tabSignal.js' %}?v={{gui_version}}"},
+
+            { prioritet:3, type:'js', name: "{% static 'js/libs/md5.min.js' %}?v={{gui_version}}"},
+            { prioritet:4, type:'js', name: "{% static 'js/libs/touchwipe.js' %}?v={{gui_version}}"},
+
+            { prioritet:4, type:'js', name: "{% static 'js/libs/visibility/visibility.core.js' %}?v={{gui_version}}"},
+
+            { prioritet:4, type:'js', name: "{% static 'js/libs/iziToast.min.js' %}?v={{gui_version}}"},
+            { prioritet:4, type:'js', name: "{% static 'js/libs/iziModal.min.js' %}?v={{gui_version}}"},
+            { prioritet:4, type:'js', name: "{% static 'js/libs/imask.js' %}?v={{gui_version}}"},
+
+            { prioritet:4, type:'js', name: "{% static 'AdminLTE-3.0.0/plugins/bootstrap/js/bootstrap.bundle.min.js' %}?v={{gui_version}}"},
+            { prioritet:5, type:'js', name: "{% static 'AdminLTE-3.0.0/plugins/slimScroll/jquery.slimscroll.min.js' %}?v={{gui_version}}"},
+            { prioritet:9, type:'js', name: "{% static 'js/guiCustomizer.js' %}?v={{gui_version}}"},
+
+            { prioritet:4, type:'js', name: "{% static 'plugins/fastclick/fastclick.min.js' %}?v={{gui_version}}"},
+
+            { prioritet:11.5, type:'js', name: "{% static 'js/libs/xregexp-all.js' %}?v={{gui_version}}"},
+
+            { prioritet:9, type:'js', name: "{% static 'AdminLTE-3.0.0/min/js/adminlte.js' %}?v={{gui_version}}"},
+            { prioritet:8, type:'js', name: "{% static 'js/common-utils.js' %}?v={{gui_version}}"},
+
+            { prioritet:110, type:'js', name: "{% static 'js/libs/autocomplete.js' %}?v={{gui_version}}"},
+            { prioritet:110, type:'js', name: "{% static 'plugins/select2/select2.full.min.js' %}?v={{gui_version}}"},
+
+            { prioritet:50, type:'js', name: "{% static 'js/libs/moment.min.js' %}?v={{gui_version}}"},
+            { prioritet:51, type:'js', name: "{% static 'js/libs/moment-timezone.min.js' %}?v={{gui_version}}"},
+            { prioritet:51, type:'js', name: "{% static 'js/libs/Chart.min.js' %}?v={{gui_version}}"},
+            { prioritet:50, type:'js', name: "{% static 'js/libs/jquery.scrollTo.min.js' %}?v={{gui_version}}"},
+
+            { prioritet:9,   type:'js', name: "{% static 'js/libs/axios.min.js' %}?v={{gui_version}}"},
+            { prioritet:9,   type:'js', name: "{% static 'js/libs/vue/vue.min.js' %}?v={{gui_version}}"},
+            { prioritet:9.1,   type:'js', name: "{% static 'js/libs/vue/vuex.min.js' %}?v={{gui_version}}"},
+            { prioritet:9.2,   type:'js', name: "{% static 'js/libs/vue/vue-router.min.js' %}?v={{gui_version}}"},
+
+            { prioritet:300, type:'tpl', name: "{% static 'templates/guiFields.html' %}?v={{gui_version}}"},
+            { prioritet:300, type:'tpl', name: "{% static 'templates/guiItems.html' %}?v={{gui_version}}"},
+
+            { prioritet:9.8, type:'js', name: "{% static 'js/guiPopUp.js' %}?v={{gui_version}}"},
+            { prioritet:9.9,   type:'js', name: "{% static 'js/guiFieldsMixins.js' %}?v={{gui_version}}" },
+            { prioritet:10,   type:'js', name: "{% static 'js/guiFields.js' %}?v={{gui_version}}" },
+            { prioritet:10.1,   type:'js', name: "{% static 'js/guiItems.js' %}?v={{gui_version}}" },
+            { prioritet:10.2,   type:'js', name: "{% static 'js/guiModels.js' %}?v={{gui_version}}" },
+            { prioritet:10.3,   type:'js', name: "{% static 'js/guiQuerySet.js' %}?v={{gui_version}}" },
+            { prioritet:10.4,   type:'js', name: "{% static 'js/guiViews.js' %}?v={{gui_version}}" },
+            { prioritet:10.5,   type:'js', name: "{% static 'js/guiStore.js' %}?v={{gui_version}}" },
+            { prioritet:10.6,   type:'js', name: "{% static 'js/guiRouter.js' %}?v={{gui_version}}" },
+            { prioritet:10.7,   type:'js', name: "{% static 'js/guiApi.js' %}?v={{gui_version}}" },
+            { prioritet:10.9,   type:'js', name: "{% static 'js/guiApp.js' %}?v={{gui_version}}" },
+            { prioritet:11,     type:'js', name: "{% static 'js/guiUsers.js' %}?v={{gui_version}}"},
+            { prioritet:300,    type:'js', name: "{% static 'js/guiDashboard.js' %}?v={{gui_version}}"},
+
+            { prioritet:101, type:'css', name: "{% static 'AdminLTE-3.0.0/plugins/bootstrap/css/bootstrap.min.css' %}?v={{gui_version}}"},
+            { prioritet:102, type:'css', name: "{% static 'css/iziToast.min.css' %}?v={{gui_version}}"},
+            { prioritet:102, type:'css', name: "{% static 'css/iziModal.min.css' %}?v={{gui_version}}"},
+            { prioritet:103, type:'css', name: "{% static 'AdminLTE-3.0.0/plugins/font-awesome/css/font-awesome.min.css' %}?v={{gui_version}}"},
+            { prioritet:105, type:'css', name: "{% static 'AdminLTE-3.0.0/min/css/adminlte.min.css' %}?v={{gui_version}}"},
+            { prioritet:108, type:'css', name: "{% static 'css/gui.css' %}?v={{gui_version}}"},
+
+            { prioritet:99, type:'css', name: "{% static 'plugins/select2/select2.min.css' %}?v={{gui_version}}"},
+        ]
+    </script>
+{% endblock %}
+
+{% block body %}
+    <body class="hold-transition sidebar-mini {% block bodyclass %}{% endblock %}">
+        {% block gui_init_inline_body %}
+            <div id="LoadingProgressBar">
+                <!-- Title -->
+                <h1 class="titleP">
+                    {% block progressbar_title %}{{project_gui_name}}{% endblock %}
+                </h1>
+
+                <!-- Load Status -->
+                <div class="status">
+                    <div class="statusCont" id="LoadingProgressBarCount">
+
+                    </div>
+                </div>
+
+                <!-- Progress bar -->
+                <div class="loadWrapper">
+                    <div class="loadProgress"  id="LoadingProgressBarLine"></div>
+                </div>
+
+                <div class="loadInfoWrapper">
+                    <a href="#" onclick="window.guiFilesCache.deleteAllCacheAndUpdatePage(); return false;"><span>Reload all cache</span></a>
+                </div>
+
+                <div class="LoadingProgressBar-logger-wrapper" style="display: none;">
+                    <h3 style="text-align: center;">Loading logger</h3>
+                    <h4  class="LoadingProgressBar-error-msg" style="text-align: center; display:none;">Some errors occurred during files loading</h4>
+                    <h5>Project info</h5>
+                    <table>
+                        <tr>
+                            <th>Project name</th>
+                            <td>{{project_gui_name}}</td>
+                        </tr>
+                        <tr>
+                            <th>Project Version</th>
+                            <td>{{project_version}}</td>
+                        </tr>
+                        <tr>
+                            <th>Gui Version</th>
+                            <td>{{gui_version}}</td>
+                        </tr>
+                        <tr>
+                            <th>Host URL</th>
+                            <td>{{host_url}}</td>
+                        </tr>
+                        <tr>
+                            <th>User ID</th>
+                            <td>{{user.id}}</td>
+                        </tr>
+                        <tr>
+                            <th> User is authenticated</th>
+                            <td>{% if user.is_authenticated %}true{% else %}false{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <th>User is superuser</th>
+                            <td>{% if user.is_superuser %}true{% else %}false{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <th>User is staff</th>
+                            <td>{% if user.is_staff %}true{% else %}false{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <th>Path to static files</th>
+                            <td>{% static '' %}</td>
+                        </tr>
+                        <tr>
+                            <th>Debug mode</th>
+                            <td>{% if debug %}true{% else %}false{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <th>Timezone</th>
+                            <td>{{timezone}}</td>
+                        </tr>
+                    </table>
+                    <br>
+                    <h5>Logs</h5>
+                </div>
+            </div>
+        {% endblock %}
+
+        <div id="RealBody" class="{% if user.is_superuser %} is_superuser {% endif %} {% if user.is_staff %} is_staff {% endif %}" style="display: none;">
+            {% block gui_body_template %}
+               <div class="hold-transition skin-black-light sidebar-mini ">
+                   <div class="wrapper" >
+                        <!-- Navbar -->
+                       <div id="top_nav_wrapper">
+                            <top_nav :a_links="a_links"></top_nav>
+                       </div>
+                        <!-- /Navbar -->
+
+                        <!-- Main Sidebar Container -->
+                       <div id="sidebar_wrapper">
+                            <aside class="main-sidebar sidebar-dark-primary elevation-4">
+                                <!-- Logo -->
+                                <logo :title="info.title"></logo>
+                                <!-- Logo -->
+
+                                <!-- Sidebar -->
+                                <sidebar :menu="x_menu" :docs="x_docs" :a_links="a_links"></sidebar>
+                                <!-- /.Sidebar -->
+                            </aside>
+                       </div>
+                        <!-- /Main Sidebar Container -->
+
+                        <!-- Content Wrapper. Contains page content -->
+                        <div class="content-wrapper">
+                        <!--<div>-->
+                            <!-- Main content -->
+                            {% block content %}
+                                 <router-view></router-view>
+                            {% endblock %}
+                            <!-- /Main content -->
+                        </div>
+                        <!-- /Content Wrapper. Contains page content -->
+
+                       <!-- Control Sidebar -->
+                       <div id="gui_customizer_wrapper">
+                           <aside class="control-sidebar control-sidebar-dark guiCustomizer">
+                                <gui_customizer></gui_customizer>
+                            </aside>
+                       </div>
+
+                        <!-- /Control Sidebar -->
+
+                        <!-- Main Footer -->
+                       <div id="main_footer_wrapper">
+                            <main_footer></main_footer>
+                       </div>
+                        <!-- /Main Footer -->
+                    </div>
+               </div>
+            {% endblock %}
+        </div>
+
+        <!-- inline_app_loader -->
+        {% block inline_app_loader %}
+            {% include "gui/inline_app_loader.html" %}
+        {% endblock %}
+        <!-- /inline_app_loader -->
+
+        <!-- script -->
+        {% block script %}{{ block.super }}{% endblock %}
+        <!-- /script -->
+    </body>
+{% endblock %}

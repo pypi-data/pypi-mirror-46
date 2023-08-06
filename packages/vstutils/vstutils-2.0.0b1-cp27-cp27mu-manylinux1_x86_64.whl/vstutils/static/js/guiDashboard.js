@@ -1,0 +1,8 @@
+var guiWidgets={};guiWidgets.base=class BaseWidget{constructor(options={}){this.format='base';this.sort=0;this.active=true;this.collapsed=false;this.collapsable=true;this.name=options.name;this.title=options.title;['active','collapsed','sort'].forEach(key=>{if(options[key]!==undefined){this[key]=options[key];}});}};guiWidgets.counter=class CounterWidget extends guiWidgets.base{constructor(options={}){super(options);this.format='counter';this.collapsable=false;this.url=options.url;}};guiWidgets.line_chart=class LineChartWidget extends guiWidgets.base{constructor(options){super(options);this.format='line_chart';this.chart_type='line';this.chart_options=options.chart_options||{};this.lines=options.lines||[];}
+_formChartDataLabels(raw_data){return[];}
+_formChartDataDatasets(raw_data,labels){let datasets=[];for(let index in this.lines){let line=this.lines[index];if(!line.active)continue;datasets.push({label:line.title||line.name,data:this._formChartDataDatasets_oneLine(line,raw_data,labels),borderColor:line.color,backgroundColor:line.bg_color,});}
+return datasets;}
+_formChartDataDatasets_oneLine(line,raw_data,labels){return[];}
+formChartData(raw_data){let labels=this._formChartDataLabels(raw_data);let datasets=this._formChartDataDatasets(raw_data,labels);return this.getChartData(datasets,labels);}
+getChartData(datasets,labels){return{type:this.chart_type,data:{datasets:datasets,labels:labels,},options:this.chart_options,};}
+generateChart(el,chart_data){return new Chart(el,chart_data);}};var guiDashboard={widgets:{},};
