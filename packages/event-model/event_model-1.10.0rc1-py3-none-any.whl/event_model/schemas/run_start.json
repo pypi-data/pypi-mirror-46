@@ -1,0 +1,83 @@
+{
+    "definitions": {
+        "data_type": {
+            "title" : "data_type",
+            "patternProperties": {"^([^./]+)$": {"$ref": "#/definitions/data_type"}},
+            "additionalProperties": false
+        }
+    },
+    "properties": {
+        "project": {
+            "type": "string",
+            "description": "Name of project that this run is part of"
+        },
+        "sample": {
+            "type": ["object", "string"],
+            "description": "Information about the sample, may be a UID to another collection"
+        },
+        "scan_id": {
+            "type": "integer",
+            "description": "Scan ID number, not globally unique"
+        },
+        "time": {
+            "type": "number",
+            "description": "Time the run started.  Unix epoch time"
+        },
+        "uid": {
+            "type": "string",
+            "description": "Globally unique ID for tihs run"
+        },
+        "group": {
+            "type": "string",
+            "description": "Unix group to associate this data with"
+        },
+        "owner": {
+            "type": "string",
+            "description": "Unix owner to associate this data with"
+        },
+        "hints": {
+            "type": "object",
+            "description": "Start-level hints",
+            "properties": {
+                "dimensions": {
+                    "type": "array",
+                    "description": "The indepented axes of the experiment.  Ordered slow to fast",
+                    "items": {
+                        "type": "array",
+                        "description": "Each entry in this list is of the from ([<FIELD>, ...], <STREAM>).  A 1d scan will have 1 such entry, a scan with 3 independent entries would have 3",
+                        "items": [
+                            {
+                                "type": "array",
+                                "description": "The data key(s) for the given dimension.",
+                                "items":
+                                {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "string",
+                                "description": "The stream to find the datakeys in."
+
+                            }
+                        ],
+                        "additionalItems": false,
+                        "minItems": 2
+
+                    }
+                }
+            },
+            "patternProperties": {
+                "^([^.]+)$": {"$ref": "#/definitions/data_type"}},
+            "additionalProperties": false
+        }
+    },
+    "patternProperties": {
+        "^([^./]+)$": {"$ref": "#/definitions/data_type"}},
+    "additionalProperties": false,
+    "required": [
+        "uid",
+        "time"
+     ],
+    "type": "object",
+    "description": "Document created at the start of run.  Provides a seach target and later documents link to it"
+}
