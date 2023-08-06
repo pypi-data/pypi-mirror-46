@@ -1,0 +1,183 @@
+Metadata-Version: 2.1
+Name: nengo-bones
+Version: 0.2.0
+Summary: Tools for managing Nengo projects
+Home-page: https://www.nengo.ai/nengo-bones
+Author: Applied Brain Research
+Author-email: info@appliedbrainresearch.com
+License: Free for non-commercial use
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Framework :: Nengo
+Classifier: Intended Audience :: Developers
+Classifier: License :: Free for non-commercial use
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Software Development
+Requires-Python: >=3.5
+Requires-Dist: click (>=7.0)
+Requires-Dist: jinja2 (>=2.10)
+Requires-Dist: pyyaml (>=5.1)
+Requires-Dist: requests (>=2.21)
+Provides-Extra: all
+Provides-Extra: docs
+Provides-Extra: optional
+Provides-Extra: tests
+
+.. image:: https://img.shields.io/pypi/v/nengo-bones.svg
+  :target: https://pypi.org/project/nengo-bones
+  :alt: Latest PyPI version
+
+.. image:: https://img.shields.io/travis/nengo/nengo-bones/master.svg
+  :target: https://travis-ci.org/nengo/nengo-bones
+  :alt: Travis-CI build status
+
+.. image:: https://img.shields.io/codecov/c/github/nengo/nengo-bones/master.svg
+  :target: https://codecov.io/gh/nengo/nengo-bones
+  :alt: Test coverage
+
+***********
+Nengo Bones
+***********
+
+The aim of this project is to automate the configuration of repositories
+throughout the Nengo ecosystem.  The idea is that we can centralize the
+design and maintenance of "meta" project code (such as CI testing
+infrastructure) in this project, rather than each repository maintaining that
+code independently.
+
+The basic methodology for this project is a templating system in which
+there are common templates for meta files that are populated with
+data in each downstream project.  Projects control this templating through the
+``.nengobones.yml`` configuration file, which defines the information used to
+fill in the templates.
+
+Wherever possible, we try to do this templating in such a way that downstream
+projects will be automatically updated when an update is made in
+``nengo-bones``. However, some files cannot be updated automatically and
+require downstream repos to manually run a script to update those files.
+
+Note that this repository itself is configured using the ``nengo-bones``
+templating system, so if you would like an example of how to use it, check out
+`the source code <https://github.com/nengo/nengo-bones>`__.
+
+Installation
+============
+
+We recommend installing ``nengo-bones`` using ``pip``:
+
+.. code-block:: bash
+
+    pip install nengo-bones
+
+Or for the latest updates you can perform a developer installation:
+
+.. code-block:: bash
+
+    git clone https://github.com/nengo/nengo-bones.git
+    pip install -e ./nengo-bones
+
+Basic usage
+===========
+
+The first step is to fill in the ``.nengobones.yml`` configuration file.  You
+can use the one in this repository as a starting point, or see
+`the documentation
+<https://www.nengo.ai/nengo-bones/examples/configuration.html>`__
+for more details.  This file should be
+placed in the top level of your project.
+
+All of the manually generated template files can then be rendered by running
+this command in the same folder as the ``.nengobones.yml`` file:
+
+.. code-block:: bash
+
+    generate-bones
+
+See ``generate-bones --help`` or
+`the documentation <https://www.nengo.ai/nengo-bones/cli.html>`__
+for a full list of command line options.
+
+Documentation
+=============
+
+- `Command line usage <https://www.nengo.ai/nengo-bones/cli.html>`_
+- `Demonstration of available configuration options
+  <https://www.nengo.ai/nengo-bones/examples/configuration.html>`_
+- `API reference <https://www.nengo.ai/nengo-bones/reference.html>`_
+
+***************
+Release History
+***************
+
+.. Changelog entries should follow this format:
+
+   version (release date)
+   ======================
+
+   **section**
+
+   - One-line description of change (link to Github issue/PR)
+
+.. Changes should be organized in one of several sections:
+
+   - Added
+   - Changed
+   - Deprecated
+   - Removed
+   - Fixed
+
+0.2.0 (May 15, 2019)
+====================
+
+**Added**
+
+- Added ``apt_install`` option that can be set in the ``jobs`` section to
+  ``apt install`` any custom ``apt`` requirements for a job. (`#14`_)
+- Added templates for ``CONTRIBUTING.rst``, ``CONTRIBUTORS.rst``,
+  ``LICENSE.rst``, ``MANIFEST.in``, ``docs/conf.py``, ``setup.cfg``, and
+  ``setup.py`` (`#17`_)
+- Templates will now be automatically loaded from a ``<repo>/.templates``
+  directory if it exists. When overriding existing templates, the built-in
+  templates can be accessed in ``include`` and ``extend`` tags with the
+  ``templates/`` prefix. (`#17`_)
+- Added ``flake8`` to the static check script. (`#17`_)
+- Added the ``bones-pr-number`` script to predict the next PR number for a
+  repository. This helps when writing a changelog entry before a PR has been
+  made. (`#18`_)
+
+**Changed**
+
+- The Python version is now specified by the ``python`` option (instead of
+  ``python_version``), for consistency with ``.travis.yml``. (`#14`_)
+- All ``nengo-bones`` scripts now start with ``bones-``, to make them easier
+  to find with autocompletion. ``generate-bones`` is now ``bones-generate``,
+  and ``check-bones`` is now ``bones-check``. (`#18`_)
+
+**Removed**
+
+- Removed ``conda`` from the CI setup; all installations should be done
+  through ``pip`` instead. (`#14`_)
+- Removed the ``--template-dir`` option from the ``generate-bones`` script;
+  use a ``.templates`` directory instead. (`#17`_)
+
+**Fixed**
+
+- Order of templated dicts should now be deterministic for
+  all Python versions. (`#14`_)
+
+.. _#14: https://github.com/nengo/nengo-bones/pull/14
+.. _#17: https://github.com/nengo/nengo-bones/pull/17
+.. _#18: https://github.com/nengo/nengo-bones/pull/18
+
+0.1.0 (April 15, 2019)
+======================
+
+Initial release of Nengo Bones!
+Thanks to all of the contributors for making this possible!
+
+
