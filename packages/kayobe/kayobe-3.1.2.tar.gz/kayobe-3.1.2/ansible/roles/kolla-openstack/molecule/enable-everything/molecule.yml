@@ -1,0 +1,86 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint:
+  name: yamllint
+platforms:
+  - name: centos-7
+    image: centos:7
+provisioner:
+  name: ansible
+  inventory:
+    group_vars:
+      all:
+        kolla_extra_config_path:
+        kolla_enable_ceph: true
+        kolla_extra_ceph: |
+          [extra-ceph.conf]
+          foo=bar
+        kolla_enable_cinder: true
+        kolla_extra_cinder: |
+          [extra-cinder.conf]
+          foo=bar
+        kolla_enable_designate: true
+        kolla_extra_designate: |
+          [extra-designate.conf]
+          foo=bar
+        kolla_enable_glance: true
+        kolla_extra_glance: |
+          [extra-glance.conf]
+          foo=bar
+        kolla_enable_grafana: true
+        kolla_extra_grafana: |
+          [extra-grafana.ini]
+          foo=bar
+        kolla_enable_heat: true
+        kolla_extra_heat: |
+          [extra-heat.conf]
+          foo=bar
+        kolla_enable_horizon: true
+        kolla_enable_ironic: true
+        kolla_extra_ironic: |
+          [extra-ironic.conf]
+          foo=bar
+        kolla_extra_inspector: |
+          [extra-ironic-inspector.conf]
+          foo=bar
+        kolla_inspector_ipa_kernel_path: ${MOLECULE_TEMP_PATH:-/tmp}/ironic-agent.kernel
+        kolla_inspector_ipa_ramdisk_path: ${MOLECULE_TEMP_PATH:-/tmp}/ironic-agent.initramfs
+        kolla_extra_ironic_dnsmasq: |
+          extra=bar
+        kolla_enable_magnum: true
+        kolla_extra_magnum: |
+          [extra-magnum.conf]
+          foo=bar
+        kolla_enable_manila: true
+        kolla_enable_murano: true
+        kolla_enable_monasca: true
+        kolla_extra_murano: |
+          [extra-murano.conf]
+          foo=bar
+        kolla_enable_neutron: true
+        kolla_extra_neutron: |
+          [extra-neutron.conf]
+          foo=bar
+        kolla_extra_neutron_ml2: |
+          [extra-ml2_conf.ini]
+          foo=bar
+        kolla_enable_nova: true
+        kolla_extra_nova: |
+          [extra-nova.conf]
+          foo=bar
+        kolla_enable_sahara: true
+        kolla_extra_sahara: |
+          [extra-sahara.conf]
+          foo=bar
+        kolla_enable_swift: true
+  lint:
+    name: ansible-lint
+scenario:
+  name: enable-everything
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
