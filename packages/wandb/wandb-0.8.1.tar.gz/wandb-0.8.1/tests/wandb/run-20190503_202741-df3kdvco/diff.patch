@@ -1,0 +1,17 @@
+diff --git a/wandb/tensorboard/__init__.py b/wandb/tensorboard/__init__.py
+index 72b6859..2718dac 100644
+--- a/wandb/tensorboard/__init__.py
++++ b/wandb/tensorboard/__init__.py
+@@ -14,7 +14,11 @@ if tensorboardX_loaded:
+     from tensorboardX.proto.summary_pb2 import Summary
+     from tensorboardX.proto.event_pb2 import Event
+ else:
+-    from tensorflow.summary import Summary, Event
++    try:
++        from tensorboard.compat.proto.summary_pb2 import Summary
++        from tensorboard.compat.proto.event_pb2 import Event
++    except ImportError:
++        from tensorflow.summary import Summary, Event
+ 
+ 
+ def patch(save=True, tensorboardX=tensorboardX_loaded):
