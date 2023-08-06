@@ -1,0 +1,202 @@
+stages:
+  - test
+  - integration
+  - deploy
+
+centos7:
+  except:
+    - tags
+  image: gitlab-registry.cern.ch/lhcb-docker/python-deployment:centos7
+  script:
+    - python --version
+    - python setup.py nosetests --cover-package LbPlatformUtils
+    - mkdir -p cover_report && mv -f cover cover_report/$CI_JOB_NAME
+    - python setup.py install && lb-describe-platform --flags
+  artifacts:
+    paths:
+      - cover_report
+    when: always
+    expire_in: 1 week
+
+slc6:
+  except:
+    - tags
+  image: gitlab-registry.cern.ch/lhcb-docker/python-deployment:slc6
+  script:
+    - python --version
+    - python setup.py nosetests --cover-package LbPlatformUtils
+    - mkdir -p cover_report && mv -f cover cover_report/$CI_JOB_NAME
+    - python setup.py install && lb-describe-platform --flags
+  artifacts:
+    paths:
+      - cover_report
+    when: always
+    expire_in: 1 week
+
+slc5:
+  except:
+    - tags
+  image: gitlab-registry.cern.ch/lhcb-docker/python-deployment:slc5
+  script:
+    - python --version
+    - python setup.py nosetests --cover-package LbPlatformUtils
+    - mkdir -p cover_report && mv -f cover cover_report/$CI_JOB_NAME
+    - python setup.py install && lb-describe-platform --flags
+  artifacts:
+    paths:
+      - cover_report
+    when: always
+    expire_in: 1 week
+
+python2.7:
+  image: gitlab-registry.cern.ch/lhcb-docker/python-deployment:python-2.7
+  script:
+    - python --version
+    - python setup.py nosetests --cover-package LbPlatformUtils
+    - mkdir -p cover_report && mv -f cover cover_report/$CI_JOB_NAME
+    - python setup.py install && lb-describe-platform --flags
+    - python setup.py bdist_wheel --dist-dir public/${CI_PROJECT_NAME,,}
+  artifacts:
+    paths:
+      - cover_report
+      - public
+    when: always
+    expire_in: 1 week
+
+python3.5:
+  except:
+    - tags
+  image: gitlab-registry.cern.ch/lhcb-docker/python-deployment:python-3.5
+  script:
+    - python --version
+    - python setup.py nosetests --cover-package LbPlatformUtils
+    - mkdir -p cover_report && mv -f cover cover_report/$CI_JOB_NAME
+    - python setup.py install && lb-describe-platform --flags
+  artifacts:
+    paths:
+      - cover_report
+    when: always
+    expire_in: 1 week
+
+python3.6:
+  except:
+    - tags
+  image: gitlab-registry.cern.ch/lhcb-docker/python-deployment:python-3.6
+  script:
+    - python --version
+    - python setup.py nosetests --cover-package LbPlatformUtils
+    - mkdir -p cover_report && mv -f cover cover_report/$CI_JOB_NAME
+    - python setup.py install && lb-describe-platform --flags
+  artifacts:
+    paths:
+      - cover_report
+    when: always
+    expire_in: 1 week
+
+python3.7:
+  image: gitlab-registry.cern.ch/lhcb-docker/python-deployment:python-3.7
+  script:
+    - python --version
+    - python setup.py nosetests --cover-package LbPlatformUtils
+    - mkdir -p cover_report && mv -f cover cover_report/$CI_JOB_NAME
+    - python setup.py install && lb-describe-platform --flags
+    - python setup.py sdist --dist-dir public/${CI_PROJECT_NAME,,}
+    - python setup.py bdist_wheel --dist-dir public/${CI_PROJECT_NAME,,}
+  artifacts:
+    paths:
+      - cover_report
+      - public
+    when: always
+    expire_in: 1 week
+
+
+# Integration tests
+# -----------------
+# Note: SLC6 and SLC5 cannot be tested (pip requires Python 2.7)
+centos7-cern:
+  stage: integration
+  image: gitlab-registry.cern.ch/linuxsupport/cc7-base
+  dependencies: []
+  script:
+    - yum install -y python-pip git
+    - pip install --upgrade pip setuptools
+    - pip install .
+    - lb-describe-platform | tee output.txt
+    - 'grep -q "os_id: centos7" output.txt'
+    - 'grep -q "host_os: [^-]*-centos7" output.txt'
+
+ubuntu:18.04:
+  stage: integration
+  image: ubuntu:18.04
+  dependencies: []
+  script:
+    - apt update && apt install -y python-pip git
+    - pip install .
+    - lb-describe-platform | tee output.txt
+    - 'grep -q "os_id: ubuntu1804" output.txt'
+    - 'grep -q "host_os: [^-]*-ubuntu1804" output.txt'
+
+debian:9:
+  stage: integration
+  image: debian:9
+  dependencies: []
+  script:
+    - apt update && apt install -y python-pip git
+    - pip install .
+    - lb-describe-platform | tee output.txt
+    - 'grep -q "os_id: debian9" output.txt'
+    - 'grep -q "host_os: [^-]*-debian9" output.txt'
+
+centos:7:
+  stage: integration
+  image: centos:7
+  dependencies: []
+  script:
+    - yum install -y git
+    - curl -O https://bootstrap.pypa.io/get-pip.py && python get-pip.py
+    - pip install .
+    - lb-describe-platform | tee output.txt
+    - 'grep -q "os_id: centos7" output.txt'
+    - 'grep -q "host_os: [^-]*-centos7" output.txt'
+
+fedora:28:
+  stage: integration
+  image: fedora:28
+  dependencies: []
+  script:
+    - dnf install -y python-pip git
+    - pip install .
+    - lb-describe-platform | tee output.txt
+    - 'grep -q "os_id: fedora28" output.txt'
+    - 'grep -q "host_os: [^-]*-fedora28" output.txt'
+
+opensuse/leap:
+  stage: integration
+  image: opensuse/leap
+  dependencies: []
+  script:
+    - zypper install -y python-pip git
+    - pip install .
+    - lb-describe-platform | tee output.txt
+    - 'grep -q "os_id: opensuse15" output.txt'
+    - 'grep -q "host_os: [^-]*-centos7" output.txt'
+
+
+# see https://gitlab.cern.ch/gitlabci-examples/deploy_eos for the details
+# of the configuration
+deploy-packages:
+  stage: deploy
+  only:
+    - tags
+  dependencies:
+    - python3.7
+    - python2.7
+  image: gitlab-registry.cern.ch/ci-tools/ci-web-deployer:latest
+  script:
+    - test -z "$EOS_ACCOUNT_USERNAME" -o -z "$EOS_ACCOUNT_PASSWORD" -o -z "$EOS_PATH" && exit 0 || true
+    # Script that performs the deploy to EOS. Makes use of the variables defined in the project
+    # It will copy the generated content to the folder in EOS
+    - deploy-eos
+  # do not run any globally defined before_script or after_script for this step
+  before_script: []
+  after_script: []
