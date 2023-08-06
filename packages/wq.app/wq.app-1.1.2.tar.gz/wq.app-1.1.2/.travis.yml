@@ -1,0 +1,18 @@
+language: python
+python: 3.6
+env:
+ - LINT=
+ - LINT=1
+install:
+ - pip install --upgrade pip
+ - pip install html-json-forms
+ - make
+ - pip install .
+before_script:
+ - python -m tests.server &
+ - cd tests
+ - wq collectjson
+ - mkdir css && wq init && wq scss --indir scss --outdir css
+ - cd ..
+script:
+ - ./runtests.sh
