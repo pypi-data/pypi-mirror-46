@@ -1,0 +1,653 @@
+Metadata-Version: 2.1
+Name: dativatools
+Version: 2.12.317
+Summary: A selection of tools for easier processing of data using Pandas and AWS
+Home-page: https://bitbucket.org/dativa4data/dativatools/
+Author: Dativa
+Author-email: hello@dativa.com
+License: MIT
+Description: # Dativa Tools
+        
+        Provides useful libraries for processing large data sets. 
+        Developed by the team at [www.dativa.com](https://www.dativa.com) as we find them useful in our projects.
+        
+        The key libraries included here are:
+        
+        * dativa.tools.aws.S3Csv2Parquet - an AWS Glue based tool to transform CSV files to Parquet files
+        * dativa.tools.aws.AthenaClient - provide a simple wrapper to execute Athena queries and create tables. When combined 
+        with the S3Csv2Parquet handler can automatically change Athena outputs to Parquet format
+        * dativa.tools.aws.PipelineClient - client to interact with the Pipeline API. When provided an api key, source S3 
+        location, destination s3 location, and rules, it will clean the source file and post it to destination.
+        * dativa.tools.aws.S3Client - a wrapper for AWS's boto library for S3 enabling easier iteration over S3 files and 
+        multiple deletions, as well as uploading multiple files
+        * dativa.tools.SQLClient - a wrapper for any PEP249 compliant database client with logging and splitting of queries
+        * dativa.tools.pandas.CSVHandler - improved CSV handling for Pandas
+        * dativa.tools.pandas.ParquetHandler - improved Parquet handling for pandas
+        * dativa.tools.pandas.Shapley - Shapley attribution modelling using pandas DataFrames
+        
+        There are also some useful support functions for Pandas date and time handling.
+        
+        ## Installation
+        
+        ```
+        pip install dativatools
+        ```
+        
+        ## Description
+        
+        ### dativa.tools.aws.AthenaClient
+         An easy to use client for AWS Athena that will create tables from S3 buckets (using AWS Glue) and run queries against these tables. It support full customisation of SerDe and column names on table creation.
+        
+         Examples:
+        
+        #### Creating tables
+        
+        The library creates a temporary Glue crawler which is deleted after use, and will also create the database if it does not exist.
+        
+        ```python
+        from dativa.tools.aws import AthenaClient
+        ac = AthenaClient("us-east-1", "my_athena_db")
+        ac.create_table(table_name='my_first_table',
+                        crawler_target={'S3Targets': [
+                            {'Path': 's3://my-bucket/table-data'}]}
+                        )
+        
+        # Create a table with a custom SerDe and column names, typical for CSV files
+        ac.create_table(table_name='comcast_visio_match',
+                        crawler_target={'S3Targets': [
+                            {'Path': 's3://my-bucket/table-data-2', 'Exclusions': ['**._manifest']}]},
+                        serde='org.apache.hadoop.hive.serde2.OpenCSVSerde',
+                        columns=[{'Name': 'id', 'Type': 'string'}, {
+                            'Name': 'device_id', 'Type': 'string'}, {'Name': 'subscriber_id', 'Type': 'string'}]
+                        )
+        ```
+        
+        #### Running queries
+        
+        ```python
+        from dativa.tools.aws import AthenaClient
+        
+        ac = AthenaClient("us-east-1", "my_athena_db")
+        ac.add_query(sql="select * from table",
+                         name="My first query",
+                         output_location= "s3://my-bucket/query-location/")
+        
+        ac.wait_for_completion()
+        ```
+        
+        #### Fetch results of query
+        ```python
+        from dativa.tools.aws import AthenaClient
+        
+        ac = AthenaClient("us-east-1", "my_athena_db")
+        query = ac.add_query(sql="select * from table",
+                             name="My first query",
+                             output_location= "s3://my-bucket/query-location/")
+        
+        ac.wait_for_completion()
+        ac.get_query_result(query)
+        ```
+        
+        
+        
+        #### Running queries with the output in Parquet and create an Athena table
+        
+        ```python
+        from dativa.tools.aws import AthenaClient, S3Csv2Parquet
+        
+        scp = S3Csv2Parquet(region="us-east-1",
+                            template_location="s3://my-bucket/glue-template-path/")
+        ac = AthenaClient("us-east-1", "my_athena_db", s3_parquet=scp)
+        ac.add_query(sql="select * from table",
+                         name="my query that outputs Parquet",
+                         output_location="s3://my-bucket/query-location/",
+                         parquet=True)
+        
+        ac.wait_for_completion()
+        
+        ac.create_table({'S3Targets': [{'Path': "s3://my-bucket/query-location/"}]},
+                                                table_name="query_location")
+        ```
+        
+        
+        ### dativa.tools.aws.S3Client
+        
+         An easy to use client for AWS S3 that copies data to S3.
+         Examples:
+        
+        #### Batch deleting of files on S3
+        
+        ```python
+        from dativa.tools.aws import S3Client
+        
+        # Delete all files in a folder
+        s3 = S3Client()
+        s3.delete_files(bucket="bucket_name", prefix="/delete-this-folder/")
+        
+        # Delete only .csv.metadata files in a folder
+        s3 = S3Client()
+        s3.delete_files(bucket="bucket_name", prefix="/delete-this-folder/", suffix=".csv.metadata")
+        
+        ```
+        
+        #### Copy files from folder in local filesystem to s3 bucket
+        
+        ```python
+        from dativa.tools.aws import S3Client
+        
+        s3 = S3Client()
+        s3.put_folder(source="/home/user/my_folder", bucket="bucket_name", destination="backup/files")
+        
+        # Copy all csv files from folder to s3
+        s3.put_folder(source="/home/user/my_folder", bucket="bucket_name", destination="backup/files", file_format="*.csv")
+        ```
+        
+        ### dativa.tools.SQLClient
+        
+        A SQL client that wraps any PEP249 compliant connection object and provides detailed logging and simple query execution. In provides the following methods:
+        
+        #### execute_query
+        Runs a query and ignores any output
+        
+        Parameters:
+        
+        - query - the query to run, either a SQL file or a SQL query
+        - parameters - a dict of parameters to substitute in the query
+        - replace - a dict or items to be replaced in the SQL text
+        - first_to_run - the index of the first query in a mult-command query to be executed
+        
+        #### execute_query_to_df
+        
+        Runs a query and returns the output of the final statement in a DataFrame.
+        
+        Parameters:
+        
+        - query - the query to run, either a SQL file or a SQL query
+        - parameters - a dict of parameters to substitute in the query
+        - replace - a dict or items to be replaced in the SQL text
+        
+        
+        #### def execute_query_to_csv
+        
+        Runs a query and writes the output of the final statement to a CSV file.
+        
+        Parameters:
+        
+        - query - the query to run, either a SQL file or a SQL query
+        - csvfile - the file name to save the query results to
+        - parameters - a dict of parameters to substitute in the query
+        - replace - a dict or items to be replaced in the SQL text
+        
+        #### Example code
+        
+        ```python
+        import os
+        import psycopg2
+        from dativa.tools import SqlClient
+        
+        # set up the SQL client from environment variables
+        sql = SqlClient(psycopg2.connect(
+            database=os.environ["DB_NAME"],
+            user=os.environ["USER"],
+            password=os.environ["PASSWORD"],
+            host=os.environ["HOST"],
+            port=os.environ["PORT"],
+            client_encoding="UTF-8",
+            connect_timeout=10))
+        
+        # create the full schedule table
+        df = sql.execute_query_to_df(query="sql/my_query.sql",
+                                     parameters={"start_date": "2018-01-01",
+                                                 "end_date": "2018-02-01"})
+        ```
+        
+        ### dativa.tools.log_to_stdout
+        
+        A convenience function to redirect a specific logger and its children to stdout
+        
+        ```python
+        import logging
+        from dativa.tools import log_to_stdout
+        
+        log_to_stdout("dativa.tools", logging.DEBUG)
+        ```
+        
+        ### dativa.tools.pandas.CSVHandler
+        
+        A wrapper for pandas CSV handling to read and write dataframes
+        that is provided in pandas with consistent CSV parameters and
+        sniffing the CSV parameters automatically.
+        Includes reading a CSV into a dataframe, and writing it out to a string.
+        
+        #### Parameters
+        
+        - base_path: the base path for any CSV file read, if passed as a string
+        - detect_parameters: whether the encoding of the CSV file should be automatically detected
+        - encoding: the encoding of the CSV files, defaults to UTF-8
+        - delimiter: the delimeter used in the CSV, defaults to ,
+        - header: the index of the header row, or -1 if there is no header
+        - skiprows: the number of rows at the beginning of file to skip
+        - quotechar: the quoting character to use, defaults to ""
+        - include_index: specifies whether the index should be written out, default to False
+        - compression: specifies whether the data should be encoded, default to 'infer'
+        - nan_values: an array of possible NaN values, the first of which is used when writign out, defaults to None
+        - line_terminator: the line terminator to be used
+        - quoting: the level of quoting, defaults to QUOTE_MINIMAL
+        - decimal: the decimal character, defaults to '.'
+        - chunksize: if specified the CSV is written out in chunks
+        - aes_key: bytes, allowable lengths are 16, 24, 32 
+         
+        for decrypting and encrypting CSVs when passing to a dataframe, this uses AES CFB encryption via Pycryptodome
+        - aes_iv: bytes, must have length of 16
+        
+        the initialization vector for the AES CFB encryption via Pycryptodome. If aes_key is specified and this is 
+        not, it will auto-generate an iv and prefix it to the encrypted bytes. 
+        
+        #### load_df
+        
+        Opens a CSV file using the specified configuration for the class and raises an exception if the encoding is unparseable.
+        Detects if base_path is an S3 location and loads data from there if required.
+        
+        Parameters:
+        
+        - file - File path. Should begin with 's3://' to load from S3 location.
+        - force_dtype - Force data type for data or columns, defaults to None
+        - kwargs - any of the keyword arguments used to create the class can also be passed to load_df
+        
+        Returns:
+        
+        - dataframe
+        
+        #### save_df
+        
+        Writes a formatted string from a dataframe using the specified configuration for the class the file. Detects if base_path is an S3 location and saves data there if required.
+        
+        Parameters:
+        
+        - df - Dataframe to save
+        - file - File path. Should begin with 's3://' to save to an S3 location.
+        - kwargs - any of the keyword arguments used to create the class can also be passed to save_df
+        
+        #### df_to_string
+        
+        Returns a formatted string from a dataframe using the specified configuration for the class.
+        
+        Parameters:
+        
+        - df - Dataframe to convert to string
+        - kwargs - any of the keyword arguments used to create the class can also be passed to df_to_string
+        
+        Returns:
+        
+        - string
+         
+        #### Example code
+        
+        ```python
+        from dativa.tools.pandas import CSVHandler
+        
+        # Create the CSV handler
+        csv = CSVHandler(base_path='s3://my-bucket-name/')
+        
+        # Load a file
+        df = csv.load_df('my-file-name.csv')
+        
+        # Create a string
+        str_df = csv.df_to_string(df)
+        
+        # Save a file
+        csv.save_df(df, 'another-path/another-file-name.csv')
+        ```
+        
+        ### Support functions for Pandas
+        
+        * dativa.tools.pandas.is_numeric - a function to check whether a series or string is numeric
+        * dativa.tools.pandas.string_to_datetime - a function to convert a string, or series of strings to a datetime, with a strptime date format that supports nanoseconds
+        * dativa.tools.pandas.datetime_to_string - a function to convert a datetime, or a series of datetimes to a string, with a strptime date format that supports nanoseconds
+        * dativa.tools.pandas.format_string_is_valid - a function to confirm whether a strptime format string returns a date
+        * dativa.tools.pandas.get_column_name - a function to return the name of a column from a passed column name or index.
+        * dativa.tools.pandas.get_unique_column_name - a function to return a unique column name when adding new columns to a DataFrame
+        
+        ### dativa.tools.pandas.ParquetHandler
+        
+        ParquetHandler class, specify path of parquet file,
+        and get pandas dataframe for analysis and modification.
+        
+        * param base_path                       : The base location where the parquet_files are stored.
+        * type base_path                        : str
+        * param row_group_size                  : The size of the row groups while writing out the parquet file.
+        * type row_group_size                   : int
+        * param use_dictionary                  : Specify whether to use boolean encoding or not
+        * type use_dictionary                   : bool
+        * param use_deprecated_int96_timestamps : Write nanosecond resolution timestamps to INT96 Parquet format.
+        * type use_deprecated_int96_timestamps  : bool
+        * param coerce_timestamps               : Cast timestamps a particular resolution. Valid values: {None, 'ms', 'us'}
+        * type coerce_timestamps                : str
+        * param compression                     : Specify the compression codec.
+        * type compression                      : str
+        
+        ```python
+        from dativa.tools.pandas import CSVHandler, ParquetHandler
+        
+        # Read a parquet file
+        pq_obj = ParquetHandler()
+        df_parquet = pq_obj.load_df('data.parquet')
+        
+        # save a csv_file to parquet
+        csv = CSVHandler(csv_delimiter=",")
+        df = csv.load_df('emails.csv')
+        pq_obj = ParquetHandler()
+        pq_obj.save_df(df, 'emails.parquet')
+        ```
+        
+        
+        
+        ### dativa.tools.aws import S3Csv2Parquet
+         An easy to use module for converting csv files on s3 to praquet using aws glue jobs.
+         For S3 access and glue access suitable credentials should be available in '~/.aws/credentials' or the AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY environment variables.
+        
+        #### S3Csv2Parquet
+        Parameters:
+        
+        - region - str,
+                   AWS region in which glue job is to be run
+        - template_location - str,
+                              S3 bucket Folder in which template scripts are
+                              located or need to be copied.
+                              format s3://bucketname/folder/
+                              it is not clear to those unfamiliar with glue what this is.
+        - glue_role - str,
+                      Name of the glue role which need to be assigned to the
+                      Glue Job.
+        - max_jobs - int, default 5
+                     Maximum number of jobs the can run concurrently in the queue
+        - retry_limit - int, default 3
+                        Maximum number of retries allowed per job on failure
+        
+        #### convert
+        Parameters:
+        
+        - csv_path - str or list of str for multiple files,
+                     s3 location of the csv file
+                     format s3://bucketname/folder/file.csv
+                     Pass a list for multiple files
+        - output_folder - str, default set to folder where csv files are located 
+                          s3 location at which paraquet file should be copied
+                          format s3://bucketname/folder
+        - schema - list of tuples,
+                   If not specified schema is inferred from the file
+                   format [(column1, datatype), (column2, datatype)]
+                   Supported datatypes are boolean, double, float, integer,
+                   long, null, short, string
+        - name - str, default 'parquet_csv_convert'
+                 Name to be assigned to glue job
+        - allocated_capacity - int, default 2
+                               The number of AWS Glue data processing units (DPUs) to allocate to this Job.
+                               From 2 to 100 DPUs can be allocated
+        - delete_csv - boolean, default False
+                       If set source csv files are deleted post successful completion of job
+        - separator - character, default ','
+                      Delimiter character in csv files
+        - with_header- int, default 1
+                      Specifies whether to treat the first line as a header
+                      Can take values 0 or 1
+        - compression - str, default None
+                        If not specified compression is not applied.
+                        Can take values snappy, gzip, and lzo
+        - partition_by - list of str, default None
+                         List containing columns to partition data by
+        - mode - str, default append
+                 Options include:
+                 overwrite: will remove data from output_folder before writing out
+                            converted file.
+                 append: Will write out to  output_folder without deleting existing
+                         data.
+                 ignore: Silently ignore this operation if data already exists.
+        
+        ####Example
+        
+        ```python
+        from dativa.tools.aws import S3Csv2Parquet
+        
+        # Initial setup
+        csv2parquet_obj = S3Csv2Parquet("us-east-1", "s3://my-bucket/templatefolder")
+        
+        # Create/update a glue job to convert csv files and execute it
+        csv2parquet_obj.convert("s3://my-bucket/file_to_be_converted_1.csv")
+        csv2parquet_obj.convert("s3://my-bucket/file_to_be_converted_2.csv")
+        
+        # Wait for completion of jobs 
+        csv2parquet_obj.wait_for_completion()
+        ```
+        
+        
+        ### dativa.tools.aws.PipelineClient
+        
+        PipelineClient class, provide api key, source s3 location,
+        destination s3 location, rules, and get source file cleaned and
+        posted to destination.
+        Refer https://www.dativa.com/tools/dativatools/aws-api/ for more details.
+        
+        Arguments:
+        
+        - api_key               : str, The individual key provided by the pipeline api
+        - source_s3_url         : str, The S3 source where the csv files are present
+        - destination_s3_url    : str, The S3 destination where the files
+                                  are to be posted after cleansing
+        - rules                 : list of dicts OR str, rules by which to clean the file
+        
+                                  list of dicts specifying each rule to be applied 
+                                  str specifying location of the rules file
+        - url                   : str, url of the pipeline api, defaults to
+        
+                                  https://pipeline-api.dativa.com/clean
+        - status_url            : url, the url to query for to check status of the api call, defaults to
+        
+                                  https://pipeline-api.dativa.com/status/{0}
+        - source_delimiter      : str, the delimiter of the source file, defaults to ","
+        - destination_delimiter : str, the delimiter of the destination file, defaults to ","
+        - source_encoding       : str, the encoding of the source file, defaults to "utf-8"
+        - destination_encoding  : str, the encoding of the destination file, defaults to "utf-8"
+        
+        ### Example code
+        
+        ```python
+        from dativa.tools.aws import PipelineClient
+        import os
+        api_key = os.environ["DATIVA_PIPELINE_API_KEY"]
+        rules = [{'field': 'to',
+                  'params': {'fallback_mode': 'remove_record',          
+                             'maximum_length': 1024,        
+                             'minimum_length': 5,       
+                             'regex': '[^@]+@[^.]..*[^.]'},                               
+                  'rule_type': 'String'}]
+        bucket = "example-of-bucket"
+        obj = PipelineClient(api_key=api_key,
+                             rules=rules,
+                             source_s3_url="s3://{0}/source_key".format(bucket),
+                             destination_s3_url="s3://{0}/dest_key".format(bucket),
+                             )
+        obj.run_job_synchronously()
+        ```
+        
+        ### To run tests
+        The API and AWS credentials must be present as environment variables for the testing to pass successfully
+        
+        ```bash
+        export DATIVA_PIPELINE_API_KEY=API_KEY_HERE
+        export AWS_ACCESS_KEY_ID=AWS_CREDENTIALS_HERE
+        export AWS_SECRET_ACCESS_KEY=AWS_CREDENTIALS_HERE
+        ``` 
+        
+        The user must also specify a bucket to act as a source and a _separate_ one to act as the destination. 
+        
+        ### dativa.tools.pandas.Shapley
+        
+        Shapley attribution of scores to members of sets.
+        
+        See [medium](https://towardsdatascience.com/one-feature-attribution-method-to-supposedly-rule-them-all-shapley-values-f3e04534983d)
+        or [wiki](https://en.wikipedia.org/wiki/Shapley_value) for details on the math. The aim is to apportion scores between the members of a set
+        responsible for producing that score.
+        
+        Takes two DataFrames as input, one containing impressions from campaigns and the other containing conversions.
+        
+        eg. campaigns
+        
+        |viewer_id|campaign_id|
+        | :----:|:-----:|
+        |20|B|
+        |19|B|
+        |12|B|
+        |6|A|
+        |17|B|
+        |12|B|
+        |8|B|
+        |3|A|
+        |18|A|
+        
+        where a campaign_id might be a campaign that an individual has interacted with. Each viewer / campaign
+        pair is only considered once.
+        
+        eg 2. conversions
+        
+        |viewer_id|
+        |: --- :|
+        |14|
+        |12|
+        |2|
+        |3|
+        |11|
+        
+        these are individuals that have converted. From this a conversion rate is calculated which is used as a score.
+        That score is apportioned among the campaigns.
+        
+        Typically not all combinations of impressions are present (particularly in where there are lots of 
+        campaigns being run). The missing combinations are assigned a default score, which might be an average conversion rate 
+        or similar. This is passed to the class constructor as `default_score` and must be numeric.
+        
+        ### Example code
+        
+        ```python
+        
+        s = Shapley(df_campaigns, df_conversions, 'viewer_id', 'campaign_id', default_score=0.01)
+        
+        results = s.run()
+        
+        ```
+        
+        ## dativa.tools.FileValidation
+        A module to validate the files present in a given directory based on glob pattern matching. The 
+        FileValidation class initialises and checks a set of rules for a file validation, this can then be run for various 
+        paths and glob pattern matches via a method (run_validator). Validation is be based on 
+        various properties - time last modified, size and the number of files which match criteria. Examples on how to use 
+        the file validation are provided below.
+        
+        FileValidation Arguments:
+          * timestamp: (tuple or str or None) strings for min and max time (str or None, str or None) in UTC. This is
+           read in with datetime.strptime, so must use compatible formats 
+          * file_size: (tuple or int or None) min and max size in bytes (int or None, int or None), treats single int
+           as minimum 
+          * file_count: (tuple or int or None) min and max file count, treats single int as minimum
+          * timestamp_format: (str) string for a valid timestamp, specified format for both max and min timestamp,
+                uses datetime.strptime, hence must be in compatible format. 
+        
+        run_validator Arguments:
+          * path: (str) path to the files - can either be a path for S3Location or an absolute local file path.  CANNOT HAVE '/' AS THE FINAL CHARACTER.
+          * glob_pattern: (str) pattern of glob files to be examined.  CANNOT HAVE '/' AS THE FIRST CHARACTER.
+          * consider_correctly_formed_files: (bool) if False, consider malformed files (which do not match validation) for the 
+          file_count argument of FileValidation
+          * raise_exceptions: (bool) whether to raise exception when finding files which do not match validation criteria
+        
+        ### Example codes 
+        
+        The code can either return a list of files (either all which match the criteria or those which do not) or raise an 
+        exception if any files fail the validation.  This can be applied to either files on S3 or on the local filesystem.
+        
+        The files to be validated are specified via s3fs.glob for S3 (see https://s3fs.readthedocs.io/en/latest/) and glob.glob 
+        for local files (see https://docs.python.org/3/library/glob.html).
+        
+        ### Check number of CSVs in a given path
+        ```python
+        from dativa.tools import FileValidation
+        # ensure there are between 10 and 100 CSVs in your target folder
+        # this command ignores other file extensions (e.g. .tsv files) as they aren't picked up by the glob pattern          
+        fv = FileValidation(file_count=(10, 100))   # between 10 and 100 bytes 
+        # if validation is not met, raise an exception
+        fv.run_validator(path="s3://some-bucket/some-path",
+                         glob_pattern="*.csv",
+                         raise_exceptions=True)
+        ```
+        
+        ### Check that a specific file was last modified on a specific date and is smaller than a given size 
+        ```python
+        from dativa.tools import FileValidation
+        
+        fv = FileValidation(file_size=(None, 2*2**10),  # 2 KB
+                            timestamp=("2018-12-25", "2018-12-25"), # made on 25th Dec 2018 
+                            timestamp_format="%Y-%m-%d")
+        # if validation is not met, raise an exception                    
+        fv.run_validator(path="s3://some-bucket/some-path",
+                         glob_pattern="some-specific-key.csv",
+                         raise_exceptions=True)
+        ```
+        
+        ### Return file which do not match a certain size and age range
+        ```python
+        from dativa.tools import FileValidation
+        from datetime import datetime
+        fv = FileValidation(file_size=(10, None), # minimum file size of 10 bytes 
+                            # no minimum time, earliest files made today
+                            timestamp=(None, datetime.utcnow().strftime("%Y-%m-%d")),
+                            timestamp_format="%Y-%m-%d")
+                            
+        # return files in dictionary                    
+        list_of_bad_files = fv.run_validator(path="/Users/your-name/absolute/file/path",
+                                             glob_pattern="*",
+                                             consider_correctly_formed_files=False)
+        ```
+        
+        ### Local file paths must be _absolute_ paths rather than relative paths
+        ```python
+        from dativa.tools import FileValidation
+        fv = FileValidation(file_size=(10, 10*2**20) # between 10 bytes and 10 GB
+                            )
+        # return files which do not match the specified validation                    
+        list_of_bad_files = fv.run_validator(path="/Users/your-name/absolute/file/path",
+                                             glob_pattern="*",
+                                             consider_correctly_formed_files=False)
+        
+        # return files which match the specified validation                    
+        list_of_good_files = fv.run_validator(path="/Users/your-name/absolute/file/path",
+                                              glob_pattern="*",
+                                              consider_correctly_formed_files=True)
+        ```
+        
+        ### NOTE - both the path must not end with a '/' AND glob_pattern must not start with one
+        ```python
+        from dativa.tools import FileValidation
+        fv = FileValidation(file_size=(10, None), # minimum file size of 10 bytes 
+                            )
+                            
+        # return files in dictionary                    
+        this_will_not_run = fv.run_validator(path="/Users/your-name/absolute/file/path/",
+                                             glob_pattern="/*",
+                                             consider_correctly_formed_files=False)
+        also_will_not_run = fv.run_validator(path="/Users/your-name/absolute/file/path/",
+                                             glob_pattern="*",
+                                             consider_correctly_formed_files=False)
+        again_will_not_run = fv.run_validator(path="/Users/your-name/absolute/file/path",
+                                              glob_pattern="/*",
+                                              consider_correctly_formed_files=False)
+        ``` 
+        
+        ## Legacy classes
+        
+        The modules in the dativatools namespace are legacy only and will be deprecated in future.
+Keywords: dativa
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Libraries
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.6
+Description-Content-Type: text/markdown
