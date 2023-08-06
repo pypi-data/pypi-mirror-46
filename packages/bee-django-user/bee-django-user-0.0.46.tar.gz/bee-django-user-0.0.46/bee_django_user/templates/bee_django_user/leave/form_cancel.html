@@ -1,0 +1,47 @@
+{% extends "bee_django_user/base.html" %}
+{% load static %}
+{% load bootstrap3 %}
+{% block content %}
+    {% include 'bee_django_user/logo.html' %}
+    {% include 'bee_django_user/nav.html' %}
+    {% include 'bee_django_user/messages.html' %}
+    <h4>添加{{ record.user.first_name }}的销假记录</h4>
+    <a href="{% url 'bee_django_user:leave_list' record.user.id %}">查看全部记录</a><br>
+    原请假日期为：{{ record.start }}-{{ record.end }}
+    <hr>
+    <h5>说明：</h5>
+    <div style="color: red">
+        销假无需审核，填写后立即生效<br>
+        开始日期为结束请假日期，即修改请假区间为：【{{ record.start }}】至【开始日期】<br>
+        到开始日期时，学生状态自动由【请假】更改为【正常】<br>
+    </div>
+    <hr>
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% bootstrap_button '提交' %}
+    </form>
+
+{% endblock %}
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            //时间
+            $.datetimepicker.setLocale('ch');
+            var $start = $("#id_start");
+            $start.datetimepicker({
+                format: 'Y-m-d',
+                timepicker: false,
+                scrollMonth: false,
+                scrollTime: false,
+                scrollInput: false,
+                minDate:"{{ record.start|date:"Y-m-d" }}",
+                maxDate:"{{ temp_end_start|date:"Y-m-d" }}"
+{#                minDate:"2018/10/10"#}
+            });
+
+
+        });
+    </script>
+{% endblock %}
+

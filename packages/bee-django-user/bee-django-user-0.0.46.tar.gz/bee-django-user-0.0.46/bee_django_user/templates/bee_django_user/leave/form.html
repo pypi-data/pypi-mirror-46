@@ -1,0 +1,52 @@
+{% extends "bee_django_user/base.html" %}
+{% load static %}
+{% load bootstrap3 %}
+{% block content %}
+    {% include 'bee_django_user/logo.html' %}
+    {% include 'bee_django_user/nav.html' %}
+    {% include 'bee_django_user/messages.html' %}
+    <h4>添加{{ user.first_name }}的请假/延期记录</h4>
+    <a href="{% url 'bee_django_user:leave_list' user.id %}">查看全部记录</a>
+    原结课日期为：{{ user.userprofile.expire_date|default:"无" }}
+    <hr>
+    <h5>说明：</h5>
+    <div style="color: red">
+        【请假】类型：到请假区间后，自动更改学生状态为【请假】。<br>
+        【延期】类型：可直接填写结束日期，不更改学生状态。<br>
+    </div>
+    <hr>
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% bootstrap_button '提交' %}
+    </form>
+
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            //时间
+            $.datetimepicker.setLocale('ch');
+            var $start = $("#id_start");
+
+            var $end = $("#id_end");
+            $start.datetimepicker({
+                format: 'Y-m-d',
+                timepicker: false,
+                scrollMonth: false,
+                scrollTime: false,
+                scrollInput: false
+            });
+            $end.datetimepicker({
+                format: 'Y-m-d',
+                timepicker: false,
+                scrollMonth: false,
+                scrollTime: false,
+                scrollInput: false
+            });
+
+        });
+    </script>
+{% endblock %}
