@@ -1,0 +1,3 @@
+
+class DiprError(Exception):
+    pass
