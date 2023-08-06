@@ -1,0 +1,1430 @@
+<html><p>
+documentation on module os:
+<br>
+<br>NAME
+<br>    os - OS routines for NT or Posix depending on what system we're on.
+<br>
+<br>DESCRIPTION
+<br>    This exports:
+<br>      - all functions from posix or nt, e.g. unlink, stat, etc.
+<br>      - os.path is either posixpath or ntpath
+<br>      - os.name is either 'posix' or 'nt'
+<br>      - os.curdir is a string representing the current directory (always '.')
+<br>      - os.pardir is a string representing the parent directory (always '..')
+<br>      - os.sep is the (or a most common) pathname separator ('/' or '\\')
+<br>      - os.extsep is the extension separator (always '.')
+<br>      - os.altsep is the alternate pathname separator (None or '/')
+<br>      - os.pathsep is the component separator used in $PATH etc
+<br>      - os.linesep is the line separator in text files ('\r' or '\n' or '\r\n')
+<br>      - os.defpath is the default search path for executables
+<br>      - os.devnull is the file path of the null device ('/dev/null', etc.)
+<br>    
+<br>    Programs that import and use 'os' stand a better chance of being
+<br>    portable between different platforms.  Of course, they must then
+<br>    only use functions that are defined by all platforms (e.g., unlink
+<br>    and opendir), and leave all pathname manipulation to os.path
+<br>    (e.g., split and join).
+<br>
+<br>CLASSES
+<br>    builtins.Exception(builtins.BaseException)
+<br>        builtins.OSError
+<br>    builtins.object
+<br>        nt.DirEntry
+<br>    builtins.tuple(builtins.object)
+<br>        nt.times_result
+<br>        nt.uname_result
+<br>        stat_result
+<br>        statvfs_result
+<br>        terminal_size
+<br>    
+<br>    class DirEntry(builtins.object)
+<br>     |  Methods defined here:
+<br>     |  
+<br>     |  __fspath__(self, /)
+<br>     |      Returns the path for the entry.
+<br>     |  
+<br>     |  __repr__(self, /)
+<br>     |      Return repr(self).
+<br>     |  
+<br>     |  inode(self, /)
+<br>     |      Return inode of the entry; cached per entry.
+<br>     |  
+<br>     |  is_dir(self, /, *, follow_symlinks=True)
+<br>     |      Return True if the entry is a directory; cached per entry.
+<br>     |  
+<br>     |  is_file(self, /, *, follow_symlinks=True)
+<br>     |      Return True if the entry is a file; cached per entry.
+<br>     |  
+<br>     |  is_symlink(self, /)
+<br>     |      Return True if the entry is a symbolic link; cached per entry.
+<br>     |  
+<br>     |  stat(self, /, *, follow_symlinks=True)
+<br>     |      Return stat_result object for the entry; cached per entry.
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data descriptors defined here:
+<br>     |  
+<br>     |  name
+<br>     |      the entry's base filename, relative to scandir() "path" argument
+<br>     |  
+<br>     |  path
+<br>     |      the entry's full path name; equivalent to os.path.join(scandir_path, entry.name)
+<br>    
+<br>    error = class OSError(Exception)
+<br>     |  Base class for I/O related errors.
+<br>     |  
+<br>     |  Method resolution order:
+<br>     |      OSError
+<br>     |      Exception
+<br>     |      BaseException
+<br>     |      object
+<br>     |  
+<br>     |  Methods defined here:
+<br>     |  
+<br>     |  __init__(self, /, *args, **kwargs)
+<br>     |      Initialize self.  See help(type(self)) for accurate signature.
+<br>     |  
+<br>     |  __reduce__(...)
+<br>     |      Helper for pickle.
+<br>     |  
+<br>     |  __str__(self, /)
+<br>     |      Return str(self).
+<br>     |  
+<br>     |  <hr>
+<br>     |  Static methods defined here:
+<br>     |  
+<br>     |  __new__(*args, **kwargs) from builtins.type
+<br>     |      Create and return a new object.  See help(type) for accurate signature.
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data descriptors defined here:
+<br>     |  
+<br>     |  characters_written
+<br>     |  
+<br>     |  errno
+<br>     |      POSIX exception code
+<br>     |  
+<br>     |  filename
+<br>     |      exception filename
+<br>     |  
+<br>     |  filename2
+<br>     |      second exception filename
+<br>     |  
+<br>     |  strerror
+<br>     |      exception strerror
+<br>     |  
+<br>     |  winerror
+<br>     |      Win32 exception code
+<br>     |  
+<br>     |  <hr>
+<br>     |  Methods inherited from BaseException:
+<br>     |  
+<br>     |  __delattr__(self, name, /)
+<br>     |      Implement delattr(self, name).
+<br>     |  
+<br>     |  __getattribute__(self, name, /)
+<br>     |      Return getattr(self, name).
+<br>     |  
+<br>     |  __repr__(self, /)
+<br>     |      Return repr(self).
+<br>     |  
+<br>     |  __setattr__(self, name, value, /)
+<br>     |      Implement setattr(self, name, value).
+<br>     |  
+<br>     |  __setstate__(...)
+<br>     |  
+<br>     |  with_traceback(...)
+<br>     |      Exception.with_traceback(tb) --
+<br>     |      set self.__traceback__ to tb and return self.
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data descriptors inherited from BaseException:
+<br>     |  
+<br>     |  __cause__
+<br>     |      exception cause
+<br>     |  
+<br>     |  __context__
+<br>     |      exception context
+<br>     |  
+<br>     |  __dict__
+<br>     |  
+<br>     |  __suppress_context__
+<br>     |  
+<br>     |  __traceback__
+<br>     |  
+<br>     |  args
+<br>    
+<br>    class stat_result(builtins.tuple)
+<br>     |  stat_result(iterable=(), /)
+<br>     |  
+<br>     |  stat_result: Result from stat, fstat, or lstat.
+<br>     |  
+<br>     |  This object may be accessed either as a tuple of
+<br>     |    (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime)
+<br>     |  or via the attributes st_mode, st_ino, st_dev, st_nlink, st_uid, and so on.
+<br>     |  
+<br>     |  Posix/windows: If your platform supports st_blksize, st_blocks, st_rdev,
+<br>     |  or st_flags, they are available as attributes only.
+<br>     |  
+<br>     |  See os.stat for more information.
+<br>     |  
+<br>     |  Method resolution order:
+<br>     |      stat_result
+<br>     |      builtins.tuple
+<br>     |      builtins.object
+<br>     |  
+<br>     |  Methods defined here:
+<br>     |  
+<br>     |  __reduce__(...)
+<br>     |      Helper for pickle.
+<br>     |  
+<br>     |  __repr__(self, /)
+<br>     |      Return repr(self).
+<br>     |  
+<br>     |  <hr>
+<br>     |  Static methods defined here:
+<br>     |  
+<br>     |  __new__(*args, **kwargs) from builtins.type
+<br>     |      Create and return a new object.  See help(type) for accurate signature.
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data descriptors defined here:
+<br>     |  
+<br>     |  st_atime
+<br>     |      time of last access
+<br>     |  
+<br>     |  st_atime_ns
+<br>     |      time of last access in nanoseconds
+<br>     |  
+<br>     |  st_ctime
+<br>     |      time of last change
+<br>     |  
+<br>     |  st_ctime_ns
+<br>     |      time of last change in nanoseconds
+<br>     |  
+<br>     |  st_dev
+<br>     |      device
+<br>     |  
+<br>     |  st_file_attributes
+<br>     |      Windows file attribute bits
+<br>     |  
+<br>     |  st_gid
+<br>     |      group ID of owner
+<br>     |  
+<br>     |  st_ino
+<br>     |      inode
+<br>     |  
+<br>     |  st_mode
+<br>     |      protection bits
+<br>     |  
+<br>     |  st_mtime
+<br>     |      time of last modification
+<br>     |  
+<br>     |  st_mtime_ns
+<br>     |      time of last modification in nanoseconds
+<br>     |  
+<br>     |  st_nlink
+<br>     |      number of hard links
+<br>     |  
+<br>     |  st_size
+<br>     |      total size, in bytes
+<br>     |  
+<br>     |  st_uid
+<br>     |      user ID of owner
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data and other attributes defined here:
+<br>     |  
+<br>     |  n_fields = 17
+<br>     |  
+<br>     |  n_sequence_fields = 10
+<br>     |  
+<br>     |  n_unnamed_fields = 3
+<br>     |  
+<br>     |  <hr>
+<br>     |  Methods inherited from builtins.tuple:
+<br>     |  
+<br>     |  __add__(self, value, /)
+<br>     |      Return self+value.
+<br>     |  
+<br>     |  __contains__(self, key, /)
+<br>     |      Return key in self.
+<br>     |  
+<br>     |  __eq__(self, value, /)
+<br>     |      Return self==value.
+<br>     |  
+<br>     |  __ge__(self, value, /)
+<br>     |      Return self>=value.
+<br>     |  
+<br>     |  __getattribute__(self, name, /)
+<br>     |      Return getattr(self, name).
+<br>     |  
+<br>     |  __getitem__(self, key, /)
+<br>     |      Return self[key].
+<br>     |  
+<br>     |  __getnewargs__(self, /)
+<br>     |  
+<br>     |  __gt__(self, value, /)
+<br>     |      Return self>value.
+<br>     |  
+<br>     |  __hash__(self, /)
+<br>     |      Return hash(self).
+<br>     |  
+<br>     |  __iter__(self, /)
+<br>     |      Implement iter(self).
+<br>     |  
+<br>     |  __le__(self, value, /)
+<br>     |      Return self<=value.
+<br>     |  
+<br>     |  __len__(self, /)
+<br>     |      Return len(self).
+<br>     |  
+<br>     |  __lt__(self, value, /)
+<br>     |      Return self<value.
+<br>     |  
+<br>     |  __mul__(self, value, /)
+<br>     |      Return self*value.
+<br>     |  
+<br>     |  __ne__(self, value, /)
+<br>     |      Return self!=value.
+<br>     |  
+<br>     |  __rmul__(self, value, /)
+<br>     |      Return value*self.
+<br>     |  
+<br>     |  count(self, value, /)
+<br>     |      Return number of occurrences of value.
+<br>     |  
+<br>     |  index(self, value, start=0, stop=9223372036854775807, /)
+<br>     |      Return first index of value.
+<br>     |      
+<br>     |      Raises ValueError if the value is not present.
+<br>    
+<br>    class statvfs_result(builtins.tuple)
+<br>     |  statvfs_result(iterable=(), /)
+<br>     |  
+<br>     |  statvfs_result: Result from statvfs or fstatvfs.
+<br>     |  
+<br>     |  This object may be accessed either as a tuple of
+<br>     |    (bsize, frsize, blocks, bfree, bavail, files, ffree, favail, flag, namemax),
+<br>     |  or via the attributes f_bsize, f_frsize, f_blocks, f_bfree, and so on.
+<br>     |  
+<br>     |  See os.statvfs for more information.
+<br>     |  
+<br>     |  Method resolution order:
+<br>     |      statvfs_result
+<br>     |      builtins.tuple
+<br>     |      builtins.object
+<br>     |  
+<br>     |  Methods defined here:
+<br>     |  
+<br>     |  __reduce__(...)
+<br>     |      Helper for pickle.
+<br>     |  
+<br>     |  __repr__(self, /)
+<br>     |      Return repr(self).
+<br>     |  
+<br>     |  <hr>
+<br>     |  Static methods defined here:
+<br>     |  
+<br>     |  __new__(*args, **kwargs) from builtins.type
+<br>     |      Create and return a new object.  See help(type) for accurate signature.
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data descriptors defined here:
+<br>     |  
+<br>     |  f_bavail
+<br>     |  
+<br>     |  f_bfree
+<br>     |  
+<br>     |  f_blocks
+<br>     |  
+<br>     |  f_bsize
+<br>     |  
+<br>     |  f_favail
+<br>     |  
+<br>     |  f_ffree
+<br>     |  
+<br>     |  f_files
+<br>     |  
+<br>     |  f_flag
+<br>     |  
+<br>     |  f_frsize
+<br>     |  
+<br>     |  f_fsid
+<br>     |  
+<br>     |  f_namemax
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data and other attributes defined here:
+<br>     |  
+<br>     |  n_fields = 11
+<br>     |  
+<br>     |  n_sequence_fields = 10
+<br>     |  
+<br>     |  n_unnamed_fields = 0
+<br>     |  
+<br>     |  <hr>
+<br>     |  Methods inherited from builtins.tuple:
+<br>     |  
+<br>     |  __add__(self, value, /)
+<br>     |      Return self+value.
+<br>     |  
+<br>     |  __contains__(self, key, /)
+<br>     |      Return key in self.
+<br>     |  
+<br>     |  __eq__(self, value, /)
+<br>     |      Return self==value.
+<br>     |  
+<br>     |  __ge__(self, value, /)
+<br>     |      Return self>=value.
+<br>     |  
+<br>     |  __getattribute__(self, name, /)
+<br>     |      Return getattr(self, name).
+<br>     |  
+<br>     |  __getitem__(self, key, /)
+<br>     |      Return self[key].
+<br>     |  
+<br>     |  __getnewargs__(self, /)
+<br>     |  
+<br>     |  __gt__(self, value, /)
+<br>     |      Return self>value.
+<br>     |  
+<br>     |  __hash__(self, /)
+<br>     |      Return hash(self).
+<br>     |  
+<br>     |  __iter__(self, /)
+<br>     |      Implement iter(self).
+<br>     |  
+<br>     |  __le__(self, value, /)
+<br>     |      Return self<=value.
+<br>     |  
+<br>     |  __len__(self, /)
+<br>     |      Return len(self).
+<br>     |  
+<br>     |  __lt__(self, value, /)
+<br>     |      Return self<value.
+<br>     |  
+<br>     |  __mul__(self, value, /)
+<br>     |      Return self*value.
+<br>     |  
+<br>     |  __ne__(self, value, /)
+<br>     |      Return self!=value.
+<br>     |  
+<br>     |  __rmul__(self, value, /)
+<br>     |      Return value*self.
+<br>     |  
+<br>     |  count(self, value, /)
+<br>     |      Return number of occurrences of value.
+<br>     |  
+<br>     |  index(self, value, start=0, stop=9223372036854775807, /)
+<br>     |      Return first index of value.
+<br>     |      
+<br>     |      Raises ValueError if the value is not present.
+<br>    
+<br>    class terminal_size(builtins.tuple)
+<br>     |  terminal_size(iterable=(), /)
+<br>     |  
+<br>     |  A tuple of (columns, lines) for holding terminal window size
+<br>     |  
+<br>     |  Method resolution order:
+<br>     |      terminal_size
+<br>     |      builtins.tuple
+<br>     |      builtins.object
+<br>     |  
+<br>     |  Methods defined here:
+<br>     |  
+<br>     |  __reduce__(...)
+<br>     |      Helper for pickle.
+<br>     |  
+<br>     |  __repr__(self, /)
+<br>     |      Return repr(self).
+<br>     |  
+<br>     |  <hr>
+<br>     |  Static methods defined here:
+<br>     |  
+<br>     |  __new__(*args, **kwargs) from builtins.type
+<br>     |      Create and return a new object.  See help(type) for accurate signature.
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data descriptors defined here:
+<br>     |  
+<br>     |  columns
+<br>     |      width of the terminal window in characters
+<br>     |  
+<br>     |  lines
+<br>     |      height of the terminal window in characters
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data and other attributes defined here:
+<br>     |  
+<br>     |  n_fields = 2
+<br>     |  
+<br>     |  n_sequence_fields = 2
+<br>     |  
+<br>     |  n_unnamed_fields = 0
+<br>     |  
+<br>     |  <hr>
+<br>     |  Methods inherited from builtins.tuple:
+<br>     |  
+<br>     |  __add__(self, value, /)
+<br>     |      Return self+value.
+<br>     |  
+<br>     |  __contains__(self, key, /)
+<br>     |      Return key in self.
+<br>     |  
+<br>     |  __eq__(self, value, /)
+<br>     |      Return self==value.
+<br>     |  
+<br>     |  __ge__(self, value, /)
+<br>     |      Return self>=value.
+<br>     |  
+<br>     |  __getattribute__(self, name, /)
+<br>     |      Return getattr(self, name).
+<br>     |  
+<br>     |  __getitem__(self, key, /)
+<br>     |      Return self[key].
+<br>     |  
+<br>     |  __getnewargs__(self, /)
+<br>     |  
+<br>     |  __gt__(self, value, /)
+<br>     |      Return self>value.
+<br>     |  
+<br>     |  __hash__(self, /)
+<br>     |      Return hash(self).
+<br>     |  
+<br>     |  __iter__(self, /)
+<br>     |      Implement iter(self).
+<br>     |  
+<br>     |  __le__(self, value, /)
+<br>     |      Return self<=value.
+<br>     |  
+<br>     |  __len__(self, /)
+<br>     |      Return len(self).
+<br>     |  
+<br>     |  __lt__(self, value, /)
+<br>     |      Return self<value.
+<br>     |  
+<br>     |  __mul__(self, value, /)
+<br>     |      Return self*value.
+<br>     |  
+<br>     |  __ne__(self, value, /)
+<br>     |      Return self!=value.
+<br>     |  
+<br>     |  __rmul__(self, value, /)
+<br>     |      Return value*self.
+<br>     |  
+<br>     |  count(self, value, /)
+<br>     |      Return number of occurrences of value.
+<br>     |  
+<br>     |  index(self, value, start=0, stop=9223372036854775807, /)
+<br>     |      Return first index of value.
+<br>     |      
+<br>     |      Raises ValueError if the value is not present.
+<br>    
+<br>    class times_result(builtins.tuple)
+<br>     |  times_result(iterable=(), /)
+<br>     |  
+<br>     |  times_result: Result from os.times().
+<br>     |  
+<br>     |  This object may be accessed either as a tuple of
+<br>     |    (user, system, children_user, children_system, elapsed),
+<br>     |  or via the attributes user, system, children_user, children_system,
+<br>     |  and elapsed.
+<br>     |  
+<br>     |  See os.times for more information.
+<br>     |  
+<br>     |  Method resolution order:
+<br>     |      times_result
+<br>     |      builtins.tuple
+<br>     |      builtins.object
+<br>     |  
+<br>     |  Methods defined here:
+<br>     |  
+<br>     |  __reduce__(...)
+<br>     |      Helper for pickle.
+<br>     |  
+<br>     |  __repr__(self, /)
+<br>     |      Return repr(self).
+<br>     |  
+<br>     |  <hr>
+<br>     |  Static methods defined here:
+<br>     |  
+<br>     |  __new__(*args, **kwargs) from builtins.type
+<br>     |      Create and return a new object.  See help(type) for accurate signature.
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data descriptors defined here:
+<br>     |  
+<br>     |  children_system
+<br>     |      system time of children
+<br>     |  
+<br>     |  children_user
+<br>     |      user time of children
+<br>     |  
+<br>     |  elapsed
+<br>     |      elapsed time since an arbitrary point in the past
+<br>     |  
+<br>     |  system
+<br>     |      system time
+<br>     |  
+<br>     |  user
+<br>     |      user time
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data and other attributes defined here:
+<br>     |  
+<br>     |  n_fields = 5
+<br>     |  
+<br>     |  n_sequence_fields = 5
+<br>     |  
+<br>     |  n_unnamed_fields = 0
+<br>     |  
+<br>     |  <hr>
+<br>     |  Methods inherited from builtins.tuple:
+<br>     |  
+<br>     |  __add__(self, value, /)
+<br>     |      Return self+value.
+<br>     |  
+<br>     |  __contains__(self, key, /)
+<br>     |      Return key in self.
+<br>     |  
+<br>     |  __eq__(self, value, /)
+<br>     |      Return self==value.
+<br>     |  
+<br>     |  __ge__(self, value, /)
+<br>     |      Return self>=value.
+<br>     |  
+<br>     |  __getattribute__(self, name, /)
+<br>     |      Return getattr(self, name).
+<br>     |  
+<br>     |  __getitem__(self, key, /)
+<br>     |      Return self[key].
+<br>     |  
+<br>     |  __getnewargs__(self, /)
+<br>     |  
+<br>     |  __gt__(self, value, /)
+<br>     |      Return self>value.
+<br>     |  
+<br>     |  __hash__(self, /)
+<br>     |      Return hash(self).
+<br>     |  
+<br>     |  __iter__(self, /)
+<br>     |      Implement iter(self).
+<br>     |  
+<br>     |  __le__(self, value, /)
+<br>     |      Return self<=value.
+<br>     |  
+<br>     |  __len__(self, /)
+<br>     |      Return len(self).
+<br>     |  
+<br>     |  __lt__(self, value, /)
+<br>     |      Return self<value.
+<br>     |  
+<br>     |  __mul__(self, value, /)
+<br>     |      Return self*value.
+<br>     |  
+<br>     |  __ne__(self, value, /)
+<br>     |      Return self!=value.
+<br>     |  
+<br>     |  __rmul__(self, value, /)
+<br>     |      Return value*self.
+<br>     |  
+<br>     |  count(self, value, /)
+<br>     |      Return number of occurrences of value.
+<br>     |  
+<br>     |  index(self, value, start=0, stop=9223372036854775807, /)
+<br>     |      Return first index of value.
+<br>     |      
+<br>     |      Raises ValueError if the value is not present.
+<br>    
+<br>    class uname_result(builtins.tuple)
+<br>     |  uname_result(iterable=(), /)
+<br>     |  
+<br>     |  uname_result: Result from os.uname().
+<br>     |  
+<br>     |  This object may be accessed either as a tuple of
+<br>     |    (sysname, nodename, release, version, machine),
+<br>     |  or via the attributes sysname, nodename, release, version, and machine.
+<br>     |  
+<br>     |  See os.uname for more information.
+<br>     |  
+<br>     |  Method resolution order:
+<br>     |      uname_result
+<br>     |      builtins.tuple
+<br>     |      builtins.object
+<br>     |  
+<br>     |  Methods defined here:
+<br>     |  
+<br>     |  __reduce__(...)
+<br>     |      Helper for pickle.
+<br>     |  
+<br>     |  __repr__(self, /)
+<br>     |      Return repr(self).
+<br>     |  
+<br>     |  <hr>
+<br>     |  Static methods defined here:
+<br>     |  
+<br>     |  __new__(*args, **kwargs) from builtins.type
+<br>     |      Create and return a new object.  See help(type) for accurate signature.
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data descriptors defined here:
+<br>     |  
+<br>     |  machine
+<br>     |      hardware identifier
+<br>     |  
+<br>     |  nodename
+<br>     |      name of machine on network (implementation-defined)
+<br>     |  
+<br>     |  release
+<br>     |      operating system release
+<br>     |  
+<br>     |  sysname
+<br>     |      operating system name
+<br>     |  
+<br>     |  version
+<br>     |      operating system version
+<br>     |  
+<br>     |  <hr>
+<br>     |  Data and other attributes defined here:
+<br>     |  
+<br>     |  n_fields = 5
+<br>     |  
+<br>     |  n_sequence_fields = 5
+<br>     |  
+<br>     |  n_unnamed_fields = 0
+<br>     |  
+<br>     |  <hr>
+<br>     |  Methods inherited from builtins.tuple:
+<br>     |  
+<br>     |  __add__(self, value, /)
+<br>     |      Return self+value.
+<br>     |  
+<br>     |  __contains__(self, key, /)
+<br>     |      Return key in self.
+<br>     |  
+<br>     |  __eq__(self, value, /)
+<br>     |      Return self==value.
+<br>     |  
+<br>     |  __ge__(self, value, /)
+<br>     |      Return self>=value.
+<br>     |  
+<br>     |  __getattribute__(self, name, /)
+<br>     |      Return getattr(self, name).
+<br>     |  
+<br>     |  __getitem__(self, key, /)
+<br>     |      Return self[key].
+<br>     |  
+<br>     |  __getnewargs__(self, /)
+<br>     |  
+<br>     |  __gt__(self, value, /)
+<br>     |      Return self>value.
+<br>     |  
+<br>     |  __hash__(self, /)
+<br>     |      Return hash(self).
+<br>     |  
+<br>     |  __iter__(self, /)
+<br>     |      Implement iter(self).
+<br>     |  
+<br>     |  __le__(self, value, /)
+<br>     |      Return self<=value.
+<br>     |  
+<br>     |  __len__(self, /)
+<br>     |      Return len(self).
+<br>     |  
+<br>     |  __lt__(self, value, /)
+<br>     |      Return self<value.
+<br>     |  
+<br>     |  __mul__(self, value, /)
+<br>     |      Return self*value.
+<br>     |  
+<br>     |  __ne__(self, value, /)
+<br>     |      Return self!=value.
+<br>     |  
+<br>     |  __rmul__(self, value, /)
+<br>     |      Return value*self.
+<br>     |  
+<br>     |  count(self, value, /)
+<br>     |      Return number of occurrences of value.
+<br>     |  
+<br>     |  index(self, value, start=0, stop=9223372036854775807, /)
+<br>     |      Return first index of value.
+<br>     |      
+<br>     |      Raises ValueError if the value is not present.
+<br>
+<br>FUNCTIONS
+<br>    _exit(status)
+<br>        Exit to the system with specified status, without normal exit processing.
+<br>    
+<br>    abort()
+<br>        Abort the interpreter immediately.
+<br>        
+<br>        This function 'dumps core' or otherwise fails in the hardest way possible
+<br>        on the hosting operating system.  This function never returns.
+<br>    
+<br>    access(path, mode, *, dir_fd=None, effective_ids=False, follow_symlinks=True)
+<br>        Use the real uid/gid to test for access to a path.
+<br>        
+<br>          path
+<br>            Path to be tested; can be string or bytes
+<br>          mode
+<br>            Operating-system mode bitfield.  Can be F_OK to test existence,
+<br>            or the inclusive-OR of R_OK, W_OK, and X_OK.
+<br>          dir_fd
+<br>            If not None, it should be a file descriptor open to a directory,
+<br>            and path should be relative; path will then be relative to that
+<br>            directory.
+<br>          effective_ids
+<br>            If True, access will use the effective uid/gid instead of
+<br>            the real uid/gid.
+<br>          follow_symlinks
+<br>            If False, and the last element of the path is a symbolic link,
+<br>            access will examine the symbolic link itself instead of the file
+<br>            the link points to.
+<br>        
+<br>        dir_fd, effective_ids, and follow_symlinks may not be implemented
+<br>          on your platform.  If they are unavailable, using them will raise a
+<br>          NotImplementedError.
+<br>        
+<br>        Note that most operations will use the effective uid/gid, therefore this
+<br>          routine can be used in a suid/sgid environment to test if the invoking user
+<br>          has the specified access to the path.
+<br>    
+<br>    chdir(path)
+<br>        Change the current working directory to the specified path.
+<br>        
+<br>        path may always be specified as a string.
+<br>        On some platforms, path may also be specified as an open file descriptor.
+<br>          If this functionality is unavailable, using it raises an exception.
+<br>    
+<br>    chmod(path, mode, *, dir_fd=None, follow_symlinks=True)
+<br>        Change the access permissions of a file.
+<br>        
+<br>          path
+<br>            Path to be modified.  May always be specified as a str or bytes.
+<br>            On some platforms, path may also be specified as an open file descriptor.
+<br>            If this functionality is unavailable, using it raises an exception.
+<br>          mode
+<br>            Operating-system mode bitfield.
+<br>          dir_fd
+<br>            If not None, it should be a file descriptor open to a directory,
+<br>            and path should be relative; path will then be relative to that
+<br>            directory.
+<br>          follow_symlinks
+<br>            If False, and the last element of the path is a symbolic link,
+<br>            chmod will modify the symbolic link itself instead of the file
+<br>            the link points to.
+<br>        
+<br>        It is an error to use dir_fd or follow_symlinks when specifying path as
+<br>          an open file descriptor.
+<br>        dir_fd and follow_symlinks may not be implemented on your platform.
+<br>          If they are unavailable, using them will raise a NotImplementedError.
+<br>    
+<br>    close(fd)
+<br>        Close a file descriptor.
+<br>    
+<br>    closerange(fd_low, fd_high, /)
+<br>        Closes all file descriptors in [fd_low, fd_high), ignoring errors.
+<br>    
+<br>    cpu_count()
+<br>        Return the number of CPUs in the system; return None if indeterminable.
+<br>        
+<br>        This number is not equivalent to the number of CPUs the current process can
+<br>        use.  The number of usable CPUs can be obtained with
+<br>        ``len(os.sched_getaffinity(0))``
+<br>    
+<br>    device_encoding(fd)
+<br>        Return a string describing the encoding of a terminal's file descriptor.
+<br>        
+<br>        The file descriptor must be attached to a terminal.
+<br>        If the device is not a terminal, return None.
+<br>    
+<br>    dup(fd, /)
+<br>        Return a duplicate of a file descriptor.
+<br>    
+<br>    dup2(fd, fd2, inheritable=True)
+<br>        Duplicate file descriptor.
+<br>    
+<br>    execl(file, *args)
+<br>        execl(file, *args)
+<br>        
+<br>        Execute the executable file with argument list args, replacing the
+<br>        current process.
+<br>    
+<br>    execle(file, *args)
+<br>        execle(file, *args, env)
+<br>        
+<br>        Execute the executable file with argument list args and
+<br>        environment env, replacing the current process.
+<br>    
+<br>    execlp(file, *args)
+<br>        execlp(file, *args)
+<br>        
+<br>        Execute the executable file (which is searched for along $PATH)
+<br>        with argument list args, replacing the current process.
+<br>    
+<br>    execlpe(file, *args)
+<br>        execlpe(file, *args, env)
+<br>        
+<br>        Execute the executable file (which is searched for along $PATH)
+<br>        with argument list args and environment env, replacing the current
+<br>        process.
+<br>    
+<br>    execv(path, argv, /)
+<br>        Execute an executable path with arguments, replacing current process.
+<br>        
+<br>        path
+<br>          Path of executable file.
+<br>        argv
+<br>          Tuple or list of strings.
+<br>    
+<br>    execve(path, argv, env)
+<br>        Execute an executable path with arguments, replacing current process.
+<br>        
+<br>        path
+<br>          Path of executable file.
+<br>        argv
+<br>          Tuple or list of strings.
+<br>        env
+<br>          Dictionary of strings mapping to strings.
+<br>    
+<br>    execvp(file, args)
+<br>        execvp(file, args)
+<br>        
+<br>        Execute the executable file (which is searched for along $PATH)
+<br>        with argument list args, replacing the current process.
+<br>        args may be a list or tuple of strings.
+<br>    
+<br>    execvpe(file, args, env)
+<br>        execvpe(file, args, env)
+<br>        
+<br>        Execute the executable file (which is searched for along $PATH)
+<br>        with argument list args and environment env , replacing the
+<br>        current process.
+<br>        args may be a list or tuple of strings.
+<br>    
+<br>    fdopen(fd, *args, **kwargs)
+<br>        # Supply os.fdopen()
+<br>    
+<br>    fsdecode(filename)
+<br>        Decode filename (an os.PathLike, bytes, or str) from the filesystem
+<br>        encoding with 'surrogateescape' error handler, return str unchanged. On
+<br>        Windows, use 'strict' error handler if the file system encoding is
+<br>        'mbcs' (which is the default encoding).
+<br>    
+<br>    fsencode(filename)
+<br>        Encode filename (an os.PathLike, bytes, or str) to the filesystem
+<br>        encoding with 'surrogateescape' error handler, return bytes unchanged.
+<br>        On Windows, use 'strict' error handler if the file system encoding is
+<br>        'mbcs' (which is the default encoding).
+<br>    
+<br>    fspath(path)
+<br>        Return the file system path representation of the object.
+<br>        
+<br>        If the object is str or bytes, then allow it to pass through as-is. If the
+<br>        object defines __fspath__(), then return the result of that method. All other
+<br>        types raise a TypeError.
+<br>    
+<br>    fstat(fd)
+<br>        Perform a stat system call on the given file descriptor.
+<br>        
+<br>        Like stat(), but for an open file descriptor.
+<br>        Equivalent to os.stat(fd).
+<br>    
+<br>    fsync(fd)
+<br>        Force write of fd to disk.
+<br>    
+<br>    ftruncate(fd, length, /)
+<br>        Truncate a file, specified by file descriptor, to a specific length.
+<br>    
+<br>    get_exec_path(env=None)
+<br>        Returns the sequence of directories that will be searched for the
+<br>        named executable (similar to a shell) when launching a process.
+<br>        
+<br>        *env* must be an environment variable dict or None.  If *env* is None,
+<br>        os.environ will be used.
+<br>    
+<br>    get_handle_inheritable(handle, /)
+<br>        Get the close-on-exe flag of the specified file descriptor.
+<br>    
+<br>    get_inheritable(fd, /)
+<br>        Get the close-on-exe flag of the specified file descriptor.
+<br>    
+<br>    get_terminal_size(...)
+<br>        Return the size of the terminal window as (columns, lines).
+<br>        
+<br>        The optional argument fd (default standard output) specifies
+<br>        which file descriptor should be queried.
+<br>        
+<br>        If the file descriptor is not connected to a terminal, an OSError
+<br>        is thrown.
+<br>        
+<br>        This function will only be defined if an implementation is
+<br>        available for this system.
+<br>        
+<br>        shutil.get_terminal_size is the high-level function which should 
+<br>        normally be used, os.get_terminal_size is the low-level implementation.
+<br>    
+<br>    getcwd()
+<br>        Return a unicode string representing the current working directory.
+<br>    
+<br>    getcwdb()
+<br>        Return a bytes string representing the current working directory.
+<br>    
+<br>    getenv(key, default=None)
+<br>        Get an environment variable, return None if it doesn't exist.
+<br>        The optional second argument can specify an alternate default.
+<br>        key, default and the result are str.
+<br>    
+<br>    getlogin()
+<br>        Return the actual login name.
+<br>    
+<br>    getpid()
+<br>        Return the current process id.
+<br>    
+<br>    getppid()
+<br>        Return the parent's process id.
+<br>        
+<br>        If the parent process has already exited, Windows machines will still
+<br>        return its id; others systems will return the id of the 'init' process (1).
+<br>    
+<br>    isatty(fd, /)
+<br>        Return True if the fd is connected to a terminal.
+<br>        
+<br>        Return True if the file descriptor is an open file descriptor
+<br>        connected to the slave end of a terminal.
+<br>    
+<br>    kill(pid, signal, /)
+<br>        Kill a process with a signal.
+<br>    
+<br>    link(src, dst, *, src_dir_fd=None, dst_dir_fd=None, follow_symlinks=True)
+<br>        Create a hard link to a file.
+<br>        
+<br>        If either src_dir_fd or dst_dir_fd is not None, it should be a file
+<br>          descriptor open to a directory, and the respective path string (src or dst)
+<br>          should be relative; the path will then be relative to that directory.
+<br>        If follow_symlinks is False, and the last element of src is a symbolic
+<br>          link, link will create a link to the symbolic link itself instead of the
+<br>          file the link points to.
+<br>        src_dir_fd, dst_dir_fd, and follow_symlinks may not be implemented on your
+<br>          platform.  If they are unavailable, using them will raise a
+<br>          NotImplementedError.
+<br>    
+<br>    listdir(path=None)
+<br>        Return a list containing the names of the files in the directory.
+<br>        
+<br>        path can be specified as either str or bytes.  If path is bytes,
+<br>          the filenames returned will also be bytes; in all other circumstances
+<br>          the filenames returned will be str.
+<br>        If path is None, uses the path='.'.
+<br>        On some platforms, path may also be specified as an open file descriptor;\
+<br>          the file descriptor must refer to a directory.
+<br>          If this functionality is unavailable, using it raises NotImplementedError.
+<br>        
+<br>        The list is in arbitrary order.  It does not include the special
+<br>        entries '.' and '..' even if they are present in the directory.
+<br>    
+<br>    lseek(fd, position, how, /)
+<br>        Set the position of a file descriptor.  Return the new position.
+<br>        
+<br>        Return the new cursor position in number of bytes
+<br>        relative to the beginning of the file.
+<br>    
+<br>    lstat(path, *, dir_fd=None)
+<br>        Perform a stat system call on the given path, without following symbolic links.
+<br>        
+<br>        Like stat(), but do not follow symbolic links.
+<br>        Equivalent to stat(path, follow_symlinks=False).
+<br>    
+<br>    makedirs(name, mode=511, exist_ok=False)
+<br>        makedirs(name [, mode=0o777][, exist_ok=False])
+<br>        
+<br>        Super-mkdir; create a leaf directory and all intermediate ones.  Works like
+<br>        mkdir, except that any intermediate path segment (not just the rightmost)
+<br>        will be created if it does not exist. If the target directory already
+<br>        exists, raise an OSError if exist_ok is False. Otherwise no exception is
+<br>        raised.  This is recursive.
+<br>    
+<br>    mkdir(path, mode=511, *, dir_fd=None)
+<br>        Create a directory.
+<br>        
+<br>        If dir_fd is not None, it should be a file descriptor open to a directory,
+<br>          and path should be relative; path will then be relative to that directory.
+<br>        dir_fd may not be implemented on your platform.
+<br>          If it is unavailable, using it will raise a NotImplementedError.
+<br>        
+<br>        The mode argument is ignored on Windows.
+<br>    
+<br>    open(path, flags, mode=511, *, dir_fd=None)
+<br>        Open a file for low level IO.  Returns a file descriptor (integer).
+<br>        
+<br>        If dir_fd is not None, it should be a file descriptor open to a directory,
+<br>          and path should be relative; path will then be relative to that directory.
+<br>        dir_fd may not be implemented on your platform.
+<br>          If it is unavailable, using it will raise a NotImplementedError.
+<br>    
+<br>    pipe()
+<br>        Create a pipe.
+<br>        
+<br>        Returns a tuple of two file descriptors:
+<br>          (read_fd, write_fd)
+<br>    
+<br>    popen(cmd, mode='r', buffering=-1)
+<br>        # Supply os.popen()
+<br>    
+<br>    putenv(name, value, /)
+<br>        Change or add an environment variable.
+<br>    
+<br>    read(fd, length, /)
+<br>        Read from a file descriptor.  Returns a bytes object.
+<br>    
+<br>    readlink(...)
+<br>        readlink(path, *, dir_fd=None) -> path
+<br>        
+<br>        Return a string representing the path to which the symbolic link points.
+<br>        
+<br>        If dir_fd is not None, it should be a file descriptor open to a directory,
+<br>          and path should be relative; path will then be relative to that directory.
+<br>        dir_fd may not be implemented on your platform.
+<br>          If it is unavailable, using it will raise a NotImplementedError.
+<br>    
+<br>    remove(path, *, dir_fd=None)
+<br>        Remove a file (same as unlink()).
+<br>        
+<br>        If dir_fd is not None, it should be a file descriptor open to a directory,
+<br>          and path should be relative; path will then be relative to that directory.
+<br>        dir_fd may not be implemented on your platform.
+<br>          If it is unavailable, using it will raise a NotImplementedError.
+<br>    
+<br>    removedirs(name)
+<br>        removedirs(name)
+<br>        
+<br>        Super-rmdir; remove a leaf directory and all empty intermediate
+<br>        ones.  Works like rmdir except that, if the leaf directory is
+<br>        successfully removed, directories corresponding to rightmost path
+<br>        segments will be pruned away until either the whole path is
+<br>        consumed or an error occurs.  Errors during this latter phase are
+<br>        ignored -- they generally mean that a directory was not empty.
+<br>    
+<br>    rename(src, dst, *, src_dir_fd=None, dst_dir_fd=None)
+<br>        Rename a file or directory.
+<br>        
+<br>        If either src_dir_fd or dst_dir_fd is not None, it should be a file
+<br>          descriptor open to a directory, and the respective path string (src or dst)
+<br>          should be relative; the path will then be relative to that directory.
+<br>        src_dir_fd and dst_dir_fd, may not be implemented on your platform.
+<br>          If they are unavailable, using them will raise a NotImplementedError.
+<br>    
+<br>    renames(old, new)
+<br>        renames(old, new)
+<br>        
+<br>        Super-rename; create directories as necessary and delete any left
+<br>        empty.  Works like rename, except creation of any intermediate
+<br>        directories needed to make the new pathname good is attempted
+<br>        first.  After the rename, directories corresponding to rightmost
+<br>        path segments of the old name will be pruned until either the
+<br>        whole path is consumed or a nonempty directory is found.
+<br>        
+<br>        Note: this function can fail with the new directory structure made
+<br>        if you lack permissions needed to unlink the leaf directory or
+<br>        file.
+<br>    
+<br>    replace(src, dst, *, src_dir_fd=None, dst_dir_fd=None)
+<br>        Rename a file or directory, overwriting the destination.
+<br>        
+<br>        If either src_dir_fd or dst_dir_fd is not None, it should be a file
+<br>          descriptor open to a directory, and the respective path string (src or dst)
+<br>          should be relative; the path will then be relative to that directory.
+<br>        src_dir_fd and dst_dir_fd, may not be implemented on your platform.
+<br>          If they are unavailable, using them will raise a NotImplementedError."
+<br>    
+<br>    rmdir(path, *, dir_fd=None)
+<br>        Remove a directory.
+<br>        
+<br>        If dir_fd is not None, it should be a file descriptor open to a directory,
+<br>          and path should be relative; path will then be relative to that directory.
+<br>        dir_fd may not be implemented on your platform.
+<br>          If it is unavailable, using it will raise a NotImplementedError.
+<br>    
+<br>    scandir(path=None)
+<br>        Return an iterator of DirEntry objects for given path.
+<br>        
+<br>        path can be specified as either str, bytes or path-like object.  If path
+<br>        is bytes, the names of yielded DirEntry objects will also be bytes; in
+<br>        all other circumstances they will be str.
+<br>        
+<br>        If path is None, uses the path='.'.
+<br>    
+<br>    set_handle_inheritable(handle, inheritable, /)
+<br>        Set the inheritable flag of the specified handle.
+<br>    
+<br>    set_inheritable(fd, inheritable, /)
+<br>        Set the inheritable flag of the specified file descriptor.
+<br>    
+<br>    spawnl(mode, file, *args)
+<br>        spawnl(mode, file, *args) -> integer
+<br>        
+<br>        Execute file with arguments from args in a subprocess.
+<br>        If mode == P_NOWAIT return the pid of the process.
+<br>        If mode == P_WAIT return the process's exit code if it exits normally;
+<br>        otherwise return -SIG, where SIG is the signal that killed it.
+<br>    
+<br>    spawnle(mode, file, *args)
+<br>        spawnle(mode, file, *args, env) -> integer
+<br>        
+<br>        Execute file with arguments from args in a subprocess with the
+<br>        supplied environment.
+<br>        If mode == P_NOWAIT return the pid of the process.
+<br>        If mode == P_WAIT return the process's exit code if it exits normally;
+<br>        otherwise return -SIG, where SIG is the signal that killed it.
+<br>    
+<br>    spawnv(mode, path, argv, /)
+<br>        Execute the program specified by path in a new process.
+<br>        
+<br>        mode
+<br>          Mode of process creation.
+<br>        path
+<br>          Path of executable file.
+<br>        argv
+<br>          Tuple or list of strings.
+<br>    
+<br>    spawnve(mode, path, argv, env, /)
+<br>        Execute the program specified by path in a new process.
+<br>        
+<br>        mode
+<br>          Mode of process creation.
+<br>        path
+<br>          Path of executable file.
+<br>        argv
+<br>          Tuple or list of strings.
+<br>        env
+<br>          Dictionary of strings mapping to strings.
+<br>    
+<br>    startfile(filepath, operation=None)
+<br>        startfile(filepath [, operation])
+<br>        
+<br>        Start a file with its associated application.
+<br>        
+<br>        When "operation" is not specified or "open", this acts like
+<br>        double-clicking the file in Explorer, or giving the file name as an
+<br>        argument to the DOS "start" command: the file is opened with whatever
+<br>        application (if any) its extension is associated.
+<br>        When another "operation" is given, it specifies what should be done with
+<br>        the file.  A typical operation is "print".
+<br>        
+<br>        startfile returns as soon as the associated application is launched.
+<br>        There is no option to wait for the application to close, and no way
+<br>        to retrieve the application's exit status.
+<br>        
+<br>        The filepath is relative to the current directory.  If you want to use
+<br>        an absolute path, make sure the first character is not a slash ("/");
+<br>        the underlying Win32 ShellExecute function doesn't work if it is.
+<br>    
+<br>    stat(path, *, dir_fd=None, follow_symlinks=True)
+<br>        Perform a stat system call on the given path.
+<br>        
+<br>          path
+<br>            Path to be examined; can be string, bytes, path-like object or
+<br>            open-file-descriptor int.
+<br>          dir_fd
+<br>            If not None, it should be a file descriptor open to a directory,
+<br>            and path should be a relative string; path will then be relative to
+<br>            that directory.
+<br>          follow_symlinks
+<br>            If False, and the last element of the path is a symbolic link,
+<br>            stat will examine the symbolic link itself instead of the file
+<br>            the link points to.
+<br>        
+<br>        dir_fd and follow_symlinks may not be implemented
+<br>          on your platform.  If they are unavailable, using them will raise a
+<br>          NotImplementedError.
+<br>        
+<br>        It's an error to use dir_fd or follow_symlinks when specifying path as
+<br>          an open file descriptor.
+<br>    
+<br>    strerror(code, /)
+<br>        Translate an error code to a message string.
+<br>    
+<br>    symlink(src, dst, target_is_directory=False, *, dir_fd=None)
+<br>        Create a symbolic link pointing to src named dst.
+<br>        
+<br>        target_is_directory is required on Windows if the target is to be
+<br>          interpreted as a directory.  (On Windows, symlink requires
+<br>          Windows 6.0 or greater, and raises a NotImplementedError otherwise.)
+<br>          target_is_directory is ignored on non-Windows platforms.
+<br>        
+<br>        If dir_fd is not None, it should be a file descriptor open to a directory,
+<br>          and path should be relative; path will then be relative to that directory.
+<br>        dir_fd may not be implemented on your platform.
+<br>          If it is unavailable, using it will raise a NotImplementedError.
+<br>    
+<br>    system(command)
+<br>        Execute the command in a subshell.
+<br>    
+<br>    times()
+<br>        Return a collection containing process timing information.
+<br>        
+<br>        The object returned behaves like a named tuple with these fields:
+<br>          (utime, stime, cutime, cstime, elapsed_time)
+<br>        All fields are floating point numbers.
+<br>    
+<br>    truncate(path, length)
+<br>        Truncate a file, specified by path, to a specific length.
+<br>        
+<br>        On some platforms, path may also be specified as an open file descriptor.
+<br>          If this functionality is unavailable, using it raises an exception.
+<br>    
+<br>    umask(mask, /)
+<br>        Set the current numeric umask and return the previous umask.
+<br>    
+<br>    unlink(path, *, dir_fd=None)
+<br>        Remove a file (same as remove()).
+<br>        
+<br>        If dir_fd is not None, it should be a file descriptor open to a directory,
+<br>          and path should be relative; path will then be relative to that directory.
+<br>        dir_fd may not be implemented on your platform.
+<br>          If it is unavailable, using it will raise a NotImplementedError.
+<br>    
+<br>    urandom(size, /)
+<br>        Return a bytes object containing random bytes suitable for cryptographic use.
+<br>    
+<br>    utime(path, times=None, *, ns=None, dir_fd=None, follow_symlinks=True)
+<br>        Set the access and modified time of path.
+<br>        
+<br>        path may always be specified as a string.
+<br>        On some platforms, path may also be specified as an open file descriptor.
+<br>          If this functionality is unavailable, using it raises an exception.
+<br>        
+<br>        If times is not None, it must be a tuple (atime, mtime);
+<br>            atime and mtime should be expressed as float seconds since the epoch.
+<br>        If ns is specified, it must be a tuple (atime_ns, mtime_ns);
+<br>            atime_ns and mtime_ns should be expressed as integer nanoseconds
+<br>            since the epoch.
+<br>        If times is None and ns is unspecified, utime uses the current time.
+<br>        Specifying tuples for both times and ns is an error.
+<br>        
+<br>        If dir_fd is not None, it should be a file descriptor open to a directory,
+<br>          and path should be relative; path will then be relative to that directory.
+<br>        If follow_symlinks is False, and the last element of the path is a symbolic
+<br>          link, utime will modify the symbolic link itself instead of the file the
+<br>          link points to.
+<br>        It is an error to use dir_fd or follow_symlinks when specifying path
+<br>          as an open file descriptor.
+<br>        dir_fd and follow_symlinks may not be available on your platform.
+<br>          If they are unavailable, using them will raise a NotImplementedError.
+<br>    
+<br>    waitpid(pid, options, /)
+<br>        Wait for completion of a given process.
+<br>        
+<br>        Returns a tuple of information regarding the process:
+<br>            (pid, status << 8)
+<br>        
+<br>        The options argument is ignored on Windows.
+<br>    
+<br>    walk(top, topdown=True, onerror=None, followlinks=False)
+<br>        Directory tree generator.
+<br>        
+<br>        For each directory in the directory tree rooted at top (including top
+<br>        itself, but excluding '.' and '..'), yields a 3-tuple
+<br>        
+<br>            dirpath, dirnames, filenames
+<br>        
+<br>        dirpath is a string, the path to the directory.  dirnames is a list of
+<br>        the names of the subdirectories in dirpath (excluding '.' and '..').
+<br>        filenames is a list of the names of the non-directory files in dirpath.
+<br>        Note that the names in the lists are just names, with no path components.
+<br>        To get a full path (which begins with top) to a file or directory in
+<br>        dirpath, do os.path.join(dirpath, name).
+<br>        
+<br>        If optional arg 'topdown' is true or not specified, the triple for a
+<br>        directory is generated before the triples for any of its subdirectories
+<br>        (directories are generated top down).  If topdown is false, the triple
+<br>        for a directory is generated after the triples for all of its
+<br>        subdirectories (directories are generated bottom up).
+<br>        
+<br>        When topdown is true, the caller can modify the dirnames list in-place
+<br>        (e.g., via del or slice assignment), and walk will only recurse into the
+<br>        subdirectories whose names remain in dirnames; this can be used to prune the
+<br>        search, or to impose a specific order of visiting.  Modifying dirnames when
+<br>        topdown is false is ineffective, since the directories in dirnames have
+<br>        already been generated by the time dirnames itself is generated. No matter
+<br>        the value of topdown, the list of subdirectories is retrieved before the
+<br>        tuples for the directory and its subdirectories are generated.
+<br>        
+<br>        By default errors from the os.scandir() call are ignored.  If
+<br>        optional arg 'onerror' is specified, it should be a function; it
+<br>        will be called with one argument, an OSError instance.  It can
+<br>        report the error to continue with the walk, or raise the exception
+<br>        to abort the walk.  Note that the filename is available as the
+<br>        filename attribute of the exception object.
+<br>        
+<br>        By default, os.walk does not follow symbolic links to subdirectories on
+<br>        systems that support them.  In order to get this functionality, set the
+<br>        optional argument 'followlinks' to true.
+<br>        
+<br>        Caution:  if you pass a relative pathname for top, don't change the
+<br>        current working directory between resumptions of walk.  walk never
+<br>        changes the current directory, and assumes that the client doesn't
+<br>        either.
+<br>        
+<br>        Example:
+<br>        
+<br>        import os
+<br>        from os.path import join, getsize
+<br>        for root, dirs, files in os.walk('python/Lib/email'):
+<br>            print(root, "consumes", end="")
+<br>            print(sum([getsize(join(root, name)) for name in files]), end="")
+<br>            print("bytes in", len(files), "non-directory files")
+<br>            if 'CVS' in dirs:
+<br>                dirs.remove('CVS')  # don't visit CVS directories
+<br>    
+<br>    write(fd, data, /)
+<br>        Write a bytes object to a file descriptor.
+<br>
+<br>DATA
+<br>    F_OK = 0
+<br>    O_APPEND = 8
+<br>    O_BINARY = 32768
+<br>    O_CREAT = 256
+<br>    O_EXCL = 1024
+<br>    O_NOINHERIT = 128
+<br>    O_RANDOM = 16
+<br>    O_RDONLY = 0
+<br>    O_RDWR = 2
+<br>    O_SEQUENTIAL = 32
+<br>    O_SHORT_LIVED = 4096
+<br>    O_TEMPORARY = 64
+<br>    O_TEXT = 16384
+<br>    O_TRUNC = 512
+<br>    O_WRONLY = 1
+<br>    P_DETACH = 4
+<br>    P_NOWAIT = 1
+<br>    P_NOWAITO = 3
+<br>    P_OVERLAY = 2
+<br>    P_WAIT = 0
+<br>    R_OK = 4
+<br>    SEEK_CUR = 1
+<br>    SEEK_END = 2
+<br>    SEEK_SET = 0
+<br>    TMP_MAX = 2147483647
+<br>    W_OK = 2
+<br>    X_OK = 1
+<br>    __all__ = ['altsep', 'curdir', 'pardir', 'sep', 'pathsep', 'linesep', ...
+<br>    altsep = '/'
+<br>    curdir = '.'
+<br>    defpath = r'.;C:\bin'
+<br>    devnull = 'nul'
+<br>    environ = environ({'ALLUSERSPROFILE': 'C:\\ProgramData', '... 'C:\\Use...
+<br>    extsep = '.'
+<br>    linesep = '\r\n'
+<br>    name = 'nt'
+<br>    pardir = '..'
+<br>    pathsep = ';'
+<br>    sep = r'\'
+<br>    supports_bytes_environ = False
+<br>
+<br>FILE
+<br>    c:\users\matthijs\appdata\local\programs\python\python37\lib\os.py
+<br>
+<br>
+ </p></html>
