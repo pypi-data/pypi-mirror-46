@@ -1,0 +1,45 @@
+#!python
+from __future__ import absolute_import
+import click
+import pkg_resources
+
+import dzee_helper as dzee
+
+VERSION = pkg_resources.require("automslc")[0].version
+
+@click.group()
+@click.version_option(version=VERSION, prog_name='automslc')
+def automslc():  # pragma: no cover
+    pass
+
+@click.command()
+@click.option('--id', help='find dz id')
+@click.option('--ip', help='ip local')
+@click.option('--output', help=' local dir')
+def get(id,ip,output):
+    if id != None :
+        if (output == None):
+            output = "/var/www/html/music/download"
+        dzee.get_audio(id,ip,output)
+    else:
+        print("{}")
+
+@click.command()
+@click.option('--gmail', help='gmail')
+@click.option('--passw', help='password')
+@click.option('--arl', help='arl')
+@click.option('--sv', help='sv')
+@click.option('--ip', help='ip local')
+@click.option('--output', help=' local dir')
+def crawl(gmail, passw, arl, sv,ip, output):
+    if gmail != None :
+        if(output == None):
+            output="/var/www/html/music/download"
+        dzee.crawl_auto(gmail,passw,arl,sv,ip,output)
+    else:
+        print("Error , input gmail pass arl")
+
+automslc.add_command(get)
+automslc.add_command(crawl)
+if __name__ == '__main__':  # pragma: no cover
+    automslc()
