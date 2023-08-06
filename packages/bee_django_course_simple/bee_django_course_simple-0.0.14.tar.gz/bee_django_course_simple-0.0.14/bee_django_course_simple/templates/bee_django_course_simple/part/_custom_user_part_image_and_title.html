@@ -1,0 +1,22 @@
+{% load staticfiles %}
+
+<div class="text-center">
+    <div class="user_part_image">
+        {% if user_part.part.image %}
+            <img src="{{ user_part.part.image.url }}"
+                 alt="{{ user_part.part|default:'' }}"
+                    {% if user_part.is_open or  user_part.is_pass %}{% else %} class="part_lock" {% endif %}/>
+        {% else %}
+            <img src="{% static 'bee_django_course_simple/img/part_image.jpg' %}"
+                 alt="{{ user_part.part|default:'' }}"
+                    {% if user_part.is_open or  user_part.is_pass %}{% else %} class="part_lock" {% endif %}/>
+        {% endif %}
+    </div>
+
+    <div class="user_part_title">
+        {{ user_part.part.title }}
+        {% if user_part.is_pass %}
+            {{ user_part.part.extra_title | default:'' }}
+        {% endif %}
+    </div>
+</div>

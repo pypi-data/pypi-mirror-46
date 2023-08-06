@@ -1,0 +1,76 @@
+{% extends "bee_django_course_simple/user_base.html" %}
+{% load static %}
+
+{% block content %}
+    {% include 'bee_django_course_simple/_custom_user_css.html' %}
+    <div class="section_list2">
+        <div class="nav"><a href="/">首页</a> -> 预备课</div>
+        <div class="text-center"><h4>{{ user_course.course.title }}</h4></div>
+
+
+        <div class="user_section_list">
+            {% for us in user_section_list %}
+                <div class="user_section">
+                    {% if us.section.group_name %}
+                        <div class="section_group_name">
+                            {{ us.section.group_name }}
+                        </div>
+                    {% endif %}
+                    <div class="section_title">
+                        {{ us.section.title }}{{ us.section.extra_title|default:"" }}
+                    </div>
+                    <div class="row user_part_list">
+                        {% for user_part in us.userpart_set.all %}
+                            <div class="col-xs-6 col-sm-4 user_part">
+                                <div class="user_part text-center">
+                                    {% if user_part.part.is_video_type %}
+                                        {% if user_part.is_close %}
+                                            {% include "bee_django_course_simple/part/_custom_user_part_image_and_title.html" %}
+                                        {% else %}
+                                            <a href="{% url 'bee_django_course_simple:custom_user_part_detail_video' user_part.id %}">
+                                                {% include "bee_django_course_simple/part/_custom_user_part_image_and_title.html" %}
+                                            </a>
+                                        {% endif %}
+                                    {% elif  user_part.part.is_question_type %}
+                                        {% if user_part.is_close %}
+                                            {% include "bee_django_course_simple/part/_custom_user_part_image_and_title.html" %}
+                                        {% else %}
+                                            <a href="{% url 'bee_django_course_simple:custom_user_part_detail_question' user_part.id %}">
+                                                {% include "bee_django_course_simple/part/_custom_user_part_image_and_title.html" %}
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+
+                {#                <td>#}
+                {#                    {% if e.is_open %}#}
+                {#                        {{ e.started_at }} 开始#}
+                {#                    {% endif %}#}
+                {#                    {% if e.is_pass %}#}
+                {#                        {{ e.started_at }} - {{ e.passed_at }}#}
+                {##}
+                {#                    {% endif %}#}
+                {#                </td>#}
+
+            {% endfor %}
+        </div>
+
+        {% include 'bee_django_course_simple/paginator.html' %}
+
+    </div>
+{% endblock content %}
+{% block scripts %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+
+        });
+
+    </script>
+{% endblock scripts %}

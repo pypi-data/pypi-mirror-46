@@ -1,0 +1,33 @@
+{% load bee_django_course_simple_filter %}
+<div class="user_questions">
+    {% for question in user_part.part.question_set.all %}
+        <div class="user_question" data-question-id="{{ question.id }}">
+            <h5>
+                {{ question.title }}
+            </h5>
+
+            <div class="user_options">
+                {% for option in question.option_set.all %}
+                    {% get_user_answer_option request.user question.id as answer_option_id %}
+                    <div>
+                        <input type="radio" id="option_{{ option.id }}" name="question_{{ question.id }}"
+                               {% if user_part.status != 1 %}disabled{% endif %}
+                               value="{{ option.id }}"
+                               {% if answer_option_id == option.id %}checked{% endif %}/>
+                        <label for="option_{{ option.id }}">{{ option.title }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+
+    <input type="button" value="提交" class="btn btn-default" onclick="submit_user_answer($(this))"
+           data-url="{% url 'bee_django_course_simple:user_part_update' user_part_id=user_part.id %}"
+           {% if user_part.status != 1 %}disabled{% endif %}/>
+</div>
+
+<div class="question_res">
+    {% if user_part.is_pass %}
+        答对了{{ user_part.question_correct_count }}道题，获得{{ user_part.prize_coin }}{{ context_coin_name }}
+    {% endif %}
+</div>

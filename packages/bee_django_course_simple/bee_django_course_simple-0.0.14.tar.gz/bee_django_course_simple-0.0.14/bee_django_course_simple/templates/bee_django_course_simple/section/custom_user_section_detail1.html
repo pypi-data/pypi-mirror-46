@@ -1,0 +1,71 @@
+{% extends "bee_django_course_simple/user_base.html" %}
+{% load bee_django_course_simple_filter %}
+{% load staticfiles %}
+{% load bootstrap3 %}
+
+{% block styles %}
+    <style type="text/css">
+
+
+        .nav {
+            margin: 5px auto;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% include 'bee_django_course_simple/_custom_user_css.html' %}
+    <div class="section_detail">
+        <div class="nav">
+            <a href="/">首页</a> -> 课程
+        </div>
+        {# 根据状态判断是否显示section额外标题#}
+        <h4 class="text-center">
+            {{ user_section.section.title }}
+            {% if user_section.is_pass %}{{ user_section.section.extra_title|default:"" }}{% endif %}
+
+        </h4>
+
+        <div style="margin: 10px auto;">
+            <a href="{% url 'bee_django_course_simple:custom_user_section_list' section_type=section_type user_id=request.user.id user_course_id=user_section.user_course.id %}"
+               class="btn btn-default">全部课程</a>
+            {% if next_user_section and user_section.is_pass %}
+                <a href="{% url 'bee_django_course_simple:custom_user_section_detail' section_type=section_type  pk=next_user_section.id %}"
+                   class="btn btn-default" style="float:right;">下一课</a>
+            {% elif next_user_section %}
+                <a href="" class="btn btn-default disabled" style="float: right">下一课</a>
+            {% endif %}
+        </div>
+        <div class="user_part_list row">
+            {% for user_part in user_section.userpart_set.all %}
+
+                <div class="col-xs-6 col-sm-4 user_part">
+                    {# 根据状态判断是否显示part额外标题#}
+                    <div class="user_part text-center">
+                        {% if user_part.part.is_video_type %}
+                            {% if user_part.is_close %}
+                                {% include "bee_django_course_simple/part/_custom_user_part_image_and_title.html" %}
+                            {% else %}
+                                <a href="{% url 'bee_django_course_simple:custom_user_part_detail_video' user_part.id %}">
+                                    {% include "bee_django_course_simple/part/_custom_user_part_image_and_title.html" %}
+                                </a>
+                            {% endif %}
+                        {% elif  user_part.part.is_question_type %}
+                            {% if user_part.is_close %}
+                                {% include "bee_django_course_simple/part/_custom_user_part_image_and_title.html" %}
+                            {% else %}
+                                <a href="{% url 'bee_django_course_simple:custom_user_part_detail_question' user_part.id %}">
+                                    {% include "bee_django_course_simple/part/_custom_user_part_image_and_title.html" %}
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+    </div>
+{% endblock content %}
+
+{% block scripts %}
+{% endblock scripts %}
