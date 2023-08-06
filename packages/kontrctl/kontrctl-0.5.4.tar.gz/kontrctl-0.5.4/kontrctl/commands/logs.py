@@ -1,0 +1,20 @@
+import logging
+
+import click
+
+from kontrctl.config import AppConfig, Remote
+from kontrctl.utils import helpers
+
+log = logging.getLogger(__name__)
+
+
+@click.command('logs', help="Show logs")
+@click.option('-f', '--file', required=False, help='Show log content by filename',
+              is_flag=True, default=False)
+@click.pass_obj
+def cli_logs(obj: AppConfig, file: str):
+    remote: Remote = obj.remote    
+    if file:
+        remote.kontr_client.management.logs_file(path=file)
+    else:
+        remote.kontr_client.management.logs_tree()
