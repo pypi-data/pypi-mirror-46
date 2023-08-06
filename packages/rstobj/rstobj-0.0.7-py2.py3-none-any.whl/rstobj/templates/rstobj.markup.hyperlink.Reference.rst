@@ -1,0 +1,1 @@
+:ref:`{{ obj.title }} <{{ obj.label }}>`
