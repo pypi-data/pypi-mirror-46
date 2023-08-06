@@ -1,0 +1,636 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>aws_encryption_sdk.key_providers.base &mdash; aws-encryption-sdk-python 1.3.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aws_encryption_sdk.key_providers.kms" href="aws_encryption_sdk.key_providers.kms.html" />
+    <link rel="prev" title="aws_encryption_sdk.caches.null" href="aws_encryption_sdk.caches.null.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> aws-encryption-sdk-python
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.3
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.html">aws_encryption_sdk</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.exceptions.html">aws_encryption_sdk.exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.identifiers.html">aws_encryption_sdk.identifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.caches.html">aws_encryption_sdk.caches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.caches.base.html">aws_encryption_sdk.caches.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.caches.local.html">aws_encryption_sdk.caches.local</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.caches.null.html">aws_encryption_sdk.caches.null</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">aws_encryption_sdk.key_providers.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.key_providers.kms.html">aws_encryption_sdk.key_providers.kms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.key_providers.raw.html">aws_encryption_sdk.key_providers.raw</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.materials_managers.html">aws_encryption_sdk.materials_managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.materials_managers.base.html">aws_encryption_sdk.materials_managers.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.materials_managers.caching.html">aws_encryption_sdk.materials_managers.caching</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.materials_managers.default.html">aws_encryption_sdk.materials_managers.default</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.streaming_client.html">aws_encryption_sdk.streaming_client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.structures.html">aws_encryption_sdk.structures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.html">aws_encryption_sdk.internal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.crypto.authentication.html">aws_encryption_sdk.internal.crypto.authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.crypto.data_keys.html">aws_encryption_sdk.internal.crypto.data_keys</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.crypto.elliptic_curve.html">aws_encryption_sdk.internal.crypto.elliptic_curve</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.crypto.encryption.html">aws_encryption_sdk.internal.crypto.encryption</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.crypto.iv.html">aws_encryption_sdk.internal.crypto.iv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.crypto.wrapping_keys.html">aws_encryption_sdk.internal.crypto.wrapping_keys</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.defaults.html">aws_encryption_sdk.internal.defaults</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.formatting.html">aws_encryption_sdk.internal.formatting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.formatting.deserialize.html">aws_encryption_sdk.internal.formatting.deserialize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.formatting.encryption_context.html">aws_encryption_sdk.internal.formatting.encryption_context</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.formatting.serialize.html">aws_encryption_sdk.internal.formatting.serialize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.str_ops.html">aws_encryption_sdk.internal.str_ops</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.structures.html">aws_encryption_sdk.internal.structures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws_encryption_sdk.internal.utils.html">aws_encryption_sdk.internal.utils</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aws-encryption-sdk-python</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>aws_encryption_sdk.key_providers.base</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/generated/aws_encryption_sdk.key_providers.base.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-aws_encryption_sdk.key_providers.base">
+<span id="aws-encryption-sdk-key-providers-base"></span><h1>aws_encryption_sdk.key_providers.base<a class="headerlink" href="#module-aws_encryption_sdk.key_providers.base" title="Permalink to this headline">¶</a></h1>
+<p>Base class interface for Master Key Providers.</p>
+<p class="rubric">Classes</p>
+<table class="longtable docutils align-center">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKey" title="aws_encryption_sdk.key_providers.base.MasterKey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MasterKey</span></code></a></p></td>
+<td><p>Parent interface for Master Key classes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKeyConfig" title="aws_encryption_sdk.key_providers.base.MasterKeyConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MasterKeyConfig</span></code></a>(key_id)</p></td>
+<td><p>Configuration object for MasterKey objects.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider" title="aws_encryption_sdk.key_providers.base.MasterKeyProvider"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MasterKeyProvider</span></code></a></p></td>
+<td><p>Parent interface for Master Key Provider classes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKeyProviderConfig" title="aws_encryption_sdk.key_providers.base.MasterKeyProviderConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MasterKeyProviderConfig</span></code></a>()</p></td>
+<td><p>Provides a common ancestor for MasterKeyProvider configuration objects and a stand-in point if common params are needed later.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProviderConfig">
+<em class="property">class </em><code class="descclassname">aws_encryption_sdk.key_providers.base.</code><code class="descname">MasterKeyProviderConfig</code><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProviderConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Provides a common ancestor for MasterKeyProvider configuration objects
+and a stand-in point if common params are needed later.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider">
+<em class="property">class </em><code class="descclassname">aws_encryption_sdk.key_providers.base.</code><code class="descname">MasterKeyProvider</code><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Parent interface for Master Key Provider classes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKeyProviderConfig" title="aws_encryption_sdk.key_providers.base.MasterKeyProviderConfig"><em>aws_encryption_sdk.key_providers.base.MasterKeyProviderConfig</em></a>) – Configuration object</p>
+</dd>
+</dl>
+<p>Set key index and member set for all new instances here
+to avoid requiring child classes to call super init.</p>
+<dl class="attribute">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.vend_masterkey_on_decrypt">
+<code class="descname">vend_masterkey_on_decrypt</code><em class="property"> = True</em><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.vend_masterkey_on_decrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines whether a MasterKeyProvider attempts to add a MasterKey on decrypt_data_key call.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.provider_id">
+<code class="descname">provider_id</code><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.provider_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>String defining provider ID.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Must be implemented by specific MasterKeyProvider implementations.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.master_keys_for_encryption">
+<code class="descname">master_keys_for_encryption</code><span class="sig-paren">(</span><em>encryption_context</em>, <em>plaintext_rostream</em>, <em>plaintext_length=None</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.master_keys_for_encryption" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set containing all Master Keys added to this Provider, or any member Providers,
+which should be used to encrypt data keys for the specified data.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This does not necessarily include all Master Keys accessible from this Provider.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The Primary Master Key is the first Master Key added to this Master Key Provider
+and is the Master Key which will be used to generate the data key.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If plaintext_rostream seek position is modified, it must be returned before leaving method.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>encryption_context</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Encryption context passed to client</p></li>
+<li><p><strong>plaintext_rostream</strong> (<em>aws_encryption_sdk.internal.utils.streams.ROStream</em>) – Source plaintext read-only stream</p></li>
+<li><p><strong>plaintext_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Length of source plaintext (optional)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Tuple containing Primary Master Key and List of all Master Keys added to
+this Provider and any member Providers</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple containing <a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKey" title="aws_encryption_sdk.key_providers.base.MasterKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.key_providers.base.MasterKey</span></code></a>
+and list of <a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKey" title="aws_encryption_sdk.key_providers.base.MasterKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.key_providers.base.MasterKey</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.add_master_key">
+<code class="descname">add_master_key</code><span class="sig-paren">(</span><em>key_id</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.add_master_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a single Master Key to this provider.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.7)"><em>bytes</em></a>) – Key ID with which to create MasterKey</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.add_master_keys_from_list">
+<code class="descname">add_master_keys_from_list</code><span class="sig-paren">(</span><em>key_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.add_master_keys_from_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds multiple Master Keys to this provider.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – List of Master Key IDs</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.add_master_key_provider">
+<code class="descname">add_master_key_provider</code><span class="sig-paren">(</span><em>key_provider</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.add_master_key_provider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a single Master Key Provider to this provider.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key_provider</strong> (<a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider" title="aws_encryption_sdk.key_providers.base.MasterKeyProvider"><em>aws_encryption_sdk.key_providers.base.MasterKeyProvider</em></a>) – Master Key Provider to add to this provider</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.add_master_key_providers_from_list">
+<code class="descname">add_master_key_providers_from_list</code><span class="sig-paren">(</span><em>key_providers</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.add_master_key_providers_from_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds multiple Master Key Providers to this provider.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key_provider</strong> (list of <a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider" title="aws_encryption_sdk.key_providers.base.MasterKeyProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.key_providers.base.MasterKeyProvider</span></code></a>) – List of Master Key Providers to add to this provider</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.master_key_for_encrypt">
+<code class="descname">master_key_for_encrypt</code><span class="sig-paren">(</span><em>key_id</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.master_key_for_encrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a master key for encrypt based on the specified key_id,
+adding it to this provider if not already present.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.7)"><em>bytes</em></a>) – Key ID with which to find or create Master Key</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Master Key based on key_id</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKey" title="aws_encryption_sdk.key_providers.base.MasterKey">aws_encryption_sdk.key_providers.base.MasterKey</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.master_key">
+<code class="descname">master_key</code><span class="sig-paren">(</span><em>key_id</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.master_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a master key for encrypt based on the specified key_id,
+adding it to this provider if not already present.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.7)"><em>bytes</em></a>) – Key ID with which to find or create Master Key</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Master Key based on key_id</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKey" title="aws_encryption_sdk.key_providers.base.MasterKey">aws_encryption_sdk.key_providers.base.MasterKey</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.master_key_for_decrypt">
+<code class="descname">master_key_for_decrypt</code><span class="sig-paren">(</span><em>key_info</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.master_key_for_decrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a master key for decrypt based on the specified key_info.
+This is only added to this master key provider for the decrypt path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.7)"><em>bytes</em></a>) – Key info from encrypted data key</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Master Key based on key_info</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKey" title="aws_encryption_sdk.key_providers.base.MasterKey">aws_encryption_sdk.key_providers.base.MasterKey</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.decrypt_data_key">
+<code class="descname">decrypt_data_key</code><span class="sig-paren">(</span><em>encrypted_data_key</em>, <em>algorithm</em>, <em>encryption_context</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.decrypt_data_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates through all currently added Master Keys and Master Key Providers
+to attempt to decrypt data key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>encrypted_data_key</strong> (<a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.EncryptedDataKey" title="aws_encryption_sdk.structures.EncryptedDataKey"><em>aws_encryption_sdk.structures.EncryptedDataKey</em></a>) – Encrypted data key to decrypt</p></li>
+<li><p><strong>algorithm</strong> (<em>aws_encryption_sdk.identifiers.Algorithm</em>) – Algorithm object which directs how this Master Key will encrypt the data key</p></li>
+<li><p><strong>encryption_context</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Encryption context to use in encryption</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Decrypted data key</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.DataKey" title="aws_encryption_sdk.structures.DataKey">aws_encryption_sdk.structures.DataKey</a></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="aws_encryption_sdk.exceptions.html#aws_encryption_sdk.exceptions.DecryptKeyError" title="aws_encryption_sdk.exceptions.DecryptKeyError"><strong>DecryptKeyError</strong></a> – if unable to decrypt encrypted data key</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyProvider.decrypt_data_key_from_list">
+<code class="descname">decrypt_data_key_from_list</code><span class="sig-paren">(</span><em>encrypted_data_keys</em>, <em>algorithm</em>, <em>encryption_context</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider.decrypt_data_key_from_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receives a list of encrypted data keys and returns the first one which this provider is able to decrypt.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>encrypted_data_keys</strong> (list of <a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.EncryptedDataKey" title="aws_encryption_sdk.structures.EncryptedDataKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.structures.EncryptedDataKey</span></code></a>) – List of encrypted data keys</p></li>
+<li><p><strong>algorithm</strong> (<em>aws_encryption_sdk.identifiers.Algorithm</em>) – Algorithm object which directs how this Master Key will encrypt the data key</p></li>
+<li><p><strong>encryption_context</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Encryption context to use in encryption</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Decrypted data key</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.DataKey" title="aws_encryption_sdk.structures.DataKey">aws_encryption_sdk.structures.DataKey</a></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="aws_encryption_sdk.exceptions.html#aws_encryption_sdk.exceptions.DecryptKeyError" title="aws_encryption_sdk.exceptions.DecryptKeyError"><strong>DecryptKeyError</strong></a> – if unable to decrypt any of the supplied encrypted data keys</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKeyConfig">
+<em class="property">class </em><code class="descclassname">aws_encryption_sdk.key_providers.base.</code><code class="descname">MasterKeyConfig</code><span class="sig-paren">(</span><em>key_id</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKeyConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Configuration object for MasterKey objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.7)"><em>bytes</em></a>) – Key ID for Master Key</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKey">
+<em class="property">class </em><code class="descclassname">aws_encryption_sdk.key_providers.base.</code><code class="descname">MasterKey</code><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKeyProvider" title="aws_encryption_sdk.key_providers.base.MasterKeyProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.key_providers.base.MasterKeyProvider</span></code></a></p>
+<p>Parent interface for Master Key classes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.7)"><em>bytes</em></a>) – Key ID for Master Key</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKeyConfig" title="aws_encryption_sdk.key_providers.base.MasterKeyConfig"><em>aws_encryption_sdk.key_providers.base.MasterKeyConfig</em></a>) – Configuration object</p></li>
+</ul>
+</dd>
+</dl>
+<p>Performs universal prep work for all MasterKeys.</p>
+<dl class="attribute">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKey.key_provider">
+<code class="descname">key_provider</code><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKey.key_provider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides the MasterKeyInfo object identifying this MasterKey.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>This MasterKey’s Identifying Information</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.MasterKeyInfo" title="aws_encryption_sdk.structures.MasterKeyInfo">aws_encryption_sdk.structures.MasterKeyInfo</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKey.owns_data_key">
+<code class="descname">owns_data_key</code><span class="sig-paren">(</span><em>data_key</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKey.owns_data_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines if data_key object is owned by this MasterKey.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data_key</strong> (<a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.DataKey" title="aws_encryption_sdk.structures.DataKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.structures.DataKey</span></code></a>,
+<a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.RawDataKey" title="aws_encryption_sdk.structures.RawDataKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.structures.RawDataKey</span></code></a>,
+or <a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.EncryptedDataKey" title="aws_encryption_sdk.structures.EncryptedDataKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.structures.EncryptedDataKey</span></code></a>) – Data key to evaluate</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Boolean statement of ownership</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKey.master_keys_for_encryption">
+<code class="descname">master_keys_for_encryption</code><span class="sig-paren">(</span><em>encryption_context</em>, <em>plaintext_rostream</em>, <em>plaintext_length=None</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKey.master_keys_for_encryption" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns self and a list containing self, to match the format of output for a Master Key Provider.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If plaintext_stream seek position is modified, it must be returned before leaving method.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>encryption_context</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Encryption context passed to client</p></li>
+<li><p><strong>plaintext_rostream</strong> (<em>aws_encryption_sdk.internal.utils.streams.ROStream</em>) – Source plaintext read-only stream</p></li>
+<li><p><strong>plaintext_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Length of source plaintext (optional)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Tuple containing self and a list of self</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple containing <a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKey" title="aws_encryption_sdk.key_providers.base.MasterKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.key_providers.base.MasterKey</span></code></a>
+and list of <a class="reference internal" href="#aws_encryption_sdk.key_providers.base.MasterKey" title="aws_encryption_sdk.key_providers.base.MasterKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.key_providers.base.MasterKey</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKey.generate_data_key">
+<code class="descname">generate_data_key</code><span class="sig-paren">(</span><em>algorithm</em>, <em>encryption_context</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKey.generate_data_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates and returns data key for use encrypting message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>algorithm</strong> (<em>aws_encryption_sdk.identifiers.Algorithm</em>) – Algorithm on which to base data key</p></li>
+<li><p><strong>encryption_context</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Encryption context to use in encryption</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Generated data key</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.DataKey" title="aws_encryption_sdk.structures.DataKey">aws_encryption_sdk.structures.DataKey</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKey.encrypt_data_key">
+<code class="descname">encrypt_data_key</code><span class="sig-paren">(</span><em>data_key</em>, <em>algorithm</em>, <em>encryption_context</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKey.encrypt_data_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encrypts a supplied data key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_key</strong> (<a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.RawDataKey" title="aws_encryption_sdk.structures.RawDataKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.structures.RawDataKey</span></code></a>
+or <a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.DataKey" title="aws_encryption_sdk.structures.DataKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">aws_encryption_sdk.structures.DataKey</span></code></a>) – Unencrypted data key</p></li>
+<li><p><strong>algorithm</strong> (<em>aws_encryption_sdk.identifiers.Algorithm</em>) – Algorithm object which directs how this Master Key will encrypt the data key</p></li>
+<li><p><strong>encryption_context</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Encryption context to use in encryption</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data key containing encrypted data key</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.EncryptedDataKey" title="aws_encryption_sdk.structures.EncryptedDataKey">aws_encryption_sdk.structures.EncryptedDataKey</a></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="aws_encryption_sdk.exceptions.html#aws_encryption_sdk.exceptions.IncorrectMasterKeyError" title="aws_encryption_sdk.exceptions.IncorrectMasterKeyError"><strong>IncorrectMasterKeyError</strong></a> – if Data Key’s key provider does not match this Master Key</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="aws_encryption_sdk.key_providers.base.MasterKey.decrypt_data_key">
+<code class="descname">decrypt_data_key</code><span class="sig-paren">(</span><em>encrypted_data_key</em>, <em>algorithm</em>, <em>encryption_context</em><span class="sig-paren">)</span><a class="headerlink" href="#aws_encryption_sdk.key_providers.base.MasterKey.decrypt_data_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrypts an encrypted data key and returns the plaintext.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_key</strong> (<a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.EncryptedDataKey" title="aws_encryption_sdk.structures.EncryptedDataKey"><em>aws_encryption_sdk.structures.EncryptedDataKey</em></a>) – Encrypted data key</p></li>
+<li><p><strong>algorithm</strong> (<em>aws_encryption_sdk.identifiers.Algorithm</em>) – Algorithm object which directs how this Master Key will encrypt the data key</p></li>
+<li><p><strong>encryption_context</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Encryption context to use in decryption</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Decrypted data key</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="aws_encryption_sdk.structures.html#aws_encryption_sdk.structures.DataKey" title="aws_encryption_sdk.structures.DataKey">aws_encryption_sdk.structures.DataKey</a></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="aws_encryption_sdk.exceptions.html#aws_encryption_sdk.exceptions.IncorrectMasterKeyError" title="aws_encryption_sdk.exceptions.IncorrectMasterKeyError"><strong>IncorrectMasterKeyError</strong></a> – if Data Key’s key provider does not match this Master Key</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="aws_encryption_sdk.key_providers.kms.html" class="btn btn-neutral float-right" title="aws_encryption_sdk.key_providers.kms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="aws_encryption_sdk.caches.null.html" class="btn btn-neutral float-left" title="aws_encryption_sdk.caches.null" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Amazon
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
