@@ -1,0 +1,27 @@
+#!/usr/bin/python3
+""" stop bots. """
+
+__version__ = 1
+
+import os
+import signal
+
+import obj
+
+cfg = obj.shell.parse_cli("bot-stop")
+try:
+    path = os.path.abspath(os.path.join(obj.cfg.workdir, "logs", "pidfile"))
+    pid = open(path, "r").read()
+except FileNotFoundError:
+    os._exit(1)
+
+try:
+    pidnr = int(pid)
+except ValueError:
+    print("no pidnr found at %s" % path)
+    os._exit(0)
+try:
+    os.kill(pidnr, signal.SIGKILL)
+    print("killed %s" % pidnr)
+except ProcessLookupError:
+    pass
