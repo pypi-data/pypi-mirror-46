@@ -1,0 +1,190 @@
+#!/usr/bin/env python3
+from accessoryFunctions.accessoryFunctions import modify_usage_error, SetupLogging
+from geneseekr.parser import objector
+from geneseekr.blast import BLAST
+from time import time
+import click
+import sys
+
+__author__ = 'adamkoziol'
+
+SetupLogging()
+start = time()
+
+# https://stackoverflow.com/a/40195800
+click_options = [
+    click.version_option(version='1.0.0'),
+    click.option('-s', '--sequencepath',
+                 required=True,
+                 help='Specify input fasta folder'),
+    click.option('-t', '--targetpath',
+                 required=True,
+                 help='Specify folder of targets'),
+    click.option('-r', '--reportpath',
+                 required=True,
+                 help='Specify output folder for csv'),
+    click.option('-c', '--cutoff',
+                 type=int,
+                 default=70,
+                 help='Minimum sequence identity threshold for a match to be reported. Default is 70%'),
+    click.option('-e', '--evalue',
+                 default='1E-5',
+                 help='Minimum evalue to use for BLAST analyses. Default is 1E-5'),
+    click.option('-n', '--numthreads',
+                 type=int,
+                 help='Specify number of threads. Defaults to the number of cores in the system'),
+    click.option('-a', '--align',
+                 is_flag=True,
+                 help='Optionally output alignments of genes with less than 100% identity to reference '
+                      'genes. This alignment will use amino acid sequences for both query and reference'),
+    click.option('-u', '--unique',
+                 is_flag=True,
+                 help='Do not report multiple hits at the same location in a contig. Instead, store the '
+                      'best hit, and ignore the rest'),
+    click.option('-f', '--fasta_output',
+                 is_flag=True,
+                 help='Create FASTA-formatted files of the query hits')
+]
+
+click_nt_options = [
+    click.option('-A', '--resfinder',
+                 is_flag=True,
+                 help='Perform ResFinder-like analyses'),
+    click.option('-G', '--genesippr',
+                 is_flag=True,
+                 help='Perform Genesippr analyses'),
+    click.option('-M', '--MLST',
+                 is_flag=True,
+                 help='Perform MLST allele typing'),
+    click.option('-Q', '--GDCS',
+                 is_flag=True,
+                 help='Perform GDCS analyses'),
+    click.option('-R', '--rMLST',
+                 is_flag=True,
+                 help='Perform rMLST allele typing'),
+    click.option('-S', '--serosippr',
+                 is_flag=True,
+                 help='Perform GDCS analyses'),
+    click.option('-X', '--sixteens',
+                 is_flag=True,
+                 help='Perform VirulenceFinder-like analyses'),
+    click.option('-V', '--virulence',
+                 is_flag=True,
+                 help='Perform VirulenceFinder-like analyses'),
+]
+
+
+def add_options(options):
+    def _add_options(func):
+        for option in reversed(options):
+            func = option(func)
+        return func
+    return _add_options
+
+
+@click.group(context_settings=dict(help_option_names=['-h', '--help']))
+def group():
+    pass
+
+
+@group.command()
+@add_options(click_options)
+@add_options(click_nt_options)
+def blastn(**kwargs):
+    """
+    nt query: nt db
+    """
+    metadata, pipeline = objector(kwargs, start)
+    metadata.program = 'blastn'
+    geneseekr = BLAST(args=metadata,
+                      pipeline=pipeline)
+    geneseekr.seekr()
+
+
+@group.command()
+@add_options(click_options)
+def blastp(**kwargs):
+    """
+    protein query: protein db
+    """
+    metadata, pipeline = objector(kwargs, start)
+    metadata.program = 'blastp'
+    geneseekr = BLAST(args=metadata,
+                      pipeline=pipeline)
+    geneseekr.seekr()
+
+
+@group.command()
+@add_options(click_options)
+def blastx(**kwargs):
+    """
+    translated nt query: protein db
+    """
+    metadata, pipeline = objector(kwargs, start)
+    metadata.program = 'blastx'
+    geneseekr = BLAST(args=metadata,
+                      pipeline=pipeline)
+    geneseekr.seekr()
+
+
+@group.command()
+@add_options(click_options)
+@add_options(click_nt_options)
+def tblastn(**kwargs):
+    """
+    protein query: translated nt db
+    """
+    metadata, pipeline = objector(kwargs, start)
+    metadata.program = 'tblastn'
+    geneseekr = BLAST(args=metadata,
+                      pipeline=pipeline)
+    geneseekr.seekr()
+
+
+@group.command()
+@add_options(click_options)
+@add_options(click_nt_options)
+def tblastx(**kwargs):
+    """
+    translated nt query: translated nt db
+    """
+    metadata, pipeline = objector(kwargs, start)
+    metadata.program = 'tblastx'
+    geneseekr = BLAST(args=metadata,
+                      pipeline=pipeline)
+    geneseekr.seekr()
+
+
+# Define the list of acceptable sub-programs
+program_list = ['blastn', 'blastp', 'blastx', 'tblastn', 'tblastx']
+# Extract the BLAST command to use from the command line arguments
+try:
+    program = sys.argv[1] if sys.argv[1] in program_list else str()
+except IndexError:
+    program = str()
+
+# If the program was not specified, call the 'group help'
+if not program:
+    # Call the help
+    group(['--help'])
+
+# Convert the program string to the appropriate subcommand to use when modifying the usage error - ResFinder
+# and VirulenceFinder analyses are only available for BLAST programs that use a nt database
+subcommand_dict = {
+    'blastn': blastn,
+    'blastp': blastp,
+    'blastx': blastx,
+    'tblastn': tblastn,
+    'tblastx': tblastx
+}
+try:
+    sub_command = subcommand_dict[program]
+    # Change the behaviour of click to print the help menu when a subcommand is specified, but is missing arguments
+    modify_usage_error(subcommand=sub_command,
+                       program_list=program_list)
+except KeyError:
+    pass
+
+
+if __name__ == '__main__':
+    group()
