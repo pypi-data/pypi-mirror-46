@@ -1,0 +1,90 @@
+Metadata-Version: 2.1
+Name: wijisqs
+Version: 0.4.1
+Summary: AWS SQS broker for wiji. Wiji<https://github.com/komuw/wiji> is an asyncio distributed task processor/queue.
+Home-page: https://github.com/komuw/wijisqs
+Author: komuW
+Author-email: komuw05@gmail.com
+License: MIT
+Description: wijisqs
+        -------
+        
+        `Codacy Badge <https://www.codacy.com/app/komuw/wijisqs>`__
+        `CircleCI <https://circleci.com/gh/komuw/wijisqs>`__
+        `codecov <https://codecov.io/gh/komuw/wijisqs>`__ `Code style:
+        black <https://github.com/komuw/wijisqs>`__
+        
+        `wiji <https://github.com/komuw/wiji>`__ is an asyncio distributed task
+        processor/queue.
+        
+        ``wijisqs`` on the other hand, is an AWS SQS broker for
+        `wiji <https://github.com/komuw/wiji>`__
+        
+        | **Contents:**
+        | `Installation <#installation>`__
+        | `Usage <#usage>`__
+        | + `As a library <#1-as-a-library>`__
+        | + `As cli app <#2-as-a-cli-app>`__
+        
+        Installation
+        ------------
+        
+        .. code:: shell
+        
+           pip install wijisqs
+        
+        Usage
+        -----
+        
+        1. As a library
+        ^^^^^^^^^^^^^^^
+        
+        .. code:: python
+        
+           import os
+           import wiji
+           import wijisqs
+           import asyncio
+        
+           broker = wijisqs.SqsBroker(
+                           aws_region_name="aws_region_name",
+                           aws_access_key_id=os.environ.get("aws_access_key_id"),
+                           aws_secret_access_key=os.environ.get("aws_secret_access_key"),
+                       )
+        
+           class AdderTask(wiji.task.Task):
+               the_broker = broker
+               queue_name = "AdderTaskQueue1"
+        
+               async def run(self, a, b):
+                   result = a + b
+                   print("\nresult: {0}\n".format(result))
+                   return result
+        
+           # queue some tasks
+           myAdderTask = AdderTask()
+           myAdderTask.synchronous_delay(a=4, b=37)
+           myAdderTask.synchronous_delay(a=67, b=847)
+        
+           # run the workers
+           worker = wiji.Worker(the_task=myAdderTask)
+           asyncio.run(worker.consume_tasks())
+        
+        For extended documentation, see the `wiji
+        documentation <https://github.com/komuw/wiji>`__
+        
+Keywords: wijisqs,wiji
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Security
+Classifier: Topic :: System :: Installation/Setup
+Classifier: Topic :: System :: Networking
+Classifier: Topic :: System :: Systems Administration
+Classifier: Topic :: Utilities
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.6
+Provides-Extra: dev
+Provides-Extra: test
