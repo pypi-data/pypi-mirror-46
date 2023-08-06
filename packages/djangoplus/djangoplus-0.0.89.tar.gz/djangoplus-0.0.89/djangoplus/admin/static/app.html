@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Entendo a estrutura e semântica do HTML5</title>
+    <style>
+        *,
+        *:after,
+        *:before {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+        html{
+            min-height:100%;
+            position:relative;
+        }
+        body{
+            height:100%;
+            font-family: Arial, x-locale-body, sans-serif;
+            margin:0;
+            display: none;
+        }
+        input, textarea{
+            font-size: 14px;
+        }
+        i {
+            color: #CCC;
+        }
+        label {
+            font-weight: bold;
+        }
+        .right {
+            float: right;
+        }
+        .left {
+            float: right;
+        }
+        .center{
+            text-align:center;
+        }
+        .clear{
+            clear: both;
+        }
+        .hidden{
+            display: none;
+        }
+        .select-box {
+            display: inline-block;
+            width: 100%;
+            padding: 1px;
+            cursor: pointer;
+            min-height: 20px;
+        }
+        .select-container {
+            background-color: white;
+            z-index: 1;
+            position: absolute;
+            width: 100%;
+            border: solid 1px #EEE;
+            display: none;
+        }
+        .select{
+            display: none;
+        }
+        .select-options {
+            width: 100%;
+            max-height: 150px;
+            overflow-y: auto;
+            border-top: solid 1px #DDD;
+            border-bottom: solid 1px #DDD;
+        }
+        .select-search {
+            margin: 10px;
+        }
+        .select-option {
+            width: 100%;
+            cursor: pointer;
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+        .select-option:hover {
+            background-color: #5897fb;
+        }
+        .select-option.selected {
+            background-color: #DDD;
+        }
+        .select-box > i{
+            padding: 8px;
+        }
+        .select-value {
+            margin-top: 5px;
+            margin-right: 10px;
+            display: inline-block;
+        }
+        .select-value span {
+            cursor: pointer;
+        }
+        .select-links{
+            margin: 10px;
+        }
+        .input {
+            width: 100%;
+        }
+        .input + i {
+            float: right;
+            position: relative;
+            left: -10px;
+            top: -25px;
+        }
+        .input, .select-box {
+            height: 30px;
+            border: solid 1px #EEE;
+        }
+        .calendar-container{
+            z-index: 1;
+            background-color: #FFF;
+            position: absolute;
+            margin-top: 30px;
+             border: solid 1px #EEE;
+        }
+        .calendar-table{
+            float:left;
+            margin-right: 10px;
+        }
+        .calendar-table td{
+            cursor:pointer;
+        }
+        .calendar-table td, .calendar-table th{
+            width:30px;
+            height:30px;
+        }
+        .calendar-table td:hover{
+            background-color: #EEE;
+        }
+        .calendar-table caption{
+            margin:5px;
+        }
+        .calendar-table caption i{
+            cursor:pointer;
+        }
+        .calendar-table caption i:first-child{
+            float:left;
+        }
+        .calendar-table caption i:last-child{
+            float:right;
+        }
+        header{
+            margin:5px;
+            height:40px;
+            border-bottom: solid 1px #EEE;
+        }
+        header img{
+            height: 40px;
+            vertical-align: middle;
+            margin-right:10px;
+        }
+        header a{
+            display:inline-block;
+            cursor: pointer;
+        }
+        aside.menu{
+            border-right: solid 1px #EEE;
+            position:absolute;
+            height:90%;
+            width:200px;
+        }
+        aside.menu ul{
+            margin:0;
+            padding-inline-start: 0;
+        }
+        aside.menu li{
+            list-style-type: none;
+            cursor: pointer;
+        }
+        aside.menu li a{
+            display: inline-block;
+            padding: 10px 5px 10px 5px;
+            width: 190px;
+            text-indent: 10px;
+        }
+        aside.menu li ul li a{
+            text-indent: 20px;
+        }
+        aside.menu li ul li ul li a{
+            text-indent: 30px;
+        }
+        aside.menu li ul li ul li ul li a{
+            text-indent: 35px;
+        }
+        aside.menu li a:hover{
+            background-color: #EEE;
+        }
+        aside.menu.visible, aside.menu li.visible{
+            display: block;
+        }
+        aside.menu:not(.visible), aside.menu li:not(.visible){
+            display: none;
+        }
+        aside.menu.visible ~ main{
+            margin-left: 200px;
+        }
+        main{
+            overflow-x: hidden;
+        }
+        main .container{
+            min-width:500px;
+           padding: 10px;
+        }
+        .dropdown{
+            display: none;
+            position:absolute;
+            border: solid 1px #EEE;
+            background-color: #FFF;
+            width: 200px;
+            z-index: 1;
+        }
+        .dropdown a {
+            text-decoration: none;
+            display: table;
+            width:100%;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            text-align:center;
+        }
+        .dropdown a:hover{
+            background-color: #f8f9fa;
+        }
+        .separator{
+            border-bottom: solid 1px #EEE;
+            width: 90%;
+        }
+        .btn{
+           border: solid 1px #EEE;
+           padding: 10px;
+           margin-right: 5px;
+           margin-bottom: 5px;
+           cursor: pointer;
+           border-radius: .25rem;
+        }
+
+
+        .responsive-container{
+            width:100%;
+            visibility: hidden;
+        }
+        .responsive-container > div{
+            float: left;
+            background-color: #b58900;
+            height: 40px;
+        }
+        .responsive-container + * {
+            clear: both;
+        }
+        .s.s1 > div, .m.m1 > div, .l.l1 > div { width: 100%}
+        .s.s2 > div, .m.m2 > div, .l.l2 > div { width: 50%}
+        .s.s3 > div, .m.m3 > div, .l.l3 > div { width: 33%}
+        .s.s4 > div, .m.m4 > div, .l.l4 > div { width: 25%}
+        .dashboard > div{
+            float:left;
+        }
+        .layer{
+            display: none;
+            background-color: #000;
+            opacity: 0.4;
+            position:absolute;
+            top:0;
+            bottom:0;
+            left:0;
+            right:0;
+            height: 100%;
+        }
+        .modal{
+            display: none;
+            width: 90%;
+            position: relative;
+            min-height: 300px;
+            background-color: #FFF;
+            top: 20%;
+            left: 5%;
+        }
+        .hint{
+		position: absolute;
+		height: 40px;
+		border: solid 1px #EEE;
+		display:none;
+		background-color: white;
+	}
+    </style>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
+    <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
+
+</head>
+
+<body>
+<header>
+   <a class="menu-toogle"><i class="fa fa-bars"></i></a>
+   <a class="brand"><img src="https://cdn0.iconfinder.com/data/icons/black-icon-social-media/512/099280-blinklist-logo.png">BRAND</a>
+    <a class="settings right"><img src="https://img.icons8.com/bubbles/2x/administrator-male.png"></a>
+    <div class="dropdown" data-toggle=".settings">
+        <a href="">Action 01</a>
+        <a href="">Action 02</a>
+        <div class="separator"></div>
+        <p class="center">Teste</p>
+    </div>
+</header>
+<aside class="menu visible">
+    <input class="menu-search" data-icon="fa-search"/>
+    <ul>
+        <li><a>A</a></li>
+        <li>
+            <a>B</a>
+            <ul>
+                <li>
+                    <a>B.1</a>
+                    <ul>
+                        <li>
+                            <a>B.1.1</a>
+                            <ul>
+                                <li><a>B.1.1.1</a></li>
+                                <li><a>B.1.1.2</a></li>
+                            </ul>
+                        </li>
+                        <li><a>B.2.1</a></li>
+                    </ul>
+                </li>
+                <li><a>B.2</a></li>
+            </ul>
+        </li>
+    </ul>
+</aside>
+<main>
+    <div class="container">
+
+        <h2>Form</h2>
+
+        <input id="1" data-type="date" data-label="Data" data-mask="00/00/0000" data-icon="fa-calendar-alt"/>
+
+        <input id="2" data-type="daterange" data-label="Período" data-mask="00/00/0000 00/00/0000" data-icon="fa-calendar"/>
+
+        <input id="3" data-type="decimal" data-label="Valor R$" data-rmask="000.000.000,00" data-icon="fa-dollar-sign"/>
+
+        <input id="5" data-type="choice" data-label="Opções" data-options='[[1, "Opção 1", "Option <b>1</b>"], [2, "Opção 2"], [3, "Opção 3"], [4, "Opção 4"], [5, "Opção 5"], [6, "Opção 6"]]' data-value="[2]"/>
+
+        <input type="file" data-type="file" data-label="Foto"/>
+
+        <input id="4" data-type="text" data-label="Cep" data-mask="00.000-000" data-icon="fa-building"/>
+
+
+        <h2>Buttons</h2>
+        <div class="clear">
+            <a class="btn" onclick="modal()">Modal <i class="fa fa-window-maximize"></i></a>
+            <a class="btn right btn1">Teste <i class="fa fa-caret-down"></i></a>
+            <div class="dropdown" data-toggle=".btn1">
+                <a href="">Action 01</a>
+                <a href="">Action 02</a>
+            </div>
+            <a class="btn right btn2">Teste 2 <i class="fa fa-caret-down"></i></a>
+            <div class="dropdown" data-toggle=".btn2">
+                <a href="">Action 01</a>
+                <a href="">Action 02</a>
+            </div>
+        </div>
+
+        <style>
+            .flex-container {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: left;
+                align-items: stretch;
+            }
+            .flex-container > div{
+                background-color: #0a507b;
+                border: solid 5px #FFF;
+                width: 250px;
+                min-height: 120px;
+            }
+
+        </style>
+        <h2>Flex Container</h2>
+        <div class="flex-container">
+            <div>a</div>
+            <div></div>
+            <div>a</div>
+            <div>a</div>
+            <div>a</div>
+        </div>
+
+        <h2>Dashboard</h2>
+        <div class="dashboard">
+            <div class="top" style="background-color: yellowgreen">top</div>
+            <div class="left" style="background-color: blueviolet">left</div>
+            <div class="center" style="background-color: darkgoldenrod">center</div>
+            <div class="right" style="background-color: midnightblue">right</div>
+            <div class="bottom" style="background-color: #1c7430">bottom</div>
+        </div>
+        <h2>Charts</h2>
+	    <div class="pie" data-width="200" data-series='[[4, "Banana"], [4, "Apple"], [9, "Grape"], [3, "Lemon"], [3, "Orange"]]' data-colors="#C25EB7 #F666A0 #FF7F83 #FFA46A #FFCF5F #F9F871"></div>
+    </div>
+
+</main>
+<div class="layer"></div>
+<div class="modal"></div>
+<div class="hint"></div>
+</body>
+
+<script>
+    function initializeMenu() {
+        $('.menu-search').keyup(function () {
+            var value = $(this).val();
+            var items = $(this).parent().find('li');
+            items.removeClass('visible');
+            items.each(function (index) {
+                var item = $(this);
+                if (item.text().indexOf(value) >= 0) {
+                    item.addClass('visible');
+                } else {
+                    item.removeClass('visible');
+                }
+            });
+        });
+        $('aside.menu li a').click(function(){
+            $(this).parent().find('> ul > li').toggle('visible');
+        });
+        $('aside.menu > ul > li').addClass('visible');
+        $('.menu-toogle').click(function(){
+            $('aside.menu').toggleClass('visible');
+            makeResponsive();
+        });
+    }
+    function randomId(){
+        return Math.floor(Math.random()*10000)
+    }
+    function initOptions(select, options, values) {
+        var id = select+''+select;
+        var el = $('#' + id);
+        var box = el.find('.select-box');
+        var container = el.find('.select-container');
+        var l = [];
+        box.find('.select-value').remove();
+        for (var i = 0; i < options.length; i++) {
+            var selected = values.indexOf(options[i][0]) >= 0 && 'selected' || '';
+            if (selected) box.append('<div class="select-value">' + options[i][1] + ' <i data-value="' + options[i][0] + '" class="fa fa-times"></i></div>')
+            l.push('  <div class="select-option ' + selected + '" data-value="' + options[i][0] + '" data-text="' + options[i][1] + '">' + (options[i][2] || options[i][1]) + '</div>');
+        }
+        container.find('.select-options').html(l.join('\n'));
+        container.find('.select-option').click(function () {
+            var value = $(this).data('value');
+            var text = $(this).data('text');
+            if (!$(this).hasClass('selected')) {
+                $(this).addClass('selected');
+                box.append('<div class="select-value">' + text + ' <i data-value="' + value + '" class="fa fa-times"></i></div>')
+            }
+            container.css('display', 'none');
+        });
+        container.find('.searcher').keyup(function (event) {
+            var value = $(this).val();
+            container.find('.select-option').css('display', 'none').filter(function () {
+                return $(this).data('text').indexOf(value) >= 0
+            }).css('display', 'block');
+        });
+    }
+    function initSelect(select, options, values) {
+        var l = [];
+        var id = select+''+select;
+        l.push('<div id="' + id + '" style="position:relative">');
+        l.push('<div class="select-box"><i class="fa fa-chevron-down right"></i>&nbsp;</div>');
+        l.push('<div class="select-container">');
+        l.push(' <div class="select-search">');
+        l.push(' <input type="text" class="searcher input"><i class="fa fa-search"></i>');
+        l.push(' </div>');
+        l.push(' <div class="select-options">');
+        l.push(' </div>');
+        l.push(' <div class="select-links">');
+        l.push(' <a href=#>Adicionar</a>');
+        l.push(' </div>');
+        l.push('</div>');
+        l.push('</div>');
+        $('#'+select).after($(l.join('\n')));
+        var el = $('#' + id);
+        var box = el.find('.select-box');
+        var container = el.find('.select-container');
+        box.click(function (e) {
+            if ($(e.target).is('i') && !$(e.target).hasClass('fa-chevron-down')) {
+                e.preventDefault();
+                container.find('.select-option').filter(function () {
+                    return $(this).data('value') === $(e.target).data('value');
+                }).removeClass('selected');
+                $(e.target).parent().remove();
+                return;
+            }
+            $(this).parent().find('.select-container').css('display', 'block');
+            container.find('.searcher').keyup();
+            container.find('.searcher').focus();
+        });
+        container.mouseleave(function () {
+            $(this).css('display', 'none');
+        });
+
+        initOptions(select, options, values);
+    }
+
+    //initSelect(1, [[1, 'Opção 1', 'Option <b>1</b>'], [2, 'Opção 2']], [2]);
+    //initOptions(5, [[3, 'Opção 3'], [4, 'Opção 4']], [4]);
+
+    function selectDate(td){
+        var el = $(td);
+        var target = $('#'+el.data('target'));
+        var container = el.closest('.calendar-container');
+        var date = el.data('date');
+        if(container.find('.calendar-table').length===1){
+            target.val(date);
+            container.remove();
+        } else {
+            if(target.val()===''){
+                target.val(date);
+            }
+            else{
+                target.val(target.val() + ' ' + date);
+                container.remove();
+            }
+        }
+    }
+
+    function calendar(inputId, containerId, year, month) {
+        var i, j;
+        var months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+        var date = new Date(year, month, 1);
+        var container = $('#'+containerId);
+        while (date.getDay() > 0) date.setDate(date.getDate() - 1);
+        var rows = [];
+        for (i = 0; i < 5; i++) {
+            var row = [];
+            for (j = 0; j < 7; j++) {
+                row.push([date.getDate(), ('0'+date.getDate()).slice(-2) + '/' + ('0'+(date.getMonth() + 1)).slice(-2) + '/' + date.getFullYear()]);
+                date.setDate(date.getDate() + 1);
+                //if(date.getMonth()>month || date.getFullYear()>year) date.setDate(date.getDate() - 1);
+            }
+            rows.push(row)
+        }
+        var html = [];
+        var tableId = randomId();
+        html.push('<table id="'+tableId+'-container" data-month="'+month+'" data-year="'+year+'" class="calendar-table">');
+        html.push('<caption><i class="fa fa-arrow-left" onclick="changeCalendar(this, \''+inputId+'\')"></i><span>' + months[month] + ' ' + year + '</span><i class="fa fa-arrow-right" onclick="changeCalendar(this, \''+inputId+'\')"></i></caption>');
+        var weekdays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+        html.push('<tr>');
+        for (i = 0; i < weekdays.length; i++) html.push('<th>' + weekdays[i] + '</th>')
+        html.push('</tr>');
+        for (i = 0; i < rows.length; i++) {
+            html.push('<tr>');
+            for (j = 0; j < row.length; j++) {
+                var data = rows[i][j];
+                html.push('<td align="center" onclick="selectDate(this)" data-target="'+inputId+'" data-date="'+data[1]+'">' + data[0] + '</td>')
+            }
+            html.push('</tr>')
+        }
+        html.push('</table>');
+        if(container.is('div')) container.append(html.join('\n'))
+        else container.replaceWith(html.join('\n'));
+    }
+    function changeCalendar(source, inputId){
+            var trigger = $(source);
+            var table = trigger.closest('.calendar-table');
+            var year = table.data('year');
+            var month = table.data('month');
+            var next = new Date(year, month, 1);
+            if(trigger.hasClass('fa-arrow-right')){
+                next.setMonth(next.getMonth()+1);
+            } else {
+                next.setMonth(next.getMonth()-1);
+            }
+            calendar(inputId, table.prop('id'), next.getFullYear(), next.getMonth());
+    }
+    function initialize(){
+        initializeMenu();
+        $('.dropdown').each(function( index ) {
+            var dropdown = $(this);
+            dropdown.mouseleave(function(){$(this).css('display', 'none');});
+            $(dropdown.data('toggle')).click(function(){
+                if(dropdown.css('display')==='block'){
+                    dropdown.css('display', 'none');
+                } else {
+                    $('.dropdown').css('display', 'none');
+                    var trigger = $(this);
+                    var middle = $(window).width()/2;
+                    var left = 0;
+                    if(trigger.offset().left > middle) left = dropdown.outerWidth()-trigger.outerWidth();
+                    dropdown.css('left', trigger.offset().left-left);
+                    dropdown.css('top', trigger.offset().top+trigger.outerHeight());
+                    dropdown.css('display', 'block');
+                }
+            });
+        });
+
+    }
+    function makeResponsive(containers){
+        if(containers==null) containers = $('.responsive-container, .dashboard')
+        containers.each(function (index) {
+            var container = $(this);
+            var width = container.width();
+            $(this).removeClass('s').removeClass('m').removeClass('l');
+            if (width > 1024) {
+                $(this).addClass('l');
+            } else if (width > 500) {
+                $(this).addClass('m');
+            } else {
+                $(this).addClass('s');
+            }
+            $(this).css('visibility', 'visible');
+        });
+        var dashboard = $('.dashboard');
+        dashboard.find('.top, .bottom').css('width', '100%');
+        if(dashboard.hasClass('l')||dashboard.hasClass('m')){
+            if (dashboard.has('.left').has('.right').length) {
+                if(dashboard.hasClass('l')) {
+                    dashboard.find('.center').css('width', '50%');
+                    dashboard.find('.left, .right').css('width', '25%');
+                } else {
+                    dashboard.find('.left').css('width', '100%');
+                    dashboard.find('.center').css('width', '65%');
+                    dashboard.find('.right').css('width', '35%');
+                }
+            } else if (dashboard.has('.left').length) {
+                dashboard.find('.center').css('width', '66%');
+                dashboard.find('.left').css('width', '34%');
+            } else if (dashboard.has('.right').length) {
+                dashboard.find('.center').css('width', '66%');
+                dashboard.find('.right').css('width', '34%');
+            } else {
+                dashboard.find('.center').css('width', '100%');
+            }
+        } else {
+            dashboard.find('.center, .left, .right').css('width', '100%');
+        }
+    }
+
+    function modal(){
+        var html = '<p style="height:900px"></p>';
+        var top = $(document.body).height()-$(window).scrollTop();
+        $('.layer').css('display', 'block');
+        $('.modal').html(html).css('top', '-'+top+'px').show();
+    }
+    function closeModal(){
+        $('.modal, .layer').fadeOut(function(){$('.modal').html('');});
+
+    }
+    $('.layer').click(function(){
+        closeModal();
+    });
+
+    $(window).resize(function () {
+        makeResponsive();
+    });
+    makeResponsive();
+    initialize();
+
+
+    function dragable(id){
+        var div = $('#'+id);
+        if(div.length === 0){
+           div = $("<div style='position:absolute;left:0;top:0;width:50px;height:50px;background:red'></div>");
+           $(document.body).append(div);
+        }
+        div.on('mousedown', function(e) {
+            this.isDown = true;
+            this.offset = [this.offsetLeft - e.clientX, this.offsetTop - e.clientY];
+        });
+        div.on('mouseup', function() {
+            this.isDown = false;
+        });
+        div.on('mousemove', function(event) {
+            event.preventDefault();
+            if (this.isDown) {
+                this.mousePosition = {x : event.clientX, y : event.clientY};
+                this.style.left = (this.mousePosition.x + this.offset[0]) + 'px';
+                this.style.top  = (this.mousePosition.y + this.offset[1]) + 'px';
+            }
+        });
+    }
+
+    function setUpFileInput(input){
+        input.before('<br/>').after('<br/>');
+        input.change(function(){
+            if (this.files && this.files[0]) {
+                var id = randomId();
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var image = '<img src="'+e.target.result+'" width="200px"/>';
+                    input.after(image);
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    function setUpDateInput(input){
+        $(input).on('focusin', function( event ) {
+            $('.calendar-table').remove();
+            var containerId = randomId();
+            var container = $('<div onmouseleave="$(this).remove();" id="'+containerId+'" class="calendar-container"></div>');
+            $(this).before(container);
+            calendar(this.id, containerId, 2019, 3);
+        });
+    }
+
+    function setUpDateRangeInput(input){
+        $(input).on('focusin click', function( event ) {
+            $('.calendar-table').remove();
+            var containerId = randomId();
+            var container = $('<div onmouseleave="$(this).remove();" id="'+containerId+'" class="calendar-container"></div>');
+            $(this).before(container);
+            calendar(this.id, containerId, 2019, 3);
+            calendar(this.id, containerId, 2019, 4);
+        });
+    }
+
+    function setUpSelectInput(input){
+        input.css('display', 'none');
+        initSelect(input.prop('id'), input.data('options'), input.data('value'));
+    }
+
+    $('input').each(function( index ) {
+        var input = $(this);
+        var type = input.data('type');
+        var label = input.data('label');
+        var mask = input.data('mask');
+        var rmask = input.data('rmask');
+        var icon = input.data('icon');
+
+        input.addClass('input');
+        if(label){
+            $(input).before('<label>'+label+'</label>');
+        }
+        if(icon){
+            $(input).after('<i class="fas '+icon+'"></i>');
+        }
+        if(type==='file'){
+            setUpFileInput(input);
+        } else if(type==='date'){
+            setUpDateInput(input);
+        } else if(type==='daterange'){
+            setUpDateRangeInput(input);
+        } else if(type==='choice'){
+            setUpSelectInput(input);
+        }
+
+        if(mask){
+            $(input).keydown(function (event) {
+                var value = $(this).val();
+                if (event.keyCode !== 8) {
+                    if (value.length < mask.length) {
+                        if (mask[value.length] !== '0') $(this).val(value + mask[value.length]);
+                    } else {
+                        return false;
+                    }
+                }
+            });
+        } else if(rmask){
+            $(input).keyup(function (event) {
+            var i;
+            var value = $(this).val().replace(',', '').replace('.', '').replace('.', '');
+            var l = [];
+            for (i = 0; i < value.length; i++) {
+                if (l.length <= rmask.length) l.push(value[i]);
+            }
+            var j = 0;
+            for (i = rmask.length - 1; i >= 0; i--) {
+                if (rmask[i] !== '0' && value.length > j) {
+                    var y = value.length - j;
+                    l.splice(y, 0, rmask[i]);
+                    j -= 1;
+                }
+                j += 1;
+            }
+            $(this).val(l.join(''));
+        });
+        }
+
+    });
+    $(document).on('keyup',function(e) {
+    if (e.keyCode === 27) {
+       closeModal();
+    }
+});
+
+</script>
+
+
+<script>
+var rotation;
+function slice(id, d, color, R, rotation, translation, serie){
+	var transform;
+	var b = d > 180 ? 1 : 0;
+	var r=d*3.1415/180;
+	var x=Math.cos(r)*R+R;
+	var y=Math.sin(r)*R+R;
+	if(rotation) transform = 'transform="rotate('+rotation+', '+R+', '+R+')';
+	else if(translation) transform = 'transform="translate('+translation+', '+translation+')';
+	return '<path class="tooltip" id="'+id+'" data-serie=\''+JSON.stringify(serie)+'\' fill="'+color+'" d="M'+R+','+R+' L'+R*2+','+R+' A'+R+','+R+' 1 '+b+',1 '+x+', '+y+' z" '+transform+'"></path>';
+}
+function pie(container, size, colors, series){
+    var i;
+ var rotation=0;
+ var R = size/2;
+ var l = ['<svg style="width: '+(size+60)+'px; height: '+(size+60)+'px; background-color:#FFF";><g transform="translate(0 30)">'];
+ var total = 0;
+ var texts = [];
+ for(i=0; i<series.length; i++) total+=series[i][0];
+ for(i=0; i<series.length; i++){
+	 var value = series[i][0];
+	 var label = series[i][1];
+	 var degree = series[i][0] * 360 / total;
+	 var percentage = series[i][0] * 100 / total;
+	 var color = colors[i];
+	 var serie = {value:value, label:label, percentage:percentage, color:color};
+	 l.push(slice(series[i][1], degree, color, R, rotation, null, serie));
+	 r = (rotation+degree/2)*3.1415/180;
+	 var x=Math.cos(r)*(R*0.70)+R;
+	 var y=Math.sin(r)*(R*0.70)+R;
+	 texts.push('<text fill="#FFF" x="'+x+'" y="'+y+'">'+parseInt(percentage)+'%</text>');
+	 rotation+=degree;
+ }
+ l.push(slice('center', 360, '#FFF', 40, null, size/2-40, {}));
+ for(i=0; i<texts.length; i++) l.push(texts[i]);
+ l.push('</g></svg>');
+ $(container).html(l.join(''));
+ $('.tooltip').on('mouseover', function(event) {
+  $('.hint').css('top', $(this).offset().top).css('left', $(this).offset().left).html(JSON.stringify($(this).data('serie'))).show();
+ });
+ $('.tooltip-').on('mouseleave', function(event) {});
+}
+ $('.pie').each(function( index ) {
+	 var container = $(this);
+	 pie(this, container.data('width'), container.data('colors').split(' '), container.data('series'));
+ });
+$(document.body).fadeIn(1600);
+</script>
+
+</html>

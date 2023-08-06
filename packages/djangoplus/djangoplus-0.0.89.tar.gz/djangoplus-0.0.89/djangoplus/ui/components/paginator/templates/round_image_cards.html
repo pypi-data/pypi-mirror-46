@@ -1,0 +1,55 @@
+<div class="image-cards responsive-container">
+    {% for obj in component.get_queryset() %}
+        <div class="l3 m2 s1">
+        <div class="image-cards-row" align="center">
+            <div class="image-cards-container">
+                <div>
+                    {% for verbose_name, lookup, sortable, to in component.column_names %}
+                        {% if loop.first %}
+                            <div>
+                                {{ obj|getattr(lookup)|format }}
+                            </div>
+                        {% else %}
+                            {% if loop.index == 2 %}
+                                <div>
+                                    <p class="image-cards-title">
+                                        {{ paginator_checkboxes(component, obj, False) }}
+                                        {{ obj|getattr(lookup)|format }}
+                                    </p>
+                                </div>
+                            {% else %}
+                                <p><strong>{{ verbose_name }}</strong>: {{ obj|getattr(lookup)|format }}</p>
+                            {% endif %}
+
+                            {% if loop.last %}
+                                <div class="paginator-actions">
+                                    {{ paginator_icons(component, obj, True) }}
+                                    {{ add_grouped_actions(component, obj) }}
+                                    {{ component.drop_down|safe }}
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+<style>
+    .image-cards-row{
+        padding-left:0;
+        margin-right: 5px;
+    }
+    .image-cards-container{
+        border: 1px solid #ddd; border-radius: 0; padding: 10px; margin-bottom: 10px;overflow: hidden; height:280px;
+    }
+    .image-cards-title{
+        font-size: 200%;
+        font-weight: bold;
+    }
+    .image-cards img {
+        width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;
+    }
+</style>
+

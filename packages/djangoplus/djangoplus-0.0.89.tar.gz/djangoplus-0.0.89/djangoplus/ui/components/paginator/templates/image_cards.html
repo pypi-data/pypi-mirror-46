@@ -1,0 +1,55 @@
+<div class="image-cards responsive-container">
+    {% for obj in component.get_queryset() %}
+        <div class="l3 m2 s1">
+        <div class="image-cards-row" align="center">
+            <div class="image-cards-container">
+                <div>
+                    {% for list_display in component.list_display %}
+                        {% if loop.first %}
+                            <div class="image-wrapper">
+                                {{ obj|getattr(list_display)|image("width='100%'") }}
+                            </div>
+                        {% else %}
+                            {% if loop.index == 2 %}
+                                <div>
+                                    <p class="image-cards-title">
+                                        {{ paginator_checkboxes(component, obj, False) }}
+                                        {{ obj|getattr(list_display)|format }}
+                                    </p>
+                                </div>
+                            {% else %}
+                                <div><p>{{ obj|getattr(list_display)|format }}</p></div>
+                            {% endif %}
+
+                            {% if loop.last %}
+                                <div class="paginator-actions">
+                                    {{ paginator_icons(component, obj, True) }}
+                                    {{ add_grouped_actions(component, obj) }}
+                                    {{ component.drop_down|safe }}
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        </div>
+    {% endfor %}
+</div>
+<style>
+    .image-cards-row{
+        padding-left:0;
+        margin-right: 5px;
+    }
+    .image-cards-container{
+        border: 1px solid #ddd; border-radius: 0; margin-bottom: 10px;overflow: hidden; height:400px;
+    }
+    .image-cards-title{
+        font-size: 110%; font-weight: bold;
+    }
+    .image-cards .image-wrapper {
+        height: 200px;
+        margin-bottom: 10px;
+    }
+</style>
+

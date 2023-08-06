@@ -1,0 +1,48 @@
+
+{% if component.as_pdf %}
+
+{% else %}
+    <div class="panel panel-default">
+
+        <div class="panel-heading clearfix">
+            <span class="pull-left">
+                {{ component.title }}
+            </span>
+        </div>
+
+        <div class="panel-body no-padding">
+            {% if not component.request.GET.popup %}
+                <div class="action-bar">
+                    <div class="pull-right">
+                        {{ component.drop_down|safe }}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if component.items %}
+
+                {% for obj, paginator in component.items %}
+                    <div id="{{ uuid() }}" class="action-bar">
+                        <div class="pull-left">
+                            <h4>{{ obj_icons(component.request, obj) }} {{ obj }}</h4>
+                        </div>
+                    </div>
+
+                    <div class="panel-body">
+                        {{ paginator|safe }}
+                    </div>
+
+                    <br>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-warning">
+                    {{ _("No records found") }}
+                </div>
+            {% endif %}
+        </div>
+
+
+
+    </div>
+
+{% endif %}
