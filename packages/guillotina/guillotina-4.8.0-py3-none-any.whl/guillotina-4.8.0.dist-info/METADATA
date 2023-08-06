@@ -1,0 +1,430 @@
+Metadata-Version: 2.1
+Name: guillotina
+Version: 4.8.0
+Summary: asyncio REST API Resource database
+Home-page: https://github.com/plone/guillotina
+Author: Ramon Navarro Bosch & Nathan Van Gheem
+Author-email: ramon@plone.org
+License: BSD
+Keywords: asyncio,REST,Framework,transactional
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Dist: aiohttp (<3.5.0,>=3.0.0)
+Requires-Dist: jsonschema
+Requires-Dist: python-dateutil
+Requires-Dist: pycryptodome
+Requires-Dist: jwcrypto
+Requires-Dist: setuptools
+Requires-Dist: ujson
+Requires-Dist: zope.interface
+Requires-Dist: pyjwt
+Requires-Dist: asyncpg
+Requires-Dist: cffi
+Requires-Dist: PyYAML (>=5.1)
+Requires-Dist: aiotask-context
+Requires-Dist: lru-dict
+Provides-Extra: docs
+Requires-Dist: sphinx ; extra == 'docs'
+Requires-Dist: recommonmark ; extra == 'docs'
+Requires-Dist: sphinxcontrib-httpdomain ; extra == 'docs'
+Requires-Dist: sphinxcontrib-httpexample ; extra == 'docs'
+Requires-Dist: sphinx-guillotina-theme ; extra == 'docs'
+Requires-Dist: sphinx-autodoc-typehints ; extra == 'docs'
+Provides-Extra: test
+Requires-Dist: pytest (>=3.8.0) ; extra == 'test'
+Requires-Dist: docker ; extra == 'test'
+Requires-Dist: backoff ; extra == 'test'
+Requires-Dist: psycopg2-binary ; extra == 'test'
+Requires-Dist: pytest-asyncio (>=0.10.0) ; extra == 'test'
+Requires-Dist: pytest-cov ; extra == 'test'
+Requires-Dist: coverage (>=4.0.3) ; extra == 'test'
+Requires-Dist: pytest-docker-fixtures ; extra == 'test'
+Requires-Dist: pytest-rerunfailures ; extra == 'test'
+
+Introduction
+============
+
+.. image:: https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat
+   :target: http://guillotina.readthedocs.io/en/latest/
+
+.. image:: https://travis-ci.org/plone/guillotina.svg?branch=master
+   :target: https://travis-ci.org/plone/guillotina
+
+.. image:: https://codecov.io/gh/plone/guillotina/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/plone/guillotina/branch/master
+   :alt: Test Coverage
+
+.. image:: https://img.shields.io/pypi/pyversions/guillotina.svg
+   :target: https://pypi.python.org/pypi/guillotina/
+   :alt: Python Versions
+
+.. image:: https://img.shields.io/pypi/v/guillotina.svg
+   :target: https://pypi.python.org/pypi/guillotina
+
+.. image:: https://img.shields.io/pypi/l/guillotina.svg
+   :target: https://pypi.python.org/pypi/guillotina/
+   :alt: License
+
+.. image:: https://badges.gitter.im/plone/guillotina.png
+   :target: https://gitter.im/plone/guillotina
+   :alt: Chat
+
+Please `read the detailed docs <http://guillotina.readthedocs.io/en/latest/>`_
+
+
+This is the working project of the next generation Guillotina server based on asyncio.
+
+
+Dependencies
+------------
+
+* python >= 3.6
+* postgresql >= 9.6
+
+
+Quickstart
+----------
+
+We use pip::
+
+  pip install guillotina
+
+
+Run postgresql
+--------------
+
+If you don't have a postgresql server to play with, you can run one easily
+with docker.
+
+Download and start the docker container by running::
+
+  make run-postgres
+
+
+
+Run the server
+--------------
+
+To run the server::
+
+    g
+
+
+Then...
+
+    curl http://localhost:8080
+
+
+Or, better yet, use postman to start playing with API.
+
+You can also navigate in your Guillotina server with its built-in web admin interface by visiting http://localhost:8080/+admin/.
+
+Deploy on Heroku
+----------------
+
+Read more `Guillotina-Heroku <https://github.com/guillotinaweb/guillotina-heroku>`_.
+
+.. image:: https://www.herokucdn.com/deploy/button.svg
+   :target: https://www.heroku.com/deploy?template=https://github.com/guillotinaweb/guillotina-heroku
+
+Getting started with development
+--------------------------------
+
+Using pip(requires python > 3.6)::
+
+  git clone git@github.com:plone/guillotina.git
+  cd guillotina
+  python -m venv .
+  ./bin/pip install -r requirements.txt
+  ./bin/pip install -e .[test]
+
+
+Run tests
+---------
+
+We're using pytest::
+
+    ./bin/pytest guillotina
+
+and for test coverage::
+
+    ./bin/pytest --cov=guillotina guillotina/
+
+With file watcher...
+
+    ./bin/ptw guillotina --runner=./bin/py.test
+
+
+To run tests with cockroach db::
+
+   USE_COCKROACH=true ./bin/pytest guillotina
+
+Default
+-------
+
+Default root access can be done with AUTHORIZATION header : Basic root:root
+
+
+Docker
+------
+
+You can also run Guillotina with Docker!
+
+
+First, run postgresql::
+
+    docker run --rm \
+        -e POSTGRES_DB=guillotina \
+        -e POSTGRES_USER=guillotina \
+        -p 127.0.0.1:5432:5432 \
+        --name postgres \
+        postgres:9.6
+
+Then, run guillotina::
+
+    docker run --rm -it \
+        --link=postgres -p 127.0.0.1:8080:8080 \
+        guillotina/guillotina:latest \
+        g -c '{"databases": [{"db": {"storage": "postgresql", "dsn": "postgres://guillotina:@postgres/guillotina"}}], "root_user": {"password": "root"}}'
+
+
+This assumes you have a config.yaml in your current working directory
+
+
+Chat
+----
+
+Join us to talk about Guillotina at https://gitter.im/plone/guillotina
+
+
+CHANGELOG
+=========
+
+4.8.0 (2019-05-13)
+------------------
+
+- `get_object_by_oid` now raises KeyError since it provided unsafe behavior
+  when used with tombstoned objects
+  [vangheem]
+
+
+4.7.8 (2019-05-06)
+------------------
+
+- Fix potential memory leak in security lookup cache
+  [vangheem]
+
+- Fix security policy cache lookup to distinguish between types of cached
+  decisions for parent vs top level object
+  [vangheem]
+
+
+4.7.7 (2019-05-01)
+------------------
+
+- Fix json schema definitions and provide `get_schema_validator` utility
+  [vangheem]
+
+- Fix `managed_transaction` context manager to correctly adopt parent transaction
+  along with new transaction objects
+  [vangheem]
+
+
+4.7.6 (2019-04-28)
+------------------
+
+- Provide `connection_settings` on the request object with `tests.utils.get_container`
+  [vangheem]
+
+
+4.7.5 (2019-04-27)
+------------------
+
+- Fix command cleanup procedure to correctly cleanup asyncio tasks for commands
+  [vangheem]
+
+
+4.7.4 (2019-04-26)
+------------------
+
+- use execute utility for index future
+
+
+4.7.3 (2019-04-26)
+------------------
+
+- Fix missing indexer
+  [vangheem]
+
+
+4.7.2 (2019-04-26)
+------------------
+
+- Provide `request_indexer` setting to be able to override how we handle
+  indexing data
+  [vangheem]
+
+- Provide `connection_settings` on the request object with `tests.utils.get_container`
+  [vangheem]
+
+
+4.7.1 (2019-04-26)
+------------------
+
+- Update postgresql constraint to also not allow having parent id same as zoid
+  [vangheem]
+
+- Do not allow moving content into itself
+  [vangheem]
+
+
+4.7.0 (2019-04-16)
+------------------
+
+- Remove `IBeforeFieldModified` event and replace with `IBeforeObjectModifiedEvent`
+  [vangheem]
+
+
+4.6.3 (2019-04-16)
+------------------
+
+- Proper ContentAPI login to define user
+  [bloodbare]
+
+- Util function to get a database object
+  [bloodbare]
+
+- PyYaml 5.1 upgrade version
+  [bloodbare]
+
+- Add async feature on patch operation set
+  [bloodbare]
+
+4.6.2 (2019-04-12)
+------------------
+
+- enable the option to define specific transaction manager for each database
+  [bloodbare]
+
+
+4.6.1 (2019-04-12)
+------------------
+
+- check for trashed parent id with `get_object_by_oid` to make sure object
+  has not been tombstoned for deletion.
+  [vangheem]
+
+- Do not allow bad logging config cause guillotina to fail to start
+  [vangheem]
+
+
+4.6.0 (2019-04-09)
+------------------
+
+Fixes:
+
+- Fix potential configuration conflict errors when sub-packages are used
+  as unique applications
+  [vangheem]
+
+New:
+
+- Remove dependency on aioconsole and move to `ipython` for shell support
+  [vangheem]
+
+- Added Heroku deploy button
+  [karannaoh]
+
+- Start to improve the docker setup
+  [svx]
+
+
+4.5.13 (2019-04-04)
+-------------------
+
+- Provide `api.container.create_container` function
+  [vangheem]
+
+- Fix docker build
+  [vangheem]
+
+
+4.5.12 (2019-04-03)
+-------------------
+
+- Be able to create container with array of `@addons`.
+  [vangheem]
+
+- Fix Command.__run() not waiting for all aio tasks to finish
+  [masipcat]
+
+
+4.5.11 (2019-04-01)
+-------------------
+
+- Provide utilities for move and duplicate
+  [vangheem]
+
+
+4.5.10 (2019-03-28)
+-------------------
+
+Fixes:
+
+- Fix to work with cockroach db >= 2.1
+  [vangheem]
+
+- Fix use of default factory for default value on content
+  [vangheem]
+
+
+New:
+
+- Provide warning when using insecure jwt secret in production
+  [vangheem]
+
+- Provide new `gen-key` for generating secure jwk keys
+  and jwt secrets
+  [vangheem]
+
+- Give warning when generating jwk key
+  [vangheem]
+
+- Fix jwt implementation to use customized algorithm for encoding
+  [vangheem]
+
+- Fix jwe implementation
+  [bloodbare]
+
+- Fix error message when trying to delete a concrete behavior
+  [marcus29200]
+
+Changes:
+
+- Remove `utils.clear_conn_statement_cache`
+  [vangheem]
+
+- Lazy load dynamically generated jwk key
+  [vangheem]
+
+
+4.5.9 (2019-03-18)
+------------------
+
+- Implement "del" operation for dynamic field values
+  [vangheem]
+
+...
+
+You are seeing a truncated changelog.
+
+You can read the `changelog file <https://github.com/plone/guillotina/blob/master/CHANGELOG.rst>`_
+for a complete list.
+
+
+
