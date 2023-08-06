@@ -1,0 +1,25 @@
+dist: xenial
+language: python
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7"
+before_install:
+  - pip uninstall -y -r <(pip freeze)
+install:
+  - make install-dev
+script:
+  - make qa
+after_success:
+  - pip install codecov
+  - codecov
+
+jobs:
+  include:
+    - stage: test-sdist
+      install:
+        - ./setup.py sdist
+        - pip install dist/*.tar.gz
+      script:
+        - ossaudit --file requirements/requirements.txt
+      after_success: skip
