@@ -1,0 +1,348 @@
+Metadata-Version: 2.1
+Name: cryptoauthlib
+Version: 20190517
+Summary: Python Wrapper Library for Microchip Security Products
+Home-page: https://github.com/MicrochipTech/cryptoauthlib
+Author: Microchip Technology Inc
+Author-email: support@microchip.com
+License: Other
+Download-URL: https://github.com/MicrochipTech/cryptoauthlib/archive/20190517.tar.gz
+Project-URL: Source, https://github.com/MicrochipTech/cryptoauthlib
+Project-URL: Documentation, https://github.com/MicrochipTech/cryptoauthlib/wiki/python
+Project-URL: Tracker, https://github.com/MicrochipTech/cryptoauthlib/issues
+Keywords: Microchip ATECC508A ATECC608A ECDSA ECDH
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: Other/Proprietary License
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Operating System :: OS Independent
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4
+Description-Content-Type: text/markdown
+Requires-Dist: enum34 ; python_version < "3.4"
+
+# Python CryptoAuthLib module
+
+## Introduction
+This module provides a thin python ctypes layer to evaluate the cryptoauthlib
+interface to Microchip CryptoAuthentication devices.
+
+### Code Examples
+Code examples for python are available on github as part of
+[CryptoAuthTools](https://github.com/MicrochipTech/cryptoauthtools)
+under the [python/examples](https://github.com/MicrochipTech/cryptoauthtools/tree/master/python/examples)
+directory
+
+
+## Installation
+### CryptoAuthLib python module can be installed through Python's pip tool:
+```
+    pip install cryptoauthlib
+```
+
+### To upgrade your installation when new releases are made:
+```
+    pip install -U cryptoauthlib
+```
+
+### If you ever need to remove your installation:
+```
+    pip uninstall cryptoauthlib
+```
+
+## What does python CryptoAuthLib package do?
+CryptoAuthLib module gives access to most functions available as part of standard cryptoauthlib
+(which is written in 'C'). These python functions for the most part are very similar to 'C'
+functions. The module in short acts as a wrapper over the 'C' cryptoauth library functions.
+
+Microchip cryptoauthlib product page: 
+[Link]( http://www.microchip.com/SWLibraryWeb/product.aspx?product=CryptoAuthLib)
+
+## Supported hardware
+- [AT88CK101](http://www.microchip.com/DevelopmentTools/ProductDetails/AT88CK101SK-MAH-XPRO)
+- [CryptoAuthentication SOIC XPRO Starter Kit (DM320109)](https://www.microchip.com/developmenttools/ProductDetails/DM320109)
+
+## Supported devices
+The family of devices supported currently are:
+
+- [ATSHA204A](http://www.microchip.com/ATSHA204A)
+- [ATECC108A](http://www.microchip.com/ATECC108A)
+- [ATECC508A](http://www.microchip.com/ATECC508A)
+- [ATECC608A](http://www.microchip.com/ATECC608A)
+
+
+## Using cryptoauthlib python module
+The following is a 'C' code made using cryptoauthlib 'C' library.
+
+```C
+#include "cryptoauthlib.h"
+
+void main()
+{
+    ATCA_STATUS status;
+    uint8_t revision[4];
+    uint8_t randomnum[32];
+
+    status = atcab_init(cfg_ateccx08a_kitcdc_default);
+    if (status != ATCA_SUCCESS)
+    {
+        printf("Error");
+        exit();
+    }
+
+    status = atcab_info(revision);
+    if (status != ATCA_SUCCESS)
+    {
+        printf("Error");
+        exit();
+    }
+
+    status = atcab_random(randomnum);
+    if (status != ATCA_SUCCESS)
+    {
+        printf("Error");
+        exit();
+    }
+}
+```
+
+The same code in python would be:
+
+```python
+from cryptoauthlib import *
+
+ATCA_SUCCESS = 0x00
+revision = bytearray(4)
+randomnum = bytearray(32)
+
+# Locate and load the compiled library
+load_cryptoauthlib()
+
+assert ATCA_SUCCESS == atcab_init(cfg_ateccx08a_kithid_default())
+
+assert ATCA_SUCCESS == atcab_info(revision)
+print(''.join(['%02X ' % x for x in revision]))
+
+assert ATCA_SUCCESS == atcab_random(randomnum)
+print(''.join(['%02X ' % x for x in randomnum]))
+```
+
+In the above python code, "import cryptoauthlib" imports the python module. load_cryptoauthlib()
+function loads the ompiled library. The load_cryptoauthlib() is a function that you will not
+see in the 'C' library, this is a python specific utility function and is required for python
+scripts to locate and load the compiled library.
+
+
+## In Summary
+
+### Step I: Import the module
+```
+from cryptoauthlib import *
+```
+
+### Step II: Initilize the module
+```
+load_cryptoauthlib()
+
+assert ATCA_SUCCESS == atcab_init(cfg_ateccx08a_kithid_default())
+```
+
+### Step III: Use Cryptoauthlib APIs
+Call library APIs of your choice
+
+
+## Code portability
+
+Microchip's CryptoAuthentication products can now be evaluated with the power and flexibility of
+python. Once the evaluation stage is done the python code can be ported to 'C' code.
+
+As seen above the python API maintains a 1 to 1 equivalence to the 'C' API in order to easy the
+transition between the two.
+
+
+## Cryptoauthlib module API documentation
+
+### help() command
+
+All of the python function's documentation can be viewed through python's built in help() function.
+
+For example, to get the documentation of atcab_info() function:
+
+```
+    >>> help(cryptoauthlib.atcab_info)
+    Help on function atcab_info in module cryptoauthlib.atcab:
+
+    atcab_info(revision)
+    Used to get the device revision number. (DevRev)
+
+    Args:
+        revision            4-byte bytearray receiving the revision number
+                            from the device. (Expects bytearray)
+
+    Returns:
+        Status code
+```
+
+### dir() command
+
+The dir command without arguments, return the list of names in the current local scope. With an
+argument, attempt to return a list of valid attributes for that object. For example
+dir(cryptoauthlib) will return all the methods available in the cryptoauthlib module.
+
+## Code Examples
+Code examples for python are available on github as part of 
+[CryptoAuthTools](https://github.com/MicrochipTech/cryptoauthtools/tree/master/python/examples) under the
+python/examples directory
+
+## Tests
+Module tests can be located in the [python/tests](https://github.com/MicrochipTech/cryptoauthlib/tree/master/python/tests)
+of the main cryptoauthlib repository. The [README.md](https://github.com/MicrochipTech/cryptoauthlib/tree/master/python/tests/README.md)
+has details for how to run the tests. The module tests are not comprehensive for the entire functionality
+of cryptoauthlib but rather are meant to test the python module code only against the library to ensure
+the interfaces are correct and ctypes structures match the platform.
+
+Release notes
+-----------
+05/17/2019
+  - Added support for TNG devices (cert transforms, new API)
+  - atcab_write_pub_key() now works when the data zone is unlocked
+
+03/04/2019
+  - mbed TLS wrapper added
+  - Minor bug fixes
+
+01/25/2019
+  - Python JWT support
+  - Python configuration structures added
+  - Restructure of secure boot app
+
+01/04/2019
+  - Added GCM functions
+  - Split AES modes into separate files
+  - Bug fix in SWI START driver
+
+10/25/2018
+  - Added basic certificate functions to the python wrapper.
+  - Added Espressif ESP32 I2C driver.
+  - Made generic Atmel START drivers to support most MCUs in START.
+  - Added AES-CTR mode functions.
+  - Python wrapper functions now return single values with AtcaReference.
+  - Added mutex support to HAL and better support for freeRTOS.
+
+08/17/2018
+  - Better support for multiple kit protocol devices
+
+07/25/2018
+  - Clean up python wrapper
+
+07/18/2018
+  - Added ATCA_NO_HEAP define to remove use of malloc/free.
+  - Moved PEM functions to their own file in atcacert.
+  - Added wake retry to accomodate power on self test delay.
+  - Added ca_cert_def member to atcacert_def_s so cert chains can be traversed
+    as a linked list.
+
+03/29/2018
+  - Added support for response polling by default, which will make commands
+    return faster (define ATCA_NO_POLL to use old delay method).
+  - Removed atcatls related files as they were of limited value.
+  - Test framework generates a prompt before locking test configuration.
+  - Test framework puts device to sleep between tests.
+  - Fixed mode parameter issue in atcah_gen_key_msg().
+  - ATECC608A health test error code added.
+
+01/15/2018
+  - Added AES-128 CBC implementation using AES command
+  - Added AES-128 CMAC implementation using AES command
+
+11/22/2017
+  - Added support for FLEXCOM6 on SAMG55 driver
+
+11/17/2017
+  - Added library support for the ATECC608A device
+  - Added support for Counter command
+  - atca_basic functions and tests now split into multiple files based on
+    command
+  - Added support for multiple base64 encoding rules
+  - Added support for JSON Web Tokens (jwt)
+  - Fixed atcab_write_enc() function to encrypt the data even when the device
+    is unlocked
+  - Fixed atcab_base64encode_() for the extra newline
+  - Updated atcab_ecdh_enc() to work more consistently
+
+07/01/2017
+  - Removed assumption of SN[0:1]=0123, SN[8]=EE. SN now needs to be passed in
+    for functions in atca_host and atca_basic functions will now read the
+    config zone for the SN if needed.
+  - Renamed atcab_gendig_host() to atcab_gendig() since it's not a host
+    function. Removed original atcab_gendig(), which had limited scope.
+  - Fixed atcah_hmac() for host side HMAC calculations. Added atcab_hmac().
+  - Removed unnecessary ATCADeviceType parameters from some atca_basic
+    functions.
+  - Added atcacert_create_csr() to create a signed CSR.
+  - New HAL implementation for Kit protocol over HID on Linux. Please see the
+    Incorporating CryptoAuthLib in a Linux project using USB HID devices
+    section in this file for more information.
+  - Added atcacert_write_cert() for writing certificates to the device.
+  - Added support for dynamic length certificate serial numbers in atcacert.
+  - Added atcab_write() for lower level write commands.
+  - Fixed atcah_write_auth_mac(), which had wrong OpCode.
+  - Added atcab_verify() command for lower level verify commands.
+  - Added atcab_verify_stored() for verifying data with a stored public key.
+  - Removed atcab_write_bytes_slot(). Use atcab_write_bytes_zone() instead.
+  - Modified atcab_write_bytes_zone() and atcab_read_bytes_zone() to specify a
+    slot
+  - Added atcab_verify_validate() and atcab_verify_invalidate()
+  - Improvements to host functions to handle more cases.
+  - Added atcab_updateextra(), atcab_derive_key()
+  - Added support for more certificate formats.
+  - Added general purpose hardware SHA256 functions. See atcab_hw_sha2_256().
+  - Removed device specific config read/write. Generic now handles both.
+  - Removed unnecessary response parameter from lock commands.
+  - Enhanced and added unit tests.
+  - Encrypted read and write functions now handle keys with SlotConfig.NoMac
+    set
+  - atcab_cmp_config_zone() handles all devices now.
+  - Fixed some edge cases in atcab_read_bytes_zone().
+  - Updated atSHA() to work with all devices.
+  - Fixed atcacert_get_device_locs() when using stored sn.
+
+01/08/2016
+  - New HAL implementations for
+    - Single Wire interface for SAMD21 / SAMR21
+    - SAMV71 I2C HAL implementation
+    - XMega A3Bu HAL implementation
+  - Added atcab_version() method to return current version string of libary to
+    application
+  - New Bus and Discovery API 
+    - returns a list of ATCA device configurations for each CryptoAuth device
+      found
+    - currently implemented on SAMD21/R21 I2C, SAMV71
+    - additional discovery implementations to come
+  - TLS APIs solidified and documented
+  - Added missing doxygen documentation for some CryptoAuthLib methods 
+  - Stubs for HAL SPI removed as they are unused for SHA204A and ECC508A
+    support
+  - bug fixes
+  - updated atcab_sha() to accept a variable length message that is > 64 bytes
+    and not a multiple of 64 bytes (the SHA block size).
+  - refactored Cert I/O and Cert Data tests to be smaller
+  - 'uncrustify' source formatting
+  - published on GitHub
+
+9/19/2015
+  - Kit protocol over HID on Windows
+  - Kit protocol over CDC on Linux
+  - TLS integration with ATECC508A
+  - Certificate I/O and reconstruction 
+  - New SHA2 implementation
+  - Major update to API docs, Doxygen files found in cryptoauthlib/docs
+  - load cryptoauthlib/docs/index.html with your browser
+
+
+
