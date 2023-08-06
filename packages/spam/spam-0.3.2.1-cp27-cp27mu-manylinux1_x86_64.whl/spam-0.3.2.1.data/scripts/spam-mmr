@@ -1,0 +1,300 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+import spam.DIC
+import pickle
+import tifffile
+import numpy
+# import scipy.ndimage
+
+import argparse
+import spam.helpers
+
+# Parse arguments with external helper function
+args = spam.helpers.multiModalRegistrationParser(argparse.ArgumentParser())
+
+
+numpy.set_printoptions(precision=3, suppress=True)
+
+
+'''
+    2017-10-05 Emmanuel Ando' and Edward Roubin
+
+    Multimodal -- e.g., x-ray and neutron registration
+
+    Reminder: Gaussian fitting parameters a <-> x2
+                                          b <-> xy
+                                          c <-> y2
+'''
+
+print(" ------------------------- ")
+print("| Multimodal registration |")
+print(" ------------------------- \n")
+
+print("Current Settings:")
+argsDict = vars(args)
+for key in sorted(argsDict):
+    print("\t{}: {}".format(key, argsDict[key]))
+
+GRAPHS = args.GRAPHS
+INTERACTIVE = args.INTERACTIVE
+SHOW_SLICE_AXIS = args.SHOW_SLICE_AXIS
+
+# BINS_NPHASES = [(8, 2), (4, 5), (2, 5)]
+# BINS_NPHASES = [(4,5),(2,4)]
+# BINS_NPHASES = [(2, 5)]
+
+# if  is None:
+distanceMaxima = args.DIST_BETWEEN_MAX
+# else:
+# distanceMaxima = args.DIST_BETWEEN_MAX
+
+print("Loading data...")
+xrInitial = tifffile.imread(args.im1.name).astype('<f4')
+neInitial = tifffile.imread(args.im2.name).astype('<f4')
+print("\tim1 size: {}".format(xrInitial.shape))
+print("\tim2 size: {}".format(neInitial.shape))
+
+# crop: the part of the image we consider
+cropRatio = args.CROP
+crop = (slice(int(cropRatio*xrInitial.shape[0]), int((1-cropRatio)*xrInitial.shape[0])),
+        slice(int(cropRatio*xrInitial.shape[1]), int((1-cropRatio)*xrInitial.shape[1])),
+        slice(int(cropRatio*xrInitial.shape[2]), int((1-cropRatio)*xrInitial.shape[2])))
+
+
+print("Rescale f and g...")
+print("\tInitial greyvalues")
+print("\t\tf: {} {}".format(xrInitial[crop].min(), xrInitial[crop].max()))
+print("\t\tg: {} {}".format(neInitial[crop].min(), neInitial[crop].max()))
+
+# min max
+if args.IM1_MIN is None:
+    xrMin = xrInitial[crop].min()
+else:
+    xrMin = args.IM1_MIN
+
+if args.IM1_MAX is None:
+    xrMax = xrInitial[crop].max()
+else:
+    xrMax = args.IM1_MAX
+
+
+if args.IM2_MIN is None:
+    neMin = neInitial[crop].min()
+else:
+    neMin = args.IM2_MIN
+
+if args.IM2_MAX is None:
+    neMax = neInitial[crop].max()
+else:
+    neMax = args.IM2_MAX
+
+# # paper
+# xrMin = 7000.0
+# xrMax = 42000.0
+# neMin = 5000.0
+# neMax = 65535.0
+
+# 16bits min max
+# xrMin = 0.0
+# xrMax = 65535.0
+# neMin = 0.0
+# neMax = 65535.0
+
+xrInitial = float(args.JOINT_HISTO_BINS)*(xrInitial-xrMin)/float(xrMax-xrMin)
+neInitial = float(args.JOINT_HISTO_BINS)*(neInitial-neMin)/float(neMax-neMin)
+
+xrInitial = xrInitial.astype('<u1')
+neInitial = neInitial.astype('<u1')
+
+# import matplotlib.pyplot as plt
+# plt.hist( xrInitial.ravel() )
+# plt.show()
+# plt.hist( neInitial.ravel() )
+# plt.show()
+
+rootPath = args.OUT_DIR
+
+print("List of binning levels and number of phases considered:")
+
+# try to detect initial bin level from file name
+try:
+    initialBinLevel = int(args.im1.name.split('bin')[-1].split('.')[0])
+except:
+    initialBinLevel = 1
+    pass
+
+bins = numpy.array(args.BINS)*initialBinLevel
+for i, (bin, nPhases) in enumerate(zip(bins, args.PHASES)):
+    print("\tBinning Level: {}, Number of Phases: {}".format(bin, nPhases))
+print("")
+
+# Loop over the scales
+for i, (bin, nPhases) in enumerate(zip(bins, args.PHASES)):
+    str = "# Binning Level: {}, Number of Phases: {} #".format(bin, nPhases)
+    print("#"*len(str))
+    print(str)
+    print("#"*len(str))
+    print("")
+
+    print("STEP 1: Scale images")
+    factor = initialBinLevel/float(bin)
+    if factor == 1:
+        xr = xrInitial
+        ne = neInitial
+    elif factor < 1:
+        print("\tScaling images to binning = {} (zoom factor {})".format(bin, factor))
+        #xr = scipy.ndimage.zoom(xrInitial, factor)
+        #ne = scipy.ndimage.zoom(neInitial, factor)
+        xr = spam.DIC.binning(xrInitial, bin)
+        ne = spam.DIC.binning(neInitial, bin)
+    else:
+        print("binning less than one is mad, go away")
+        exit()
+
+    print("\tim1 size: {}".format(xr.shape))
+    print("\tim2 size: {}".format(ne.shape))
+    print("")
+
+    # load and rescale images
+    imCentre = numpy.array(xr.shape)/2
+
+    # crop: the part of the image we consider
+    cropRatio = args.CROP
+    crop = (slice(int(cropRatio*xr.shape[0]), int((1-cropRatio)*xr.shape[0])),
+            slice(int(cropRatio*xr.shape[1]), int((1-cropRatio)*xr.shape[1])),
+            slice(int(cropRatio*xr.shape[2]), int((1-cropRatio)*xr.shape[2])))
+
+    # margin: border needed to feed the transformed image
+    margin = int(args.MARGIN*max(xr.shape))
+    cropWithMargin = (slice(int(cropRatio*xr.shape[0]+margin), int((1-cropRatio)*xr.shape[0]-margin)),
+                      slice(int(cropRatio*xr.shape[1]+margin), int((1-cropRatio)*xr.shape[1]-margin)),
+                      slice(int(cropRatio*xr.shape[2]+margin), int((1-cropRatio)*xr.shape[2]-margin)))
+
+    # initial guess or result form previous scale
+    # try:
+    # This should be previous bin level
+    # pickleFile = "{}/GaussianMixture_registration-bin{}.p".format(rootPath/2*bin)
+    # registration = pickle.load(open(pickleFile))[1]
+    # print("Taking initial guess from previous results: {}".format(pickleFile))
+    # Fguess = registration['F']
+    # Fguess[0:3, 3] = 2.0*Fguess[0:3, 3]
+    # except:
+    # print("Assuming an Initial Guess")
+    # # Fguess = spam.DIC.computeTransformationOperator( {'t':[5.0,0.0,0.0], 'r':[-20.0,0.0,0.0]} )
+    # #Fguess = spam.DIC.computeTransformationOperator({'t': [0.0, 0.0, 0.0], 'r': [-15.0, 0.0, 0.0]})
+    # Fguess = spam.DIC.computeTransformationOperator( {'t':[0.0,0.0,0.0], 'r':[0.0,0.0,0.0]} )
+
+    print("STEP 2: Applying initial guess to g for the joint histogram")
+    # case first scale: either take input initial guess or pickle file from previous registration
+    if i == 0:
+        # case initial pickle file
+        if args.LOADPREV:
+            try:
+                print('Get Fguess from previous scale')
+                pickleFile = "{}/GaussianMixture_registration-bin{}.p".format(rootPath, 2*bin)
+                registration = pickle.load(open(pickleFile))[0]
+                print("Taking initial guess from previous results: {}".format(pickleFile))
+                Fguess = registration['F']
+                Fguess[0:3, 3] = 2.0*Fguess[0:3, 3]
+            except:
+                print('Previous scale registration file {} not found. Falling back to input FGUESS.'.format(pickleFile))
+                Fguess = args.FGUESS
+                Fguess[0:3, 3] = factor * Fguess[0:3, 3]
+
+        # case input Fguess
+        else:
+            print('\nGet Fguess from input')
+            if args.FGUESS_PICKLE is not None:
+                Fguess = pickle.load(args.FGUESS_PICKLE)[0]['F']
+            else:
+                Fguess = args.FGUESS
+                Fguess[0:3, 3] = factor * Fguess[0:3, 3]
+
+    # case other scales
+    else:
+        Fguess = registration['F']
+        Fguess[0:3, 3] = 2.0*Fguess[0:3, 3]
+
+    # gaussian parameters
+    tmp = spam.DIC.FtoTransformation(Fguess)
+    print("\tInitial guess translations: {:.4f}, {:.4f}, {:.4f}".format(*tmp['t']))
+    print("\tInitial guess rotations   : {:.4f}, {:.4f}, {:.4f}".format(*tmp['r']))
+    # neTmp = spam.DIC.applyTransformationOperator(ne.copy(), F=Fguess, Fpoint=imCentre)
+    neTmp = spam.DIC.applyTransformationOperator(ne.copy(), F=Fguess)
+    print("")
+
+    # tifffile.imsave("xr.tif", xr)
+    # tifffile.imsave("neTmp.tif", neTmp)
+    # exit()
+
+    print("STEP 3: Get gaussian parameters")
+    # try:
+    #     gaussianParameters, jointHistogram = pickle.load(open("{}/GaussianMixture_gaussianParameters-bin{}.p".format(rootPath, bin), "r"))
+    # except:
+    gaussianParameters, jointHistogram = spam.DIC.gaussianMixtureParameters(xr[cropWithMargin],
+                                                                            neTmp[cropWithMargin],
+                                                                            BINS=args.JOINT_HISTO_BINS,
+                                                                            NPHASES=nPhases,
+                                                                            imFthreshold=args.IM1_THRESHOLD, imGthreshold=args.IM2_THRESHOLD,
+                                                                            distanceMaxima=distanceMaxima,
+                                                                            fitDistance=args.FIT_DISTANCE,
+                                                                            GRAPHS=GRAPHS, INTERACTIVE=INTERACTIVE, sliceAxis=SHOW_SLICE_AXIS,
+                                                                            rootPath=rootPath, suffix="bin{}".format(bin))
+    tifffile.imsave("{}/GaussianMixture_jointHistogram-bin{}.tif".format(rootPath, bin), jointHistogram.astype('<f4'))
+    # pickle.dump([gaussianParameters, jointHistogram], open("{}/GaussianMixture_gaussianParameters-bin{}.p".format(rootPath, bin), "w"))
+    print("")
+
+    # gaussianParameters = numpy.delete(gaussianParameters, 2, axis=0)
+
+    print("STEP 4: Create phase repartition")
+    voxelCoverage = args.VOXEL_COVERAGE
+    phaseDiagram, actualVoxelCoverage = spam.DIC.phaseDiagram(gaussianParameters,
+                                                              jointHistogram,
+                                                              voxelCoverage,
+                                                              # sigmaMax=10,
+                                                              BINS=args.JOINT_HISTO_BINS,
+                                                              GRAPHS=GRAPHS,
+                                                              INTERACTIVE=INTERACTIVE,
+                                                              rootPath=rootPath,
+                                                              suffix="bin{}".format(bin))
+    tifffile.imsave("{}/GaussianMixture_phaseDiagram-{:.2f}p-bin{}.tif".format(rootPath, actualVoxelCoverage, bin), phaseDiagram.astype('<u1'))
+    print("")
+
+    # registration
+    print("STEP 5: Registration")
+    registration = spam.DIC.multimodalRegistration(xr[crop],
+                                                   ne[crop],
+                                                   phaseDiagram,
+                                                   gaussianParameters,
+                                                   maxIterations=50,
+                                                   Finit=Fguess,
+                                                   BINS=args.JOINT_HISTO_BINS,
+                                                   minFchange=0.0005,
+                                                   verbose=True,
+                                                   margin=margin,
+                                                   GRAPHS=GRAPHS,
+                                                   INTERACTIVE=INTERACTIVE,
+                                                   sliceAxis=SHOW_SLICE_AXIS,
+                                                   rootPath=rootPath,
+                                                   suffix="bin{}".format(bin))
+
+    pickle.dump([registration, (bin, nPhases)], open("{}/GaussianMixture_registration-bin{}.p".format(rootPath, bin), "w"))
+
+    # apply registration to image
+    # neReg = spam.DIC.applyTransformationOperator(ne, F=registration['F'], Fpoint=imCentre)
+    neReg = spam.DIC.applyTransformationOperator(ne, F=registration['F'])
+
+    print("Final registration")
+    print("\tTranslations: {:.4f}, {:.4f}, {:.4f}".format(*registration['transformation']['t']))
+    print("\tRotations   : {:.4f}, {:.4f}, {:.4f}".format(*registration['transformation']['r']))
+
+    # save files
+    tifffile.imsave("{}/ne_registered-bin{}.tif".format(rootPath, bin), neReg)
+    tifffile.imsave("{}/xn_residual-bin{}.tif".format(rootPath, bin),   registration['residualField'])
+    tifffile.imsave("{}/xn_phases-bin{}.tif".format(rootPath, bin),     registration['phaseField'])
+
+    tifffile.imsave("{}/GaussianMixture_checkerBoardH-bin{}.tif".format(rootPath, bin), spam.DIC.checkerBoard(xr[xr.shape[0]/2],     neReg[neReg.shape[0]/2], n=7, ))
+    tifffile.imsave("{}/GaussianMixture_checkerBoardV-bin{}.tif".format(rootPath, bin), spam.DIC.checkerBoard(xr[:, :, xr.shape[2]/2], neReg[:, :, neReg.shape[2]/2], n=7, ))
+
+    print("\n")

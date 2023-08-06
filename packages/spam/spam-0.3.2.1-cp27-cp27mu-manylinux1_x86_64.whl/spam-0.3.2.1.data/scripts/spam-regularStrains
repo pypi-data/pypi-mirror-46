@@ -1,0 +1,181 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+import tifffile
+import numpy
+
+import argparse
+import spam.helpers
+import spam.DIC
+import spam.mesh.structured as smesh
+
+# Define argument parser object
+parser = argparse.ArgumentParser()
+
+# Parse arguments with external helper function
+args = spam.helpers.optionsParser.regularStrainsCalcParser(parser)
+
+print(" --------------------------- ")
+print("| Regular Strain Calculation |")
+print(" --------------------------- \n")
+
+print("\nCurrent Settings:")
+argsDict = vars(args)
+for key in sorted(argsDict):
+    print("\t{}: {}".format(key, argsDict[key]))
+
+print("\nLoading data...")
+f = spam.helpers.readTSV(args.inFile.name, readDisplacements=True, readConvergence=args.MASK)
+
+# Get the dimensions and coordinates of the field
+dims = f["fieldDims"]
+fieldCoords = f["fieldCoords"]
+
+# Calculate node spacing for each direction
+spaceX = fieldCoords[1,2] - fieldCoords[0,2]
+spaceY = fieldCoords[dims[2],1] - fieldCoords[0,1]
+# Catch 2D case
+if dims[0] == 1:
+    twoD = True
+    spaceZ = 0
+else:
+    twoD = False
+    spaceZ = fieldCoords[dims[2]*dims[1],0] - fieldCoords[0,0]
+
+# Check if a mask of points (based on return status of the correlation) is asked
+if args.MASK:
+    mask = numpy.zeros(fieldCoords[:,0].shape).reshape(dims)
+    ignoreBackGround = True
+else:
+    ignoreBackGround = False
+
+# Check if the correction of the input field is asked
+if args.CORRECT_FIELD or args.CORRECT_MEDIAN_FILTER:
+    print("\nCorrecting/filtering field...")
+    fieldValues = spam.DIC.correctPhiField( fileName=args.inFile.name,
+                                            correctBadPoints = args.CORRECT_FIELD,
+                                            ignoreBackGround = ignoreBackGround,
+                                            deltaPhiNormMin=args.CORRECT_DELTA_PHI_NORM,
+                                            pixelSearchCCmin=args.CORRECT_PIXEL_SEARCH_CC,
+                                            neighbours=args.CORRECT_NEIGHBOURS,
+                                            filterPoints=args.CORRECT_MEDIAN_FILTER,
+                                            filterPointsRadius=args.CORRECT_MEDIAN_FILTER_RADIUS)
+    # Extract the corrected displacement field and reshape it
+    disp = fieldValues[:,:3,-1].reshape(dims[0], dims[1], dims[2], 3)
+else:
+    # Directly extract the displacement field without correction/filtering
+    disp = f["PhiField"][:,:3,-1].reshape(dims[0], dims[1], dims[2], 3)
+    # Mask background if asked
+    if ignoreBackGround:
+        mask[numpy.where(f["SubPixReturnStat"].reshape(dims)<-4)] = numpy.nan
+        disp[:,:,:,0] += mask
+        disp[:,:,:,1] += mask
+        disp[:,:,:,2] += mask
+
+# Check the strain mode, set as default large strains
+largeStrains = True
+if args.SMALL_STRAINS:
+    largeStrains = False
+
+# Check what output to return, set as default only strain fields (no decomposition and gradient tensors)
+onlyStrain = True
+if args.NOT_ONLY_STRAIN:
+    onlyStrain = False
+
+print("\nStart strain calculation...")
+if largeStrains:
+    if onlyStrain:
+        strainMatrix, volStrain, devStrain = smesh.computeStrainField(disp, nodeSpacing = [spaceZ, spaceY, spaceX], largeStrains=largeStrains, onlyStrain=onlyStrain)
+    else:
+        strainMatrix, F, r, volStrain, devStrain = smesh.computeStrainField(disp, nodeSpacing = [spaceZ, spaceY, spaceX], largeStrains=largeStrains, onlyStrain=onlyStrain)
+else:
+    if onlyStrain:
+        strainMatrix, volStrain, devStrain = smesh.computeStrainField(disp, nodeSpacing = [spaceZ, spaceY, spaceX], largeStrains=largeStrains, onlyStrain=onlyStrain)
+    else:
+        strainMatrix, F, volStrain, devStrain = smesh.computeStrainField(disp, nodeSpacing = [spaceZ, spaceY, spaceX], largeStrains=largeStrains, onlyStrain=onlyStrain)
+
+# Extract strain tensor components
+strainComponents = {}
+
+strainComponents['yy'] = numpy.array(strainMatrix[:, :, :, 1, 1 ])
+strainComponents['yx'] = numpy.array(strainMatrix[:, :, :, 1, 2 ])
+strainComponents['xy'] = numpy.array(strainMatrix[:, :, :, 2, 1 ])
+strainComponents['xx'] = numpy.array(strainMatrix[:, :, :, 2, 2 ])
+strainComponents['volumetric'] = volStrain
+strainComponents['deviatoric'] = devStrain
+
+if twoD == False:
+    strainComponents['zz'] = numpy.array(strainMatrix[:, :, :, 0, 0 ])
+    strainComponents['zy'] = numpy.array(strainMatrix[:, :, :, 0, 1 ])
+    strainComponents['zx'] = numpy.array(strainMatrix[:, :, :, 0, 2 ])
+    strainComponents['yz'] = numpy.array(strainMatrix[:, :, :, 1, 0 ])
+    strainComponents['xz'] = numpy.array(strainMatrix[:, :, :, 2, 0 ])
+    componentsL = ['zz', 'zy', 'zx', 'yz', 'yy', 'yx', 'xz', 'xy', 'xx', 'volumetric', 'deviatoric']
+    componentsS = ['zz', 'zy', 'zx', 'yy', 'yx', 'xx', 'volumetric', 'deviatoric']
+else:
+    componentsL = ['yy', 'yx', 'xy', 'xx', 'volumetric', 'deviatoric']
+    componentsS = ['yy', 'yx', 'xx', 'volumetric', 'deviatoric']
+
+# Save strain fields
+print("\nSaving strain fields...")
+if args.TIF:
+    if largeStrains:
+        for component in enumerate(componentsL):
+            tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-{}-largeStrains.tif".format(component[1]), strainComponents[component[1]].astype('<f4'))
+    else:
+        for component in enumerate(componentsS):
+            tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-{}-smallStrains.tif".format(component[1]), strainComponents[component[1]].astype('<f4'))
+
+if args.VTK:
+    cellData = {}
+    if largeStrains:
+        if twoD == False:
+            cellData = {"zz": strainComponents["zz"].reshape(dims-1),
+                        "zy": strainComponents["zy"].reshape(dims-1),
+                        "zx": strainComponents["zx"].reshape(dims-1),
+                        "yz": strainComponents["yz"].reshape(dims-1),
+                        "yy": strainComponents["yy"].reshape(dims-1),
+                        "yx": strainComponents["yx"].reshape(dims-1),
+                        "xz": strainComponents["xz"].reshape(dims-1),
+                        "xy": strainComponents["xy"].reshape(dims-1),
+                        "xx": strainComponents["xx"].reshape(dims-1),
+                        "volumetric": strainComponents["volumetric"].reshape(dims-1),
+                        "deviatoric": strainComponents["deviatoric"].reshape(dims-1),
+                        }
+            aspectRatio = [spaceZ, spaceY, spaceX]
+        else:
+            dims[0] += 1
+            cellData = {"yy": strainComponents["yy"].reshape(dims-1),
+                        "yx": strainComponents["yx"].reshape(dims-1),
+                        "xy": strainComponents["xy"].reshape(dims-1),
+                        "xx": strainComponents["xx"].reshape(dims-1),
+                        "volumetric": strainComponents["volumetric"].reshape(dims-1),
+                        "deviatoric": strainComponents["deviatoric"].reshape(dims-1),
+                        }
+            aspectRatio = [1, spaceY, spaceX]
+
+        spam.helpers.writeStructuredVTK(aspectRatio=aspectRatio, cellData=cellData, fileName=args.OUT_DIR+"/"+args.PREFIX+"-strain_fields-largeStrains.vtk")
+
+    else:
+        if twoD == False:
+            cellData = {"zz": strainComponents["zz"].reshape(dims-1),
+                        "zy": strainComponents["zy"].reshape(dims-1),
+                        "zx": strainComponents["zx"].reshape(dims-1),
+                        "yy": strainComponents["yy"].reshape(dims-1),
+                        "yx": strainComponents["yx"].reshape(dims-1),
+                        "xx": strainComponents["xx"].reshape(dims-1),
+                        "volumetric": strainComponents["volumetric"].reshape(dims-1),
+                        "deviatoric": strainComponents["deviatoric"].reshape(dims-1),
+                        }
+            aspectRatio = [spaceZ, spaceY, spaceX]
+        else:
+            dims[0] += 1
+            cellData = {"yy": strainComponents["yy"].reshape(dims-1),
+                        "yx": strainComponents["yx"].reshape(dims-1),
+                        "xx": strainComponents["xx"].reshape(dims-1),
+                        "volumetric": strainComponents["volumetric"].reshape(dims-1),
+                        "deviatoric": strainComponents["deviatoric"].reshape(dims-1),
+                        }
+            aspectRatio = [1, spaceY, spaceX]
+
+        spam.helpers.writeStructuredVTK(aspectRatio=aspectRatio, cellData=cellData, fileName=args.OUT_DIR+"/"+args.PREFIX+"-strain_fields-smallStrains.vtk")

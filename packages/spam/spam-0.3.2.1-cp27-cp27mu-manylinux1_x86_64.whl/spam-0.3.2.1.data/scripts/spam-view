@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import sys
+from tkinter import *
+import numpy
+import matplotlib
+import matplotlib.pyplot as plt
+import tifffile
+matplotlib.use("TkAgg")
+
+
+def main(argv):
+    window = Tk()
+    window.title("Spam Eye Registration - Viewer")
+    try:
+        image = tifffile.imread(argv[1])
+    except:
+        print("usage : [python/python3] UIV2.py image")
+
+    levelZ = IntVar()
+    levelZ.set(image.shape[0] / 2)
+    levelY = IntVar()
+    levelY.set(image.shape[1] / 2)
+    levelX = IntVar()
+    levelX.set(image.shape[2] / 2)
+
+    imageFrameZ = LabelFrame(window, width=650, height=500, text="Z")
+    imageFrameZ.grid(column=0, row=0)
+    imageFrameZ.grid_propagate(0)
+    imageFrameY = LabelFrame(window, width=650, height=500, text="Y")
+    imageFrameY.grid(column=1, row=0)
+    imageFrameY.grid_propagate(0)
+    imageFrameX = LabelFrame(window, width=650, height=500, text="X")
+    imageFrameX.grid(column=0, row=1)
+    imageFrameX.grid_propagate(0)
+    viewFrame = LabelFrame(window, width=650, height=500, text="view")
+    viewFrame.grid(column=1, row=1)
+    viewFrame.grid_propagate(0)
+
+    loadImage(imageFrameZ, image, levelZ.get(), 'Z')
+    loadImage(imageFrameY, image, levelY.get(), 'Y')
+    loadImage(imageFrameX, image, levelX.get(), 'X')
+
+    levelBarImageZ = Scale(viewFrame, orient='horizontal', from_=0, to=len(image) - 1, variable=levelZ,
+                           resolution=1, tickinterval=len(image) / 10, length=400,
+                           label='Z view slice', command=lambda event: loadImage(imageFrameZ, image, levelZ.get(), 'Z'))
+    levelBarImageZ.grid(column=1, row=2, columnspan=10)
+
+    levelBarImageY = Scale(viewFrame, orient='horizontal', from_=0, to=len(image) - 1, variable=levelY,
+                           resolution=1, tickinterval=len(image) / 10, length=400,
+                           label='Y view slice', command=lambda event: loadImage(imageFrameY, image, levelY.get(), 'Y'))
+    levelBarImageY.grid(column=1, row=4, columnspan=10)
+
+    levelBarImageX = Scale(viewFrame, orient='horizontal', from_=0, to=len(image) - 1, variable=levelX,
+                           resolution=1, tickinterval=len(image) / 10, length=400,
+                           label='X view slice', command=lambda event: loadImage(imageFrameX, image, levelX.get(), 'X'))
+    levelBarImageX.grid(column=1, row=6, columnspan=10)
+
+    window.mainloop()
+
+
+def loadImage(place, image, level, axe):
+    for child in place.winfo_children():
+        child.destroy()
+    f = Figure()  # create a matplotlib figure
+    a = f.add_subplot(111)
+    if axe == "Z":  # verify which axe is wanted
+        im = a.imshow(image[level, :, :], cmap='Greys_r',
+                      vmin=image.min(), vmax=image.max())
+    elif axe == "Y":
+        im = a.imshow(image[:, level, :], cmap='Greys_r',
+                      vmin=image.min(), vmax=image.max())
+    elif axe == "X":
+        im = a.imshow(image[:, :, level], cmap='Greys_r',
+                      vmin=image.min(), vmax=image.max())
+    f.colorbar(im, orientation='vertical')
+    # set this in a canvas that can be put in a tkinter frame
+    canvas = FigureCanvasTkAgg(f, place)
+    canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)  # put it
+    toolbar = NavigationToolbar2Tk(canvas,place)
+    toolbar.update()
+    canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
+
+
+main(sys.argv)
