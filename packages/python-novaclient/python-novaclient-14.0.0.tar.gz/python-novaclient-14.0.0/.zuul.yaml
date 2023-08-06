@@ -1,0 +1,29 @@
+- job:
+    name: novaclient-dsvm-functional
+    parent: legacy-dsvm-base
+    run: playbooks/legacy/novaclient-dsvm-functional/run.yaml
+    post-run: playbooks/legacy/novaclient-dsvm-functional/post.yaml
+    timeout: 7200
+    required-projects:
+      - openstack/devstack-gate
+      - openstack/nova
+      - openstack/python-novaclient
+
+- project:
+    templates:
+      - check-requirements
+      - lib-forward-testing
+      - lib-forward-testing-python3
+      - openstack-cover-jobs
+      - openstack-lower-constraints-jobs
+      - openstack-python-jobs
+      - openstack-python36-jobs
+      - openstack-python37-jobs
+      - publish-openstack-docs-pti
+      - release-notes-jobs-python3
+    check:
+      jobs:
+        - novaclient-dsvm-functional
+    gate:
+      jobs:
+        - novaclient-dsvm-functional
