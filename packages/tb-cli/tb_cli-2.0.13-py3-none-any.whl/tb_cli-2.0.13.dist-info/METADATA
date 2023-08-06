@@ -1,0 +1,138 @@
+Metadata-Version: 2.1
+Name: tb-cli
+Version: 2.0.13
+Summary: The team b cli
+Home-page: https://bitbucket.org/mrdon/tb
+Author: Don Brown
+Author-email: mrdon@twdata.org
+License: aplv2
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Internet
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3 :: Only
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+Requires-Dist: cement (==3.0.2)
+Requires-Dist: jinja2 (==2.10)
+Requires-Dist: pyyaml (==3.13)
+Requires-Dist: colorlog (==4.0.2)
+Requires-Dist: prompt-toolkit (==2.0.8)
+Requires-Dist: configobj (==5.0.6)
+Requires-Dist: requests (==2.21.0)
+Requires-Dist: requests-toolbelt (==0.8.0)
+Requires-Dist: watchdog (==0.9.0)
+Requires-Dist: python-dateutil (==2.7.5)
+Requires-Dist: blessings (==1.7)
+Requires-Dist: keyring (==11.1.0)
+Requires-Dist: tabulate (==0.8.3)
+Requires-Dist: ruamel.yaml (==0.15.87)
+Requires-Dist: requests-oauthlib (==1.2.0)
+Requires-Dist: git-url-parse (==1.2.0)
+Requires-Dist: semver (==2.8.1)
+
+# The team b cli
+
+This is a cli platform to help a developer manage multiple repositories and other
+common automation tasks.
+
+## Installation
+
+
+tb can be installed in your local Python 3.7 environment or it can be downloaded as a single binary for your operating
+system.
+
+### Python install
+
+```bash
+pip install tb-cli
+```
+
+### Operating system-specific binary install
+
+1. Visit https://bitbucket.org/mrdon/tb/downloads/ and download the release for your
+operating system.  
+2. Untar the file and you will find a single 'tb' binary.  
+3. Place it somewhere in your path
+4. Upon first execution of a repo command like 'tb repo', 
+   it will ask you some questions about your environment
+
+## Development
+
+This project includes a number of helpers in the `Makefile` to streamline common development tasks.
+
+To install it in development mode, run
+
+```bash
+make
+```
+
+This will not only install tb in a local virtualenv, but also build the 'tb' binary in dist/
+
+### Environment setup
+
+The following demonstrates setting up and working with a development environment:
+
+```bash
+# create a virtualenv for development
+make virtualenv
+source env/bin/activate
+
+# run tb cli application
+tb --help
+
+# run pytest / coverage
+make test
+```
+
+
+### Releasing to Bitbucket
+
+The tb release process uses Bitbucket pipelines to release the version and release the
+linux binary (OSX has to be released manually).
+
+To run a release:
+
+1. Find the commit you want to release.  For the latest commit, you'd 
+visit:  https://bitbucket.org/mrdon/tb/commits/master
+2. Find the "Run pipeline" link on the right side and click "Run".  This will update
+the CHANGES.MD file with the release info, tag the repository, build the binary, upload
+the binary to Bitbucket, then finally change the version to the next dev version.
+3. Build and upload the OSX release
+    1. You must create a Bitbucket app token that has the ability to write to your 
+    repositories.  Remember this, along with your Bitbucket user name, as it will be needed 
+    in the last step
+    1. Get access to an OSX machine and run the next steps on that machine.
+    1. Clone the tb repository and checkout the tag that was created previously
+    1. Run the osx release command:
+        1. `make dist-osx-upload` 
+
+
+Contributors
+============
+
+Pull requests, issues and comments welcome. For pull requests:
+
+* Add tests for new features and bug fixes
+* Follow the existing style
+* Separate unrelated changes into multiple pull requests
+
+See the existing issues for things to start contributing.
+
+For bigger changes, make sure you start a discussion first by creating
+an issue and explaining the intended change.
+
+License
+========
+
+Copyright (c) 2019 Don Brown, Atlassian and others.
+Apache 2.0 licensed, see [LICENSE.txt](LICENSE.txt) file.
+
+
