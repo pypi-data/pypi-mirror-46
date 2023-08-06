@@ -1,0 +1,24 @@
+
+import setuptools
+
+with open('README.md', 'r') as f:
+    long_description = f.read()
+
+setuptools.setup(
+    name='self-driving-desktop',
+    version='0.0.7',
+    author='Hofstadter, Inc.',
+    author_email='support@hofstadter.io',
+    description='Desktop Automation Framework. Drive your keyboard and mouse with text files.',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    url='https://github.com/hofstadter-io/self-driving-desktop',
+    packages=setuptools.find_packages(),
+    classifiers=[],
+    keywords=['desktop automation', 'automation', 'gui', 'mouse', 'keyboard', 'driver', 'recorder'],
+    install_requires=['click','python3-xlib','lark-parser','pyautogui','clipboard'],
+    entry_points='''
+    [console_scripts]
+    sdd=self_driving_desktop:drive
+    ''',
+)
