@@ -1,0 +1,8 @@
+- Carl Meyer <carl@dirtcircle.com>
+- Chris Beaven <smileychris@gmail.com>
+- Markus Kaiserswerth <github@sensun.org>
+- Daniel Roschka <danielroschka@phoenitydawn.de>
+- Jan Van Bruggen <jancvanbruggen@gmail.com>
+- Adam Taylor <ataylor32@gmail.com>
+- Piotr Frankowski
+- Jairus Martin
