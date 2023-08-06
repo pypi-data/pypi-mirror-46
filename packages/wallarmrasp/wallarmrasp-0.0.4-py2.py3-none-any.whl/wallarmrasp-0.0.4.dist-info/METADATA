@@ -1,0 +1,100 @@
+Metadata-Version: 2.1
+Name: wallarmrasp
+Version: 0.0.4
+Summary: Wallarm RASP Python module
+Home-page: https://www.wallarm.com
+Author: Wallarm
+Author-email: support@wallarm.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Security
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Requires-Python: >=2.7, <4
+Description-Content-Type: text/markdown
+Requires-Dist: msgpack
+
+# Wallarm RASP client
+
+## Introduction
+
+Wallarm real time application security middleware (python module). Implement as WSGI application
+
+Works on Python 2.7, 3.4, 3.5, 3.6, 3.7
+
+## How to install
+
+```shell
+pip install wallarmrasp
+```
+
+## How to use
+
+The `WallarmRASPMiddleware` supports the following arguments:
+
+```python
+WallarmRASPMiddleware(self, application, mode='monitoring', **kwargs):
+"""
+Create and initialize Wallarm RASP WSGI middleware. Options host, port
+or sock are required.
+
+Args:
+    application: WSGI application
+    mode (str, optional): Wallarm mode. (default: 'monitoring')
+
+Keyword Args:
+    host (str): Wallarm RASP server hostname
+    port (int): Wallarm RASP server port
+    sock (str): Wallarm RASP server socket filename
+    mode_override (str, optional): Wallarm mode override. (default: 'off')
+    block_if_disconnected (bool, optional): Set to True if want to block page if connection to Wallarm RASP server is lost (default: False)
+    sock_timeout_msec (int, optional): socket connection timeout with Wallarm RASP server (default: 10 seconds)
+    request_max_body_size (int, optional): request max body size size that can be sent to Wallarm RASP server (default: 100MB)
+    response_max_body_size (int, optional): response max body size size that can be sent to Wallarm RASP server (default: 100MB)
+    block_headers (list of (header_name, header_value) tuples, optional): custom headers for block page
+    block_body (list of str, optional): custom body for block page
+
+Returns:
+    WSGI application with Wallarm RASP middleware.
+"""
+```
+
+### Connect to Wallarm RASP server via TCP
+
+```python
+from wallarmrasp.wallarmrasp import WallarmRASPMiddleware
+
+# initialize default WSGI application
+
+wsgi_application = WallarmRASPMiddleware(
+   wsgi_application,
+   'block',
+   host='WALLARM_RASP_SERVER_HOST',
+   port='8989')
+
+## start WSGI application
+```
+
+### Connect to Wallarm RASP server via UDS
+
+```python
+from wallarmrasp.wallarmrasp import WallarmRASPMiddleware
+
+# initialize default WSGI application
+
+wsgi_application = WallarmRASPMiddleware(
+   wsgi_application,
+   'block',
+   sock='PATH_TO_WALLARM_RASP_SOCKET')
+
+## start WSGI application
+```
+
+
