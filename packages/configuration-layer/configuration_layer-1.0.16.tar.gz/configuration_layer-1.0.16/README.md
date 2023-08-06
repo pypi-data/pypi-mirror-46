@@ -1,0 +1,244 @@
+# Initial configuration layer for Microservices 
+
+![](http://www.italiamappe.it/mappa/ImmaginiVetrine/0000106274/Immagine1lrg.jpg)
+
+#DISCLAMER
+
+This service is in his early age. **DO NOT USE in production** or if you want to, please be aware you are going to use a piece of code which probably will be
+changed or improved ( and not necessarily in this order) soon and very often. You have been warned!
+This service requires at least another service listening to a few KAFKA topics.
+
+# Service description
+
+This service has been developed to be used as part of a multilayer microservice based infrastructure.
+It provides services with a layer of functionalities to be used in order to request the needed configuration settings to start a service.
+It uses KAFKA as messaging platform in order to exchange messages among services. 
+In order to be used it needs a service which acts as a **service-registry** that receive a request and send back a response.
+An addition function can be executed when the configuration is received in the not breakable mode. This is comes handy when we want to add a reactive behaviour as a result of a given services' configuration update
+
+# How to add it to your microservice
+
+```python
+
+from configuration_layer.service_setup.configuration_request import ConfigurationSeeker
+from configuration_layer.utils.configuration_validation import validate_service_configuration
+import configuration_layer.helpers.producer_messages as message
+import sys, os
+import datetime
+from messaging_middleware.utils.logger import Logger
+
+
+
+def check_configuration_directory():
+    service_configuration_directory = os.environ.get('service_configuration_directory', 'configuration')
+    if os.path.isdir(service_configuration_directory):
+        return os.getcwd() + service_configuration_directory
+    else:
+        return False
+
+
+def seeker_request(**kwargs):
+    seeker = ConfigurationSeeker(consumer_topic='tcsetconf',
+                                 producer_topic='tcgetconf',
+                                 bootstrap_servers="your broker here",
+                                 schema_registry='your schema registry here',
+                                 message={"cmd": "get_conf", "auth": "ASC", "service_name": "myservicename"},
+                                 key_schema={"service_name": "myservicename"},
+                                 service_name='myservicename',
+                                 service_configuration_directory= os.environ.get('service_configuration_directory', 'configuration'),
+                                 breakable=kwargs.get('breakable', 1),
+                                 set=kwargs.get('set', 0),
+                                function_to_run=kwargs.get('function_to_run',None)
+
+                                 
+                                 )
+    seeker.start()
+    seeker.join()
+
+
+if __name__ == "__main__":
+    if not check_configuration_directory():
+        sys.exit()
+
+    logger = Logger()
+    seeker_request()
+    if validate_service_configuration():
+        logger.logmsg('info', "==Configuration Completed==")
+    else:
+        message_to_produce = message.operation_result(service_name="myservicename",
+                                                      last_operation='setconf',
+                                                      timestamp=datetime.datetime.now(
+                                                          datetime.timezone.utc).strftime(
+                                                          '%Y-%m-%dT%H:%M:%S%z'),
+                                                      operation_result=message.const_values()[
+                                                          'CONFIGURATION_FILE_VALIDATION_ERROR'],
+                                                      error_description='')
+
+        logger.produce_msg(message_to_produce)
+        logger.logmsg('error', "==CONFIGURATION_FILE_VALIDATION_ERROR==")
+        sys.exit()
+
+```
+
+## SSL Configuration 
+
+If you want to use a security protocol such as SSL, these are the changes you have to apply 
+
+```python
+from configuration_layer.service_setup.configuration_request import ConfigurationSeeker
+from configuration_layer.utils.configuration_validation import validate_service_configuration
+import configuration_layer.helpers.producer_messages as message
+import sys, os
+import datetime
+from messaging_middleware.utils.logger import Logger
+
+
+
+def check_configuration_directory():
+    service_configuration_directory = os.environ.get('service_configuration_directory', 'configuration')
+    if os.path.isdir(service_configuration_directory):
+        return os.getcwd() + service_configuration_directory
+    else:
+        return False
+
+
+def seeker_request(**kwargs):
+    seeker = ConfigurationSeeker(consumer_topic='tcsetconf',
+                                 producer_topic='tcgetconf',
+                                 bootstrap_servers="your broker here",
+                                 schema_registry='your schema registry here',
+                                 message={"cmd": "get_conf", "auth": "ASC", "service_name": "myservicename"},
+                                 key_schema={"service_name": "myservicename"},
+                                 service_name='myservicename',
+                                 service_configuration_directory= os.environ.get('service_configuration_directory', 'configuration'),
+                                 breakable=kwargs.get('breakable', 1),
+                                 set=kwargs.get('set', 0),
+                                 security_protocol='ssl',
+                                 function_to_run=kwargs.get('function_to_run',None)
+
+                                 )
+    seeker.start()
+    seeker.join()
+
+
+if __name__ == "__main__":
+    if not check_configuration_directory():
+        sys.exit()
+
+    logger = Logger()
+    seeker_request()
+    if validate_service_configuration(ssl=1):
+        logger.logmsg('info', "==Configuration Completed==")
+    else:
+        message_to_produce = message.operation_result(service_name="myservicename",
+                                                      last_operation='setconf',
+                                                      timestamp=datetime.datetime.now(
+                                                          datetime.timezone.utc).strftime(
+                                                          '%Y-%m-%dT%H:%M:%S%z'),
+                                                      operation_result=message.const_values()[
+                                                          'CONFIGURATION_FILE_VALIDATION_ERROR'],
+                                                      error_description='')
+
+        logger.produce_msg(message_to_produce)
+        logger.logmsg('error', "==CONFIGURATION_FILE_VALIDATION_ERROR==")
+        sys.exit()
+
+```
+
+# CONFLUENT KAFKA TOPIC: 
+
+The service send message to a predefined (hardcoded atm) topic, which has the following schema registry 
+
+**tcservicesmonitor-value** schema message
+
+```json
+
+{
+    "schema": "{\"type\":\"record\",\"name\":\"key\",\"namespace\":\"example.avro\",\"fields\":[{\"name\": \"service_name\", \"type\": \"string\",\"default\": \"empty\"},{\"name\": \"last_operation\", \"type\": \"string\",\"default\": \"empty\"},{\"name\": \"timestamp\", \"type\": \"string\",\"default\": \"empty\"},{\"name\": \"operation_result\", \"type\":\"string\" },{\"name\": \"operation_description\", \"type\":\"string\" ,\"default\": \"empty\"},{\"name\": \"error_description\", \"type\":\"string\" ,\"default\": \"empty\"}]}"
+}
+
+```
+
+
+```json
+{
+  "type": "record",
+  "name": "key",
+  "namespace": "example.avro",
+  "fields": [
+    {
+      "name": "service_name",
+      "type": "string",
+      "default": "empty"
+    },
+    {
+      "name": "last_operation",
+      "type": "string",
+      "default": "empty"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "default": "empty"
+    },
+    {
+      "name": "operation_result",
+      "type": "string"
+    },
+    {
+      "name": "operation_description",
+      "type": "string"
+    }
+  ]
+}
+```
+**tcservicesmonitor-key** schema message
+
+```json
+
+{
+  "type": "record",
+  "name": "key",
+  "namespace": "example.avro",
+  "fields": [
+    {
+      "name": "service_name",
+      "type": "string",
+      "default": "empty"
+    }
+  ]
+}
+```
+
+# Example of how the messages payload  configuration look like
+
+### request
+```json
+
+{
+  "topic": "tcgetconf", 
+  "value": {
+      "cmd": "get_conf", 
+      "auth": "ASC", 
+      "service_name": "myservicename"
+      }
+}
+```
+### reply
+
+```json
+{ 
+    "service_name": "myservicename", 
+    "start_environment": "staging",
+    "datacentre": "", 
+    "external_rest_services": {}, 
+    "persistence_conf": {}, 
+    "credentials": {}
+ }
+
+```
+
+#Change Log 
+
+* 1.0.14
+Improved the incoming/outcoming messages processing. Added events handler 
