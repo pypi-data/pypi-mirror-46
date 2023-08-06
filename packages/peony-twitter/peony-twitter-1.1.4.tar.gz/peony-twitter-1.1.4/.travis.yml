@@ -1,0 +1,30 @@
+language: python
+python:
+  - "3.5.3"
+  - "3.5"
+  - "3.6"
+matrix:
+  include:
+    - python: "3.5"
+      install:
+        - pip install --upgrade pip wheel
+        - pip install --upgrade -r tests_requirements.txt
+        - pip install aiohttp==2.0
+    - python: "3.6"
+      install:
+        - pip install --upgrade pip wheel
+        - pip install --upgrade -r tests_requirements.txt
+        - pip install aiohttp==2.0
+    - python: "3.7"
+      dist: xenial
+      sudo: true
+  fast_finish: true
+install:
+  - pip install --upgrade pip wheel
+  - pip install --upgrade -r tests_requirements.txt
+script:
+  - flake8
+  - travis_wait py.test tests --cov=peony
+cache: pip
+after_success:
+  - codecov
