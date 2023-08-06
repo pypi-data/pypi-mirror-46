@@ -1,0 +1,57 @@
+environment:
+  matrix:
+    - PYTHON: "C:\\Python27"
+      PYTHON_VERSION: "2.7.10"
+      PYTHON_ARCH: "32"
+      NUMPY: "numpy==1.13.1"
+
+    - PYTHON: "C:\\Python27"
+      PYTHON_VERSION: "2.7.10"
+      PYTHON_ARCH: "64"
+      NUMPY: "numpy==1.13.1"
+
+    - PYTHON: "C:\\Python27"
+      PYTHON_VERSION: "2.7.10"
+      PYTHON_ARCH: "32"
+      NUMPY: "numpy>=1.15"
+
+    - PYTHON: "C:\\Python27"
+      PYTHON_VERSION: "2.7.10"
+      PYTHON_ARCH: "64"
+      NUMPY: "numpy>=1.15"
+
+    - PYTHON: "C:\\Python36"
+      PYTHON_VERSION: "3.6.x"
+      PYTHON_ARCH: "32"
+      NUMPY: "numpy==1.13.1"
+
+    - PYTHON: "C:\\Python36-x64"
+      PYTHON_VERSION: "3.6.x"
+      PYTHON_ARCH: "64"
+      NUMPY: "numpy==1.13.1"
+
+    - PYTHON: "C:\\Python36"
+      PYTHON_VERSION: "3.6.x"
+      PYTHON_ARCH: "32"
+      NUMPY: "numpy>=1.15"
+
+    - PYTHON: "C:\\Python36-x64"
+      PYTHON_VERSION: "3.6.x"
+      PYTHON_ARCH: "64"
+      NUMPY: "numpy>=1.15"
+
+install:
+  - "python --version"
+
+build_script:
+  - "python -m pip install --upgrade pip"
+  - "pip install %NUMPY%"
+  - "pip install \"awkward>=0.10.0\""
+  - "python -c \"import awkward; print(awkward.__version__)\""
+  - "pip install \"uproot-methods>=0.6.0\""
+  - "python -c \"import uproot_methods; print(uproot_methods.__version__)\""
+  - "pip install cachetools"
+  - "pip install -i https://pypi.anaconda.org/carlkl/simple backports.lzma"
+  - "pip install pytest pytest-runner pandas requests"
+  - "curl -fsS -o tests/samples/Event.root http://scikit-hep.org/uproot/examples/Event.root"
+  - "python setup.py pytest"
