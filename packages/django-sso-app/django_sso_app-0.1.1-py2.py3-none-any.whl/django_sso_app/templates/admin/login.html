@@ -1,0 +1,21 @@
+{% extends "admin/login.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.init.js' %}"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0/js.cookie.min.js"></script>
+<script type="text/javascript">
+    function removeJwt() {
+        console.log("SSO: removing jwt ...");
+        Cookies.remove("jwt", {path: "/", domain: "{{ sso_cookie_domain }}"});
+        console.log("SSO: jwt removed!");
+    }
+
+    django.jQuery(function() {
+        django.jQuery("#login-form").on("submit", function(event) {
+            removeJwt();
+        });
+    });
+</script>
+{% endblock %}
