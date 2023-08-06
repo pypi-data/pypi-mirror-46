@@ -1,0 +1,149 @@
+Metadata-Version: 2.1
+Name: pyddapi
+Version: 3.0.3
+Summary: DataDriver API package
+Home-page: http://datadriver-doc-ddapi.s3-website-eu-west-1.amazonaws.com/
+Author: BDA TEAM
+Author-email: datadriver@octo.com
+License: Apache 2
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.6
+Requires-Dist: pandas (>=0.23.4)
+Requires-Dist: scikit-learn (==0.19.*)
+Requires-Dist: scikit-learn[alldeps] (==0.19.*)
+Requires-Dist: scipy
+Requires-Dist: six (>=1.10.*)
+Requires-Dist: apache-airflow (==1.10.*)
+Requires-Dist: apache-airflow[s3,postgres] (==1.10.*)
+Requires-Dist: ipython
+Requires-Dist: odo-fixpandas20 (==0.5.3)
+Requires-Dist: dask (>=0.15.0)
+Requires-Dist: db.py (>=0.5.2)
+Requires-Dist: pybars3 (==0.9.*)
+Requires-Dist: sqlalchemy (==1.2.*)
+Requires-Dist: psycopg2-binary (>=2.6.*)
+Requires-Dist: pyarrow (==0.12.*)
+Requires-Dist: minio (==4.0.4)
+Requires-Dist: boto3
+Provides-Extra: test
+Requires-Dist: mock ; extra == 'test'
+Requires-Dist: pytest ; extra == 'test'
+Requires-Dist: coverage ; extra == 'test'
+Requires-Dist: pytest-cov ; extra == 'test'
+Requires-Dist: jupyter ; extra == 'test'
+Requires-Dist: jupyterlab ; extra == 'test'
+Requires-Dist: m2r ; extra == 'test'
+Requires-Dist: nbformat ; extra == 'test'
+Requires-Dist: nbconvert (<=5.4.*) ; extra == 'test'
+Requires-Dist: sphinx (>=1.5.*) ; extra == 'test'
+Requires-Dist: sphinx-bootstrap-theme (>=0.4.*) ; extra == 'test'
+Requires-Dist: nbsphinx (>=0.2.*) ; extra == 'test'
+Requires-Dist: sphinx-gallery (>=0.1.*) ; extra == 'test'
+Requires-Dist: sphinx-rtd-theme ; extra == 'test'
+Requires-Dist: twine ; extra == 'test'
+Requires-Dist: ipykernel ; extra == 'test'
+Requires-Dist: zest.releaser ; extra == 'test'
+Requires-Dist: matplotlib ; extra == 'test'
+
+[![Anaconda-Server Badge](https://anaconda.org/octo/pyddapi/badges/installer/conda.svg)](https://conda.anaconda.org/octo)
+[![Anaconda-Server Badge](https://anaconda.org/octo/pyddapi/badges/platforms.svg)](https://anaconda.org/octo/pyddapi)
+[![Anaconda-Server Badge](https://anaconda.org/octo/pyddapi/badges/latest_release_date.svg)](https://anaconda.org/octo/pyddapi)
+[![Anaconda-Server Badge](https://anaconda.org/octo/pyddapi/badges/version.svg)](https://anaconda.org/octo/pyddapi)
+
+# DDAPI introduction  
+- [What is it](#what-is-it)  
+- [Install](#install)  
+- [Contributing](#contributing)  
+
+## What is it?  
+
+The following section describes the main concepts used in the Data Driver environment.  
+
+### Workflow  
+A Data Driver workflow is a network of tasks (python function) linked together. This workflow is typically described as a DAG (Direct Acyclic Graph). The jobs can execute all kind of Python code like data loading, feature engineering, model fitting, alerting, etc.  
+
+A workflow can be scheduled and monitored in the Data Driver architecture with the tool Airflow. The Data Driver API adds data science capabilities to Airflow and the capacity to audit the input / output of each task.  
+
+### Data Driver API or ddapi  
+
+ddapi is a Python library. It is the access layer to Data Driver and you can use it to manipulated datasets and workflows. Some main usages are described below, for more informations and tutorials you can access to the OCTO notebook tutorials repository.  
+
+```python  
+import dd  
+```  
+
+Ddapi is composed of several modules.  
+
+#### DB module  
+
+    import dd.db  
+
+DB is an easier way to interact with your databases. You can use it to explore your databases or import new data.   
+
+#### Context module  
+
+    from dd.api.contexts.distributed import AirflowContext  
+    from dd.api.contexts.local import LocalContext  
+
+The context is an object which will allow you to communicate with your environment during your exploration. As such, it needs to be able to communicate with your database. This is done by creating a DB object and passing it to the context constructor.  
+
+#### Dataset module  
+
+    import dd.api.workflow.dataset  
+
+You may consider datasets as wrappers around Pandas DataFrames. It gives you access to some methods you may recognise if you are familiar with this awesome library.  
+
+
+### Disclaimer  
+
+#### It does not  / it is not for :  
+
+ - Code versionning  
+ - Enforce good code quality  
+ - Data quality tool  
+ - ETL  
+ - Data Catalog & Data Lineage  
+ - Data visualisation  
+ - Datalake  
+ - Magical stuffs  
+ - Coffee  
+
+#### It is a set of tools unified into a unique platform to accelerate data science :   
+
+ - we have made an API that lets DataScientists use the same technologies they use in exploration to do industrialisation, because we saw it was the most impactfull parameter on the success of the project. (DDAPI)  
+ - monitore Machine Learning models (your code + DDAPI + Airflow)  
+ - schedule builds of datascience's pipeline (your code + DDAPI + Airflow)  
+ - datascience feature engineering functions (your code + BDACore)  
+ - metrics and datascience helpers to study model shifting (BDACore)  
+ - integration of open source standards Jupyterhub, Airflow and PostgreSQL together (Lab and Factory machine roles)  
+
+
+## Install  
+
+**last release** 
+
+    pip install pyddapi
+
+
+**last build from master**     
+
+     pip install -i https://pypi.anaconda.org/octo/label/dev/simple pyddapi
+
+### Developer setup
+
+#### Setup your virtual env
+
+    virtualenv venv
+    source venv/bin/activate
+    pip install -e .
+    pip install -r ci/tests_requirements.txt
+
+_ddapi_ only supports python versions 2.7 and 3.6/ Running _ddapi_ with other versions is not advised, so avoid it if possible, or do it at your own risk.
+
+You can find the package in [anaconda cloud repository](https://anaconda.org/octo/pyddapi)  
+
+## Contributing  
+In case you want to contribute to the code, do not forget to check our   
+[Developer Guidelines](DEVGUIDE.md)
+
