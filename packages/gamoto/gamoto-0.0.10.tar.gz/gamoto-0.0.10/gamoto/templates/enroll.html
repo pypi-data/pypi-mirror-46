@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+{% block body %}
+    <div class="card bg-light mb-3" style="max-width: 18rem;">
+    <div class="card-header">2FA Setup</div>
+    <div class="card-body">
+        <p class="card-text">
+        {% if reset %}A new 2FA setup has been created.{% endif %}
+        Please scan this code with Google Authenticator
+        <br/>
+            <div id="qrcode"></div>
+        <br/>
+        Here are your backup codes:<br/>
+        <ul>
+        {% for code in codes %}
+        <li>{{code}}</li>
+        {% endfor %}
+        </ul>
+        <a class="btn btn-success" href="{% url "index" %}">Done</a> 
+        </p>
+    </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+<script src="{% static "qrcode.min.js" %}"></script>
+<script type="text/javascript">
+    new QRCode(document.getElementById("qrcode"), "{{ authurl|safe }}");
+</script>
+{% endblock %}
+
