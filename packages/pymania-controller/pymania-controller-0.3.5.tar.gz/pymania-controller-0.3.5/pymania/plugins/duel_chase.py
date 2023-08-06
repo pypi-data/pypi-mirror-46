@@ -1,0 +1,322 @@
+"""
+.. Note::
+   This plugin is not scalable.
+
+Duel chase cup plugin.
+"""
+
+import asyncio
+import enum
+import pathlib
+import random
+import pymania
+
+from pymania.plugins.chat import CommandParser
+
+class _State(enum.Enum):
+    STOPPED = enum.auto()
+    RUNNING = enum.auto()
+    PAUSED = enum.auto()
+
+class DuelChasePlugin: # pylint: disable=too-many-instance-attributes
+    """ Manages the duel-chase cup. """
+    version = pymania.__version__
+    name = 'duel_chase'
+    depends = 'chat', 'remote', 'players'
+
+    def __init__(self):
+        self.chat = None
+        self.remote = None
+        self.players = None
+        self.config = {}
+        self.state = _State.STOPPED
+        self.participants = []
+        self.maps = []
+        self.duelists = []
+        self.current_stage = 1
+        self.duel_started = False
+        self.is_warmup = False
+        self.warmup_task = None
+        self.skip_task = None
+        self.audience = []
+        self.skipped = False
+
+    async def load(self, config, dependencies):
+        """ Register help chat command. """
+        self.chat = dependencies['chat']
+        self.remote = dependencies['remote']
+        self.players = dependencies['players']
+        self.config = config
+        adm = config['admin_privilege']
+
+        @self.chat.command(CommandParser('duel-start', description='Start the duel chase cup'), adm)
+        async def _start_command(player):
+            if self.state == _State.STOPPED:
+                self.state = _State.RUNNING # we need this
+                await self._start(player)
+            else:
+                self.state = _State.RUNNING
+
+        @self.chat.command(CommandParser('duel-stop', description='Stop the duel chase cup'), adm)
+        async def _stop_command(player):
+            if self.state != _State.STOPPED:
+                await self._stop(player)
+            self.state = _State.STOPPED
+
+        @self.chat.command(CommandParser('duel-pause', description='Pause the duel chase cup'), adm)
+        async def _pause_command(player):
+            if self.state == _State.RUNNING:
+                await self._pause(player)
+                self.state = _State.PAUSED
+
+        @self.chat.command(CommandParser('duel-skip', description='Skip one duel'), adm)
+        async def _duel_skip(player):
+            if self.state == _State.RUNNING:
+                self.skipped = True
+                await self.remote.send_message(self.config['msg_duel_skip'].format(player.nickname))
+                await self._safe_skip()
+
+        @self.chat.command(CommandParser('duel-spec', description='Force yourself to spec'))
+        async def _duel_spec(player):
+            if player in self.audience:
+                if self.state != _State.RUNNING:
+                    self.audience.remove(player)
+                    msg = self.config['msg_duel_play'].format(player=player.nickname)
+                    await self.remote.send_message(msg)
+            else:
+                self.audience.append(player)
+                msg = self.config['msg_duel_spec'].format(player=player.nickname)
+                await self.remote.send_message(msg)
+            if self.state == _State.RUNNING and player in self.participants:
+                await self._remove_participant(player)
+
+        parser = CommandParser('duel-force', description='Force player to spec/play')
+        parser.add_argument('login')
+        parser.add_argument('action')
+
+        @self.chat.command()
+        async def _duel_force(player, login, action):
+            to_force = self.players.get(login)
+            if to_force is None or action not in ('spec', 'play'):
+                return
+            if action == 'spec':
+                await self._remove_participant(to_force)
+            elif action == 'play':
+                self.participants.append(to_force)
+                player.here = True
+                player.stage = self.current_stage
+            await self.remote.send_message(self.config['msg_force'].format(
+                admin=player.nickname,
+                player=to_force.nickname,
+                action=action
+            ))
+
+        @self.remote.callback('TrackMania.BeginRound')
+        async def _begin_round():
+            if self.state == _State.RUNNING:
+                await self._begin_round()
+
+        @self.remote.callback('TrackMania.EndRound')
+        async def _end_round():
+            if self.state == _State.RUNNING:
+                self.is_warmup = False
+
+        @self.remote.callback('TrackMania.BeginChallenge')
+        async def _begin_challenge(_challenge, warmup, _continuation):
+            if self.state == _State.RUNNING:
+                await self._begin_challenge(warmup)
+
+        @self.remote.callback('TrackMania.EndChallenge')
+        async def _end_challenge(_rankings, _challenge, _warmup, _continue, _res):
+            if self.state == _State.RUNNING:
+                await self._end_challenge()
+
+        @self.remote.callback('TrackMania.PlayerCheckpoint')
+        async def _checkpoint(_uid, login, _time, _lap, checkpoint):
+            if self.state == _State.RUNNING:
+                await self._checkpoint(self.players.get(login), checkpoint)
+
+        @self.remote.callback('TrackMania.PlayerConnect')
+        async def _connect(login, _):
+            if self.state == _State.RUNNING:
+                player = self.players.get(login)
+                if player not in self.participants:
+                    msg = self.config['msg_connect_progress'].format(player=player.nickname)
+                    await self.remote.execute('ForceSpectator', player.login, 1)
+                elif player.stage < self.current_stage:
+                    msg = self.config['msg_connect_outdated'].format(player=player.nickname)
+                    await self.remote.execute('ForceSpectator', player.login, 1)
+                else:
+                    msg = self.config['msg_connect_eligible'].format(player=player.nickname)
+                    player.here = True
+                await self.remote.send_message(msg)
+
+        @self.remote.callback('TrackMania.PlayerDisconnect')
+        async def _disconnect(login):
+            if self.state == _State.RUNNING:
+                player = self.players.get(login)
+                if player in self.participants:
+                    player.here = False
+                if player in self.duelists and self.duel_started:
+                    self._mark_as_winner([x for x in self.duelists if x is not player][0])
+
+    def _rotate_maps(self):
+        self.maps[:] = self.maps[-1:] + self.maps[:-1]
+
+    async def _post_cup(self):
+        async for i in self.players.get_on_server():
+            await self.remote.execute('ForceSpectator', i.login, 0)
+
+    async def _start(self, player):
+        self.current_stage = 1
+        self.participants = []
+        self.duelists = []
+        async for i in self.players.get_on_server():
+            if i not in self.audience:
+                self.participants.append(i)
+                i.stage = 1
+                i.here = True
+        await self.remote.send_message(self.config['msg_start'].format(player=player.nickname))
+
+        self.maps = []
+        map_dir = self.config['map_folder']
+        map_root = pathlib.Path(await self.remote.execute('GetTracksDirectory'))
+        for i in (map_root / map_dir).glob('*.Gbx'):
+            self.maps.append(str(pathlib.Path(map_dir) / i.name))
+        random.shuffle(self.maps)
+
+        # dodgy; for now, do not store and reset old settings
+        await self.remote.execute('SetForceShowAllOpponents', 1)
+        await self.remote.execute('SetGameMode', 0)
+        await self.remote.execute('SetRoundForcedLaps', 99)
+        await self.remote.execute('SetAllWarmUpDuration', 1)
+        await self.remote.execute('SetWarmUp', True)
+        await self.remote.execute('InsertChallengeList', self.maps)
+        await self.remote.execute('ChooseNextChallenge', self.maps[0])
+
+        if (await self.remote.execute('GetStatus'))['Code'] == 5: # scoreboard
+            await self._end_challenge() # must simulate this on scoreboard
+        else:
+            await self.remote.execute('NextChallenge')
+        await self.remote.send_message(self.config['msg_new_stage'].format(self.current_stage))
+
+    async def _safe_skip(self):
+        try:
+            await self.remote.execute('NextChallenge')
+        except Exception: # pylint: disable=broad-except
+            timeout = self.config['deferred_skip_seconds']
+            asyncio.get_event_loop().create_task(self._deferr_skip(timeout))
+            await self.remote.send_message(self.config['map_deferred_skip'].format(timeout))
+
+    async def _stop(self, player):
+        await self._post_cup()
+        await self.remote.send_message(self.config['msg_stop'].format(player=player.nickname))
+
+    async def _pause(self, player):
+        await self.remote.send_message(self.config['msg_pause'].format(player=player.nickname))
+
+    def _get_ranking(self):
+        def _encode_score(x):
+            return x.current_cp
+        return sorted(self.duelists, key=_encode_score, reverse=True)
+
+    async def _remove_participant(self, participant):
+        try:
+            self.participants.remove(participant)
+            if participant.here:
+                await self.remote.execute('ForceSpectator', participant.login, 1)
+        except ValueError:
+            pass # o.k., not participating
+
+    async def _end_challenge(self):
+        if self.skip_task:
+            self.skip_task.cancel()
+            self.skip_task = None
+
+        if self.duelists and not self.skipped:
+            winner, loser = tuple(self._get_ranking())
+            winner.stage += 1
+            msg = self.config['msg_duel_end'].format(winner=winner.nickname, loser=loser.nickname)
+            await self._remove_participant(loser)
+            await self.remote.send_message(msg)
+        if len(self.participants) == 1:
+            self.state = _State.STOPPED
+            msg = self.config['msg_winner'].format(player=self.participants[0].nickname)
+            await self.remote.send_message(msg)
+            await self._post_cup()
+            return
+
+        remaining = [x for x in self.participants if x.stage == self.current_stage]
+        if len(remaining) == 1:
+            msg = self.config['msg_free_win'].format(player=remaining[0].nickname)
+            await self.remote.send_message(msg)
+        if len(remaining) < 2:
+            self.current_stage += 1
+            await self.remote.send_message(self.config['msg_new_stage'].format(self.current_stage))
+            remaining = self.participants
+        self.duelists = random.sample(set(remaining), 2)
+
+        for i in self.duelists:
+            i.current_lap = 0
+            i.current_cp = 0
+            await self.remote.execute('ForceSpectator', i.login, 2)
+        for i in [x for x in self.participants if x not in self.duelists]:
+            if i.here:
+                await self.remote.execute('ForceSpectator', i.login, 1)
+        self.duel_started = False
+        await self.remote.send_message(self.config['msg_duel_start'].format(
+            player1=self.duelists[0].nickname,
+            player2=self.duelists[1].nickname
+        ))
+
+    async def _deferr_skip(self, timeout):
+        await asyncio.sleep(timeout)
+        await self.remote.execute('NextChallenge')
+
+    async def _warmup(self, timeout):
+        await asyncio.sleep(timeout)
+        if self.is_warmup:
+            diff = self.config['cp_win_difference']
+            await self.remote.send_message(self.config['msg_warmup_over'].format(diff))
+            await self.remote.execute('ForceEndRound')
+
+    async def _mark_as_winner(self, player):
+        player.current_cp = self.config['cp_win_difference'] + 1
+        msg = self.config['msg_duel_quit'].format(
+            quitter=[x for x in self.duelists if x is not player][0].nickname,
+            winner=player.nickname
+        )
+        await self.remote.send_message(msg)
+        await self._safe_skip()
+
+
+    async def _begin_challenge(self, warmup):
+        self.duel_started = True
+        still_there = [x for x in self.duelists if x.here]
+        if not still_there:
+            await self.remote.send_message(self.config['msg_both_left'])
+            await self._safe_skip()
+        if len(still_there) == 1:
+            await self._mark_as_winner(still_there[0])
+            return
+
+        if warmup:
+            self.is_warmup = True
+
+    async def _begin_round(self):
+        if self.is_warmup:
+            timeout = self.config['warmup_seconds']
+            self.warmup_task = asyncio.get_event_loop().create_task(self._warmup(timeout))
+            await self.remote.send_message(self.config['msg_warmup'].format(timeout))
+
+    async def _checkpoint(self, player, checkpoint):
+        if self.is_warmup:
+            return
+
+        player.current_cp = checkpoint
+        other = [x for x in self.duelists if x is not player][0]
+
+        if player.current_cp - other.current_cp >= self.config['cp_win_difference']:
+            self._rotate_maps()
+            await self.remote.execute('ChooseNextChallenge', self.maps[0])
+            await self._safe_skip()
