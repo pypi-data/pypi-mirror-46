@@ -1,0 +1,2 @@
+CONNECTED = 'connected'
+DISCONNECTED = 'disconnected'
