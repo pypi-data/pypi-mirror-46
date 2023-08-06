@@ -1,0 +1,71 @@
+Metadata-Version: 2.1
+Name: label-wrapper
+Version: 0.1.0
+Summary: User friendly image bootstraping framework.
+Home-page: https://github.com/rok/label-wrapper
+Author: Rok Mihevc
+Author-email: me@rok.dev
+License: MIT
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Python: >=3.6.0
+Description-Content-Type: text/markdown
+Requires-Dist: attr
+Requires-Dist: jinja2
+Requires-Dist: numpy
+Requires-Dist: scikit-image
+Requires-Dist: tensorflow
+
+
+# Label wrapper
+
+User friendly image bootstraping framework.
+
+# Label bootstrapping flow
+
+Label wrapper enables label bootstrapping process:
+1. Load first data batch
+1. Manually label first batch
+1. Train first segmentation model
+1. Load second data batch
+1. Use first trained segmentation model to predict labels
+1. Review labels and merge first and second labelled data
+1. train the second segmentation model
+1. Repeat steps 4.-7. until out of raw data or review of labels is no longer required.
+
+![Label bootstrapping](docs/diagram.png)
+
+
+# Technical implementation example
+1. Load data into dataset
+1. Export html
+1. Label
+1. Export to json
+1. Import json and convert json to tfrecords
+1. Train on tfrecords
+1. Introduce new data
+1. Predict with trained model to tf records
+1. Import stored tfrecords and convert to html with labels
+1. Review stored labels and export to json
+1. Join reviewed json and manual json (from step 4)
+1. Repeat 5 - 11 for n times
+1. Run out of data to label
+1. Measure performance
+
+# TODO
+* Finnish dual data dataset with gtiff
+* mask to shapefile (geocoded)
+* Shapefile imporoter?
+* example inference step with a pretrained segmentation cnn
+* (maybe) constructor should take json and load it in postinit
+* (maybe) Add via html tests with js (selenium?)
+
+# Thanks
+
+Label editor used is [VIA 2.0.6](https://gitlab.com/vgg/via/raw/via-2.0.6/via.html).
+
