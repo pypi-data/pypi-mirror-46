@@ -1,0 +1,27 @@
+apiVersion: skaffold/v1beta10
+kind: Config
+build:
+  artifacts:
+    - image: {{ registry_image }}
+deploy:
+  kustomize:
+    path: .devo/k8s/
+profiles:
+  - name: test
+    build:
+      artifacts:
+      - image: {{ registry_image }}
+        docker:
+            buildArgs:
+              REQUIREMENTS: test
+      tagPolicy:
+        envTemplate:
+          {% raw %}template: "{{.IMAGE_NAME}}:test-{{.CI_COMMIT_SHORT_SHA}}"{% endraw %}
+  - name: prod
+    build:
+      artifacts:
+        - image: {{ registry_image }}
+          docker:
+            buildArgs:
+              REQUIREMENTS: prod
+
