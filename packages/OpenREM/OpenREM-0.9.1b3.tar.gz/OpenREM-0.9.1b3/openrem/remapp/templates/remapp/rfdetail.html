@@ -1,0 +1,498 @@
+{% extends "remapp/rfdetailbase.html" %}
+{% load sigdig %}
+
+{% block navrf %}<li class="active">{% endblock %}
+
+{% block mainblock %}
+    <div class="row">
+        <div class="col-md-5">
+        {% with study=generalstudymoduleattr %}
+          {% with patientstudy=study.patientstudymoduleattr_set.get %}
+            {% with equipment=study.generalequipmentmoduleattr_set.get %}
+            <h1>Study summary</h1>
+
+            <ul>
+                <li>
+                    Accession number:
+                    {% if not study.accession_hashed %}
+                        {{ study.accession_number }}
+                    {% else %}
+                        <i>hidden</i>
+                    {% endif %}
+                </li>
+                <li>Study date: {{ study.study_date }}</li>
+                <li>Study time: {{ study.study_time|date:"H:i" }}</li>
+                <li>Study description: {{ study.study_description }}</li>
+                <li>Procedure: {{ study.procedure_code_meaning }}</li>
+                <li>Requested procedure: {{ study.requested_procedure_code_meaning }}</li>
+                <li>Patient age: {{ patientstudy.patient_age_decimal|floatformat:1 }} years</li>
+                <li>Patient height and weight: {{ patientstudy.patient_size|floatformat:2 }} m, {{ patientstudy.patient_weight|floatformat:1 }} kg</li>
+                {% for record in accumxraydose_set_all_planes %}
+                  {% with accumprojection=record.accumintegratedprojradiogdose_set.get %}
+                  <li>
+                        Total DAP, {{ record.acquisition_plane }}:
+                        {% if accumprojection.convert_gym2_to_cgycm2 >= alert_levels.alert_total_dap_rf %}
+                            <strong style="color: red;">{{ accumprojection.convert_gym2_to_cgycm2|floatformat:1 }}</strong> cGy.cm<sup>2</sup>
+                        {% else %}
+                            {{ accumprojection.convert_gym2_to_cgycm2|floatformat:1 }} cGy.cm<sup>2</sup>
+                        {% endif %}
+                        <br>
+                  </li>
+                  <li>
+                        Total dose at RP, {{ record.acquisition_plane }}:
+                        {% if accumprojection.dose_rp_total >= alert_levels.alert_total_rp_dose_rf %}
+                            <strong style="color: red;">{{ accumprojection.dose_rp_total | sigdig }} </strong> Gy
+                        {% else %}
+                            {{ accumprojection.dose_rp_total | sigdig }} Gy
+                        {% endif %}
+                        <br>
+                   </li>
+                  {% endwith %}
+                {% endfor %}
+                <li>Hospital: {{ equipment.institution_name }}</li>
+                <li>
+                    Equipment:
+                    {{ equipment.manufacturer }} |
+                    {{ equipment.manufacturer_model_name }} |
+                    {{ equipment.station_name }}
+                </li>
+                <li>Display name: {{ equipment.unique_equipment_name.display_name }}</li>
+                <li>Study UID: {{ study.study_instance_uid }}</li>
+                <li>Performing physician(s): {{ study.performing_physician_name }}</li>
+                <li>Operator(s): {{ study.operator_name }}</li>
+                <li>Test patient indicators? {{ study.patientmoduleattr_set.get.not_patient_indicator }}</li>
+                <li style="list-style-type: none;">
+                    <table class="table table-condensed table-bordered small">
+                        <th>Irradiation type</th><th>Total DAP (cGy.cm<sup>2</sup>)</th><th>Total dose at RP (Gy)</th><th>Total duration (s)</th>
+                        {% for irr_type in study_totals %}
+                            <tr>
+                            {% if '- ' in irr_type.0 %}
+                                <td><i>{{ irr_type.0 }}</i></td>
+                                <td style="text-align:right"><i>{% if irr_type.1 %}{{ irr_type.1 | floatformat:2 }} {% endif %}</i></td>
+                                <td style="text-align:right"><i>{% if irr_type.2 %}{{ irr_type.2 | sigdig }} {% endif %}</i></td>
+                                <td style="text-align:right"><i>{% if irr_type.3 %}{{ irr_type.3 | floatformat:2 }} {% endif %}</i></td>
+                            {% elif 'Total' in irr_type.0 %}
+                                <td><strong>{{ irr_type.0 }}</strong></td>
+                                <td><strong>{% if irr_type.1 %}{{ irr_type.1 | floatformat:2 }} {% endif %}</strong></td>
+                                <td><strong>{% if irr_type.2 %}{{ irr_type.2 | sigdig }} {% endif %}</strong></td>
+                                <td><strong>{% if irr_type.3 %}{{ irr_type.3 | floatformat:2 }} {% endif %}</strong></td>
+                            {% else %}
+                                <td>{{ irr_type.0 }}</td>
+                                <td>{% if irr_type.1 %}{{ irr_type.1 | floatformat:2 }} {% endif %}</td>
+                                <td>{% if irr_type.2 %}{{ irr_type.2 | sigdig }} {% endif %}</td>
+                                <td>{% if irr_type.3 %}{{ irr_type.3 | floatformat:2 }} {% endif %}</td>
+                            {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </li>
+            </ul>
+
+                {% if alert_levels.show_accum_dose_over_delta_weeks %}
+                    {% if study.patientmoduleattr_set.get.patient_id %}
+                        <h4>Summary of studies (including this one) matching this patient ID over the {{ alert_levels.accum_dose_delta_weeks }} week{{ alert_levels.accum_dose_delta_weeks|pluralize }} previous to this study</h4>
+                        <ul class="no-marker">
+                            {% with accumxraydose_set_all_planes|first as first_accumxraydose %}
+                                {% with accumprojection=first_accumxraydose.accumintegratedprojradiogdose_set.get %}
+                                    <li>
+                                        Number of studies: {{ studies_in_week_delta.count }}
+                                        ({% for each_study in studies_in_week_delta %}
+                                        {% if each_study.pk == study.pk %}this study{% else %}<a href="/openrem/rf/{{ each_study.pk }}/">study {{ each_study.pk }}</a>{% endif %}{% if not forloop.last%}, {% endif %}
+                                    {% endfor %})
+                                    </li>
+                                    <li>
+                                        Total DAP summed over this period:
+                                        {% if accumprojection.total_dap_delta_gym2_to_cgycm2 >= alert_levels.alert_total_dap_rf %}
+                                            <strong style="color: red;">{{ accumprojection.total_dap_delta_gym2_to_cgycm2|floatformat:1 }}</strong> cGy.cm<sup>2</sup>
+                                        {% else %}
+                                            {{ accumprojection.total_dap_delta_gym2_to_cgycm2|floatformat:1 }} cGy.cm<sup>2</sup>
+                                        {% endif %}
+                                    </li>
+                                    <li>
+                                        Total dose at RP summed over this period:
+                                        {% if accumprojection.dose_rp_total_over_delta_weeks >= alert_levels.alert_total_rp_dose_rf %}
+                                            <strong style="color: red;">{{ accumprojection.dose_rp_total_over_delta_weeks | sigdig }} </strong> Gy
+                                        {% else %}
+                                            {{ accumprojection.dose_rp_total_over_delta_weeks | sigdig }} Gy
+                                        {% endif %}
+                                    </li>
+                                {% endwith %}
+                            {% endwith %}
+                        </ul>
+
+                        <table class="table table-condensed table-bordered small table-indent">
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Accession number</th>
+                                <th>Total DAP (cGy.cm<sup>2</sup>)</th>
+                                <th>Total dose at RP (Gy)</th>
+                                <th>OpenREM link</th>
+                            </tr>
+                            {% for each_study in studies_in_week_delta %}
+                                <tr>
+                                    <td>{{ each_study.study_date|date:"d/m/y" }}</td>
+                                    <td>{{ each_study.study_time|date:"H:i" }}</td>
+                                    <td>{{ each_study.accession_number }}</td>
+
+                                    <td>
+                                        {% for accumxraydoseset_allplanes in each_study.projectionxrayradiationdose_set.get.accumxraydose_set.all %}
+                                            {% with accumprojection=accumxraydoseset_allplanes.accumintegratedprojradiogdose_set.get %}
+                                                {{ accumxraydoseset_allplanes.acquisition_plane }}:
+                                                {% if accumprojection.convert_gym2_to_cgycm2 >= alert_levels.alert_total_dap_rf %}
+                                                    <strong style="color: red;">{{ accumprojection.convert_gym2_to_cgycm2|floatformat:1 }}</strong>
+                                                {% else %}
+                                                    {{ accumprojection.convert_gym2_to_cgycm2|floatformat:1 }}
+                                                {% endif %}
+                                                <br>
+                                            {% endwith %}
+                                        {% endfor %}
+                                    </td>
+
+                                    <td>
+                                        {% for accumxraydoseset_allplanes in each_study.projectionxrayradiationdose_set.get.accumxraydose_set.all %}
+                                            {% with accumprojection=accumxraydoseset_allplanes.accumintegratedprojradiogdose_set.get %}
+                                                {{ accumxraydoseset_allplanes.acquisition_plane }}:
+                                                {% if accumprojection.dose_rp_total >= alert_levels.alert_total_rp_dose_rf %}
+                                                    <strong style="color: red;">{{ accumprojection.dose_rp_total|floatformat:1 }}</strong>
+                                                {% else %}
+                                                    {{ accumprojection.dose_rp_total|floatformat:1 }}
+                                                {% endif %}
+                                                <br>
+                                            {% endwith %}
+                                        {% endfor %}
+                                    </td>
+
+                                    <td>{% if each_study.pk == study.pk %}This study{% else %}
+                                        <a href="{{ server_url }}/openrem/rf/{{ each_study.pk }}">Study {{ each_study.pk }}</a>{% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% else %}
+                        <h4>Summary of studies (including this one) matching this patient ID over the {{ alert_levels.accum_dose_delta_weeks }} week{{ alert_levels.accum_dose_delta_weeks|pluralize }} previous to this study</h4>
+                        <p>Data unavailable: no patient ID for this study.</p>
+                    {% endif %}
+                {% endif %}
+        </div>
+    {% endwith %}{% endwith %}{% endwith %}
+
+        {% if admin.enable_skin_dose_maps %}
+        <div class="col-md-7" id="skinDoseMapContainer">
+            <div class="ajax-progress-skin-dose"><img src="{{ STATIC_URL }}img/ajax-loader.gif"></div>
+
+            <h2>Radiation exposure incidence map</h2>
+
+            <script src="{{ STATIC_URL }}js/chroma.min.js"></script>
+
+            <div class="skinDoseMapGroup" id="skinDoseMapGroup">
+
+                <div class="skinDoseMap">
+                    <canvas id="skinDoseMap" width="540" height="420" class="table-bordered" data-tooltip="skin_dose_map"></canvas>
+                </div>
+
+                <div class="skinDoseMap3d">
+                    <canvas id="skinDoseMap3d" width="540" height="420" class="table-bordered"></canvas>
+                </div>
+
+                <div class="skinDoseMapOverlayShow">
+                    <a class="btn btn-default btn-sm" role="button" id="skinDoseMapOverlayShow">Show overlay</a>
+                </div>
+
+                <div class="skinDoseMapOverlayHide">
+                    <a class="btn btn-default btn-sm" role="button" id="skinDoseMapOverlayHide">Hide overlay</a>
+                </div>
+
+                <div class="skinMapSaveBtn">
+                    <a class="btn btn-default btn-sm" role="button" id="save2dSkinMap">Save 2D map</a>
+                    <a class="btn btn-default btn-sm" role="button" id="save3dSkinMap">Save 3D map</a>
+                </div>
+
+                <div class="skinDoseMapFullscreenBtn">
+                    <a class="btn btn-default btn-sm" role="button" id="skinDoseMapFullscreenBtn">Toggle fullscreen</a>
+                </div>
+
+                <div class="colourScale">
+                    <canvas id="colourScale" width="70" height="420"></canvas>
+                </div>
+
+                <div class="colour_scale_selection table-bordered" id="colour_scale_selection">
+                    <form id="colour_scale_form" onsubmit="useNewColourScale(this, skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap); return false;">
+                        <table>
+                            <tr>
+                                <td colspan="2" class="centred">Colour scale choice</td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="OrRd"></td>
+                                <td><canvas id="OrRd"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="PuBu"></td>
+                                <td><canvas id="PuBu"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="BuPu"></td>
+                                <td><canvas id="BuPu"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="Oranges"></td>
+                                <td><canvas id="Oranges"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="BuGn"></td>
+                                <td><canvas id="BuGn"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="YlOrBr"></td>
+                                <td><canvas id="YlOrBr"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="YlGn"></td>
+                                <td><canvas id="YlGn"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="Reds"></td>
+                                <td><canvas id="Reds"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="RdPu"></td>
+                                <td><canvas id="RdPu"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="Greens"></td>
+                                <td><canvas id="Greens"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="YlGnBu"></td>
+                                <td><canvas id="YlGnBu"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="Purples"></td>
+                                <td><canvas id="Purples"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="GnBu"></td>
+                                <td><canvas id="GnBu"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="Greys" checked></td>
+                                <td><canvas id="Greys"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="YlOrRd"></td>
+                                <td><canvas id="YlOrRd"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="PuRd"></td>
+                                <td><canvas id="PuRd"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="Blues"></td>
+                                <td><canvas id="Blues"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td><input type="radio" title="colour_choice" name="colour_choice" value="PuBuGn"></td>
+                                <td><canvas id="PuBuGn"></canvas></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="centred"><a onclick="$('.colour_scale_selection').hide();" class="btn btn-default btn-sm" role="button">Hide colour scales</a></td>
+                            </tr>
+                        </table>
+                    </form>
+                    <script>
+                        $('#colour_scale_form input[type=radio]').change(function() {
+                            useNewColourScale(this.value, skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap);
+                        });
+                    </script>
+                </div>
+            </div>
+
+            <div id="skin_map_wwwl_controls">
+                <table>
+                    <tr>
+                        <td><input type="button" onclick="reset(skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap, skinDoseMap3dPersonObj)" value="Reset controls" class="btn btn-default btn-sm btn-block" role="button" /></td>
+                        <td style="padding-right: 20px"><a onclick="$('#skin_map_maxmin_controls').show();$('#skin_map_wwwl_controls').hide();" class="btn btn-default btn-sm btn-block" role="button">Use max/min</a></td>
+                        <td class="rangeCell"><input type="range" title="windowLevelSlider" name="windowLevelSlider" id="windowLevelSlider" min="0" max="2" value="0.1" step="0.001" oninput="updateWindowLevel(this.value, skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap)" /></td>
+                        <td><input type="text" title="currentWindowLevel" name="currentWindowLevel" id="currentWindowLevel" size="5" onchange="updateWindowLevel(this.value, skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap)" class="skinMapControls" /> Gy window level</td>
+                    </tr>
+                    <tr>
+                        <td><a onclick="$('.colour_scale_selection').toggle();" class="btn btn-default btn-sm btn-block" role="button">Colour scales</a></td>
+                        <td style="padding-right: 20px"><a onclick="switch2d3dSkinDoseMap();" class="btn btn-default btn-sm btn-block" role="button" id="swap3dButton1">Toggle 2D/3D view</a></td>
+                        <td class="rangeCell"><input type="range" title="windowWidthSlider" name="windowWidthSlider" id="windowWidthSlider" min="0" max="4" value="0.2" step="0.001" oninput="updateWindowWidth(this.value, skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap)" /></td>
+                        <td><input type="text" title="currentWindowWidth" name="currentWindowWidth" id="currentWindowWidth" size="5" onchange="updateWindowWidth(this.value, skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap)" class="skinMapControls" /> Gy window width</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="skin_map_maxmin_controls">
+                <table>
+                    <tr>
+                        <td><input type="button" onclick="reset(skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap, skinDoseMap3dPersonObj)" value="Reset controls" class="btn btn-default btn-sm btn-block" role="button" /></td>
+                        <td style="padding-right: 20px"><a onclick="$('#skin_map_maxmin_controls').hide();$('#skin_map_wwwl_controls').show();" class="btn btn-default btn-sm btn-block" role="button">Use WW/WL</a></td>
+                        <td class="rangeCell"><input type="range" title="minDoseSlider" name="minDoseSlider" id="minDoseSlider" min="0" max="2" value="0.1" step="0.001" oninput="updateMinDisplayedDose(this.value, skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap)" /></td>
+                        <td><input type="text" title="currentMinDisplayedDose" name="currentMinDisplayedDose" id="currentMinDisplayedDose" size="5" onchange="updateMinDisplayedDoseManual(this.value, skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap)" class="skinMapControls" /> Gy min. displayed dose</td>
+                    </tr>
+                    <tr>
+                        <td><a onclick="$('.colour_scale_selection').toggle();" class="btn btn-default btn-sm btn-block" role="button">Colour scales</a></td>
+                        <td style="padding-right: 20px"><a onclick="switch2d3dSkinDoseMap();" class="btn btn-default btn-sm btn-block" role="button" id="swap3dButton2">Toggle 2D/3D view</a></td>
+                        <td class="rangeCell"><input type="range" title="maxDoseSlider" name="maxDoseSlider" id="maxDoseSlider" min="0" max="4" value="0.2" step="0.001" oninput="updateMaxDisplayedDose(this.value, skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap)" /></td>
+                        <td><input type="text" title="currentMaxDisplayedDose" name="currentMaxDisplayedDose" id="currentMaxDisplayedDose" size="5" onchange="updateMaxDisplayedDoseManual(this.value, skinDoseMapObj, skinDoseMapColourScaleObj, skinDoseMap3dObj, show3dSkinDoseMap)" class="skinMapControls" /> Gy max. displayed dose</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="openskin_info" id="openskin_info">Skin dose maps are calculated using openSkin, and are for indication only: openSkin calculations have not
+            been validated. Contributions are welcome, see <a href="http://bitbucket.org/openskin/openskin">openSkin website</a> for details. Create
+            <a href="{% url 'rfopenskin' pk=generalstudymoduleattr.id %}">openSkin export</a>. (Not available if you don't have export permissions.)</div>
+
+            <script src="{{ STATIC_URL }}js/skin-dose-maps/rfSkinDoseMapColourScaleObject.js"></script>
+            <script src="{{ STATIC_URL }}js/skin-dose-maps/rfSkinDoseMapObject.js"></script>
+            <script src="{{ STATIC_URL }}js/skin-dose-maps/rfSkinDoseMap3dObject.js"></script>
+            <script src="{{ STATIC_URL }}js/skin-dose-maps/rfSkinDoseMap3dPersonObject.js"></script>
+            <script src="{{ STATIC_URL }}js/skin-dose-maps/rfSkinDoseMap3dHUDObject.js"></script>
+            <script src="{{ STATIC_URL }}js/skin-dose-maps/rfSkinDoseMapping.js"></script>
+            <script src="{{ STATIC_URL }}js/skin-dose-maps/rfSkinDoseMapping3d.js"></script>
+
+            <script>
+                if (isCanvasSupported()) {
+                    var skinDoseMapObj = new skinDoseMapObject('skinDoseMap', 'Greys');
+                    var skinDoseMapColourScaleObj = new skinDoseMapColourScaleObject('colourScale', 'Greys');
+                    if (show3dSkinDoseMap) {
+                        var skinDoseMap3dObj = new skinDoseMap3dObject('skinDoseMap3d', 'Greys');
+                        var skinDoseMap3dPersonObj = new skinDoseMap3dPersonObject();
+                        var skinDoseMap3dHUDObj = new skinDoseMap3dHUDObject();
+                    }
+                    else {
+                        $('#swap3dButton1').hide();
+                        $('#swap3dButton2').hide();
+                    }
+                } else {
+                    $('#skinDoseMapContainer').html('<h2>openSkin radiation exposure incidence map</h2>' +
+                            '<p>The skin dose map cannot be shown: your browser does not support the HTML &lt;canvas&gt; element.</p>');
+                }
+            </script>
+
+            <script>
+                $('#skin_map_wwwl_controls').hide();
+                $('#colour_scale_selection').hide();
+                $('#skinDoseMapOverlayHide').hide();
+                $('#skinDoseMap3d').hide();
+                $('#save3dSkinMap').hide();
+
+                // Hide the group, controls and info until the skin dose map has been calculated or loaded in.
+                $('#skinDoseMapGroup').hide();
+                $('#skin_map_maxmin_controls').hide();
+                $('#openskin_info').hide();
+            </script>
+
+            <script src="{{ STATIC_URL }}js/django_reverse/reverse.js"></script>
+            <script src="{{ STATIC_URL }}js/skin-dose-maps/rfSkinDoseMappingAjax.js"></script>
+        </div>
+        {% else %}
+        <div class="col-md-7">
+            <h2>openSkin radiation exposure incidence map</h2>
+            <p>
+                You can export this study to a csv file in the format required by Jonathan Cole's openSkin software. The
+                openSkin software can be downloaded from the
+                <a href="https://bitbucket.org/openskin/openskin/downloads">openSkin BitBucket project</a> and there is
+                more information available in the
+                <a href="https://docs.openrem.org/en/latest/openskin.html">OpenREM documentation</a>.
+            </p>
+            {% url 'skin_dose_map_settings_update' 1 as the_url %}
+            <p>
+                This version of OpenREM has openSkin built-in, and is able to calculate and display skin dose maps for
+                some x-ray systems. However, this option is switched off for your installation at the moment. It can be
+                enabled by an administrator by changing the <a href="{{ the_url }}">Skin dose map settings</a>.
+            </p>
+            <p>
+                <strong>Warning:</strong> Only copper filters are considered in this export - aluminium or other filters
+                are not considered. This is related to the way openSkin works.
+            </p>
+            <h4>
+                Create <a href="{% url 'rfopenskin' pk=generalstudymoduleattr.id %}">openSkin export</a>. <small>(Not
+                available if you don't have export permissions.)</small>
+            </h4>
+        </div>
+        {% endif %}
+
+    </div>
+<h2>Radiation event details for this study</h2>
+<table class="table table-striped table-bordered small sortable">
+  <th>Time</th>
+  <th>Acquisition protocol</th>
+  <th>Event type</th>
+  <th>Pulse rate <span style="white-space:nowrap">(s<sup>-1</sup>)</span></th>
+  <th>Plane</th>
+  <th>DAP (cGy.cm<sup>2</sup>)</th>
+  <th>Dose at reference point (mGy)</th>
+  <th>Duration (ms)<br>
+      Exposure time (ms)
+  </th>
+  <th>kVp</th>
+  <th>mA</th>
+  <th>Filters (mm)</th>
+  <th>Primary angle (&deg;)</th>
+  <th>Secondary angle (&deg;)</th>
+  <th>Detector size (mm)</th>
+  <th>SDD (mm)</th>
+  <th>Orientation</th>
+    {% for event in events_all %}
+      {% with sourcedata=event.irradeventxraysourcedata_set.get %}
+        {% with mechanicaldata=event.irradeventxraymechanicaldata_set.get %}
+    <tr>
+        <td>{{ event.date_time_started|time:"H:i.s" }}</td>
+        <td>{{ event.acquisition_protocol }}</td>
+        <td>{{ event.irradiation_event_type }}</td>
+        <td>{{ sourcedata.pulse_rate|floatformat:2 }}</td>
+        <td>{{ event.acquisition_plane }}</td>
+        <td>{% if event.convert_gym2_to_cgycm2 %}{{ event.convert_gym2_to_cgycm2 | sigdig }} {% endif %}</td>
+        <td>{% if sourcedata.convert_gy_to_mgy %}{{ sourcedata.convert_gy_to_mgy | sigdig }} {% endif %}</td>
+        <td>
+        {% if sourcedata.irradiation_duration %}
+            {{ sourcedata.irradiation_duration|multiply:1000|floatformat:1 }}
+        {% else %}
+            <i>n/a</i>
+        {% endif %}
+        <br>
+        {% if sourcedata.exposure_time %}
+            {{ sourcedata.exposure_time }}
+        {% else %}
+            <i>n/a</i>
+        {% endif %}
+        </td>
+        <td>
+          {% for kvp_value in sourcedata.kvp_set.all %}
+            {{ kvp_value.kvp|floatformat:0 }}
+          {% endfor %}
+        </td>
+        <td>
+          {% for tube_current in sourcedata.xraytubecurrent_set.all %}
+            {{ tube_current.xray_tube_current|floatformat:1 }}
+          {% endfor %}
+        </td>
+        <td>
+          {%  include 'remapp/list_filters.html' %}
+        </td>
+        <td>{{ mechanicaldata.positioner_primary_angle|floatformat:1 }}</td>
+        <td>{{ mechanicaldata.positioner_secondary_angle|floatformat:1 }}</td>
+        <td>{{ sourcedata.ii_field_size }}</td>
+        <td>{{ mechanicaldata.doserelateddistancemeasurements_set.get.distance_source_to_detector|floatformat:0 }}</td>
+		    <td>{{ event.patient_table_relationship_cid|title }}, {{ event.patient_orientation_cid|title }}, {{ event.patient_orientation_modifier_cid|title }}
+    </tr>
+      {% endwith %}{% endwith %}
+    {% endfor %}
+</table>
+
+{% if is_paginated %}
+<p class="pagination">
+    {% if has_next %}
+    <a class="older" href="?page={{ next }}" title="View older posts">Older</a>
+    {% endif %}
+    {% if has_next and has_previous %} | {% endif %}
+    {% if has_previous %}
+    <a class="newer" href="?page={{ previous }}" title="View newer posts">Newer</a>
+    {% endif %}
+</p>
+{% endif %}
+
+{% endblock %}

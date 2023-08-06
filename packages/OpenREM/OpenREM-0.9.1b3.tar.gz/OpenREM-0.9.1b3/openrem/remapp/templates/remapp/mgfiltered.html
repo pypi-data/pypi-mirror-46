@@ -1,0 +1,396 @@
+{% extends "remapp/filteredbase.html" %}
+
+{% block navmg%}<li class="active">{% endblock %}
+
+{% block toprow %}
+      <p>
+        There are {{ filter|length }} studies in this list.
+      </p>
+{% endblock %}
+
+
+
+{% block col2 %}
+  <div class="panel panel-info small">
+  <div class="panel-heading">
+      <h3 class="panel-title">Data export</h3>
+  </div>
+  <div class="panel-body">
+    {% if admin.exportgroup %}
+        <p><strong>Note:</strong> Apply the exam filter first to refine what is exported.</p>
+    <p>
+      <a href="{% url 'mgcsv1' 0 0 %}?{{ request.GET.urlencode }}"
+             class="btn btn-default btn-sm" role="button">Export to CSV&nbsp;</a>
+          {% if admin.pidgroup %}
+              <a href="{% url 'mgcsv1' 1 0 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With names</a>
+              <a href="{% url 'mgcsv1' 0 1 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With ID</a>
+              <a href="{% url 'mgcsv1' 1 1 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With both</a>
+    </p>
+    <p>
+          {% endif %}
+      <a href="{% url 'mgxlsx1' 0 0 %}?{{ request.GET.urlencode }}"
+             class="btn btn-default btn-sm" role="button">Export to xlsx</a>
+          {% if admin.pidgroup %}
+              <a href="{% url 'mgxlsx1' 1 0 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With names</a>
+              <a href="{% url 'mgxlsx1' 0 1 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With ID</a>
+              <a href="{% url 'mgxlsx1' 1 1 %}?{{ request.GET.urlencode }}"
+                 class="btn btn-default btn-sm" role="button">With both</a>
+    </p>
+    <p>
+          {% endif %}
+          <a href="{% url 'mgnhsbsp' %}?{{ request.GET.urlencode }}"
+             class="btn btn-default btn-sm" role="button">Export to CSV using the NHSBSP format</a>
+    </p>
+
+  {% else %}
+    <p>
+      No export permissions
+    </p>
+  {% endif %}
+
+
+  </div>
+  </div>
+
+
+    {{ studyfilter }}
+
+    <form action="" method="get" class="form-horizontal" role="form">
+          <div class="panel panel-info small">
+            <div class="panel-heading">
+              <h3 class="panel-title">Exam filter</h3>
+            </div>
+            <div class="panel-body">
+                <i>Date format yyyy-mm-dd</i>
+                        {% for field in filter.form %}
+                            <div class="form-group">
+                                <div class="col-xs-4">
+                                    <label>{{ field.label_tag }}</label>
+                                </div>
+                                <div class="col-xs-8">
+                                  {{ field.errors }}
+                                  {{ field }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    <input class="btn btn-default" type="submit" />
+            </div>
+            <div class="panel-heading">
+                <h3 class="panel-title">Chart options</h3>
+            </div>
+            <div class="panel-body">
+                <table>
+                    {% csrf_token %}
+                    {{ chartOptionsForm }}
+                </table>
+                <input class="btn btn-default" name="submit" type="submit" />
+            </div>
+            <div class="panel-heading">
+                <h3 class="panel-title">Table options</h3>
+            </div>
+            <div class="panel-body">
+                <table>
+                    {{ itemsPerPageForm }}
+                </table>
+                <input class="btn btn-default" name="submit" type="submit" />
+            </div>
+          </div>
+    </form>
+
+    <script src="{{ STATIC_URL }}js/datepicker.js"></script>
+    <script src="{{ STATIC_URL }}js/formatDate.js"></script>
+
+{% endblock %}
+
+{% block col1 %}
+
+
+    <table class="table table-bordered table-hover row-clickable small">
+        <tr>
+            <th>Institution</th>
+            <th>
+                <table>
+                    <tr><td>Make</td></tr>
+                    <tr><td>Model</td></tr>
+                    <tr><td class="nowrap">Display name</td></tr>
+                </table>
+            </th>
+            <th>Date</th>
+            <th>
+                <table>
+                    <tr><td class="nowrap">Study description</td></tr>
+                    <tr><td class="nowrap">Procedure</td></tr>
+                    <tr><td class="nowrap">Requested Procedure</td></tr>
+                    <tr><td class="nowrap">Accession number</td></tr>
+                </table>
+            </th>
+            <th>Number of events</th>
+            <th>Accumulated AGD (mGy)</th>
+            {% if admin.admingroup %}
+            <th>Delete?</th>
+            {% endif %}
+        </tr>
+        {% for exam in study_list %}
+          {% with equipment=exam.generalequipmentmoduleattr_set.get %}
+          {% with projection_set=exam.projectionxrayradiationdose_set.get %}
+          {% with accum_mammo_set=projection_set.accumxraydose_set.get.accummammographyxraydose_set.all %}
+        <tr>
+            <td>
+                <a href="{% url 'mg_detail_view' pk=exam.id %}">
+                    {{ equipment.institution_name }}
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'mg_detail_view' pk=exam.id %}">
+                    <table onclick="window.location='{% url 'mg_detail_view' pk=exam.id %}';">
+                        <tr><td class="nowrap">{{ equipment.manufacturer }}</td></tr>
+                        <tr><td class="nowrap">{{ equipment.manufacturer_model_name }}</td></tr>
+                        <tr><td class="nowrap">{{ equipment.unique_equipment_name.display_name }}</td></tr>
+                    </table>
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'mg_detail_view' pk=exam.id %}">
+                    {{ exam.study_date|date:"Y-m-d" }} {{ exam.study_time|date:"H:i" }}
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'mg_detail_view' pk=exam.id %}">
+                    <table onclick="window.location='{% url 'mg_detail_view' pk=exam.id %}';">
+                        <tr><td class="nowrap">{{ exam.study_description }}</td></tr>
+                        <tr><td class="nowrap">{{ exam.procedure_code_meaning }}</td></tr>
+                        <tr><td class="nowrap">{{ exam.requested_procedure_code_meaning }}</td></tr>
+                  {% if not exam.accession_hashed %}
+                        <tr><td class="nowrap">{{ exam.accession_number }}</td></tr>
+                  {% endif %}
+                    </table>
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'mg_detail_view' pk=exam.id %}">
+                    {{ projection_set.irradeventxraydata_set.count }}
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'mg_detail_view' pk=exam.id %}">
+                {% for breast in accum_mammo_set %}
+                    {% if breast.laterality.code_meaning == "Left breast" %}
+                        Left:&nbsp;{{ breast.accumulated_average_glandular_dose|floatformat:3 }}<br>
+                    {% elif breast.laterality.code_meaning == "Right breast" %}
+                        Right:&nbsp;{{ breast.accumulated_average_glandular_dose|floatformat:3 }}<br>
+                    {% elif breast.laterality.code_meaning == "Both breasts" %}
+                        Both:&nbsp;{{ breast.accumulated_average_glandular_dose|floatformat:3 }}<br>
+                    {% endif %}
+                {% endfor %}
+                </a>
+            </td>
+            {% if admin.admingroup %}
+            <td>
+              <a href="{% url 'study_delete' exam.id %}">Delete</a>
+            </td>
+            {% endif %}
+        </tr>
+          {% endwith %}{% endwith %}{% endwith %}
+        {% endfor %}
+    </table>
+
+
+
+{% endblock %}
+
+{% block plotdata %}
+
+    {% if request.user.userprofile.plotCharts %}
+
+        <script src="{{ STATIC_URL }}js/django_reverse/reverse.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartFullScreen.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartSetExportSize.js"></script>
+        <script src="{{ STATIC_URL }}js/chroma.min.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartUpdateData.js"></script>
+
+        <div class="ajax-progress"><img src="{{ STATIC_URL }}img/ajax-loader.gif"></div>
+
+        <!-- Include JavaScript to enable highcharts plots -->
+        <script src="{{ STATIC_URL }}js/charts/highcharts.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/boost.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/exporting.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/offline-exporting.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/export-csv.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/drilldown.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartSortingRoutines.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartHistogramNormalise.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartAverageAndHistogram.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartAverageOverTime.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartFrequency.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartWorkload.js"></script>
+        <script src="{{ STATIC_URL }}js/charts/chartScatter.js"></script>
+        <!-- End of include JavaScript to enable highcharts plots -->
+
+        <script>var plotAverageChoice = '{{ request.user.userprofile.plotAverageChoice }}';</script>
+
+        <!-- JavaScript to enable bootstrap tooltips -->
+        <script>
+            $(document).ready(function(){
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+        </script>
+        <!-- End of JavaScript to enable bootstrap tooltips -->
+
+        <!-- JavaScript function to sort a list of objects by the 'y' or 'name' object. -->
+        <script src="{{ STATIC_URL }}js/charts/sorting.js"></script>
+        <!-- End of JavaScript function to sort a list of objects by the 'y' or 'name' object -->
+
+        <!-- JavaScript chart AJAX code. -->
+        <script src="{{ STATIC_URL }}js/charts/mgChartAjax.js"></script>
+        <!-- End of JavaScript chart AJAX code. -->
+
+        {% if request.user.userprofile.plotMGAGDvsThickness %}
+            <!-- HTML to include div container for scatter plot -->
+            <div class="panel-group" id="accordionScatter1">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordionScatter1" href="#collapseScatter1" onclick="setTimeout(function() {fitChartToDiv('scatterDIV1');}, 0);">
+                                Scatter plot chart showing AGD vs. compressed breast thickness.
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseScatter1" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div id="scatterDIV1" style="height: auto; margin: 0 0"></div>
+                            <a onclick="$('#scatterDIV1').highcharts().viewData(false, false, true); enterFullScreen('collapseScatter1', 'scatterDIV1'); $('#toggle_scatteragd_data_btn').toggle();" class="btn btn-default btn-sm" role="button">Toggle fullscreen</a>
+                            <a onclick="$('#scatterDIV1').highcharts().viewData(true, true);" class="btn btn-default btn-sm" role="button" id="toggle_scatteragd_data_btn">Toggle data table</a>
+                            <a onclick="hideOrShowAllSeries('scatterDIV1', 'hide', 'agd_thick_series_')" class="btn btn-default btn-sm" role="button" id="agd_thick_series_hide">Hide all series</a>
+                            <a onclick="hideOrShowAllSeries('scatterDIV1', 'show', 'agd_thick_series_')" class="btn btn-default btn-sm" role="button" id="agd_thick_series_show">Show all series</a>
+                            <a onclick="toggleAllSeries('scatterDIV1')" class="btn btn-default btn-sm" role="button" id="agd_thick_series_toggle">Toggle all series</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of HTML to include div container for scatter plot -->
+
+            <script>
+                $('#agd_thick_series_show').hide();
+
+                var plotMGAGDvsThickness = true;
+                $(window).resize(function() {
+                    chartSetExportSize('scatterDIV1');
+                    fitChartToDiv('scatterDIV1');
+                });
+                result = chartScatter('Average glandular dose vs. compressed thickness', 'scatterDIV1', 'Compressed thickness (mm)', 'Average glandular dose (mGy)');
+            </script>
+        {% endif %}
+
+        {% if request.user.userprofile.plotMGkVpvsThickness %}
+            <!-- HTML to include div container for scatter plot -->
+            <div class="panel-group" id="accordionScatter2">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordionScatter2" href="#collapseScatter2" onclick="setTimeout(function() {fitChartToDiv('scatterDIV2');}, 0);">
+                                Scatter plot chart showing kVp vs. compressed breast thickness.
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseScatter2" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div id="scatterDIV2" style="height: auto; margin: 0 0"></div>
+                            <a onclick="$('#scatterDIV2').highcharts().viewData(false, false, true); enterFullScreen('collapseScatter2', 'scatterDIV2'); $('#toggle_scatterkvp_data_btn').toggle();" class="btn btn-default btn-sm" role="button">Toggle fullscreen</a>
+                            <a onclick="$('#scatterDIV2').highcharts().viewData(true, true);" class="btn btn-default btn-sm" role="button" id="toggle_scatterkvp_data_btn">Toggle data table</a>
+                            <a onclick="hideOrShowAllSeries('scatterDIV2', 'hide', 'kvp_thick_series_')" class="btn btn-default btn-sm" role="button" id="kvp_thick_series_hide">Hide all series</a>
+                            <a onclick="hideOrShowAllSeries('scatterDIV2', 'show', 'kvp_thick_series_')" class="btn btn-default btn-sm" role="button" id="kvp_thick_series_show">Show all series</a>
+                            <a onclick="toggleAllSeries('scatterDIV2')" class="btn btn-default btn-sm" role="button" id="kvp_thick_series_toggle">Toggle all series</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of HTML to include div container for scatter plot -->
+
+            <script>
+                $('#kvp_thick_series_show').hide();
+
+                var plotMGkVpvsThickness = true;
+                $(window).resize(function() {
+                    chartSetExportSize('scatterDIV2');
+                    fitChartToDiv('scatterDIV2');
+                });
+                result = chartScatter('kVp vs. compressed thickness', 'scatterDIV2', 'Compressed thickness (mm)', 'kVp (kV)');
+            </script>
+        {% endif %}
+
+        {% if request.user.userprofile.plotMGmAsvsThickness %}
+            <!-- HTML to include div container for scatter plot -->
+            <div class="panel-group" id="accordionScatter3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordionScatter3" href="#collapseScatter3" onclick="setTimeout(function() {fitChartToDiv('scatterDIV3');}, 0);">
+                                Scatter plot chart showing exposure vs. compressed breast thickness.
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseScatter3" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div id="scatterDIV3" style="height: auto; margin: 0 0"></div>
+                            <a onclick="$('#scatterDIV3').highcharts().viewData(false, false, true); enterFullScreen('collapseScatter3', 'scatterDIV3'); $('#toggle_scattermas_data_btn').toggle();" class="btn btn-default btn-sm" role="button">Toggle fullscreen</a>
+                            <a onclick="$('#scatterDIV3').highcharts().viewData(true, true);" class="btn btn-default btn-sm" role="button" id="toggle_scattermas_data_btn">Toggle data table</a>
+                            <a onclick="hideOrShowAllSeries('scatterDIV3', 'hide', 'mas_thick_series_')" class="btn btn-default btn-sm" role="button" id="mas_thick_series_hide">Hide all series</a>
+                            <a onclick="hideOrShowAllSeries('scatterDIV3', 'show', 'mas_thick_series_')" class="btn btn-default btn-sm" role="button" id="mas_thick_series_show">Show all series</a>
+                            <a onclick="toggleAllSeries('scatterDIV3')" class="btn btn-default btn-sm" role="button" id="mas_thick_series_toggle">Toggle all series</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of HTML to include div container for scatter plot -->
+
+            <script>
+                $('#mas_thick_series_show').hide();
+
+                var plotMGmAsvsThickness = true;
+                $(window).resize(function() {
+                    chartSetExportSize('scatterDIV3');
+                    fitChartToDiv('scatterDIV3');
+                });
+                result = chartScatter('Exposure vs. compressed thickness', 'scatterDIV3', 'Compressed thickness (mm)', 'Exposure (mAs)');
+            </script>
+        {% endif %}
+
+        {% if request.user.userprofile.plotMGStudyPerDayAndHour %}
+            <!-- HTML to include div container for study workload -->
+            <div class="panel-group" id="accordion5">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion5" href="#collapseStudyWorkloadPieChart" onclick="setTimeout(function() {fitChartToDiv('piechartStudyWorkloadDIV');}, 0);">
+                                Pie chart showing a breakdown of number of studies per weekday.
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseStudyWorkloadPieChart" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div id="piechartStudyWorkloadDIV" style="height: auto; margin: 0 0"></div>
+                            <p>Click on a segment to be taken to a pie chart showing the breakdown per hour for that weekday.</p>
+                            <a onclick="$('#piechartStudyWorkloadDIV').highcharts().viewData(false, false, true); enterFullScreen('collapseStudyWorkloadPieChart', 'piechartStudyWorkloadDIV'); $('#toggle_studywl_data_btn').toggle();" class="btn btn-default btn-sm" role="button">Toggle fullscreen</a>
+                            <a onclick="$('#piechartStudyWorkloadDIV').highcharts().viewData(true, true);" class="btn btn-default btn-sm" role="button" id="toggle_studywl_data_btn">Toggle data table</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of HTML to include div container for studies per week day pie chart -->
+            <script>
+                var plotMGStudyPerDayAndHour = true;
+                $(window).resize(function() {
+                    chartSetExportSize('piechartStudyWorkloadDIV');
+                    fitChartToDiv('piechartStudyWorkloadDIV');
+                });
+                result = chartWorkload('piechartStudyWorkloadDIV', 'Studies');
+            </script>
+        {% endif %}
+
+    {% endif %}
+{% endblock %}
