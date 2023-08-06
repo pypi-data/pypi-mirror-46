@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+
+from taskw_gcal_sync import TWGCalAggregator
+from taskw_gcal_sync.clogger import setup_logging
+import logging
+import click
+
+
+@click.command()
+@click.option('-c', '--gcal-calendar', required=True, type=str,
+              help='Name of the Google Calendar to sync (will be created if not there)')
+@click.option('-t', '--taskwarrior-tag', 'tw_tags', required=True, type=str,
+              help='Taskwarrior tags to sync',
+              multiple=True)
+def main(gcal_calendar, tw_tags):
+    """Main."""
+
+    assert len(tw_tags) == 1, \
+        "Trying with multiple tags hasn't been tested yet. Exiting..."
+
+    logger = logging.getLogger(__name__)
+    setup_logging(__name__)
+    logger.info("Initialising...")
+    tw_config = {
+        "tags": list(tw_tags),
+    }
+    gcal_config = {
+        'calendar_summary': gcal_calendar,
+    }
+
+    with TWGCalAggregator(tw_config=tw_config,
+                          gcal_config=gcal_config) as aggregator:
+
+        aggregator.start()
+
+        tw_items = aggregator.tw_side.get_all_items()
+        gcal_items = aggregator.gcal_side.get_all_items()
+
+        # Check and potentially register items
+        aggregator.register_items(tw_items, "tw")
+        aggregator.register_items(gcal_items, "gcal")
+
+        # Synchronise deleted items
+        aggregator.synchronise_deleted_items("tw")
+        aggregator.synchronise_deleted_items("gcal")
+
+
+if __name__ == "__main__":
+    main()
