@@ -1,0 +1,235 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "SR-INV-QUERY" "1" "May 18, 2019" "1.1.0" "Student Robotics Tools"
+.SH NAME
+sr-inv-query \- Help for "inv-query" tool.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH SYNOPSIS
+.sp
+\fBsr inv\-query [\-h] [\-\-codes] [\-\-paths] [\-v] <query>\fP
+.SH DESCRIPTION
+.sp
+Run a query on the inventory.
+.SH MAKING QUERIES
+.sp
+Currently, there are 3 types of expressions: \fIequality/match\fP, \fImembership\fP
+and \fIfunction\fP\&. The equality/match expression takes the form
+\fBKEY (\(aq:\(aq | \(aq=\(aq | \(aqis\(aq) VALUE\fP\&. The membership expression takes the form
+\fBKEY \(aqin\(aq \(aq{\(aq VALUE (\(aq,\(aq VALUE)* \(aq}\(aq\fP\&. The function expression takes the
+form \fBFUNCTION \(aqof\(aq EXPR\fP, where \fBEXPR\fP is another valid expression.
+.SS Supported keys
+.INDENT 0.0
+.TP
+.B Code
+Match on a part code.
+.INDENT 7.0
+.TP
+.B Keys
+\fBcode\fP
+.TP
+.B Values
+a valid SR part code, with or without the \fBsr\fP prefix
+.TP
+.B Example
+\fBcode:srEEN\fP
+.UNINDENT
+.TP
+.B Serial
+Match on a serial number.
+.INDENT 7.0
+.TP
+.B Keys
+\fBserial\fP
+.TP
+.B Values
+a valid serial number
+.TP
+.B Example
+\fBserial:D851F850\fP
+.UNINDENT
+.TP
+.B Condition
+Match on the condition of a part/assembly.  An assembly is considered
+\fBworking\fP if and only if all expected sub\-parts are considered
+\fBworking\fP\&. If any sub\-part is \fBbroken\fP or missing, the assembly is
+\fBbroken\fP\&.  If any sub\-part is \fBunknown\fP and the assembly is not
+\fBbroken\fP then the assembly is \fBunknown\fP\&.
+.INDENT 7.0
+.TP
+.B Keys
+\fBcondition\fP, \fBcond\fP
+.TP
+.B Values
+\fBworking\fP, \fBunknown\fP, \fBbroken\fP
+.TP
+.B Example
+\fBcondition is working\fP
+.UNINDENT
+.TP
+.B Labelled
+Match based on how labelled a part is.
+.INDENT 7.0
+.TP
+.B Keys
+\fBlabelled\fP
+.TP
+.B Values
+\fBtrue\fP, \fBfalse\fP
+.TP
+.B Example
+\fBlabelled=true\fP
+.UNINDENT
+.TP
+.B Type or name of part
+Match on the name of a part/assembly.  Python\(aqs \fBfnmatch\fP is used, and it
+uses glob\-like syntax. Basic usage: \(aq\fB*\fP\(aq matches any character, any
+number of times; \fB?\fP matches a single character; \fB[ab]\fP matches one of
+the characters \fBa\fP or \fBb\fP\&.
+.INDENT 7.0
+.TP
+.B Keys
+\fBtype\fP
+.TP
+.B Values
+a glob\-like pattern
+.TP
+.B Examples
+\fBtype:power*\fP, for all parts whose name begins with \(aqpower\(aq
+.UNINDENT
+.TP
+.B Path
+Match on the path to the part in the inventory. Python\(aqs \fBfnmatch\fP is
+used here too, but with an implicit \fB*\fP at the end. This makes path
+searching more intuitive.
+.INDENT 7.0
+.TP
+.B Keys
+\fBpath\fP
+.TP
+.B Values
+\fIa valid glob\-like pattern\fP
+.TP
+.B Example
+\fBpath:vault\fP, for all parts under any path, relative to the inventory
+root, that begins with \(aq\fBvault\fP\(aq
+.UNINDENT
+.TP
+.B Assembly
+Match based on whether a part/assembly is an assembly or not.
+.INDENT 7.0
+.TP
+.B Keys
+\fBassy\fP
+.TP
+.B Values
+\fBtrue\fP, \fBfalse\fP
+.TP
+.B Example
+\fBassy:true\fP
+.UNINDENT
+.UNINDENT
+.SS Logic
+.sp
+\fBAND\fP, \fBOR\fP, and \fBNOT\fP are all supported. \fBNOT\fP may be abreviated to
+\fB!\fP\&. When two expressions appear side\-by\-side with no operator (\fBAND\fP, or
+\fBOR\fP) between them, \fBAND\fP is assumed, e.g. \fBa b\fP is equivalent to
+\fBa AND b\fP\&. These keywords are not case insensitive.
+.sp
+One may also use parenthetic expressions.
+.SS Function Expressions
+.sp
+Function expressions currently allow one to \fImap\fP the list of matches (from
+the input expression) using some named function.  The current functions are:
+\fBparent\fP, \fBsiblings\fP, \fBchildren\fP, and \fBdescendants\fP\&.  For example,
+\fBparent of type:power\-board\-sr13.f\fP will return the parent nodes of sr13
+power boards.  (Note that this particular example doesn\(aqt guarantee the
+parents are assemblies, they could be boxes for example.  One can fix this
+by adding \fBassy:true\fP\&.)  Function expressions bind tighter than \fBAND\fP, so
+\fBparent of type:power\-board\-sr13.f AND assy:true\fP, with parentheses for
+clarity, means \fB(parent of type:power\-board\-sr13.f) AND assy:true\fP\&.
+.SS Examples
+.INDENT 0.0
+.IP \(bu 2
+\fBcond:working\fP \- returns all working parts and assemblies.
+.IP \(bu 2
+\fBtype is *power*\fP \- returns parts that match that glob pattern (power boards
+and assys, power supplies, etc...).
+.IP \(bu 2
+\fB!path:vault\fP \- returns items not under paths starting with \fBvault\fP\&.
+.IP \(bu 2
+\fBpath:vault !cond:working\fP \- returns the things in the vault that are not
+\fBworking\fP (note the implicit \fBAND\fP).
+.IP \(bu 2
+\fBcond:working AND (path:bees OR path:face)\fP \- returns working things in
+\fBbees*\fP or in \fBface*\fP\&.  This could be simplified with the membership syntax:
+\fBcond:working AND path in {bees*, face*}\fP
+.IP \(bu 2
+\fBtype in {motor\-board\-sr11.f, motor\-board\-sr13.f}\fP \- returns all of our motor
+boards.  In this case, a glob pattern could be used to shorten it:
+\fBtype:motor\-board\-sr1[13].f\fP\&.
+.IP \(bu 2
+\fBdescendants of code:srBOX and cond:broken\fP \- return all the broken things
+in srBOX.
+.IP \(bu 2
+\fBsiblings of code:srABC\fP \- things at the same level in the hierarchy as
+srABC.
+.UNINDENT
+.SH OPTIONS
+.INDENT 0.0
+.TP
+.B \-\-help\fP,\fB  \-h
+Display help and exit.
+.TP
+.B \-\-codes
+Display the results as a list of asset codes.
+.TP
+.B \-\-paths
+Display the results as a list of paths.
+.TP
+.B \-v
+Enable verbose mode.
+.UNINDENT
+.SH EXAMPLES
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ sr inv\-query code:N1V36
+/.../teams/2015/crb/box\-18l\-rub\-sr0G64/webcam\-logitech\-c270\-srN1V36
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH AUTHOR
+Student Robotics
+.SH COPYRIGHT
+2014, Student Robotics
+.\" Generated by docutils manpage writer.
+.
