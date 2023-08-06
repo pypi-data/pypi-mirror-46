@@ -1,0 +1,170 @@
+#!/bin/busybox sh
+set -e
+
+MOUNT='busybox mount'
+UMOUNT='busybox umount'
+ROOTFS='/tmp/rootfs'
+ROOTFS_BUSYBOX_APPLETS="
+    sh ls timeout reboot sleep nc chroot
+    mktemp mkfifo sed
+"
+IMAGE_SCRIPTS="
+    /bin/walt-nfs-watchdog /bin/walt-net-service
+    /bin/walt-notify-bootup /bin/walt-rpc
+    /bin/walt-clock-sync
+"
+
+admin_sh()
+{
+    echo 'Starting a shell.'
+    echo '(the node will be rebooted on exit.)'
+    # Inspired from Debian's initrd scripts
+    read console rest </proc/consoles
+    [ "${console}" = "tty0" ] && console="tty1"
+    # see http://www.busybox.net/FAQ.html#job_control
+    setsid sh -c "exec sh -i <>/dev/${console} 1>&0 2>&1"
+    reboot -f
+}
+
+reboot_or_sh()
+{
+    echo '>>> Issue detected!               <<<'
+    echo 'Will reboot... (or press <ENTER> now for a shell)'
+    busybox timeout -t 5 busybox head -n 1 && admin_sh || busybox reboot -f
+}
+
+trap reboot_or_sh EXIT
+
+do_mounts()
+{
+    [ -e "/proc/self" ] || $MOUNT -t proc none /proc
+    [ -e "/dev/null" ] || $MOUNT -t devtmpfs none /dev
+    $MOUNT -t tmpfs none /tmp
+}
+
+run_script_in_rootfs()
+{
+    cd $ROOTFS
+    mode="$1"
+    script_path="bin/$2"
+    shift 2; args="$@"
+    if [ "$mode" = "fg" ]
+    then
+        busybox chroot . bin/sh $script_path $args
+    else
+        busybox chroot . bin/sh $script_path $args &
+    fi
+    cd - >/dev/null
+}
+
+prepare_rootfs()
+{
+    mkdir $ROOTFS
+    cd $ROOTFS
+    mkdir -p tmp bin dev mnt/nfsroot
+    cp "$(which busybox)" bin/
+    for image_script in $IMAGE_SCRIPTS
+    do
+        cp $image_script bin/
+    done
+    for c in $ROOTFS_BUSYBOX_APPLETS
+    do
+        ln -s busybox bin/$c
+    done
+    # make the NFS mount and /dev visible in the rootfs
+    $MOUNT -o bind,ro /     mnt/nfsroot
+    $MOUNT -o bind    /dev  dev
+    cd - >/dev/null
+}
+
+# we will start 2 background processes in a chroot rooted in memory
+# (at /tmp/rootfs, and /tmp is a tmpfs filesystem):
+# * an nfs watchdog that will monitor the nfs mount and reboot the
+#   node if nfs connection is lost
+# * a lightweight network service able to fulfill soft-reboot and
+#   led blink requests coming from the server
+# We could not start those processes on the final rootfs because
+# they could be affected by NFS disconnections or various other OS
+# issues possibly occurring on the image.
+# And we need those features to be as robust as possible, in order
+# to avoid the case of unresponsive nodes with no way to reboot them
+# remotely.
+# It may seem dirty to keep background processes running when we
+# exec the real OS init, but this is a simple and generic way to
+# handle these features in all WalT images.
+start_background_processes()
+{
+    run_script_in_rootfs bg walt-nfs-watchdog
+    run_script_in_rootfs bg walt-net-service mnt/fs_union
+    run_script_in_rootfs bg walt-notify-bootup
+}
+
+# since we share the NFS export across all rpi nodes,
+# this mount must remain read-only.
+# in order to enable writes, each rpi will write
+# the filesystem changes in memory.
+# this is done by using a 'union' filesystem
+# called overlayfs.
+mount_union()
+{
+    cd $ROOTFS/mnt
+    # Overlay filesystem may be compiled in the kernel
+    # or provided as a module. Let's try to load it as
+    # a module and ignore errors.
+    modprobe overlay 2>/dev/null || modprobe overlayfs 2>/dev/null || true
+
+    # creating the union
+    # /: the nfs mount (that should remain read-only)
+    # fs_rw: the place to hold the filesystem changes
+    # fs_union: the mount point of the union
+    mkdir fs_rw fs_work fs_union
+    $MOUNT -t overlay -o upperdir=fs_rw,lowerdir=/,workdir=fs_work \
+                        union fs_union 2>/dev/null || \
+    $MOUNT -t overlayfs -o upperdir=fs_rw,lowerdir=/ union fs_union
+}
+
+# This is the persistent mount point, available even across reboots.
+# Data are stored on the server through a NFS share.
+mount_persistent()
+{
+    cd $ROOTFS/mnt
+
+    # Compute persistent storage path from NFS root
+    NFS_REMOTE_PATH=$(findmnt / --output SOURCE --noheadings)
+    PERSIST_PATH=${NFS_REMOTE_PATH%/*}/persist
+
+    # Mount the share
+    mkdir fs_union/persist
+    $MOUNT -t nfs -o rw,relatime,vers=3,nolock \
+           "${PERSIST_PATH}" fs_union/persist
+}
+
+update_mounts()
+{
+    $MOUNT -o bind /dev $ROOTFS/mnt/fs_union/dev
+    $UMOUNT /proc
+}
+
+run_real_init()
+{
+    cd $ROOTFS/mnt/fs_union
+    exec busybox chroot . sbin/init $@
+}
+
+# let's go
+echo "*** Mounting...                    ***"
+do_mounts
+echo "*** Preparing rootfs...            ***"
+prepare_rootfs
+echo "*** Mounting filesystem union...   ***"
+mount_union
+echo "*** Mounting persistent filesystem ***"
+mount_persistent
+echo "*** Re-mounting over the union...  ***"
+update_mounts
+echo "*** Setting clock...               ***"
+run_script_in_rootfs fg walt-clock-sync
+echo "*** Starting bg processes...       ***"
+start_background_processes
+echo "*** Starting walt image init...    ***"
+run_real_init
