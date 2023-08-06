@@ -1,0 +1,30 @@
+language: python
+
+python:
+  - '3.6'
+
+install: "pip install -r requirements-test.txt"
+
+jobs:
+  include:
+    # The linting test is fast and cheap so run it first
+    - stage: Linting Test
+      script: 
+        # Check Black code style compliance
+        - black ./ --skip-string-normalization --check
+        # Check PEP-8 compliance
+        - flake8
+
+    # The unit test is a bit more expensive so run it only
+    # if the linting test passes
+    - stage: Unit Test
+      sudo: required
+      services: docker
+      script: cd cromwell_tools/tests && bash test.sh
+
+notifications:
+  slack:
+    on_success: change
+    on_failure: always
+    rooms:
+      secure: BxG063EvQkN1zuFWwMrbtWz3jjHmSDOj9TQIipfXSwZtMJ3d9eWHh6knDPTtW7yNIuvapZI7xvdX/7hRLW01EyO2jXxVyLa1KP64RShwRZ9x1M5uORrmu2nYFdBDr7ETlsxku/X7yKIzC9pglDkl9q8UXII72bamHZCl5VnBDlel93wNgj0VfKax6l3I87zqOtq6HSHm4LwpELUI6NzgtufTDBgsrHosC+uiyqtcXDNlunGh3sXD36o3qVvuSQcUweBszr8DkF/Io0lDHnbL6kYInTuSbWJQX5ZVjppPZqyrhGeE6Q70fbOeUzYCwuQE42pxTDtnwoYPBhQQwjCZ7ljhDm7ZbuailA8bMkk/c3anIYodkt1oW/B43qtdFANzWOmSotgvjAZj5zF+qJLT7knQivWgL4oDmauevmpW4G/RklWTfXh9MpbRFnwtqCcbEJVmck3xEevQdGd7EmNWkDZ/1ktfslwOHYvmI3Bci7gRADknDJhNp+ykqub0QXD4jUOgFD5xoqgtn//F+yB+fhO2IptpkFcKc0nnH4qDJbfa0PwlYIt0Ecn9xAaQ1rHB7lJCKTjXK8El5IgqmcS4T0ftKCKmQHWayr3iiLwNwLoZMejwJcwEFmzmn8O3/TUzXSEedeD2/dU8z/6fN2FiXw7CSD4vxWby3yiopcKkkQk=
