@@ -1,0 +1,110 @@
+{% import 'report.html' as report %}
+<html lang="en">
+<head>
+    <title>Meetup Event Changes on Xibo Signs</title>
+    <meta charset="UTF-8"> 
+    <style>
+dt {
+    margin-top: 0.75em;
+}
+.action {
+    font-weight: bold;
+}
+
+.warning {
+    font-weight: bold;
+    color: Red;
+}
+
+table.blueTable {
+  border: 1px solid #1C6EA4;
+  background-color: #EEEEEE;
+  text-align: left;
+  border-collapse: collapse;
+}
+table.blueTable td, table.blueTable th {
+  border: 1px solid #AAAAAA;
+  padding: 3px 5px;
+}
+table.blueTable tbody td {
+  font-size: 1em;
+}
+table.blueTable tbody td.count {
+  text-align: right;
+}
+table.blueTable tr:nth-child(even) {
+  background: #D0E4F5;
+}
+table.blueTable thead {
+  background: #1C6EA4;
+  background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+  background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+  background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+  border-bottom: 2px solid #444444;
+}
+table.blueTable thead th {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #FFFFFF;
+  text-align: center;
+  border-left: 2px solid #D0E4F5;
+}
+table.blueTable thead th:first-child {
+  border-left: none;
+}
+    </style
+</head>
+<body>
+    <h2>Program Execution</h2>
+{% if counters %}
+    <table class="blueTable">
+        <thead>
+            <tr>
+                <th>Version</th>
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody>
+{% for name, count in counters %}
+            <tr>
+                <td>{{ name }}</td>
+                <td class="count">{{ count|safe }}</td>
+            </tr>
+{% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>None</p>
+{% endif %}
+
+{% if current_event_logs %}
+    <h2>Changes to Xibo Current and Future Event Listings</h2>
+        <dl>
+{% for event_log in current_event_logs %}
+            <dt>{{ report.linked_event_display(event_log.final_event) }}</dt>
+            <dd><dl>
+{% for log_line in event_log.log_lines %}
+                {{ report.log_line_display(log_line, event_log.final_event) }}
+{% endfor %}
+            </dl></dd>
+{% endfor %}
+        </dl>
+{% endif %}
+
+{% if past_event_logs %}
+    <h2>Changes to Xibo Past Event Listings</h2>
+        <dl>
+{% for event_log in past_event_logs %}
+            <dt>{{ report.linked_event_display(event_log.final_event) }}</dt>
+            <dd><dl>
+{% for log_line in event_log.log_lines %}
+                {{ report.log_line_display(log_line, event_log.final_event) }}
+{% endfor %}
+            </dl></dd>
+{% endfor %}
+        </dl>
+{% endif %}
+
+</body>
+</html>
+{# vim: set tabstop=8 expandtab shiftwidth=4 softtabstop=4 autoindent: #}
