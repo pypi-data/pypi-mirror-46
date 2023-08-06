@@ -1,0 +1,161 @@
+Metadata-Version: 2.1
+Name: collective.eeafaceted.dashboard
+Version: 0.8
+Summary: This package is the glue between different packages offering a usable and integrated dashboard application
+Home-page: http://pypi.python.org/pypi/collective.eeafaceted.dashboard
+Author: IMIO
+Author-email: dev@imio.be
+License: GPL V2
+Description: .. image:: https://travis-ci.org/collective/collective.eeafaceted.dashboard.svg?branch=master
+            :target: https://travis-ci.org/collective/collective.eeafaceted.dashboard
+        .. image:: https://coveralls.io/repos/collective/collective.eeafaceted.dashboard/badge.png?branch=master
+           :target: https://coveralls.io/r/collective/collective.eeafaceted.dashboard?branch=master
+        
+        
+        collective.eeafaceted.dashboard
+        ===============================
+        
+        This package does the glue between :
+        
+        - `collective.eeafaceted.collectionwidget <https://github.com/collective/collective.eeafaceted.collectionwidget>`_
+        - `collective.eeafaceted.z3ctable <https://github.com/collective/collective.eeafaceted.z3ctable>`_
+        - `collective.compoundcriterion <https://github.com/collective/collective.compoundcriterion>`_
+        - `collective.documentgenerator <https://github.com/collective/collective.documentgenerator>`_
+        
+        This build a useable eea.facetednavigation based dashboard (works on both Plone 4.3.x and Plone 5.x).  Use the demo profile to easily check what it does :
+        
+        .. image:: https://github.com/IMIO/collective.eeafaceted.dashboard/blob/master/doc/screenshots/application.png
+        
+        .. image:: https://github.com/IMIO/collective.eeafaceted.dashboard/blob/master/doc/screenshots/review.png
+        
+        Dashboard is essentially made of a faceted widget displaying pre-configured searches, results are displayed in a faceted layout using a table.
+        
+        The searches filter (collective.eeafaceted.collectionwidget) :
+        --------------------------------------------------------------
+        
+        This filter aims to display "functional and already well thought" searches to users.
+        
+        - this filter uses the collective.eeafaceted.collectionwidget that is a faceted navigation widget displaying a list of searches stored in current folder;
+        - searches stored in folder are elements of type DashboardCollection (based on plone.app.contenttypes Collection) with 3 specific fields "Show number of items in filter?", "Enabled?" and "Condition" (let's Managers enter a TAL expression to define to who this search will be displayed in the collection faceted filter);
+        - it is possible to display the count information on a per search basis (here it is enabled for "Elements to review" and "Expired elements" searches);
+        - the current page title changes depending on selected search;
+        - a default search can be selected so it is executed when user access the dashboard.
+        
+        The table faceted layout (collective.eeafaceted.z3ctable) :
+        -----------------------------------------------------------
+        
+        Every faceted layout can be selected to display the dashboard results but collective.eeafaceted.z3ctable add a new faceted layout that displays a z3c.table with sortable columns (using the sort icons in the column header) and a selection column.
+        
+        - columns may be selected on the defined DashboardCollections so different columns may be displayed for different searches;
+        - a "refresh search results" is available so user may refresh the faceted layout without having to reload the entire page;
+        - the selection column is useable with collective.documentgenerator or collection.eeafaceted.batchactions for example.
+        
+        Managing complex searches (collective.compoundcriterion) :
+        ----------------------------------------------------------
+        
+        This package rely on collective.compoundcriterion, it adds a new search criterion called "Filter" for Collections that will let user select a named adapter registered for the ICompoundCriterionFilter.  This adapter returns a catalog query compatible with a Collection query.  This makes it possible to manage complex searches that are not configurable on a Collection using the querywidget.
+        
+        Document generation (collective.documentgenerator) :
+        ----------------------------------------------------
+        
+        Dashboard integrates the colletive.documentgenerator package that makes it possible to export a dashboard in any format supported by collective.documentgenerator (odt, doc, docx, ods, xls, pdf, ...).  Exportable documents are managed by DashboardPODTemplates added in the dashboard folder.
+        
+        - it is possible to restrict exportation templates to specific dashboard searches;
+        - as for DashboardCollections, it is possible to define a availability condition so document may only be generated by some users.
+        
+        TODO :
+        ------
+        - integrate collective.eeafaceted.batchactions when it will work on Plone 5 (integration is already possible on Plone 4).
+        
+        
+        
+        Changelog
+        =========
+        
+        0.8 (2019-05-16)
+        ----------------
+        
+        - Do not compute collections count when initializing collections portlet, as it
+          is updated in the Faceted.AJAX_QUERY_SUCCESS event, it avoid being computed
+          twice.
+          [gbastien]
+        
+        0.7 (2019-01-03)
+        ----------------
+        
+        - Do not render widget twice when portlet faceted displayed outside dashboard.
+          [gbastien]
+        
+        0.6 (2018-12-18)
+        ----------------
+        
+        - Adapted CSS for `div.table_faceted_results` displaying number of results.
+          [gbastien]
+        
+        0.5 (2018-12-06)
+        ----------------
+        
+        - Remove contsraint on Products.ZCatalog.
+          [sdelcourt]
+        - Always use latest versions of eea products.
+          [gbastien]
+        
+        0.4 (2018-11-29)
+        ----------------
+        
+        - Sort uniquely collection vocabulary columns names, because multiple columns
+          with same name can be defined for different interfaces.
+          [sgeulette]
+        - Added parameter `default_UID` to `utils.enableFacetedDashboardFor` to set
+          default collection UID when enabling faceted on a folder.
+          [gbastien]
+        - When calling `utils.enableFacetedDashboardFor`, set a value in the `REQUEST`
+          `enablingFacetedDashboard` specifying that we are currently enabling a
+          faceted dashboard.
+          [gbastien]
+        
+        0.3 (2018-11-20)
+        ----------------
+        
+        - Make sure overrided vocabulary `plone.app.contenttypes.metadatafields` is
+          also used when adding a new DashboardCollection, so when current context is
+          not a DashboardCollection but the parent.
+          [gbastien]
+        - Added `demo` profile.
+          [gbastien]
+        - Added parameter `show_left_column=True` to `utils.enableFacetedDashboardFor`
+          to be able to not show the Plone left column when enabling dashboard on a
+          faceted folder.
+          [gbastien]
+        - Added `DashboardCollectionsVocabulary._render_term_title` to make it easy to
+          override term title rendering.
+          [gbastien]
+        - Override default eea.facetednavigation spinner (ajax-loader.gif).
+          [gbastien]
+        
+        0.2 (2018-09-04)
+        ----------------
+        
+        - Get current URL in JS to call the @@json_collections_count a way it works in
+          both Plone4 and Plone5.
+          [gbastien]
+        - Moved the `PrettyLinkColumn` and `RelationPrettyLinkColumn` to
+          `collective.eeafaceted.z3ctable`.
+          [gbastien]
+        
+        0.1 (2018-06-21)
+        ----------------
+        - Initial release.
+          [gbastien]
+        
+        
+Keywords: Python Zope Plone
+Platform: UNKNOWN
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Plone
+Classifier: Framework :: Plone :: 4.3
+Classifier: Framework :: Plone :: 5.0
+Classifier: Framework :: Plone :: 5.1
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Provides-Extra: test
