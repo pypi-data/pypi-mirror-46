@@ -1,0 +1,82 @@
+{% import '_forms.html' as forms %}
+<hr class="d-none d-print-block">
+<div class="row mb-4">
+    <div class="col-sm">
+
+        <div class="d-none d-print-block text-center offset-sm-1 col-sm-10">
+            <b id="print-filter-title"></b><br>
+            <span id="print-filter"></span>
+        </div>
+
+        <!-- {# Envia filtro e outras querystrings adicionais #}
+        <form id="submit-form" class="d-none" method="GET" charset="utf-8">
+            <input id="submit-form-filter" name='filter' type="hidden">
+            <div id="fields"></div>
+        </form> -->
+
+
+        <div class="card mt-3 d-print-none d-none {{ 'd-block' if filters else 'd-none' }}">
+            <div class="card-header">
+                Opções Pesquisa
+            </div>
+            <div class="card-body">
+
+                <form id="filter-form" method="GET" charset="utf-8">
+
+                    <input name="filter._order" type="hidden" value="{{ params.get('_order', '') }}">
+                    {% for groups in filters %}
+                        <div class="form-row">
+                            {% for filter in groups %}
+
+                                {% set _field = filter.split('__')[0] %}
+                                {% set _name = 'filter.%s' % filter %}
+                                {% set _label = display_as.get(filter, display_as.get(_field, filter)) %}
+                                {% set _type = field_types.get(_field,[])[0] %}
+                                {% set _options = field_types.get(_field,[])[1] %}
+                                {% set _format = (field_types.get(_field,[])[1] or {}).get('format','') %}
+                                {% set _format_out = (field_types.get(_field,[])[1] or {}).get('format_out','') %}
+
+                                {% if _type == 'dropdown' %}
+                                    {{ forms.input_dropdown(_name, label=_label, value=params.get(filter,''), options=_options) }}
+
+                                {% elif _type == 'multiselect' %}
+                                    {{ forms.input_multiselect(_name, label=_label, value=params.get(filter,''), options=_options) }}
+
+                                {% elif _type == 'text' %}
+                                    {{ forms.input_text(_name, label=_label, value=params.get(filter,'')) }}
+
+                                {% elif _type == 'int' %}
+                                    {{ forms.input_number(_name, label=_label, value=params.get(filter,''), format='0') }}
+
+                                {% elif _type == 'numeric' %}
+                                    {{ forms.input_number(_name, label=_label, value=params.get(filter,''), format=_format) }}
+
+                                {% elif _type == 'date' %}
+                                    {{ forms.input_date(_name, label=_label, value=params[filter], format=_format|default('DD/MM/YYYY', True), format_out=_format_out|default('YYYY-MM-DD', True)) }}
+
+                                {% elif _type == 'time' %}
+                                    {{ forms.input_date(_name, label=_label, value=params[filter], format=_format|default('HH:mm:ss', True)) }}
+
+                                {% elif _type == 'datetime' %}
+                                    {{ forms.input_date(_name, label=_label, value=params[filter], format=_format|default('DD/MM/YYYY HH:mm:ss', True), format_out=_format_out|default('YYYY-MM-DD HH:mm:ss', True)) }}
+
+                                {% else %}
+                                    {{ forms.input_string(_name, label=_label, value=params[filter]) }}
+
+                                {% endif %}
+
+                            {% endfor %}
+                        </div>
+
+                    {% endfor %}
+                    <div class="form-row">
+                        <button type="submit" id="btn-search" class="btn btn-primary d-print-none">Pesquisar</button>
+                        <button type="reset" id="btn-reset" class="btn btn-secondary ml-1 d-print-none">Limpar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+    </div>
+</div>
