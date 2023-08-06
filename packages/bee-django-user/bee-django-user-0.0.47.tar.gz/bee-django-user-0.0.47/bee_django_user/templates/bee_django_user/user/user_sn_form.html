@@ -1,0 +1,71 @@
+{% extends "bee_django_user/base.html" %}
+{% load static %}
+{% load bootstrap3 %}
+{% block content %}
+    {% include 'bee_django_user/logo.html' %}
+    {% include 'bee_django_user/nav.html' %}
+    {% include 'bee_django_user/messages.html' %}
+    <h3>缦客号区间</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>区间</th>
+            <th>当前使用</th>
+        </tr>
+        </thead>
+        {% for sn in sn_list %}
+            <tr>
+                <td class="col-xs-3">{{ sn.start }} - {{ sn.end }}</td>
+                <td>{{ sn.is_used }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h3>学生信息</h3>
+    <table class="table">
+        <tr>
+            <td class="col-xs-3">学生姓名</td>
+            <td>{{ user.first_name }}</td>
+        </tr>
+        <tr>
+            <td>登录名</td>
+            <td>{{ user.username }}</td>
+        </tr>
+        <tr>
+            <td>统一缦客号</td>
+            <td>MK{{ user.userprofile.sn|default:"" }}</td>
+        </tr>
+
+    </table>
+    <div>
+        <form method="post">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            <div style="color: red;margin-bottom: 5px;">填写的缦客号，如在区间内，最大不能超过{{ max_sn }}</div>
+            {% bootstrap_button '提交' %}
+        </form>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        {#        var editor;#}
+        {#        $(document).ready(function () {#}
+        {#            var E = window.wangEditor;#}
+        {#            var editor = new E('#editor');#}
+        {#            var $context = $('#id_context');#}
+        {##}
+        {#            editor.customConfig.onchange = function (html) {#}
+        {#                // 监控变化，同步更新到 textarea#}
+        {#                $context.val(html)#}
+        {#            };#}
+        {#            editor.create();#}
+        {#            // 初始化 textarea 的值#}
+        {#            var context = $("#edit_context").html();#}
+        {#            editor.txt.html(context);#}
+        {#            $context.val(context);#}
+
+        {#        });#}
+    </script>
+{% endblock %}
