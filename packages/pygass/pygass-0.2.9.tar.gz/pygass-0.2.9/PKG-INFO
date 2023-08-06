@@ -1,0 +1,431 @@
+Metadata-Version: 2.1
+Name: pygass
+Version: 0.2.9
+Summary: Server side implementation of Google Analytics in Python.
+Home-page: https://gitlab.com/python-open-source-library-collection/pygass
+Author: Oliver Marks
+Author-email: oly@digitaloctave.com
+License: GPL-3
+Description: #+TITLE: Python google analytics library
+        
+        * Introduction
+        This library is a simple server side implementation of google analytics it is based on the documentation here.
+        https://developers.google.com/analytics/devguides/collection/protocol/v1/devguide
+        
+        It uses the requests library to send requests directly to google with out any javascript which may be blocked client side.
+        
+        * Installation
+        #+BEGIN_SRC shell :results silent
+        pip install pygass
+        #+END_SRC
+        
+        The code is also available at this location for bug fixes or to pull from master.
+        https://gitlab.com/python-open-source-library-collection/pygass
+        
+        * Development
+        When testing its usefull to use the analytics hit builder to check the correct format.
+        https://ga-dev-tools.appspot.com/hit-builder/
+        * Examples
+        ** Simple Page tracking event
+        
+        The below example sends a page view event to google, you will need to provide an anonymous client id and the page url as a minimum.
+        
+        #+NAME: Page tracking example
+        #+BEGIN_SRC python :results output code :exports code
+          import random
+          import pprint
+          import constants as st
+          import pygass as an
+        
+          # set your analytics code
+          st.ANALYTICS_CODE = "UA-10000000-1"
+        
+          # use the test api for json responses
+          st.ANALYTICS_URL = "https://www.google-analytics.com/debug/collect"
+        
+          # show the response
+          pprint.pprint(
+              an.track_pageview(client_id=123, page="/test/client/pageview"), width=1
+          )
+        #+END_SRC
+        
+        #+RESULTS: Page tracking example
+        #+BEGIN_SRC python
+        {'hitParsingResult': [{'hit': '/debug/collect?v=1&tid=UA-10000000-1&cid=123&t=pageview&dp=%2Ftest%2Fclient%2Fpageview',
+                               'parserMessage': [],
+                               'valid': True}],
+         'parserMessage': [{'description': 'Found '
+                                           '1 '
+                                           'hit '
+                                           'in '
+                                           'the '
+                                           'request.',
+                            'messageType': 'INFO'}]}
+        #+END_SRC
+        
+        
+        The below example demonstrates how to track a transaction with analytics, you will need to send an anonymous client id with the requests.
+        
+        ** Simple transaction tracking event
+        
+        #+NAME: Transaction tracking example
+        #+BEGIN_SRC python :results output code :exports code
+          import random
+          import pprint
+          import constants as st
+          import pygass as an
+        
+          # set your analytics code
+          st.ANALYTICS_CODE = "UA-10000000-1"
+        
+          # use the test api for json responses
+          st.ANALYTICS_URL = "https://www.google-analytics.com/debug/collect"
+        
+          # show the response
+          transaction_id = random.randint(1, 10000000)
+          an.track_transaction(client_id=1001, transaction_id=transaction_id)
+          pprint.pprint(
+              an.track_item(
+                  client_id=1001, transaction_id=transaction_id, name="Test Product 3"
+              ),
+              width=1,
+          )
+        #+END_SRC
+        
+        #+RESULTS: Transaction tracking example
+        #+BEGIN_SRC python
+        {'hitParsingResult': [{'hit': '/debug/collect?v=1&tid=UA-10000000-1&cid=1001&t=item&ti=4801535&in=Test+Product+3&iq=1',
+                               'parserMessage': [],
+                               'valid': True}],
+         'parserMessage': [{'description': 'Found '
+                                           '1 '
+                                           'hit '
+                                           'in '
+                                           'the '
+                                           'request.',
+                            'messageType': 'INFO'}]}
+        #+END_SRC
+        ** Simple enhanced ecommerce impression
+        #+NAME: Enhanced impression ecommerce
+        #+BEGIN_SRC python :results output code :exports code
+          import random
+          import pprint
+          import pygass.constants as st
+          import pygass.enhanced_ecommerce as an
+        
+          # set your analytics code
+          st.ANALYTICS_CODE = "UA-10000000-1"
+        
+          # use the test api for json responses
+          st.ANALYTICS_URL = "https://www.google-analytics.com/debug/collect"
+        
+          # show the response
+          transaction_id = random.randint(1, 10000000)
+          pprint.pprint(
+              an.track_enhanced_ecommerce_impression(
+                  client_id=1001, product_id=1001, product_name="Test Product 3", page="/test/client/pageview"
+              ),
+              width=1,
+          )
+        #+END_SRC
+        
+        #+RESULTS: Enhanced impression ecommerce
+        #+begin_src python
+        {'hitParsingResult': [{'hit': '/debug/collect?il1pi1id=1001&il1pi1nm=Test+Product+3&v=1&tid=UA-10000000-1&cid=1001&t=pageview&dp=%2Ftest%2Fclient%2Fpageview',
+                               'parserMessage': [],
+                               'valid': True}],
+         'parserMessage': [{'description': 'Found '
+                                           '1 '
+                                           'hit '
+                                           'in '
+                                           'the '
+                                           'request.',
+                            'messageType': 'INFO'}]}
+        #+end_src
+        ** Simple enhanced ecommerce action
+        #+NAME: Enhanced action ecommerce
+        #+BEGIN_SRC python :results output code :exports code
+          import random
+          import pprint
+          import pygass.constants as st
+          import pygass.enhanced_ecommerce as an
+        
+          # set your analytics code
+          st.ANALYTICS_CODE = "UA-10000000-1"
+        
+          # use the test api for json responses
+          st.ANALYTICS_URL = "https://www.google-analytics.com/debug/collect"
+        
+          # show the response
+          pprint.pprint(
+              an.track_enhanced_ecommerce_action(
+                  client_id=1001,
+                  category="cat01",
+                  action="view",
+                  product_id=1337,
+                  product_name="Test Product 3",
+                  product_action="detail",
+                  product_category= "Product Test Category",
+                  page="/test/page"),
+              width=1,
+          )
+        #+END_SRC
+        
+        #+RESULTS: Enhanced action ecommerce
+        #+begin_src python
+        {'hitParsingResult': [{'hit': '/debug/collect?pa=detail&pr1id=1337&pr1nm=Test+Product+3&pr1ca=Product+Test+Category&v=1&tid=UA-10000000-1&cid=1001&t=pageview&dp=%2Ftest%2Fpage',
+                               'parserMessage': [],
+                               'valid': True}],
+         'parserMessage': [{'description': 'Found '
+                                           '1 '
+                                           'hit '
+                                           'in '
+                                           'the '
+                                           'request.',
+                            'messageType': 'INFO'}]}
+        #+end_src
+        
+        ** Simple enhanced ecommerce view product
+        #+NAME: Enhanced ecommerce view product
+        #+BEGIN_SRC python :results output code :exports code
+          import pprint
+          import pygass.constants as st
+          import pygass.enhanced_ecommerce as an
+          # set your analytics code
+          st.ANALYTICS_CODE = "UA-10000000-1"
+          # use the test api for json responses
+          st.ANALYTICS_URL = "https://www.google-analytics.com/debug/collect"
+        
+          # show the response
+          pprint.pprint(
+              an.track_enhanced_ecommerce_impression(
+                  client_id=1001,
+                  category="cat01",
+                  action="click",
+                  product_action="add",
+                  product_id=1001,
+                  product_name="Test Product 3",
+                  product_category="Product Test Category",
+                  page="/test/page"),
+              width=1,
+          )
+        #+END_SRC
+        v=1&t=pageview&tid=UA-10000000-1&cid=555&dh=mydemo.com&dp=%2Fhome&dt=homepage
+        
+        &il1nm=Search%20Results&il1pi1id=P12345&il1pi1nm=Android%20Warhol%20T-Shirt&il1pi1ca=Apparel%2FT-Shirts&il1pi1br=Google&il1pi1va=Black&il1pi1ps=1&il1pi1cd1=Member&il2nm=Recommended%20Products&il2pi1nm=Yellow%20T-Shirt&il2pi2nm=Red%20T-Shirt
+        #+RESULTS: Enhanced ecommerce view product
+        #+begin_src python
+        {'hitParsingResult': [{'hit': '/debug/collect?il1pi1id=1001&il1pi1nm=Test+Product+3&il1pi1ca=Product+Test+Category&v=1&tid=UA-10000000-1&cid=1001&t=pageview&dp=%2Ftest%2Fpage',
+                               'parserMessage': [],
+                               'valid': True}],
+         'parserMessage': [{'description': 'Found '
+                                           '1 '
+                                           'hit '
+                                           'in '
+                                           'the '
+                                           'request.',
+                            'messageType': 'INFO'}]}
+        #+end_src
+        
+        ** Simple enhanced ecommerce product add to basket
+        #+NAME: Enhanced ecommerce product add to basket
+        #+BEGIN_SRC python :results output code :exports code
+          import pprint
+          import pygass.constants as st
+          import pygass.enhanced_ecommerce as an
+          # set your analytics code
+          st.ANALYTICS_CODE = "UA-10000000-1"
+        
+          # use the test api for json responses
+          st.ANALYTICS_URL = "https://www.google-analytics.com/debug/collect"
+        
+          # show the response
+          pprint.pprint(
+              an.track_enhanced_ecommerce_add_to_basket(
+                  client_id=1001,
+                  category="cat01",
+                  action="click",
+                  transaction_id=20,
+                  product_id=1001,
+                  product_name="Test Product 3",
+                  product_category="Product Test Category",
+                  page="/test/page"),
+              width=1,
+          )
+        #+END_SRC
+        
+        #+RESULTS: Enhanced ecommerce product add to basket
+        #+begin_src python
+        {'hitParsingResult': [{'hit': '/debug/collect?pa=add&pr1id=1001&pr1nm=Test+Product+3&pr1ca=Product+Test+Category&v=1&tid=UA-10000000-1&cid=1001&t=pageview&dp=%2Ftest%2Fpage&ti=20',
+                               'parserMessage': [],
+                               'valid': True}],
+         'parserMessage': [{'description': 'Found '
+                                           '1 '
+                                           'hit '
+                                           'in '
+                                           'the '
+                                           'request.',
+                            'messageType': 'INFO'}]}
+        #+end_src
+        
+        ** Simple enhanced ecommerce product purchase checkout
+        #+NAME: Enhanced ecommerce product checkout
+        #+BEGIN_SRC python :results output code :exports code
+          import pprint
+          import pygass.constants as st
+          import pygass.enhanced_ecommerce as an
+          # set your analytics code
+          st.ANALYTICS_CODE = "UA-10000000-1"
+        
+          # use the test api for json responses
+          st.ANALYTICS_URL = "https://www.google-analytics.com/debug/collect"
+        
+          # show the response
+          pprint.pprint(
+              an.track_enhanced_ecommerce_checkout(
+                  client_id=1001,
+                  category="cat01",
+                  action="click",
+                  transaction_id=20,
+                  product_id=1001,
+                  product_name="Test Product 3",
+                  product_category="Product Test Category",
+                  product_action="purchase",
+                  page="/test/page"),
+              width=1,
+          )
+        #+END_SRC
+        
+        #+RESULTS: Enhanced ecommerce product checkout
+        #+begin_src python
+        {'hitParsingResult': [{'hit': '/debug/collect?pa=add&pr1id=1001&pr1nm=Test+Product+3&pr1ca=Product+Test+Category&v=1&tid=UA-10000000-1&cid=1001&t=pageview&dp=%2Ftest%2Fpage&ti=20',
+                               'parserMessage': [],
+                               'valid': True}],
+         'parserMessage': [{'description': 'Found '
+                                           '1 '
+                                           'hit '
+                                           'in '
+                                           'the '
+                                           'request.',
+                            'messageType': 'INFO'}]}
+        #+end_src
+        
+        #+NAME: Enhanced ecommerce product add cart
+        #+BEGIN_SRC python :results output code :exports code
+          import pprint
+          import pygass.constants as st
+          import pygass.enhanced_ecommerce as an
+          # set your analytics code
+          st.ANALYTICS_CODE = "UA-10000000-1"
+        
+          # use the test api for json responses
+          st.ANALYTICS_URL = "https://www.google-analytics.com/debug/collect"
+        
+          # show the response
+          pprint.pprint(
+              an.track_enhanced_ecommerce_add_to_cart(
+                  client_id=1001,
+                  category="cat01",
+                  action="click",
+                  transaction_id=21,
+                  product_id=1001,
+                  product_name="Test Product 3",
+                  product_category="Product Test Category",
+                  product_action="add",
+                  page="/test/page"),
+              width=1,
+          )
+        #+END_SRC
+        
+        #+RESULTS: Enhanced ecommerce product add cart
+        #+begin_src python
+        {'hitParsingResult': [{'hit': '/debug/collect?pa=add&pr1id=1001&pr1nm=Test+Product+3&pr1ca=Product+Test+Category&v=1&tid=UA-10000000-1&cid=1001&t=pageview&dp=%2Ftest%2Fpage&ti=21',
+                               'parserMessage': [],
+                               'valid': True}],
+         'parserMessage': [{'description': 'Found '
+                                           '1 '
+                                           'hit '
+                                           'in '
+                                           'the '
+                                           'request.',
+                            'messageType': 'INFO'}]}
+        #+end_src
+        
+        ** Simple enhanced ecommerce product purchase transaction
+        #+NAME: Enhanced ecommerce product purchase
+        #+BEGIN_SRC python :results output code :exports code
+          import pprint
+          import pygass.constants as st
+          import pygass.enhanced_ecommerce as an
+          # set your analytics code
+          st.ANALYTICS_CODE = "UA-10000000-1"
+        
+          # use the test api for json responses
+          st.ANALYTICS_URL = "https://www.google-analytics.com/debug/collect"
+        
+          # show the response
+          pprint.pprint(
+              an.track_enhanced_ecommerce_purchase(
+                  client_id=1001,
+                  category="cat01",
+                  action="click",
+                  transaction_id=20,
+                  product_id=1001,
+                  product_name="Test Product 3",
+                  product_category="Product Test Category",
+                  product_action="purchase",
+                  affiliation= "Test Merchant",
+                  revenue= "0.0",
+                  page="/test/page"),
+              width=1,
+          )
+        #+END_SRC
+        
+        #+RESULTS: Enhanced ecommerce product purchase
+        #+begin_src python
+        {'hitParsingResult': [{'hit': '/debug/collect?pa=purchase&pr1id=1001&pr1nm=Test+Product+3&pr1ca=Product+Test+Category&v=1&tid=UA-10000000-1&cid=1001&t=pageview&dp=%2Ftest%2Fpage&ti=20&ta=Test+Merchant&tr=0.0',
+                               'parserMessage': [],
+                               'valid': True}],
+         'parserMessage': [{'description': 'Found '
+                                           '1 '
+                                           'hit '
+                                           'in '
+                                           'the '
+                                           'request.',
+                            'messageType': 'INFO'}]}
+        #+end_src
+        
+        #+RESULTS:
+        : None
+        
+        #+RESULTS: Enhanced ecommerce add to cart example
+        #+begin_src python
+        {'hitParsingResult': [{'hit': '/debug/collect?pa=add&pr1id=1001&pr1nm=Test+Product+3&v=1&tid=UA-10000000-1&cid=1001&t=event&ec=cat01&ea=click',
+                               'parserMessage': [],
+                               'valid': True}],
+         'parserMessage': [{'description': 'Found '
+                                           '1 '
+                                           'hit '
+                                           'in '
+                                           'the '
+                                           'request.',
+                            'messageType': 'INFO'}]}
+        #+end_src
+        
+        
+        
+        
+Keywords: google analytics server side
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Environment :: Web Environment
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Programming Language :: Python
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Internet
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Internet :: WWW/HTTP :: WSGI
+Requires: requests
+Description-Content-Type: text/plain
