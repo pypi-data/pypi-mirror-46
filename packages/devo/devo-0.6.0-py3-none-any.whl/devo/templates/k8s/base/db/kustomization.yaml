@@ -1,0 +1,15 @@
+{% if db %}
+resources:
+  - deployment.yaml
+  - service.yaml
+
+commonLabels:
+  app.kubernetes.io/name: {{ project_name }}-db
+  app.kubernetes.io/component: db
+
+secretGenerator:
+  - name: {{ project_name }}-db
+    literals:
+      - POSTGRES_USER={{ project_name }}
+      - POSTGRES_PASSWORD={{ project_name }}
+{% endif %}

@@ -1,0 +1,79 @@
+stages:
+  - build
+  - test
+  - release
+  - deploy
+
+variables:
+  DEVO_IMAGE: daddz/devo:latest
+  NAMESPACE_TEST: {{ project_name }}-$CI_COMMIT_SHORT_SHA
+  NAMESPACE_PROD: {{ project_name }}-prod
+
+build:
+  stage: build
+  image: $DEVO_IMAGE
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD {{ registry_url }}
+    - skaffold build -q > build_test.out
+  artifacts:
+    paths:
+      - build_test.out
+
+
+test:lint:
+  stage: test
+  image: $DEVO_IMAGE
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD {{ registry_url }}
+    - export IMG=$(jq -r .builds[0].tag build_test.out)
+    - docker run $IMG /scripts/lint
+
+
+test:integration:
+  stage: test
+  image: $DEVO_IMAGE
+  before_script:
+    - devo kube init --name $NAMESPACE_TEST --url $KUBE_URL --user $KUBE_USER --token $KUBE_TOKEN
+    - devo kube prepare-env $NAMESPACE_TEST --registry-user $CI_REGISTRY_USER --registry-password $CI_REGISTRY_PASSWORD
+    - skaffold deploy -a build_test.out --namespace $NAMESPACE_TEST
+  script:
+    - devo kube test $NAMESPACE_TEST
+  after_script:
+    - devo kube after-test $NAMESPACE_TEST
+
+
+release:
+  stage: release
+  image: $DEVO_IMAGE
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD {{ registry_url }}
+    - skaffold build -p prod -q > build_prod.out
+  artifacts:
+    paths:
+      - build_prod.out
+
+
+deploy:
+  stage: deploy
+  image: $DEVO_IMAGE
+  before_script:
+    - devo kube init --name $NAMESPACE_PROD --url $KUBE_URL --user $KUBE_USER --token $KUBE_TOKEN
+    - devo kube prepare-env $NAMESPACE_PROD --registry-user $CI_REGISTRY_USER --registry-password $CI_REGISTRY_PASSWORD
+  script:
+    - skaffold deploy -p prod -a build_prod.out --namespace $NAMESPACE_PROD
+  when: manual
