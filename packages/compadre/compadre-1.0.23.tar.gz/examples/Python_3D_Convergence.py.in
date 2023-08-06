@@ -1,0 +1,150 @@
+import sys 
+
+# installation folder
+gmls_python_installation_path = "@SWIG_PREFIX@"
+sys.path.append(gmls_python_installation_path)
+
+import GMLS_Module
+
+# import other relevant models
+import numpy as np
+import math
+import random
+import scipy.spatial.kdtree as kdtree
+
+# just for formatting
+class colors:
+    HEADER = '\033[95m'
+    ENDC = '\033[0m'
+
+# function used to generate sample data
+def sinxsinysinz(coord):
+    return math.sin(coord[0])*math.sin(coord[1])*math.sin(coord[2])
+
+# function used to get analytic gradient
+def grad_sinxsinysinz(coord,component):
+    if (component==0):
+        return math.cos(coord[0])*math.sin(coord[1])*math.sin(coord[2])
+    elif (component==1):
+        return math.sin(coord[0])*math.cos(coord[1])*math.sin(coord[2])
+    elif (component==2):
+        return math.sin(coord[0])*math.sin(coord[1])*math.cos(coord[2])
+
+def test1(ND):
+    random.seed(1234) # for consistent results
+
+    polyOrder = 2
+    manifoldPolyOrder = 2 # Not used
+    dimensions = 3
+
+    # initialize 3rd order reconstruction using 2nd order basis in 3D (GMLS)
+    gmls_obj=GMLS_Module.GMLS_Python(polyOrder, "QR", manifoldPolyOrder, dimensions)
+    gmls_obj.setWeightingOrder(10)
+
+    NT = 100 # Targets
+    nx, ny, nz = (ND, ND, ND)
+
+    xmax = 1
+    ymax = 1 
+    zmax = 1
+    xmin = -xmax
+    ymin = -ymax
+    zmin = -zmax
+
+    dx = np.linspace(xmin, xmax, nx)
+    dy = np.linspace(ymin, ymax, ny)
+    dz = np.linspace(zmin, zmax, nz)
+
+    N=ND*ND*ND
+
+
+    # target sites
+    target_sites = []
+    for i in range(NT):
+        target_sites.append([random.uniform(xmin, xmax), random.uniform(ymin, ymax), random.uniform(zmin, zmax)])
+    target_sites = np.array(target_sites, dtype='d')
+
+    
+    # source sites
+    t_sites = list()
+    for i in range(ND):
+        for j in range(ND):
+            for k in range(ND):
+                t_sites.append([dx[i],dy[j],dz[k]])
+    source_sites = np.array(t_sites, dtype=np.dtype('d'))
+
+
+    # neighbor search
+    epsilon_multiplier = 1.5
+    gmls_obj.generateKDTree(source_sites)
+    gmls_obj.generateNeighborListsFromKNNSearchAndSet(target_sites, polyOrder, dimensions, epsilon_multiplier)
+
+    # set data in gmls object
+    gmls_obj.setSourceSites(source_sites)
+
+    # used in combination with polynomial coefficients
+    epsilons = gmls_obj.getWindowSizes()
+    
+
+    # generate stencil
+    gmls_obj.generatePointEvaluationStencil()
+
+   
+    # create sample data at source sites
+    data_vector = [] 
+    for i in range(N):
+        data_vector.append(sinxsinysinz(source_sites[i]))
+    data_vector = np.array(data_vector, dtype=np.dtype('d'))
+    
+    # apply stencil to sample data for all targets
+    computed_answer = gmls_obj.applyStencil(data_vector)
+
+    l2_error = 0
+    for i in range(NT):
+        l2_error += np.power(abs(computed_answer[i] - sinxsinysinz(target_sites[i])),2)
+    l2_error = math.sqrt(l2_error/float(NT))  
+
+    # get polynomial coefficients
+    polynomial_coefficients = gmls_obj.getPolynomialCoefficients(data_vector)
+
+    # alternative way to compute h1 semi norm
+    # could remap using the gradient operator, but instead this uses calculated polynomial coefficients and applies
+    # the action of the gradient target operation on the polynomial basis at the target sites
+    # this serves as a test for getting accurate calculation and retrieval of polynomial coefficients using
+    # the python interface
+    h1_seminorm_error = 0
+    for i in range(NT):
+        h1_seminorm_error += np.power(abs(1./epsilons[i]*polynomial_coefficients[i,1] - grad_sinxsinysinz(target_sites[i],0)),2)
+        h1_seminorm_error += np.power(abs(1./epsilons[i]*polynomial_coefficients[i,2] - grad_sinxsinysinz(target_sites[i],1)),2)
+        h1_seminorm_error += np.power(abs(1./epsilons[i]*polynomial_coefficients[i,3] - grad_sinxsinysinz(target_sites[i],2)),2)
+    h1_seminorm_error = math.sqrt(h1_seminorm_error/float(NT))  
+    
+    return (l2_error, h1_seminorm_error)
+
+GMLS_Module.initializeKokkos()
+
+# of points in each dimension to run the test over
+ND = [5, 10, 20, 40]
+
+# Calculate rates of convergence and print errors
+print("\n" + colors.HEADER + "(l2) Errors:" + colors.ENDC)
+errors = list()
+for nd in ND:
+    errors.append(test1(nd))
+    print(str(errors[-1][0]))
+
+print("\n" + colors.HEADER + "(l2) Rates:" + colors.ENDC)
+for i in range(len(ND)-1):
+    print(str(math.log(errors[i+1][0]/errors[i][0])/math.log(0.5)))
+print("\n")
+
+# Calculate rates of convergence and print errors
+print("\n" + colors.HEADER + "(h1-seminorm) Errors:" + colors.ENDC)
+for nd in ND:
+    print(str(errors[-1][1]))
+
+print("\n" + colors.HEADER + "(h1-seminorm) Rates:" + colors.ENDC)
+for i in range(len(ND)-1):
+    print(str(math.log(errors[i+1][1]/errors[i][1])/math.log(0.5)))
+print("\n")
+GMLS_Module.finalizeKokkos()
