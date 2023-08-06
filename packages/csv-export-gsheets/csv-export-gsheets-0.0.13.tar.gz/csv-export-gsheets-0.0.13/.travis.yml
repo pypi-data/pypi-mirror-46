@@ -1,0 +1,52 @@
+dist: xenial
+language: python
+cache: pip
+
+env:
+  global:
+    - secure: "DN+PNjvV15PWs+GjU5t110tleSZvz0/ien9ANOQELdMOr7PA+SEF3R+b3YBA7FEQh3PiqbGcz+PS4SBoyQ2i6w5i41TQop1LqgLnEXZAPwmAZjl9eXu8fPVVsbhd5vFFQGGEvjgcRr5UiwD02bKSl3I8rXFUFahv8ZdPfyuM1/9kVH5glrgUdOD8RcoTApvj4MGxXIJr0wpBdWB3ufESQZS8WmQQJKk4aH5UWYu459OyofwMT3JJOKkqnjKZ4f+DtK62coZ1yIgOiAkGaGn9HKam7fY4uWnrZd/i8zPczxZG3bLyTK0ciV5B59j4UgtVn7IOb4GjIX06TiRc6IOsVBHCoA0nxDSDcqLj0YAlS4aQCQ1EYrEQSq2vtdA8gkycEHczUIfq3kTKt1nS8k3hC+SBrmFmr5PXNtJNPdxXyaBJ5dgReQ+2KfVI8u/GBDvpWwil8Gl5rHy0LbMmoRRdwF77izIGFTRIGuCbuyFg5uW1MzG6zscDz+VNB/Py2yCYVKswl/SXtD79efNwUz675Gd8h9jLIChxLSDMbB5LQfQNXe9fbOlChoNl2GBMeSJtN21ZSxyfBccbJirCGqJ8bClS/0IH7t+7TAFe4uLfdp7gOevBTedooz0oWqTXutQ5xkqtTd2k2Hnw3vZIkRQybMciNKsfY88oDUbJSAnRIoM="
+
+python:
+  - '3.6'
+  - '3.6-dev'
+  - '3.7'
+  - '3.7-dev'
+
+before_install:
+  - openssl aes-256-cbc -K $encrypted_58d54d60026e_key -iv $encrypted_58d54d60026e_iv -in api-key.json.enc -out api-key.json -d
+
+install:
+  - pip install pipenv
+  - pipenv --python ${TRAVIS_PYTHON_VERSION}
+  - pipenv sync --dev
+
+before_script:
+  - flake8 csv_expot_gsheets
+
+script:
+  - pytest -vv -x tests
+
+before_deploy:
+  - rm api-key.json
+
+stages:
+  - test
+  - deploy
+
+jobs:
+  include:
+    - stage: deploy
+      python: '3.6'
+      install: skip
+      before_script: skip
+      script: skip
+      deploy:
+        provider: pypi
+        user: dlancer
+        password:
+          secure: "WM25jC1uKnNHordN3jUJe8MY+sR0GDnfFoQPYnvAbRuSMzhYGrjw9Q1bynibkBSvNmZyCb+njYSzAqowP4L/QGNlD4PP7vfIfN4ANbLeoY4pYNGIt+5QS0Q0aE1wDRrjkqtNSg72DTN0GJ6S6LDZQ52P0SMeoDI1yOtD99+CmTrKW/CQadSEC658Vu6YehOZ5YO5py74109jdIhPuvfVI/jlKSsgLqVKHLEoSNeAwfhoMOPn2qnVaVIiDuZPX5foPI1Y9Db8gAlpkhmC9o5ymaDI8qBFoixFsvGcT6KbG8h62Lb1Lv6GNplIYmamPYTkzHJ0h1cLgX4CLSQGIcv0B4ZaR2TDmUoaPQHvYKN7MKiNNZ3E9tJ1IkOT31tCo1fkkLSl1UXkJKDN+Wu0Sy+tRJ5gGAorIxRKvgOc1iUxCNuo+1Ef0fjt5iXaxM737kj/SP7ihBQcWazfhbYTUlCB0qZFHmsrx0jXP8odFYNcv7F5znk6CaRyXtjojRXOK8Z4oBz5J1uieF6pDg6nxYtMcsb4R15K3KkAE35CRfsmdYIW4af9WfNhnn2CLq7gWVpqSCrDrpC1/VyDZaAE/V8lDPk82dlg7ff24UT5LTGdcv5tNYsKlQUNpzmL2vZFqPGXYKAH4XSCjNzY+2he+oAk/9A7Pzdj7ZhN80AEoHGk9Tk="
+        on:
+          tags:   true
+          branch: master
+          condition: $TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+
+        distributions: sdist bdist_wheel
