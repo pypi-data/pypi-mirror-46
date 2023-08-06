@@ -1,0 +1,577 @@
+syntax = "proto3";
+package adminapi;
+
+service AdminAPI {
+
+  //Functions for working with ingress
+  //----------------------------------------------------------------------------
+  rpc GetIngressClasses(GetIngressClassesParams) returns (GetIngressClassesResponse);
+  rpc GetIngressClass(GetIngressClassParams) returns (GetIngressClassResponse);
+  rpc AddOrUpdateIngressClass(AddOrUpdateIngressClassParams) returns (AddOrUpdateIngressClassResponse);
+  rpc UpdateIngressClassEnabled(UpdateIngressClassEnabledParams) returns (UpdateIngressClassEnabledResponse);
+  rpc RemoveIngressClass(RemoveIngressClassParams) returns (RemoveIngressClassResponse);
+
+  rpc AddIngress(AddIngressParams) returns (AddIngressResponse);
+  rpc UpdateIngress(UpdateIngressParams) returns (UpdateIngressResponse);
+  rpc UpdateIngressEnabled(UpdateIngressEnabledParams) returns (UpdateIngressEnabledResponse);
+  rpc GetIngress(GetIngressParams) returns (GetIngressResponse);
+  rpc RemoveIngress(RemoveIngressParams) returns (RemoveIngressResponse);
+  rpc GetIngresses(GetIngressesParams) returns (GetIngressesResponse);
+  rpc GetAllIngresses(GetAllIngressesParams) returns (GetAllIngressesResponse);
+
+  //Functions for working with distillates
+  //----------------------------------------------------------------------------
+  //TODO
+
+  //Functions for working with keys
+  //----------------------------------------------------------------------------
+  rpc GetDomainDetails(GetDomainDetailsParams) returns (GetDomainDetailsResponse);
+  rpc SetDomainDetails(SetDomainDetailsParams) returns (SetDomainDetailsResponse);
+  rpc SetCertificateSource(SetCertificateSourceParams) returns (SetCertificateSourceResponse);
+  rpc GetCertificateSource(GetCertificateSourceParams) returns (GetCertificateSourceResponse);
+  rpc SetManualCertificate(SetManualCertificateParams) returns (SetManualCertificateResponse);
+  rpc GetManualCertificate(GetManualCertificateParams) returns (GetManualCertificateResponse);
+  rpc GetAutocert(GetAutocertParams) returns (GetAutocertResponse);
+  rpc VerifyCertificate(VerifyCertificateParams) returns (VerifyCertificateResponse);
+
+  //Functions for working with access control
+  //----------------------------------------------------------------------------
+  rpc GetIdentityProvider(GetIdentityProviderParams) returns (GetIdentityProviderResponse);
+  rpc SetIdentityProvider(SetIdentityProviderParams) returns (SetIdentityProviderResponse);
+  rpc GetGroup(GetGroupParams) returns (GetGroupResponse);
+  rpc GetAllGroups(GetAllGroupsParams) returns (GetAllGroupsResponse);
+  rpc AddGroup(AddGroupParams) returns (AddGroupResponse);
+  rpc DeleteGroup(DeleteGroupParams) returns (DeleteGroupResponse);
+  rpc SetGroupPrefixes(SetGroupPrefixesParams) returns (SetGroupPrefixesResponse);
+  rpc SetGroupCapabilities(SetGroupCapabilitiesParams) returns (SetGroupCapabilitiesResponse);
+  rpc AddUserToGroup(AddUserToGroupParams) returns (AddUserToGroupResponse);
+  rpc RemoveUserFromGroup(RemoveUserFromGroupParams) returns (RemoveUserFromGroupResponse);
+  rpc AuthenticateUser(AuthenticateUserParams) returns (AuthenticateUserResponse);
+  rpc GetPublicUser(GetPublicUserParams) returns (GetPublicUserResponse);
+  rpc UserExists(UserExistsParams) returns (UserExistsResponse);
+  rpc AuthenticateUserByKey(AuthenticateUserByKeyParams) returns (AuthenticateUserByKeyResponse);
+  rpc GetBuiltinUser(GetBuiltinUserParams) returns (GetBuiltinUserResponse);
+  rpc GetAllUsers(GetAllUsersParams) returns (GetAllUsersResponse);
+  rpc CreateUser(CreateUserParams) returns (CreateUserResponse);
+  rpc DeleteUser(DeleteUserParams) returns (DeleteUserResponse);
+  rpc GetAPIKey(GetAPIKeyParams) returns (GetAPIKeyResponse);
+  rpc ResetAPIKey(ResetAPIKeyParams) returns (ResetAPIKeyResponse);
+  rpc SetUserPassword(SetUserPasswordParams) returns (SetUserPasswordResponse);
+
+  //Functions for working with BTrDB core state
+  //----------------------------------------------------------------------------
+  rpc GetClusterStatus(GetClusterStatusParams) returns (GetClusterStatusResponse);
+  rpc NodeDisable(NodeDisableParams) returns (NodeDisableResponse);
+  rpc NodeOut(NodeOutParams) returns (NodeOutResponse);
+  rpc NodeEnable(NodeEnableParams) returns (NodeEnableResponse);
+  rpc NodeIn(NodeInParams) returns (NodeInResponse);
+  rpc NodeRemove(NodeRemoveParams) returns (NodeRemoveResponse);
+  rpc Autoprune(AutopruneParams) returns (AutopruneResponse);
+  rpc NodeWeight(NodeWeightParams) returns (NodeWeightResponse);
+  rpc NodeReadPreference(NodeReadPreferenceParams) returns (NodeReadPreferenceResponse);
+  rpc ListThrottles(ListThrottlesParams) returns (ListThrottlesResponse);
+  rpc SetThrottle(SetThrottleParams) returns (SetThrottleResponse);
+}
+
+//Ingresses
+//------------------------------------------------------------------------------
+message GetIngressClassesParams {
+
+}
+message GetIngressClassesResponse {
+  Error error = 1;
+  repeated IngressClass classes = 2;
+}
+
+message GetIngressClassParams {
+  string class = 1;
+}
+message GetIngressClassResponse {
+  Error error = 1;
+  IngressClass class = 2;
+}
+
+message AddOrUpdateIngressClassParams {
+  IngressClass class = 1;
+}
+message AddOrUpdateIngressClassResponse {
+  Error error = 1;
+}
+
+message UpdateIngressClassEnabledParams {
+  string class = 1;
+  bool enabled = 2;
+}
+message UpdateIngressClassEnabledResponse {
+  Error error = 1;
+}
+
+message RemoveIngressClassParams {
+  string class = 1;
+}
+message RemoveIngressClassResponse {
+  Error error = 1;
+}
+
+message AddIngressParams {
+  Ingress ingress = 1;
+}
+message AddIngressResponse {
+  Error error = 1;
+}
+
+message UpdateIngressParams {
+  Ingress ingress = 1;
+}
+message UpdateIngressResponse {
+  Error error = 1;
+}
+
+message UpdateIngressEnabledParams {
+  string name = 1;
+  bool enabled = 2;
+}
+message UpdateIngressEnabledResponse {
+  Error error = 1;
+}
+
+message GetIngressParams {
+  string name = 1;
+}
+message GetIngressResponse {
+  Error error = 1;
+  Ingress ingress = 2;
+}
+
+message RemoveIngressParams {
+  string name = 1;
+}
+message RemoveIngressResponse {
+  Error error = 1;
+}
+
+message GetIngressesParams {
+  string class = 1;
+}
+message GetIngressesResponse {
+  Error error = 1;
+  repeated Ingress ingresses = 2;
+}
+
+message GetAllIngressesParams {
+  string class = 1;
+}
+message GetAllIngressesResponse {
+  Error error = 1;
+  repeated Ingress ingresses = 2;
+}
+
+message Ingress {
+  string name = 1;
+  string class = 2;
+  bool enabled = 3;
+  string collectionPrefix = 4;
+  string comment = 5;
+  map<string, string> parameters = 6;
+}
+
+message IngressClass {
+  string class = 1;
+  bool enabled = 2;
+  map<string, string> requiredParameters = 3;
+  map<string, string> optionalParameters = 4;
+}
+
+
+//Keys
+//------------------------------------------------------------------------------
+message GetDomainDetailsParams {
+
+}
+message GetDomainDetailsResponse {
+  Error error = 1;
+  string email = 2;
+  string hostname = 3;
+}
+
+message SetDomainDetailsParams{
+  OptString email = 1;
+  OptString hostname = 2;
+}
+message SetDomainDetailsResponse{
+  Error error = 1;
+}
+
+message SetCertificateSourceParams{
+  CertificateSource source = 1;
+}
+message SetCertificateSourceResponse{
+  Error error = 1;
+}
+
+message GetCertificateSourceParams {
+
+}
+message GetCertificateSourceResponse {
+  Error error = 1;
+  CertificateSource source = 2;
+}
+
+message SetManualCertificateParams {
+  string publicPem = 1;
+  string privatePem = 2;
+}
+message SetManualCertificateResponse {
+  Error error = 1;
+}
+
+message GetManualCertificateParams {
+
+}
+message GetManualCertificateResponse {
+  Error error = 1;
+  string publicPem = 2;
+  string privatePem = 3;
+}
+
+message GetAutocertParams {
+
+}
+message GetAutocertResponse {
+  Error error = 1;
+  string publicPem = 2;
+  string privatePem = 3;
+}
+
+message VerifyCertificateParams {
+  string publicPem = 1;
+  string privatePem = 2;
+}
+message VerifyCertificateResponse {
+  Error error = 1;
+  bool valid = 2;
+  string reason = 3;
+}
+
+enum CertificateSource {
+  DISABLED = 0;
+  MANUAL = 1;
+  AUTOCERT = 2;
+  SELFSIGNED = 3;
+}
+
+//Access control
+//------------------------------------------------------------------------------
+message GetIdentityProviderParams {
+
+}
+message GetIdentityProviderResponse {
+  Error error = 1;
+  string provider = 2;
+}
+
+message SetIdentityProviderParams {
+  string provider = 1;
+}
+message SetIdentityProviderResponse {
+  Error error = 1;
+}
+
+message GetGroupParams {
+  string name = 1;
+}
+message GetGroupResponse {
+  Error error = 1;
+  Group group = 2;
+}
+
+message GetAllGroupsParams {
+
+}
+message GetAllGroupsResponse {
+  Error error = 1;
+  repeated string group = 2;
+}
+
+message AddGroupParams {
+  string name = 1;
+}
+message AddGroupResponse {
+  Error error = 1;
+}
+
+message DeleteGroupParams {
+  string name = 1;
+}
+message DeleteGroupResponse {
+  Error error = 1;
+}
+
+message SetGroupPrefixesParams {
+  string group = 1;
+  repeated string prefixes = 2;
+}
+message SetGroupPrefixesResponse {
+  Error error = 1;
+}
+
+message SetGroupCapabilitiesParams {
+  string group = 1;
+  repeated Capability capabilities = 2;
+}
+message SetGroupCapabilitiesResponse {
+  Error error = 1;
+}
+
+message AddUserToGroupParams {
+  string username = 1;
+  string group = 2;
+}
+message AddUserToGroupResponse {
+  Error error = 1;
+}
+
+message RemoveUserFromGroupParams {
+  string username = 1;
+  string group = 2;
+}
+message RemoveUserFromGroupResponse {
+  Error error = 1;
+}
+
+message AuthenticateUserParams {
+  string username = 1;
+  string password = 2;
+}
+message AuthenticateUserResponse {
+  Error error = 1;
+  User user = 2;
+}
+
+message GetPublicUserParams {
+
+}
+message GetPublicUserResponse {
+  Error error = 1;
+  User public = 2;
+}
+
+message UserExistsParams {
+  string username = 1;
+}
+message UserExistsResponse {
+  Error error = 1;
+  bool exists = 2;
+}
+
+message AuthenticateUserByKeyParams {
+  string apikey = 1;
+}
+message AuthenticateUserByKeyResponse {
+  Error error = 1;
+  User user = 2;
+}
+
+message GetBuiltinUserParams {
+  string username = 1;
+}
+message GetBuiltinUserResponse {
+  Error error = 1;
+  User user = 2;
+}
+
+message GetAllUsersParams {
+
+}
+message GetAllUsersResponse {
+  Error error = 1;
+  repeated string user = 2;
+}
+
+message CreateUserParams {
+  string username = 1;
+  string password = 2;
+}
+message CreateUserResponse {
+  Error error = 1;
+}
+
+message DeleteUserParams {
+  string username = 1;
+}
+message DeleteUserResponse {
+  Error error = 1;
+}
+
+message GetAPIKeyParams {
+  string username = 1;
+}
+message GetAPIKeyResponse {
+  Error error = 1;
+  string apikey = 2;
+}
+
+message ResetAPIKeyParams {
+  string username = 1;
+}
+message ResetAPIKeyResponse {
+  Error error = 1;
+  string apikey = 2;
+}
+
+message SetUserPasswordParams {
+  string username = 1;
+  string password = 2;
+}
+message SetUserPasswordResponse {
+  Error error = 1;
+}
+
+message User {
+  string username = 1;
+  repeated Group groups = 2;
+}
+
+message Group {
+  string name = 1;
+  repeated string prefixes = 2;
+  repeated Capability capabilities = 3;
+}
+
+enum Capability {
+  PLOTTER = 0;
+  API = 1;
+  INSERT = 2;
+  READ = 3;
+  DELETE = 4;
+  OBLITERATE = 5;
+  ADMIN = 6;
+}
+
+//BTrDB core state
+//------------------------------------------------------------------------------
+message GetClusterStatusParams {
+
+}
+message GetClusterStatusResponse {
+  Error error = 1;
+  ClusterState state = 2;
+  string stateString = 3;
+}
+
+message NodeDisableParams {
+  string node = 1;
+}
+message NodeDisableResponse {
+  Error error = 1;
+}
+
+message NodeOutParams {
+  string node = 1;
+}
+message NodeOutResponse {
+  Error error = 1;
+}
+
+message NodeEnableParams {
+  string node = 1;
+}
+message NodeEnableResponse {
+  Error error = 1;
+}
+
+message NodeInParams {
+  string node = 1;
+}
+message NodeInResponse {
+  Error error = 1;
+}
+
+message NodeRemoveParams {
+  string node = 1;
+}
+message NodeRemoveResponse {
+  Error error = 1;
+}
+
+message AutopruneParams {
+
+}
+message AutopruneResponse {
+  Error error = 1;
+}
+
+message NodeWeightParams {
+  string node = 1;
+  uint32 weight = 2;
+}
+message NodeWeightResponse {
+  Error error = 1;
+}
+
+message NodeReadPreferenceParams {
+  string node = 1;
+  double rpref = 2;
+}
+message NodeReadPreferenceResponse {
+  Error error = 1;
+}
+
+message ListThrottlesParams {
+
+}
+message ListThrottlesResponse {
+  Error error = 1;
+  repeated Throttle throttles = 2;
+}
+
+message SetThrottleParams {
+  Throttle throttle = 1;
+}
+message SetThrottleResponse {
+  Error error = 1;
+}
+
+message ClusterState {
+  int64 revision = 1;
+  map<string, ClusterMember> members = 2;
+  map<int64, Mash> mashes = 3;
+  string leader = 4;
+  int64 leaderRevision = 5;
+}
+
+message Mash {
+  map<string, MashRange> ranges = 1;
+}
+
+message ClusterMember {
+  string node = 1;
+  bool enabled = 2;
+  bool in = 3;
+  uint32 hash = 4;
+  int64 active = 5;
+  int64 weight = 6;
+  double readWeight = 7;
+  repeated string grpcEndpoints = 8;
+}
+
+message MashRange {
+  int64 start = 1;
+  int64 end = 2;
+}
+
+message Throttle {
+  string name = 1;
+  uint64 pool = 2;
+  uint64 queue = 3;
+}
+
+//Common
+//------------------------------------------------------------------------------
+message Error {
+  uint32 code = 1;
+  string msg = 2;
+}
+message OptString {
+  string value = 1;
+}
