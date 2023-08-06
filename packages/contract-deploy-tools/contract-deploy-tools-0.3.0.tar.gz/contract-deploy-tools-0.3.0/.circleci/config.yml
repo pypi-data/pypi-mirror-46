@@ -1,0 +1,187 @@
+version: 2.1
+
+executors:
+  ubuntu-builder:
+    docker:
+      - image: trustlines/builder:master8
+        environment:
+          - SOLC_VERSION=v0.4.25
+    working_directory: ~/repo
+
+templates:
+  tagged-filter: &tagged-filter
+    tags:
+      only: /[0-9]+(\.[0-9]+)*/
+
+# define some common commands
+# see https://circleci.com/docs/2.0/configuration-reference/#commands-requires-version-21
+commands:
+  create-venv:
+    description: "Create venv"
+    steps:
+      - run:
+          name: Create python venv
+          command: |
+            python3 -m venv venv
+            venv/bin/pip install -c constraints.txt pip wheel setuptools
+
+  config-path:
+    description: "set environment variables and change PATH"
+    steps:
+    - run:
+        name: Configuring PATH
+        command: |
+          echo >> ${BASH_ENV} 'export PATH=~/bin:~/repo/venv/bin:${PATH}'
+
+jobs:
+  install:
+    executor: ubuntu-builder
+    steps:
+      - checkout
+      - config-path
+      - restore_cache:
+          key: venv-{{ checksum "constraints.txt" }}-{{ checksum "requirements.txt" }}
+      - create-venv
+      - run:
+          name: Install requirements
+          command: |
+            pip install -c constraints.txt -r requirements.txt
+      - save_cache:
+          key: venv-{{ checksum "constraints.txt" }}-{{ checksum "requirements.txt" }}
+          paths:
+            - venv
+      - run:
+          name: Install package
+          command: |
+            pip install -c constraints.txt -e .
+      - persist_to_workspace:
+          root: "~"
+          paths:
+            - repo
+
+  run-flake8:
+    executor: ubuntu-builder
+
+    steps:
+      - attach_workspace:
+          at: '~'
+      - config-path
+      - run:
+          name: Run flake8
+          command: |
+            flake8 deploy_tools tests
+
+  run-black:
+    executor: ubuntu-builder
+
+    steps:
+      - attach_workspace:
+          at: '~'
+      - config-path
+      - run:
+          name: Run black
+          command: |
+            black --check deploy_tools tests setup.py
+
+  run-pytest:
+    executor: ubuntu-builder
+    steps:
+      - attach_workspace:
+          at: '~'
+      - config-path
+      - run:
+          name: Run pytest
+          command: |
+            pytest tests
+
+  run-mypy:
+    executor: ubuntu-builder
+    steps:
+      - attach_workspace:
+          at: '~'
+      - config-path
+      - run:
+          name: Run mypy
+          command: |
+            mypy --ignore-missing-imports deploy_tools tests
+
+
+  build-sdist:
+    executor: ubuntu-builder
+    steps:
+      - checkout
+      - config-path
+      - create-venv
+      - run:
+          name: Build distribution
+          command: |
+            python setup.py sdist
+      - persist_to_workspace:
+          root: "~"
+          paths:
+            - repo/dist
+
+  upload-pypi:
+    executor: ubuntu-builder
+    steps:
+      - attach_workspace:
+          at: '~'
+      - config-path
+      - run:
+          name: Init .pypirc
+          command: |
+            echo -e "[pypi]" >> ~/.pypirc
+            echo -e "username = $PYPI_USER" >> ~/.pypirc
+            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
+      - run:
+          name: Upload to pypi
+          command: |
+            twine upload dist/*
+
+workflows:
+  version: 2
+  default:
+    jobs:
+      - run-flake8:
+          requires:
+            - install
+          filters:
+            <<: *tagged-filter
+
+      - run-black:
+          requires:
+            - install
+          filters:
+            <<: *tagged-filter
+
+      - run-mypy:
+          requires:
+            - install
+          filters:
+            <<: *tagged-filter
+
+      - install:
+          filters:
+            <<: *tagged-filter
+
+      - run-pytest:
+          filters:
+            <<: *tagged-filter
+          requires:
+            - install
+      - build-sdist:
+          filters:
+            <<: *tagged-filter
+
+      - upload-pypi:
+          requires:
+            - build-sdist
+            - run-flake8
+            - run-black
+            - run-pytest
+            - run-mypy
+          filters:
+            <<: *tagged-filter
+            branches:
+              ignore: /.*/
+          context: pypi-credentials
