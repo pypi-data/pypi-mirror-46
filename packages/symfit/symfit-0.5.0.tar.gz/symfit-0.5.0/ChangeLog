@@ -1,0 +1,214 @@
+CHANGES
+=======
+
+0.5.0
+-----
+
+* Extended some of the fitresult tests, and not without succes since we immidiately found an inconsistency with basinhopping
+* Reduce if/for/else complexity some more
+* Fix the failing ODE warnings. Due to the fact that we are now more strict about users always having to provide values to variables, an error is already raised for non-ODE models containing derivatives
+* Made pickling more complicated again, for py27 reasons
+* Addressed @pckroons comments regarding if/for/else structures
+* Improved pickling of ChainedMinimizer
+* Fixed SqrtLeastSquares
+* Cleaned up some conditionals
+* Updated docstrings
+* Improved ordering of code in \_determine\_objective
+* Package constraints into FitResults for BasinHopping
+* Improved pickle tests for FitResults, especially for chained minimizers
+* Corrected an example
+* Give number of iterations a consistent keyword name accross our minimizers
+* Give number of iterations a consistent keyword name accross our minimizers
+* FitResults seem to pickle fine out of the box, so remove unnecessary complications
+* Greatly improved multiprocessing test by making sure the result is correct and checking that the right minimizer was used
+* Add str representation to ChainedMinimizers
+* Chained Minimizers are now properly given to FitResults
+* A status\_message has to be provided when initiating a FitResults
+* Added space at the end of line
+* PEP 8 complient long conditionals
+* Fixed ordering of string formatting args, slightly cleanup long if condition
+* Start tracking keywordonly.py
+* Improved comments
+* BaseFit was a rogue program whose return to the source was inevitable
+* dependent vars are None for MinimizeModel
+* Improver automatic selection of the objective by partially binding the data first instead of fully binding as before
+* Changed to pytest.warns, removed unittest2 as a dependence
+* Fixed parameter sorting in TakesData so interactiveguess works again
+* Removed outdated skipped tests, still related to NumericalLeastSquares
+* A whole sway of small test improvements
+* Updated objective tests
+* Updated objectives to the new standard and added sanity checking which will raise an error if required data is missing
+* Minimizers no longer provide None by default for dependent variables
+* Removed the default setting of variables to 'None' if no data is provided
+* Fixed docstring so docs will build
+* FIx docstring, fix checking for numerical models
+* Our polite warning does not extend to BaseNumericalModel subclasses
+* Use assertWarns in tests. Requires the package unittest2 for py27
+* Added a warning if users provide a model with derivative operators in it which is not an ODEModel
+* Fixed hashability issues for Parameter
+* SymPy added better printing for MatPow, but this broke our sqrt of a (1, 1) matrix scalar. Fixed by checking the shape before taking the power, and take a standard power if we're dealing with a scalar
+* Because equility of FitResults is ill-defined, I decided to remove that for now but leave a working definition intact which can be used for testing only
+* Set up build stages
+* Fix insidious typo
+* Revert "Make interactive guess tests use Agg backend"
+* Make interactive guess tests use Agg backend
+* Change xvfb invocation
+* Use newer Ubuntu version
+* Update Python versions for Travis. Remove Sphinx version pinning
+* Parameter hasing is now handled seperatelly so that parameters extra values are not viewed as assumptions by sympy
+* Changed the test into a complentary one which does not require the fitting to be performed, to improve performance
+* Added checking of value to value checking
+* Cleanup of equality checking for constraints
+* Chained minimizer kwargs error solved
+* Equality of Parameters defined
+* Fixed pickle error due to Parameter objects accedently having our extra arguments as assumptions
+* Our parameter arguments should not be passed to sympy as assumptions
+* Constraints are now always a list, albeit an empty one
+* MINPACK now also supports fixed parameters
+* Improved pickling test by adding equality checking to Objectives, and fixed issues related to constraints on FItResults
+* Added constraints to FitResults
+* Minimizer output will now be put in \*\*kwargs
+* Processed @pckroon's last suggestions
+* Fixed py27 pickle problems
+* Processed @pckroon's comments
+* MINPACK now also returns a OptimizeResult
+* Updated broken link in docstring
+* Cosmetical update
+* Fixed #72 and Fixed #85
+* Removed unused imports
+* Updated docstrings
+* Added tests, and cleaned-up the FitResults tests in General
+* Added minimizer and objective to the FitResults
+* Changed check to almost equal instead of equal
+* Matrix compatibility and interdependent components (#201)
+* Updated docstring for LeastSquares
+* Math in docstring needs escape character
+* Changed the normalization of LeastSquares, such that the inverse Hessian is immidiately the covariance matrix. Fixed #197
+* Final merge with master
+* Fixed typo
+* Slightly improved some names of variables
+* Updated docstring indentation
+* add install [all]
+* Install from requirements.txt directly
+* Remove only-binary flag in the hope that this was a thing of the past, update
+* Remove only-binary flag in the hope that this was a thing of the past
+* Updated test such that a NoneType constraint should raise a ModelError
+* Updated comments and docstrings
+* Updated model negation for interdependent models
+* Fixed #219. We verify if the lambdify signatures are what we expect, and if not we patch accordingly
+* Loglikelihood mutivariate (#218)
+* Fixed error in docstring
+* Processed @pckroon's simpler comments
+* Upgrade matplotlib etc if possible
+* Small fix, params for jacobian\_model are already the same as for model itself
+* Introduced two alternative init methods: with\_dependency and as\_constraint, to make initiation of models as constraints more streamlined
+* Improved TestFitResults.test\_fitting\_2 by adding a bivariate normal distribution
+* Consistently use ScipyBoundedMinimizer
+* Changed docstrings to remove references to Constraint objects
+* Fixed two terrible mistakes in the tests
+* Adressed @pckroon's comments
+* Improved tests for boundaries by making it ignore MINPACK
+* Removed unused \_clear\_cache from objectives
+* Switched to using hessian\_model instead of the old umerical\_hessian
+* N-dimensional interactive guess (#130)
+* Fixed docstring sphinx error
+* Changes in scipy 1.2 mean differential evolution needs more iterations for our test to pass
+* py27 exception syntax compatibility
+* Adressed @pckroon's simpler comments
+* Address @pckroon suggestion that no Parameters should end up as variables
+* Made test on constraints tighter
+* Updated model tests to slight API changes
+* Update tests for direct interaction with minimizers
+* Added several tests for constrained fits
+* Data which does not belong to a variable, should not automatically be removed
+* Updated minimizers.py to the previous commit
+* Constraint builder functions have been improved
+* constraint\_type is now a kwarg to all models
+* Coveralls: Coverage badge (#213)
+* Added six as a dependency, fixed #205 (#211)
+* Implement trust-constr wrapper (#189)
+* Remove wrapping from Objectives (#195)
+* \_\_reduce\_\_ replaced by \_\_setstate\_\_ for models. (#193)
+
+0.4.6
+-----
+
+* Added additional safeguards to the checking for pickling of constraints
+* Improved subclasses function as suggested
+* Made \_\_getstate\_\_ py27 compatible for ChainedMinimizers
+* Improved py27 compatibility of tests
+* Fixed mistake in test
+* Fixed model equality check
+* Tests for pickling of objectives
+* Fixed Constraint's \_\_reduce\_\_ method
+* Test models signature after pickling
+* Made minimizers picklable. Added tests, and made FitResults eq-comparable
+* Updated author email address
+* Pickle fit results & Models (#185)
+* Slightly improved the citation request
+* Removed trailing comma
+
+0.4.5
+-----
+
+* Added CallableNumericalModel (#182)
+* Added P.C. Kroon's ORCID
+* Make sure zenodo gets the authors right
+* fixed a typo
+* Added citation request
+* Add Examples to docs (#180)
+* Add \_\_version\_\_ (#167)
+* Deleted docs/\_build, this should no longer be tracked (#181)
+
+0.4.4
+-----
+
+* BasinHopping -> wraps scipy.optimize.basinhopping (#177)
+* Fixed params and constraints (#165) (#168)
+
+0.4.3
+-----
+
+* Freeze to sympy <= 1.1.1 until a solution has been found. (#170)
+* Global Minimizers (#166)
+* Update README, fixes #165
+* The constraint example in the README suffered from a long time bug (#164)
+
+0.4.2
+-----
+
+* Make parameters fully pickleable (#158)
+* Fixed #161
+* Fixed #159, ODEModels now have \_\_str\_\_ (#162)
+* Corrected a mistake in README
+* Housekeeping
+* Fixed #135. ODEModels can now be evaluated for any t-value. (#157)
+* Fix #42 and #82. (#153)
+* Demand numpy 1.12
+* Fixed deprecation test for py27
+* Fixed sphynx warning
+* changed the default param and var names to reduce the chance of conflict. (But starting with \_ is not allowed because Model results are returned as a namedtuple)
+* Updated docs to inspectless style
+* Fixed sphynx warning
+* Added a test for the deprecation warnings and exceptions raised
+* Added a clearer error message
+
+0.4.1
+-----
+
+* Rename wrap\_jac to resize\_jac
+* Environment issue, cant test locally
+* Address more out of band comments
+* Address out of band comments
+* Address comments the right way..
+* Address comments
+* Revert "Make minimizers deal with fixed parameters"
+* Make minimizers deal with fixed parameters
+* Fixed #149 by replacing len with shape
+* Fixed changes in scipy minimize and matplotlib. Fixed minor issue with fixed parameters. Quickfix #144
+* Added DOI
+
+0.4.0
+-----
+
+* Updated docstring to reflex changes to FitResults
