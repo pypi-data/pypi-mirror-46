@@ -1,0 +1,137 @@
+#!/usr/bin/env python
+
+import tifffile
+import numpy
+import argparse
+import pickle
+import scipy.ndimage
+
+import spam.datasets
+import spam.mesh
+import spam.DIC
+import spam.label
+import spam.helpers
+
+# parser
+import spam.helpers.optionsParser
+parser = argparse.ArgumentParser()
+args = spam.helpers.optionsParser.DICglobalParser(parser)
+
+# load images
+if len(args.inFiles) < 2:
+    print("\ngdic: Did not receive enough input images... you need (at least) two to tango...")
+    exit()
+
+# Load reference image
+im1 = tifffile.imread(args.inFiles[0].name).astype('<f4')
+im2 = tifffile.imread(args.inFiles[1].name).astype('<f4')
+print(im1.shape)
+print(im2.shape)
+
+prefix = args.PREFIX+args.inFiles[0].name.split('/')[-1].split('.')[0]
+
+# Load masks
+im1mask = tifffile.imread(args.MASK1.name).astype('<f4') != 0 if args.MASK1 else None
+im2mask = tifffile.imread(args.MASK2.name).astype('<f4') != 0 if args.MASK2 else None
+
+#################################
+# STEP 1: intital registration  #
+#################################
+registrationSuccessful = False
+if args.REG:
+    print("\tgdic: Starting registration")
+    # Check whetehr we should downscale the images for initial registration
+    if args.REG_BIN == 1:
+        im1Reg = im1
+        im2Reg = im2
+    else:
+        im1Reg = scipy.ndimage.zoom(im1, 1.0/float(args.REG_BIN))
+        im2Reg = scipy.ndimage.zoom(im2, 1.0/float(args.REG_BIN))
+
+    regMargin = int(args.REG_MARGIN*min(im1Reg.shape))
+
+    # Run registration
+    regReturns = spam.DIC.correlate.lucasKanade(im1Reg, im2Reg,
+                                                margin=regMargin,
+                                                interpolationOrder=1,
+                                                maxIterations=500,
+                                                minFchange=0.0001,
+                                                verbose=True,
+                                                imShowProgress=None)
+    if regReturns['returnStatus'] != 2:
+        print "\tgdic: Registration did not converge."
+    else:
+        print "\tgdic: Registration converged beautifully..."
+        registrationSuccessful = True
+        print "\tTranslations (px): {}".format(regReturns['transformation']['t'])
+        print "\tRotations (deg): {}".format(regReturns['transformation']['r'])
+
+        regF = regReturns['F']
+        regCentre = (numpy.array(im1Reg.shape)-1)/2.0
+
+        # Also disactive loading further guesses.
+        spam.helpers.writeRegistrationTSV("{}/{}-registration-bin{:d}.tsv".format(args.OUT_DIR, prefix, args.REG_BIN), regCentre, regReturns)
+
+        # HACK: overwrite variables regF, regCentre with binning 1 versions
+        if args.REG_BIN != 1:
+            regF[0:3, 3] *= float(args.REG_BIN)
+            regCentre *= float(args.REG_BIN)
+
+elif args.FFILE is not None:
+    FfromFile = spam.helpers.readTSV(args.FFILE.name, fieldBinRatio=args.FFILE_BIN_RATIO)
+
+    # If the read F-file has only one line -- it's a single point registration!
+    if FfromFile['fieldCoords'].shape[0] == 1:
+        regF = FfromFile['Ffield'][0]
+        regCentre = FfromFile['fieldCoords'][0]
+        registrationSuccessful = True
+        print "\tI read a registration from a file."
+
+        print "\tTranslations (px)"
+        print "\t\t", spam.DIC.transformationOperator.FtoTransformation(regF)['t']
+        print "\tRotations (deg)"
+        print "\t\t", spam.DIC.transformationOperator.FtoTransformation(regF)['r']
+
+
+#################
+# STEP 2: mesh  #
+#################
+if args.MESH_FILE is not None:
+    print("gdic: read mesh: {}".format(args.MESH_FILE.name))
+    inputMesh = pickle.load(args.MESH_FILE)
+    ##meshCoordinates, meshTetra, _, _ = spam.helpers.readUnstructuredVTK(args.MESH_FILE.name, swapAxes=True)
+
+elif args.MESH_CUBOID is not None:
+    print("gdic: create cuboid mesh with parameters:")
+    lengths = args.MESH_CUBOID[3:6]
+    origin = args.MESH_CUBOID[0:3]
+    lcar = args.MESH_CUBOID[6]
+    print("\tlenghts: {}".format(lengths))
+    print("\torigin: {}".format(origin))
+    print("\tlcar: {}".format(lcar))
+    meshCoordinates, meshTetra = spam.mesh.createCuboid(lengths, lcar, origin=origin, swapAxes=True, vtkFile="{}/{}-mesh".format(args.OUT_DIR, prefix))
+    lab = spam.label.labelTetrahedra(im1.shape, meshCoordinates, meshTetra)
+    inputMesh = {"points": meshCoordinates, "tetra": meshTetra, "lab": lab}
+    pickle.dump(inputMesh, open("{}/{}-mesh.p".format(args.OUT_DIR, prefix), 'wb'))
+    tifffile.imsave("{}/{}-lab.tif".format(args.OUT_DIR, prefix), lab)
+
+else:
+    print("\tgdic: a mesh is needed. Use one of this option: -Mcube or -Mfile.")
+    print("\tgdic: note for devs... this should be checked in optionParsers.")
+    print("\tgdic: exiting.")
+
+initialDisplacements = numpy.zeros_like(inputMesh["points"])
+
+
+# Apply registration (just done or loaded) to mesh
+if registrationSuccessful:
+    print("gdic: use registration to set initial displacements.")
+    for i, node in enumerate(inputMesh["points"]):
+        initialDisplacements[i] = spam.DIC.FtoTransformation(regF.copy(), Fcentre=regCentre, Fpoint=node)["t"]
+
+# spam.helpers.writeGlyphsVTK(meshCoordinates, {'disp': initialDisplacements})
+
+################################
+# STEP 2: globale correlation  #
+################################
+spam.DIC.globalCorrelation(im1, im2, inputMesh, initialDisplacements=initialDisplacements, maxIterations=args.SUBPIXEL_MAX_ITERATIONS, convergenceCriterion=args.SUBPIXEL_MIN_F_CHANGE, prefix="{}/{}".format(args.OUT_DIR, prefix))

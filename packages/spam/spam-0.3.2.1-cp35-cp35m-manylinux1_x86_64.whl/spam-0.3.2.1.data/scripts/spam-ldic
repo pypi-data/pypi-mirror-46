@@ -1,0 +1,478 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+import os
+import argparse
+
+import spam.DIC
+import spam.helpers.tsvio
+
+import numpy
+import scipy.ndimage
+
+import tifffile
+
+import spam.helpers
+
+# Define argument parser object
+parser = argparse.ArgumentParser()
+
+# Parse arguments with external helper function
+args = spam.helpers.optionsParser.ldicParser(parser)
+
+if len(args.inFiles) < 2:
+    print("\nldic: Did not receive enough input images... you need (at least) two to tango...")
+    exit()
+
+if args.MPI:
+    import mpi4py.MPI
+
+    mpiComm = mpi4py.MPI.COMM_WORLD
+    mpiSize = mpiComm.Get_size()
+    mpiRank = mpiComm.Get_rank()
+    mpiStatus = mpi4py.MPI.Status()
+    numberOfWorkers = mpiSize - 1
+
+    boss = mpiSize-1
+
+    if mpiSize < 2:
+        mpi = False
+        if mpiRank == boss:
+            print("ldic: I was launched with {} processes, need at least 2 for MPI, using single thread mode".format(mpiSize))
+            # exit()
+    else:
+        mpi = True
+        if mpiRank == boss:
+            print("ldic: I was launched with {} processes, using MPI parallelisation".format(mpiSize))
+else:
+    mpi = False
+    mpiRank = None
+    boss = "Olga"
+
+# The "else" for this "if" last seen around line 380
+if mpiRank == boss or not mpi:
+    print("Current Settings:")
+    argsDict = vars(args)
+    for key in sorted(argsDict):
+        print("\t{}: {}".format(key, argsDict[key]))
+
+    # Fill in search range as a dictionary
+    searchRange = {'xRange': [args.PSR[4], args.PSR[5]],
+                   'yRange': [args.PSR[2], args.PSR[3]],
+                   'zRange': [args.PSR[0], args.PSR[1]]}
+
+    # Load reference image
+    im1 = tifffile.imread(args.inFiles[0].name).astype('<f4')
+
+    # Detect unpadded 2D image first:
+    if len(im1.shape) == 2:
+        im1 = im1[numpy.newaxis, ...]
+    if im1.shape[0] == 1:
+        twoD = True
+    else:
+        twoD = False
+
+    if args.MASK1:
+        im1mask = tifffile.imread(args.MASK1.name).astype('<f4') != 0
+        if len(im1mask.shape) == 2:
+            im1mask = im1mask[numpy.newaxis, ...]
+    else:
+        im1mask = None
+
+    # Automatically set the mimnum mask volume per correlation window as 50% occupancy
+    MIN_VX = minSubVolume = int(((1+min(args.HWS)*2)**3) * 0.5)
+
+    firstCorrelation = True
+
+    # Loop over input images
+    for im2number in range(1, len(args.inFiles)):
+        # Variables to track last correlation in order to ask MPI workers to hang up
+        if im2number == len(args.inFiles)-1: lastCorrelation = True
+        else: lastCorrelation = False
+
+        # decide on number, in input files list, of the reference image
+        if args.SERIES_INCREMENTAL:
+            im1number = im2number-1
+        else:
+            im1number = 0
+
+        # Output file name prefix
+        if args.PREFIX is None or len(args.inFiles) > 2:
+            args.PREFIX = os.path.splitext(os.path.basename(args.inFiles[im1number].name))[0]+"-"+os.path.splitext(os.path.basename(args.inFiles[im2number].name))[0]
+
+        # If not first correlation and we're interested in loading previous Ffile:
+        if not firstCorrelation and args.SERIES_PHIFILE:
+            args.PS = 'off'
+            args.REG = False
+            args.PHIFILE = previousPhiFile
+
+        print("\nCorrelating:", args.PREFIX)
+
+        im2 = tifffile.imread(args.inFiles[im2number].name).astype('<f4')
+        if len(im2.shape) == 2:
+            im2 = im2[numpy.newaxis, ...]
+
+        nodePositions, nodesDim = spam.DIC.grid.makeGrid(im1.shape, args.NS)
+        #print(nodesDim)
+        # HACK -- a gigantic one
+        #nodePositions =numpy.array([[280,150,115]])/2
+        #nodesDim = numpy.array([[1,1,1]])
+
+        # Initialise field of Fs with the identity matrix
+        PhiField = numpy.zeros((nodePositions.shape[0], 4, 4))
+        for node in range(nodePositions.shape[0]):
+            PhiField[node] = numpy.eye(4)
+        # define empty rigid displacements for registration:
+        if args.REGSUB: rigidDisp = numpy.zeros((nodePositions.shape[0], 3))
+        ##################################################################
+        # Rough estimates of displacement:
+        # Option 1: Do a registration (single-image correlation)
+        # Option 2: Load a previous registration
+        # Option 3: Perform a displacement-only pixel search
+        # Option X: (one day) Perform FFT correlation
+        ##################################################################
+
+        # Option 1 -- attempt registration
+        #####################################
+        registrationSuccessful = False
+        if args.REG:
+            print("\tldic: Starting registration")
+
+            # Check whether we should downscale the images for initial registration
+            if args.REG_BIN == 1:
+                im1Reg = im1
+                im2Reg = im2
+            else:
+                im1Reg = spam.DIC.binning(im1, args.REG_BIN)
+                im2Reg = spam.DIC.binning(im2, args.REG_BIN)
+
+            if twoD:
+                regMargin = int(args.REG_MARGIN*min(im1Reg.shape[1:3]))
+            else:
+                regMargin = int(args.REG_MARGIN*min(im1Reg.shape))
+
+            # Run registration
+            regReturns = spam.DIC.correlate.lucasKanade(im1Reg, im2Reg,
+                                                        #im1mask = im1mask ?,
+                                                        margin=regMargin,
+                                                        interpolationOrder=1,
+                                                        maxIterations=500,
+                                                        deltaPhiMin=0.0001,
+                                                        verbose=True,
+                                                        imShowProgress=None)
+            if regReturns['returnStatus'] != 2:
+                print("\tldic: Registration did not converge, try increasing the registration margin?")
+            else:
+                print("\tldic: Registration converged beautifully...")
+                registrationSuccessful = True
+
+                print("\tTranslations (px)")
+                print("\t\t", regReturns['transformation']['t'])
+                print("\tRotations (deg)")
+                print("\t\t", regReturns['transformation']['r'])
+
+                regPhi = regReturns['PhiCentre']
+                regCentre = (numpy.array(im1Reg.shape)-1)/2.0
+                # Not right in 100% of cases, but disactivate pixelSearch if the registration has converged
+                #args.PS = False
+                # Also disactive loading further guesses.
+                args.PHIFILE = None
+
+                if args.TSV:
+                    spam.helpers.tsvio.writeRegistrationTSV(args.OUT_DIR+"/"+args.PREFIX+"-bin{:d}".format(args.REG_BIN)+"-registration.tsv", regCentre, regReturns)
+
+                # HACK: overwrite variables regPhi, regCentre with binning 1 versions
+                if args.REG_BIN != 1:
+                    regPhi[0:3, 3] *= float(args.REG_BIN)
+                    regCentre *= float(args.REG_BIN)
+
+        # Option 2 - load previous DVC
+        #################################
+        if args.PHIFILE is not None:
+            FfromFile = spam.helpers.tsvio.readTSV(args.PHIFILE, fieldBinRatio=args.PHIFILE_BIN_RATIO)
+
+            # We read an F file, also prevent pixel search
+            #args.PS = False
+
+            # If the read F-file has only one line -- it's a single point registration!
+            if FfromFile['fieldCoords'].shape[0] == 1:
+                regPhi = FfromFile['PhiField'][0]
+                regCentre = FfromFile['fieldCoords'][0]
+                registrationSuccessful = True
+                print("\tI read a registration from a file in binning {} at centre {} at this scale".format(args.PHIFILE_BIN_RATIO, regCentre) )
+
+                print("\tTranslations (px)")
+                print("\t\t", spam.DIC.decomposePhi(regPhi)['t'])
+                print("\tRotations (deg)")
+                print("\t\t", spam.DIC.decomposePhi(regPhi)['r'])
+
+            # If the read F-file contains multiple lines it's an F field!
+            else:
+                # Disactivate the application of registration
+                registrationSuccessful = False
+
+                # Replace F components of the current grid to zeros
+                for node in range(nodePositions.shape[0]):
+                    PhiField[node][:-1] = numpy.zeros((3, 4))
+
+                # Read the coordinates and values of the input F field
+                fieldCoords = FfromFile["fieldCoords"]
+
+                # Check if the correction of the input field is asked
+                if args.CORRECT_FIELD:
+                    fieldValues = spam.DIC.correctPhiField( fileName=args.PHIFILE,
+                                                            fieldBinRatio=args.PHIFILE_BIN_RATIO,
+                                                            correctBadPoints=True,
+                                                            deltaPhiNormMin=args.CORRECT_DELTA_F_NORM,
+                                                            pixelSearchCCmin=args.CORRECT_PIXEL_SEARCH_CC,
+                                                            neighbours=args.CORRECT_NEIGHBOURS,
+                                                            filterPoints=args.CORRECT_MEDIAN_FILTER,
+                                                            filterPointsRadius=args.CORRECT_MEDIAN_FILTER_RADIUS)
+                else:
+                    fieldValues = FfromFile["PhiField"]
+
+                # Create the k-d tree of the coordinates of the input F field
+                from scipy.spatial import KDTree
+                neighbours = args.CORRECT_NEIGHBOURS
+                fieldTree = KDTree(fieldCoords)
+
+                # Loop over each point of the current grid
+                for node in xrange(nodePositions.shape[0]):
+                    # if verbose: print "\nWorking on node {} {:0.2f}%".format( node, (node/float(numberofPoints))*100)
+
+                    # Calculate the distance of the point of the current grid to the points of the input F field
+                    distance, indices = fieldTree.query(nodePositions[node], k=neighbours)
+
+                    # Check if we've hit the same point in the two grids
+                    if numpy.any(distance == 0):
+
+                        # Copy F of that point to the F in the current grid point
+                        PhiField[node] = fieldValues[indices][numpy.where(distance == 0)].copy()
+
+                    # If not, consider the closest neighbours
+                    else:
+
+                        # Compute the "Inverse Distance Weighting" since the closest points should have the major influence
+                        weightSumInv = sum(1/distance)
+
+                        # Loop over each neighbour
+                        for neighbour in xrange(neighbours):
+
+                            # Calculate it's weight
+                            weightInv = (1/distance[neighbour])/float(weightSumInv)
+
+                            # Fill the F of the current grid point with the weighted F components of the ith nearest neighbour in the input F field
+                            PhiField[node][:-1] += fieldValues[indices[neighbour]][:-1]*weightInv
+
+        # Apply registration (just done or loaded) to mesh
+        if registrationSuccessful:
+            # We have a registration to apply to all points.
+            # This is done in 2 steps:
+            #   1. by copying the registration's little F to the Fs of all points
+            #   2. by calling the decomposePhi function to compute the translation of each point
+            for node in range(nodePositions.shape[0]):
+                PhiField[node] = regPhi.copy()
+                PhiField[node][0:3, -1] = spam.DIC.decomposePhi(regPhi.copy(), PhiCentre=regCentre, PhiPoint=nodePositions[node])["t"]
+                #PhiField[node][0:3, -1] = -numpy.array(spam.DIC.decomposePhi(numpy.linalg.inv(regPhi), PhiCentre=regCentre, PhiPoint=nodePositions[node])["t"])
+
+            # Now recompute F to be only rigid, and calculate rigid-body translations for each point
+            if args.REGSUB:
+                regPhiComponents = spam.DIC.decomposePhi(regPhi.copy())
+                regPhirigid = spam.DIC.computePhi( {'t': regPhiComponents['t'],
+                                                    'r': regPhiComponents['r']} )
+                for node in range(nodePositions.shape[0]):
+                    rigidDisp[node] = spam.DIC.decomposePhi(regPhirigid.copy(),
+                                                            PhiCentre=regCentre,
+                                                            PhiPoint=nodePositions[node])["t"]
+
+            # print "\nInitial PhiField"
+            # print PhiField
+            # exit()
+
+        # Option 3 - pixel search
+        ############################
+        if args.PS == 'on' or ( registrationSuccessful == False and args.PS == 'auto'):
+            pixelSearchReturns = spam.DIC.grid.pixelSearch(im1, im2,
+                                                           nodePositions,
+                                                           args.HWS, searchRange,
+                                                           PhiField=PhiField,
+                                                           im1mask=im1mask,
+                                                           greyThreshold=[args.GREY_LOW_THRESH, args.GREY_HIGH_THRESH])
+            PhiField = pixelSearchReturns['PhiField']
+            pixelSearchCC = pixelSearchReturns['pixelSearchCC']
+
+            if args.PS_FILTER > 0:
+                print("\n\n\tMedian-Filtering displacements...")
+                PhiField[:, 0, 3] = scipy.ndimage.generic_filter(PhiField[:, 0, 3].reshape(nodesDim), numpy.nanmedian, size=args.PS_FILTER, mode='constant', cval=0.0).ravel()
+                PhiField[:, 1, 3] = scipy.ndimage.generic_filter(PhiField[:, 1, 3].reshape(nodesDim), numpy.nanmedian, size=args.PS_FILTER, mode='constant', cval=0.0).ravel()
+                PhiField[:, 2, 3] = scipy.ndimage.generic_filter(PhiField[:, 2, 3].reshape(nodesDim), numpy.nanmedian, size=args.PS_FILTER, mode='constant', cval=0.0).ravel()
+
+        if args.SUBPIXEL:
+            subPixelReturns = spam.DIC.grid.subPixel(im1, im2,
+                                                     nodePositions,
+                                                     args.HWS,
+                                                     PhiField=PhiField,
+                                                     margin=args.SUBPIXEL_MARGIN,
+                                                     maxIterations=args.SUBPIXEL_MAX_ITERATIONS,
+                                                     deltaPhiMin=args.SUBPIXEL_MIN_PHI_CHANGE,
+                                                     im1mask=im1mask,
+                                                     interpolationOrder=args.SUBPIXEL_INTERPOLATION_ORDER,
+                                                     greyThreshold=[args.GREY_LOW_THRESH, args.GREY_HIGH_THRESH],
+                                                     mpi=mpi)
+
+        # Finished! Get ready for output.
+        if args.REGSUB:
+            print("\n\tFinished correlations. Subtracting rigid-body motion from displacements of each point")
+            PhiFieldRigid = PhiField.copy()
+            for node in range(nodePositions.shape[0]):
+                PhiFieldRigid[node][0:3,-1] -= rigidDisp[node]
+
+        if args.TSV:
+            # Make one big array for writing:
+            #   First the node number,
+            #   3 node positions,
+            #   F[0:3,0:2]
+            #   Pixel-search CC
+            #   SubPixError, SubPixIterations, SubPixelReturnStatus
+            TSVheader = "NodeNumber\tZpos\tYpos\tXpos\tF11\tF12\tF13\tZdisp\tF21\tF22\tF23\tYdisp\tF31\tF32\tF33\tXdisp"
+            outMatrix = numpy.array([numpy.array(range(nodePositions.shape[0])),
+                                     nodePositions[:, 0], nodePositions[:, 1], nodePositions[:, 2],
+                                     PhiField[:, 0, 0],         PhiField[:, 0, 1],         PhiField[:, 0, 2],    PhiField[:, 0, 3],
+                                     PhiField[:, 1, 0],         PhiField[:, 1, 1],         PhiField[:, 1, 2],    PhiField[:, 1, 3],
+                                     PhiField[:, 2, 0],         PhiField[:, 2, 1],         PhiField[:, 2, 2],    PhiField[:, 2, 3]]).T
+            if args.PS == 'on' or ( registrationSuccessful == False and args.PS == 'auto'):
+                outMatrix = numpy.hstack([outMatrix, numpy.array([pixelSearchCC]).T])
+                TSVheader = TSVheader+"\tPSCC"
+
+            if args.SUBPIXEL:
+                outMatrix = numpy.hstack([outMatrix, numpy.array([subPixelReturns['subpixelError'],
+                                                                  subPixelReturns['subpixelIterations'],
+                                                                  subPixelReturns['subpixelReturnStatus'],
+                                                                  subPixelReturns['subpixelDeltaPhiNorm']]).T])
+                TSVheader = TSVheader+"\tSubPixError\tSubPixIterations\tSubPixReturnStat\tSubPixDeltaPhiNorm"
+
+            numpy.savetxt(args.OUT_DIR+"/"+args.PREFIX+".tsv",
+                          outMatrix,
+                          fmt='%.7f',
+                          delimiter='\t',
+                          newline='\n',
+                          comments='',
+                          header=TSVheader)
+            # Hold onto that name if we need to reload
+            if args.SERIES_PHIFILE: previousPhiFile = args.OUT_DIR+"/"+args.PREFIX+".tsv"
+
+            if args.REGSUB:
+                outMatrix = numpy.array([numpy.array(range(nodePositions.shape[0])),
+                                         nodePositions[:, 0], nodePositions[:, 1], nodePositions[:, 2],
+                                         PhiFieldRigid[:, 0, 0],         PhiFieldRigid[:, 0, 1],         PhiFieldRigid[:, 0, 2],    PhiFieldRigid[:, 0, 3],
+                                         PhiFieldRigid[:, 1, 0],         PhiFieldRigid[:, 1, 1],         PhiFieldRigid[:, 1, 2],    PhiFieldRigid[:, 1, 3],
+                                         PhiFieldRigid[:, 2, 0],         PhiFieldRigid[:, 2, 1],         PhiFieldRigid[:, 2, 2],    PhiFieldRigid[:, 2, 3]]).T
+                if args.PS == 'on' or ( registrationSuccessful == False and args.PS == 'auto'):
+                    outMatrix = numpy.hstack([outMatrix, numpy.array([pixelSearchCC]).T])
+
+                if args.SUBPIXEL:
+                    outMatrix = numpy.hstack([outMatrix, numpy.array([subPixelReturns['subpixelError'],
+                                                                      subPixelReturns['subpixelIterations'],
+                                                                      subPixelReturns['subpixelReturnStatus'],
+                                                                      subPixelReturns['subpixelDeltaPhiNorm']]).T])
+                numpy.savetxt(args.OUT_DIR+"/"+args.PREFIX+"-regsub.tsv",
+                              outMatrix,
+                              fmt='%.7f',
+                              delimiter='\t',
+                              newline='\n',
+                              comments='',
+                              header=TSVheader)
+
+        if args.TIF:
+            if nodesDim[0] != 1:
+                tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-Zdisp.tif",              PhiField[:, 0, -1].astype('<f4').reshape(nodesDim))
+                if args.REGSUB:
+                    tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-Zdisp-regsub.tif",   PhiFieldRigid[:, 0, -1].astype('<f4').reshape(nodesDim))
+            tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-Ydisp.tif",                  PhiField[:, 1, -1].astype('<f4').reshape(nodesDim))
+            tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-Xdisp.tif",                  PhiField[:, 2, -1].astype('<f4').reshape(nodesDim))
+            if args.REGSUB:
+                tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-Ydisp-regsub.tif",       PhiFieldRigid[:, 1, -1].astype('<f4').reshape(nodesDim))
+                tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-Xdisp-regsub.tif",       PhiFieldRigid[:, 2, -1].astype('<f4').reshape(nodesDim))
+            if args.PS == 'on' or ( registrationSuccessful == False and args.PS == 'auto'):
+                tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-CC.tif",               pixelSearchCC.astype('<f4').reshape(nodesDim))
+            if args.SUBPIXEL:
+                tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-SubPixError.tif",      subPixelReturns['subpixelError'].astype('<f4').reshape(nodesDim))
+                tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-SubPixIterations.tif", subPixelReturns['subpixelIterations'].astype('<f4').reshape(nodesDim))
+                tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-SubPixReturnStat.tif", subPixelReturns['subpixelReturnStatus'].astype('<f4').reshape(nodesDim))
+                tifffile.imsave(args.OUT_DIR+"/"+args.PREFIX+"-SubPixDeltaFnorm.tif", subPixelReturns['subpixelDeltaPhiNorm'].astype('<f4').reshape(nodesDim))
+
+        # Collect data into VTK output
+        if args.VTK:
+            cellData = {}
+            if args.PS == 'on' or ( registrationSuccessful == False and args.PS == 'auto'):
+                cellData['displacements'] =  PhiField[:, :-1, 3].reshape((nodesDim[0], nodesDim[1], nodesDim[2], 3))
+                cellData['PSCC']          = pixelSearchCC.reshape(nodesDim)
+
+            if args.SUBPIXEL:
+                cellData['displacements']         = PhiField[:, :-1, 3].reshape((nodesDim[0], nodesDim[1], nodesDim[2], 3))
+                if args.REGSUB:
+                    cellData['displacements-regsub'] = PhiFieldRigid[:, :-1, 3].reshape((nodesDim[0], nodesDim[1], nodesDim[2], 3))
+                cellData['subpixel-error']        = subPixelReturns['subpixelError'].reshape(nodesDim)
+                cellData['subpixel-iterations']   = subPixelReturns['subpixelIterations'].reshape(nodesDim)
+                cellData['subpixel-returnStatus'] = subPixelReturns['subpixelReturnStatus'].reshape(nodesDim)
+                cellData['subpixel-deltaPhiNorm'] = subPixelReturns['subpixelDeltaPhiNorm'].reshape(nodesDim)
+
+                cellData['subpixel-error'       ][numpy.logical_not(numpy.isfinite(cellData['subpixel-error']))]        = 0
+                cellData['subpixel-iterations'  ][numpy.logical_not(numpy.isfinite(cellData['subpixel-iterations']))]   = 0
+                cellData['subpixel-returnStatus'][numpy.logical_not(numpy.isfinite(cellData['subpixel-returnStatus']))] = 0
+                cellData['subpixel-deltaPhiNorm'][numpy.logical_not(numpy.isfinite(cellData['subpixel-deltaPhiNorm']))] = 0
+
+            # Overwrite nans and infs with 0, rubbish I know
+            cellData['displacements'][numpy.logical_not(numpy.isfinite(cellData['displacements']))] = 0
+            if args.REGSUB:
+                cellData['displacements-regsub'][numpy.logical_not(numpy.isfinite(cellData['displacements-regsub']))] = 0
+
+            spam.helpers.writeStructuredVTK(origin=nodePositions[0]-args.HWS, aspectRatio=args.NS, cellData=cellData, fileName=args.OUT_DIR+"/"+args.PREFIX+".vtk")
+        firstCorrelation = False
+
+        if args.SERIES_INCREMENTAL:
+            # If in incremental mode, current deformed image is next reference image
+            im1 = im2.copy()
+
+
+    # tidy up, send message type -1 to all workers
+    if mpi:
+        for worker in range(numberOfWorkers ): mpiComm.send( None, dest=worker, tag=5)
+
+    print("\n")
+
+elif mpi:  # We are not the mpi boss, so we are a lukasKanade worker
+    import spam.DIC.correlate
+    while True:
+        m = mpiComm.recv(source=boss, tag=mpi4py.MPI.ANY_TAG, status=mpiStatus)
+        tag = mpiStatus.Get_tag()
+        # We've recieved a node to process
+        if tag == 1:
+            pixelSearchReturns = spam.DIC.correlate.pixelSearch(m['im1'],
+                                                                m['im2'],
+                                                                searchRange=m['searchRangeForThisNode'],
+                                                                searchCentre=m['searchCentre'])
+            # print "\t\tI am worker {} Sending result for node {}".format( mpiRank, node )
+            mpiComm.send([mpiRank, m['nodeNumber'], pixelSearchReturns, m['initialDisplacement']], dest=boss, tag=2)
+
+        elif tag == 3:
+            # print "\n\n\t\tI am worker {} working on node {}".format( mpiRank, m )
+            lukasKanadeReturns = spam.DIC.correlate.lucasKanade(m['im1'],
+                                                                m['im2'],
+                                                                im1mask=m['im1mask'],
+                                                                PhiInit=m['PhiInit'],
+                                                                margin=m['margin'],
+                                                                maxIterations=m['maxIterations'],
+                                                                deltaPhiMin=m['deltaPhiMin'],
+                                                                interpolationOrder=m['interpolationOrder'],
+                                                                interpolator=m['interpolator'])
+            # print "\t\tI am worker {} Sending result for node {}".format( mpiRank, node )
+            mpiComm.send([mpiRank, m['nodeNumber'], lukasKanadeReturns, m['nodeDisplacement']], dest=boss, tag=4)
+
+        elif tag == 5:
+            # print("\t\tWorker {}: Quitting, bye!".format(mpiRank))
+            exit()
+
+        else:
+            print("\t\tWorker {}: Don't recognise tag {}".format(mpiRank, tag))
+            # print("\t\tMessage:", message)
