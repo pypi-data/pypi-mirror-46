@@ -1,0 +1,2 @@
+class DataLossError(Exception):
+    pass
