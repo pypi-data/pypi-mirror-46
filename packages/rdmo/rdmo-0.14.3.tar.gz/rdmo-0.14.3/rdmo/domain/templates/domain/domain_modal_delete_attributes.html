@@ -1,0 +1,54 @@
+{% load i18n %}
+
+    <div class="modal" id="attributes-delete-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h2 class="modal-title">
+                        {% trans 'Delete attribute' %}
+                    </h2>
+                </div>
+
+                <div class="modal-body">
+                    <p>
+                        {% blocktrans trimmed with object='{$ service.values.path $}' %}
+                        You are about to permanently delete the attribute <code>{{ object }}</code>.
+                        {% endblocktrans %}
+                    </p>
+
+                    <p>
+                        {% trans 'This will also delete the following attributes:' %}
+                    </p>
+
+                    <ul>
+                        <li ng-repeat="attribute in service.values.children" ng-include src="'nested_attributes_delete.html'">
+                    </ul>
+
+                    <script type="text/ng-template" id="nested_attributes_delete.html">
+                    <code>{$ attribute.path $}</code>
+
+                    <ul>
+                        <li ng-repeat="attribute in attribute.children" ng-include src="'nested_attributes_delete.html'"></li>
+                    </ul>
+                    </script>
+
+                    <p class="text-danger">
+                        {% trans 'This action cannot be undone!' %}
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        {% trans 'Close' %}
+                    </button>
+                    <button type="button" class="btn btn-danger"
+                            ng-click="service.submitDeleteModal('attributes')">
+                        {% trans 'Delete' %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>

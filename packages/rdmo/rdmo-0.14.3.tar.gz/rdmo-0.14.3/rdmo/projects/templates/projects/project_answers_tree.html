@@ -1,0 +1,55 @@
+{% for section in answers_tree.sections %}
+
+    <h2>{{ section.title }}</h2>
+
+
+    {% for questionset in section.questionsets %}
+
+        <h3>{{ questionset.title }}</h3>
+
+        {% if questionset.is_collection %}
+
+            {% for question in questionset.questions %}
+
+                <p><strong>{{ question.text }}</strong></p>
+
+                {% for set in question.sets %}
+
+                    {% if question.is_collection %}
+                        <p><em>{{ set.id }}:</em></>
+                        <ul>
+                        {% for answer in set.answers %}
+                        <li>{{ answer }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p><em>{{ set.id }}:</em>&ensp;{{ set.answers.0 }}</p>
+                    {% endif %}
+
+                {% endfor %}
+
+            {% endfor %}
+
+        {% else %}
+
+            {% for question in questionset.questions %}
+
+            <p><strong>{{ question.text }}</strong></p>
+
+            {% if question.is_collection %}
+                <ul>
+                {% for answer in question.answers %}
+                <li>{{ answer }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>{{ question.answers.0 }}</p>
+            {% endif %}
+
+            {% endfor %}
+
+        {% endif %}
+
+    {% endfor %}
+
+{% endfor %}
