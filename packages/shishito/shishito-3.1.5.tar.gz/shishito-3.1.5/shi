@@ -1,0 +1,47 @@
+#!/bin/bash
+# - Create virtenv for python3 if needed
+# - Install shishito into venv
+# - Install dependencies (if requirements.txt is provided)
+# - Check if config/local_config.properties exists
+# - Run tests
+
+set -e
+
+SCRIPT_DIR=$(pwd -P)
+export VIRTUAL_ENV="$SCRIPT_DIR/venv"
+
+# create venv if needed
+if ! [ -d "$VIRTUAL_ENV" ]; then
+  python3 -m venv "$VIRTUAL_ENV"
+  . "$VIRTUAL_ENV/bin/activate"
+  # install shishito into venv
+  which pip3
+  pip3 install --upgrade pip
+  pip3 install shishito
+  if [[ -f "$SCRIPT_DIR/requirements.txt" ]] ; then
+    echo "Installing requirements from requirements.txt"
+    pip3 install -r "$SCRIPT_DIR/requirements.txt"
+  else
+    echo "File requirements.txt not found, not installing requirements"
+  fi
+fi
+
+if [[ ! -f 'config/local_config.properties' ]] ; then
+  echo "File config/local_config.properties not found, exiting"
+  exit 1
+fi
+
+# run shishito pytest
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+export PYTHONPATH="$(pwd -P)"
+
+python3 -c "from shishito.shishito_runner import ShishitoRunner
+ShishitoRunner('$(pwd -P)').run_tests()" "$@"
+
+# check results
+result_code=0;
+for result in results/[0-9]*/*.xml; do
+  grep 'testsuite errors="0" failures="0"' "$result" > /dev/null || result_code=1
+done
+
+exit "$result_code"
