@@ -1,0 +1,34 @@
+---
+# tasks file for undercloud-setup
+- name: Run atop for monitoring
+  include: atop.yml
+
+# Add a non-root user
+- name: Including non_root_user_setup tasks list
+  include: non_root_user_setup.yml
+  when: non_root_user_setup|bool
+
+- name: Including ovb_setup_connectivity tasks list
+  include: ovb_setup_connectivity.yml
+  when: ovb_setup_connectivity|bool
+
+- name: Including repo-setup role
+  include_role:
+    name: repo-setup
+
+- name: Including package_installs tasks
+  include: package_installs.yml
+  when: package_installs|bool
+
+- name: Including vxlan_networking tasks
+  include: vxlan_networking.yml
+  when: vxlan_networking|bool or toci_vxlan_networking|bool
+
+- name: Including hostname tasks
+  include: hostname.yml
+  when: hostname_correction|bool or step_set_undercloud_hostname|bool
+
+- name: Include ansible.cfg configuration for the undercloud / node
+  include: ansible_cfg.yml
+  when:
+    - undercloud_ansible_cfg|bool and undercloud_ara|bool

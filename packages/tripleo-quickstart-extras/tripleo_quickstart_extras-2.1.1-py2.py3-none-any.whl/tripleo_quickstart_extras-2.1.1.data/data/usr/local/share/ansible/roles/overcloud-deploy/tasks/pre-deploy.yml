@@ -1,0 +1,302 @@
+---
+# Note.. the order of heat templates and args is very important.  The last environment that sets a variable takes precedent.
+
+- name: Deprecation message for network isolation types
+  debug:
+    msg: >-
+      Network isolation types 'multi-nic', 'bond_with_vlans', 'single_nic_vlans'
+      are deprecated in R release, please use 'multiple-nics', 'bond-with-vlans',
+      'single-nic-vlans'.
+  when: network_isolation_type in ["single_nic_vlans", "bond_with_vlans", "multi-nic"]
+
+# NOTE: 'single_nic_vlans' is deprecated
+- name: set network isolation args for single-nic-vlans IPv4
+  set_fact:
+    network_isolation_args: >-
+      -e {{ overcloud_templates_path }}/environments/network-isolation.yaml
+      -e {{ overcloud_templates_path }}/environments/net-single-nic-with-vlans.yaml
+      -e {{ working_dir }}/network-environment.yaml
+  when:
+    - network_isolation_type in ["single_nic_vlans", "single-nic-vlans"]
+
+- name: set network isolation args for bond-with-vlans IPv4
+  set_fact:
+    network_isolation_args: >-
+      -e {{ overcloud_templates_path }}/environments/network-isolation.yaml
+      -e {{ overcloud_templates_path }}/environments/net-bond-with-vlans.yaml
+      -e {{ working_dir }}/network-environment.yaml
+  when:
+    - network_isolation_type in ["bond_with_vlans", "bond-with-vlans"]
+
+# NOTE: 'multi-nic' is deprecated
+- name: set network isolation args for multi-nic IPv4
+  set_fact:
+    network_isolation_args: >-
+      -e {{ overcloud_templates_path }}/environments/network-isolation.yaml
+      -e {{ overcloud_templates_path }}/environments/net-multiple-nics.yaml
+      -e {{ working_dir }}/network-environment.yaml
+  when:
+    - network_isolation_type in ["multi-nic", "multiple-nics"]
+    - not overcloud_ipv6|bool
+
+# NOTE: 'multi-nic' is deprecated
+- name: set network isolation args for multi-nic IPv6
+  set_fact:
+    network_isolation_args: >-
+      -e {{ overcloud_templates_path }}/environments/network-isolation-v6.yaml
+      -e {{ overcloud_templates_path }}/environments/net-multiple-nics-v6.yaml
+      -e {{ working_dir }}/network-environment.yaml
+  when:
+    - network_isolation_type in ["multi-nic", "multiple-nics"]
+    - overcloud_ipv6|bool
+
+# Since there are no nic-configs for public-bond in the default
+# tripleo-heat-templates directory, no public-bond specfic
+# /environments/ file is listed.
+# The network-environment.yaml file can point to path where the
+# public-bond nic-configs are stored.
+- name: set network isolation args for public-bond IPv4
+  set_fact:
+    network_isolation_args: >-
+      -e {{ overcloud_templates_path }}/environments/network-isolation.yaml
+      -e {{ working_dir }}/network-environment.yaml
+  when:
+    - network_isolation_type == "public-bond"
+    - not overcloud_ipv6|bool
+
+- name: set network_args fact
+  set_fact:
+    network_args: >-
+      {{ network_isolation_args }}
+  when:
+    - network_isolation|bool
+
+- name: set ntp_args
+  set_fact:
+    ntp_args: >-
+      --ntp-server {{ ntp_server }}
+  when:
+    - ntp_server|default('')
+
+- name: enable pacemaker
+  set_fact:
+    pacemaker_args: >-
+      -e {{ overcloud_templates_path }}/environments/puppet-pacemaker.yaml
+  when:
+    - enable_pacemaker|bool
+    - not containerized_overcloud|bool
+
+- name: use resource registry
+  set_fact:
+    resource_registry_nic_configs_args: >-
+      -e {{ working_dir }}/resource-registry-nic-configs.yaml
+  when: use_resource_registry_nic_configs|bool
+
+- name: extract the number of controllers to be deployed
+  set_fact:
+    number_of_controllers: "{{ deploy_args| regex_replace('^.*--control-scale +([0-9]+).*$', '\\1') | regex_replace('^[^ 0-9]+$', '1') }}"
+  when: topology_map is not defined
+
+- name: extract the number of controllers to be deployed (from topology_map)
+  set_fact:
+    number_of_controllers: |-
+      {% if topology_map.Controller is defined -%}
+      {{ topology_map.Controller.scale }}
+      {%- else -%}
+      1
+      {%- endif %}
+  when:
+    - topology_map is defined
+
+- name: Set cinder-backup
+  set_fact:
+    backup_args: >-
+      -e {{ overcloud_templates_path }}/environments/cinder-backup.yaml
+  when: enable_cinder_backup|bool
+
+- name: Set cloud-name variables
+  set_fact:
+    cloud_name_args: >-
+        -e {{ working_dir }}/cloud-names.yaml
+  when: release not in ['mitaka', 'liberty']
+
+- name: Set the hostname_map config if defined
+  set_fact:
+    hostnamemap_args: >-
+        -e {{ working_dir }}/hostnamemap.yaml
+  when:
+    - groups['overcloud'] is defined
+    - groups['overcloud'][0] is defined
+    - overcloud_nodes is defined
+    - overcloud_nodes[0] is defined
+    - overcloud_nodes[0].hostnamemap_override is defined
+
+- name: set set overcloud SSL args for releases after mitaka
+  set_fact:
+    ssl_overcloud_args: >-
+      -e {{ working_dir }}/enable-tls.yaml
+      -e {{ overcloud_templates_path }}/environments/ssl/tls-endpoints-public-ip.yaml
+  when:
+    - ssl_overcloud|bool
+    - release not in ['mitaka', 'liberty']
+
+- name: set overcloud SSL args fact for mitaka/liberty
+  set_fact:
+    ssl_overcloud_args: >-
+      -e {{ working_dir }}/enable-tls.yaml
+  when:
+    - ssl_overcloud|bool
+    - release in ['mitaka', 'liberty']
+
+- name: set CA injection arg
+  set_fact:
+    ssl_ca_args: >-
+      -e {{ working_dir }}/inject-trust-anchor.yaml
+  when: ssl_overcloud|bool or undercloud_generate_service_certificate|bool
+
+- name: set ssl_args
+  set_fact:
+    ssl_args: >-
+      {{ ssl_overcloud_args|default('') }}
+      {{ ssl_ca_args }}
+  when: ssl_overcloud|bool or undercloud_generate_service_certificate|bool
+
+- name: set novajoin/TLS everywhere fact
+  set_fact:
+    tls_everywhere_args: >-
+        -e {{ overcloud_templates_path }}/environments/services/haproxy-public-tls-certmonger.yaml
+        -e {{ overcloud_templates_path }}/environments/ssl/enable-internal-tls.yaml
+        -e {{ overcloud_templates_path }}/environments/ssl/tls-everywhere-endpoints-dns.yaml
+  when:
+    - enable_tls_everywhere|bool
+    - release not in ['mitaka', 'liberty', 'newton']
+
+- name: set validation_args fact for mitaka/liberty
+  set_fact:
+    validation_args: "--validation-errors-fatal --validation-warnings-fatal"
+  when: release in ['mitaka', 'liberty']
+
+- name: disable L3 HA
+  set_fact:
+    pacemaker_args: >-
+      {{ pacemaker_args }}
+      -e {{ working_dir }}/neutronl3ha.yaml
+  when:
+    - enable_pacemaker|bool
+    - number_of_controllers|int < 3
+
+- name: set workers_args fact
+  set_fact:
+    workers_args: >-
+      -e {{ overcloud_templates_path }}/environments/low-memory-usage.yaml
+  when:
+    - release not in ['mitaka', 'liberty']
+    - set_overcloud_workers|bool
+
+- name: set container_args fact
+  set_fact:
+    container_args: >-
+      {% if release in ['pike', 'queens', 'rocky'] %}
+      -e {{ overcloud_templates_path }}/environments/docker.yaml
+      {% endif %}
+      {% if enable_pacemaker|bool or osp_release is defined%}
+      -e {{ overcloud_templates_path }}/environments/docker-ha.yaml
+      {% endif %}
+      {% if release in ['ocata', 'pike', 'queens', 'rocky'] %}
+      -e {{ working_dir }}/containers-default-parameters.yaml
+      {% else %}
+      -e {{ working_dir }}/containers-prepare-parameter.yaml
+      {% endif %}
+      {% if release not in ['pike', 'queens', 'rocky'] %}
+      -e {{ overcloud_templates_path }}/environments/{{ overcloud_container_cli | default('docker') }}.yaml
+      {% endif %}
+  when:
+    - containerized_overcloud|bool
+
+- name: set composable roles args fact
+  set_fact:
+    composable_args: >-
+      --roles-file {{ working_dir }}/overcloud_roles.yaml
+  when: composable_roles|bool
+
+- name: Generate composable roles file
+  command: openstack overcloud roles generate --roles-path {{ overcloud_templates_path }}/roles -o {{ working_dir }}/overcloud_roles.yaml {{generate_overcloud_roles}}
+  when: composable_roles|bool and generate_overcloud_roles is defined
+
+- name: set composable service args fact
+  set_fact:
+    composable_args: >-
+      {{ composable_args }}
+      -e {{ working_dir }}/overcloud_services.yaml
+  when: composable_services|bool
+
+- name: set overcloud topology args
+  set_fact:
+    topology_args: >-
+      -e {{ working_dir }}/overcloud-topology-config.yaml
+  when: topology_map is defined
+
+- name: set the multinode args
+  set_fact:
+    multinode_args: >-
+      -e {{ overcloud_templates_path }}/environments/deployed-server-environment.yaml
+      {% if release not in ['mitaka', 'newton'] and overcloud_release|default('') not in ['newton', 'mitaka'] %}
+      -e {{ overcloud_templates_path }}/environments/deployed-server-bootstrap-environment-centos.yaml
+      {% endif %}
+      --overcloud-ssh-user {{ undercloud_user }}
+  when: deploy_multinode|bool
+
+- name: set the OVN args
+  set_fact:
+    ovn_args: >-
+      -e {{ overcloud_templates_path }}/environments/neutron-ml2-ovn-ha.yaml
+  when: deploy_ha_ovn|bool
+
+- name: set the scenario args for composable roles
+  set_fact:
+    scenario_args: >-
+      -e {{ overcloud_templates_path }}/ci/environments/{{ composable_scenario }}
+  when: not composable_scenario|trim == ''
+
+- name: set swap_args to enable swap file
+  set_fact:
+    swap_args: >-
+      -e {{ overcloud_templates_path }}/environments/enable-swap.yaml
+  when: enable_swap|bool and swap_type == 'file'
+
+- name: set swap_args to enable swap partition
+  set_fact:
+    swap_args: >-
+      -e {{ overcloud_templates_path }}/environments/enable-swap-partition.yaml
+  when: enable_swap|bool and swap_type == 'partition'
+
+- name: set network_args for mtu settings
+  set_fact:
+    network_args: >-
+      {{ network_args }}
+      -e {{ working_dir }}/overcloud_network_params.yaml
+  when:
+    - overcloud_neutron_global_physnet_mtu is defined
+
+# 15 is "reserved time for logs=10" + 5 minutes for inventory role for OVB jobs
+# Time must be synchronised on hosts
+- name: Set overcloud deployment timeout in CI for OVB
+  set_fact:
+    deploy_timeout: "{{ ((ci_job_end_time|int - lookup('pipe','date +%s')|int)/60)|int -15 }}"
+  when:
+    - ci_job_end_time is defined
+    - '"ovb" in lookup("env", "TOCI_JOBTYPE")'
+
+# 5 is "reserved time for 5 minutes for inventory role for multinode jobs
+# Time must be synchronised on hosts
+- name: Set overcloud deployment timeout in CI for multinode
+  set_fact:
+    deploy_timeout: "{{ ((ci_job_end_time|int - lookup('pipe','date +%s')|int)/60)|int -5 }}"
+  when:
+    - ci_job_end_time is defined
+    - '"ovb" not in lookup("env", "TOCI_JOBTYPE")'
+
+- name: Set the selinux args
+  set_fact:
+    selinux_args: >-
+      -e {{ working_dir }}/overcloud-selinux-config.yaml

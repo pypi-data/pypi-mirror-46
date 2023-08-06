@@ -1,0 +1,181 @@
+---
+- name: Gather ansible distribution
+  setup:
+    gather_subset: "!min,distribution"
+  when: ansible_distribution is not defined
+
+- name: Cache tempest network cidr
+  set_fact:
+    tempest_cidr: "{{ undercloud_network_cidr }}"
+  when: use_os_tempest is defined
+
+# tasks file for all_in_one
+
+- name: Set hostname
+  hostname:
+    name: "{{ standalone_hostname }}"
+  become: true
+
+# standalone params
+- name: Create the standalone params
+  template:
+    src: "{{ standalone_config }}"
+    dest: "{{ working_dir}}/standalone_parameters.yaml"
+    mode: 0755
+
+- name: Create container parameters script
+  template:
+    src: "{{ standalone_container_prep_script }}"
+    dest: "{{ working_dir }}/standalone-container-prep.sh"
+    mode: "0755"
+
+- name: Run container prepare
+  shell: >
+    set -o pipefail &&
+    {{ working_dir }}/standalone-container-prep.sh 2>&1 {{ timestamper_cmd }} > {{ working_dir }}/{{ standalone_container_prep_log }}
+
+# update the registry to rdo or docker.io
+- name: update registry if needed in container-prepare-parameters.yaml
+  when:
+    - docker_registry_host != '' and docker_registry_namespace != ''
+  vars:
+    yaml_file: "{{ working_dir }}/containers-prepare-parameters.yaml"
+    container_image_prep_updates:
+      set:
+        namespace: "{{ docker_registry_host }}/{{ docker_registry_namespace }}"
+    initial_dict: |
+      {{ lookup('file', yaml_file) | from_yaml }}
+    merged_dict:
+      parameter_defaults:
+        ContainerImagePrepare:
+          - |
+            {{ initial_dict.parameter_defaults.ContainerImagePrepare |
+               combine(container_image_prep_updates, recursive=true) }}
+  copy:
+    content: "{{ merged_dict | to_nice_yaml }}"
+    dest: "{{ yaml_file }}"
+    backup: true
+
+# update the container tag to match dlrn hash
+- name: update container tag if needed in container-prepare-parameters.yaml
+  when:
+    - container_build_id != ''
+  vars:
+    yaml_file: "{{ working_dir }}/containers-prepare-parameters.yaml"
+    container_image_prep_updates:
+      set:
+        tag: "{{ container_build_id }}"
+    initial_dict: |
+      {{ lookup('file', yaml_file) | from_yaml }}
+    merged_dict:
+      parameter_defaults:
+        ContainerImagePrepare:
+          - |
+            {{ initial_dict.parameter_defaults.ContainerImagePrepare |
+               combine(container_image_prep_updates, recursive=true) }}
+  copy:
+    content: "{{ merged_dict | to_nice_yaml }}"
+    dest: "{{ yaml_file }}"
+    backup: true
+
+# in extra-common/defaults
+# docker_prep_prefix: "{{ ansible_distribution | lower }}-binary-"
+- name: update container name_prefix for the appropriate distro
+  vars:
+    yaml_file: "{{ working_dir }}/containers-prepare-parameters.yaml"
+    container_image_prep_updates:
+      set:
+        name_prefix: "{{ docker_prep_prefix }}"
+    initial_dict: |
+      {{ lookup('file', yaml_file) | from_yaml }}
+    merged_dict:
+      parameter_defaults:
+        ContainerImagePrepare:
+          - |
+            {{ initial_dict.parameter_defaults.ContainerImagePrepare |
+               combine(container_image_prep_updates, recursive=true) }}
+  copy:
+    content: "{{ merged_dict | to_nice_yaml }}"
+    dest: "{{ yaml_file }}"
+    backup: true
+
+# update params for container update
+- name: Add updates to container-prepare-parameters.yaml
+  when:
+    - standalone_container_prep_updates
+  vars:
+    yaml_file: "{{ working_dir }}/containers-prepare-parameters.yaml"
+    container_image_prep_updates:
+      - push_destination: "{{ local_docker_registry_host }}:8787"
+        tag_from_label: null
+        modify_role: tripleo-modify-image
+        modify_append_tag: "{{ update_containers_append_tag }}"
+        modify_only_with_labels:
+          - kolla_version
+        modify_vars:
+          tasks_from: yum_update.yml
+          yum_repos_dir_path: /etc/yum.repos.d
+          update_repo: "{{ standalone_container_prep_update_repo }}"
+    initial_dict: |
+      {{ lookup('file', yaml_file) | from_yaml }}
+    merged_dict:
+      parameter_defaults:
+        DockerInsecureRegistryAddress:
+          - "{{ local_docker_registry_host }}:8787"
+        ContainerImagePrepare:
+          - |
+            {{ initial_dict.parameter_defaults.ContainerImagePrepare |
+               combine(container_image_prep_updates, recursive=true) }}
+  copy:
+    content: "{{ merged_dict | to_nice_yaml }}"
+    dest: "{{ yaml_file }}"
+    backup: true
+
+
+- name: Create the deploy command for standalone
+  template:
+    src: "{{ standalone_deploy_script }}"
+    dest: "{{ working_dir}}/standalone.sh"
+    mode: 0755
+
+- name: Run dstat on the standalone prior to standalone deploy
+  include_role:
+    name: validate-perf
+
+- name: Deploy the standalone
+  shell: >
+    set -o pipefail &&
+    {{ working_dir }}/standalone.sh 2>&1 {{ timestamper_cmd }} > {{ working_dir }}/{{ standalone_deploy_log }}
+
+- when: standalone_ansible_lint|default(false)|bool
+  vars:
+    quickstart_venv: "{{ lookup('env','OPT_WORKDIR') }}"
+  block:
+    - name: Install ansible-lint
+      pip:
+        name: ansible-lint
+        state: latest
+        virtualenv: "{{ quickstart_venv }}"
+
+    - name: List playbooks
+      shell: "find $(ls -rtd {{ working_dir }}/undercloud-ansible-* | tail -1)/ -name '*playbook*.yaml'"
+      register: playbooks
+
+    # We ignore (for now) the lint (rc==2), only catch syntax error
+    # (rc==1).
+    - name: Lint playbooks
+      shell: >
+        source {{ quickstart_venv }}/bin/activate;
+        exec 1>>{{ working_dir }}/{{standalone_ansible_lint_log}};
+        exec 2>&1;
+        echo LINTING {{item}};
+        ansible-lint -v {{item}};
+        rc=$?;
+        echo DONE rc=$rc;
+        exit $rc
+      register: lint_result
+      environment:
+        ANSIBLE_LIBRARY: |
+          /usr/share/ansible-modules/:{{lookup('env', 'ANSIBLE_LIBRARY')}}
+      with_items: "{{ playbooks.stdout_lines }}"
+      failed_when: lint_result.rc == 1

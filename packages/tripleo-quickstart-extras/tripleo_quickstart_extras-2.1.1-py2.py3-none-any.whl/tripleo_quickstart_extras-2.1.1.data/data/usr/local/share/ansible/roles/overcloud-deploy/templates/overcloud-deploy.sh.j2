@@ -1,0 +1,79 @@
+#!/bin/bash
+
+set -ux
+
+
+### --start_docs
+## Deploying the overcloud
+## =======================
+
+## Prepare Your Environment
+## ------------------------
+
+## * Source in the undercloud credentials.
+## ::
+
+source {{ working_dir }}/stackrc
+
+{% if hypervisor_wait|bool %}
+### --stop_docs
+# Wait until there are hypervisors available.
+while true; do
+    count=$(openstack hypervisor stats show -c count -f value)
+    if [ $count -gt 0 ]; then
+        break
+    fi
+done
+{% endif %}
+
+### --start_docs
+
+## * Deploy the overcloud!
+## ::
+openstack overcloud deploy {% if release is not in ['newton', 'ocata', 'pike', 'queens'] %}--override-ansible-cfg {{ working_dir }}/custom_ansible.cfg{% endif %} \
+    --templates {{overcloud_templates_path}} \
+    {{ deploy_args | regex_replace("\n", " ") }} \
+    "$@" && status_code=0 || status_code=$?
+
+### --stop_docs
+
+# Check if the deployment has started. If not, exit gracefully. If yes, check for errors.
+if ! openstack stack list | grep -q overcloud; then
+    echo "overcloud deployment not started. Check the deploy configurations"
+    exit 1
+
+    # We don't always get a useful error code from the openstack deploy command,
+    # so check `openstack stack list` for a CREATE_COMPLETE or an UPDATE_COMPLETE
+    # status.
+elif ! openstack stack list | grep -Eq '(CREATE|UPDATE)_COMPLETE'; then
+    {%if release not in ['mitaka', 'liberty'] %}
+    # get the failures list
+    openstack stack failures list overcloud --long > {{ failed_deployment_list }} || true
+    {% endif %}
+
+    # get any puppet related errors
+    for failed in $(openstack stack resource list \
+        --nested-depth 5 overcloud | grep FAILED |
+        grep 'StructuredDeployment ' | cut -d '|' -f3)
+    do
+    echo "openstack software deployment show output for deployment: $failed" >> {{ failed_deployments_log }}
+    echo "######################################################" >> {{ failed_deployments_log }}
+    openstack software deployment show $failed >> {{ failed_deployments_log }}
+    echo "######################################################" >> {{ failed_deployments_log }}
+    echo "puppet standard error for deployment: $failed" >> {{ failed_deployments_log }}
+    echo "######################################################" >> {{ failed_deployments_log }}
+    # the sed part removes color codes from the text
+    openstack software deployment show $failed -f json |
+        jq -r .output_values.deploy_stderr |
+        sed -r "s:\x1B\[[0-9;]*[mK]::g" >> {{ failed_deployments_log }}
+    echo "######################################################" >> {{ failed_deployments_log }}
+    # We need to exit with 1 because of the above || true
+    done
+    exit 1
+{%if release in ['rocky', 'master'] %}
+elif ! openstack overcloud status | grep -Eq 'DEPLOY_SUCCESS'; then
+    # NOTE(emilien) "openstack overcloud failures" was introduced in Rocky
+    openstack overcloud failures >> {{ failed_deployment_list }} || true
+{% endif %}
+fi
+exit $status_code

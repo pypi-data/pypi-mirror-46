@@ -1,0 +1,76 @@
+---
+# Prepare any additional configuration files required by the overcloud
+- name: Prepare configuration files for the overcloud deployment
+  hosts: undercloud
+  gather_facts: false
+  tags:
+    - overcloud-prep-config
+  roles:
+    - overcloud-prep-config
+
+# Prepare the overcloud for a containerized deployment
+- name: Prepare overcloud containers
+  hosts: undercloud
+  gather_facts: false
+  tags:
+    - overcloud-prep-containers
+  roles:
+    - overcloud-prep-containers
+
+# Prepare the overcloud images for deployment
+- name: Prepare the overcloud images for deployment
+  hosts: undercloud
+  gather_facts: false
+  tags:
+    - overcloud-prep-images
+  roles:
+    - overcloud-prep-images
+
+- name: Run tripleo-validations pre-introspection tests
+  hosts: undercloud
+  gather_facts: false
+  tags:
+    - tripleo-validations
+  vars:
+    validations_group: ['pre-introspection']
+  roles:
+    - {role: tripleo-validations,
+       when: run_tripleo_validations|bool or run_tripleo_validations_negative_tests|bool}
+
+# Prepare the overcloud flavor configuration
+- name: Prepare overcloud flavors
+  hosts: undercloud
+  gather_facts: false
+  tags:
+    - overcloud-prep-flavors
+  roles:
+    - overcloud-prep-flavors
+
+# Prepare the undercloud networks for the overcloud deployment
+- name: Prepare the undercloud networks for the overcloud deployment
+  hosts: undercloud
+  gather_facts: false
+  tags:
+    - overcloud-prep-network
+  roles:
+    - overcloud-prep-network
+
+- name: Run tripleo-validations pre-deployment tests
+  hosts: undercloud
+  gather_facts: false
+  tags:
+    - tripleo-validations
+  vars:
+    validations_group: ['pre-deployment']
+  roles:
+    - {role: tripleo-validations,
+       when: run_tripleo_validations|bool or run_tripleo_validations_negative_tests|bool}
+
+- name: Prepare the SSL Configuration for the overcloud deployment
+  hosts: undercloud
+  gather_facts: false
+  tags:
+    - overcloud-scripts
+    - overcloud-ssl
+  roles:
+    - {role: overcloud-ssl}
