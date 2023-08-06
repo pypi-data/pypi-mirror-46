@@ -1,0 +1,605 @@
+{% extends "_layout.html" %}
+
+{% block content %}
+
+            <div class="row">
+                <div class="col-lg-12">
+                    {{ macros_page.render_breadcrumbs() }}
+
+                    <!-- Search form - BEGIN ---------------------------------->
+                    <div class="jumbotron" style="margin-top: 1em;">
+                        <h2>{{ hawat_current_view.get_view_title() }}</h2>
+                        <hr>
+                        <form method="GET" class="form-horizontal" id="form-events-simple" action="{{ url_for(request.endpoint) }}">
+                            <div>
+                                <div class="btn-toolbar" role="toolbar" aria-label="{{ gettext('Toolbar for enabling/disabling event search form fields.') }}">
+                                    <div class="btn-group" role="group">
+                                        <div class="btn-group" role="group">
+                                            {#- Detect toggle button class #}
+                                            {%- set tglbtncls = in_query_params(request.args, ['dt_from', 'dt_to'], ' btn-success active', ' btn-default', ' btn-success active') %}
+                                            <button type="button" class="toggle-search-form btn{{ tglbtncls }}" id="switch-form-group-detecttime" data-toggle-form-group="form-group-detecttime" data-disable-form-group="form-group-storagetime" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                                {{ gettext('DetectTime') }}
+                                            </button>
+                                        </div>
+                                        <div class="btn-group" role="group">
+                                            {#- Detect toggle button class #}
+                                            {%- set tglbtncls = in_query_params(request.args, ['st_from', 'st_to'], ' btn-success active', ' btn-default', ' btn-default') %}
+                                            <button type="button" class="toggle-search-form btn{{ tglbtncls }}" id="switch-form-group-storagetime" data-toggle-form-group="form-group-storagetime" data-disable-form-group="form-group-detecttime" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                                {{ gettext('StorageTime') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        <div class="btn-group" role="group">
+                                            {#- Detect toggle button class #}
+                                            {%- set tglbtncls = in_query_params(request.args, ['source_addrs', 'source_ports', 'source_types'], ' btn-success active', ' btn-default', ' btn-success active') %}
+                                            <button type="button" class="toggle-search-form btn{{ tglbtncls }}" id="switch-form-group-source" data-toggle-form-group="form-group-source" data-disable-form-group="form-group-host" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                                {{ gettext('Source') }}
+                                            </button>
+                                        </div>
+                                        <div class="btn-group" role="group">
+                                            {#- Detect toggle button class #}
+                                            {%- set tglbtncls = in_query_params(request.args, ['target_addrs', 'target_ports', 'target_types'], ' btn-success active', ' btn-default', ' btn-default') %}
+                                            <button type="button" class="toggle-search-form btn{{ tglbtncls }}" id="switch-form-group-target" data-toggle-form-group="form-group-target" data-disable-form-group="form-group-host" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                                {{ gettext('Target') }}
+                                            </button>
+                                        </div>
+                                        <div class="btn-group" role="group">
+                                            {#- Detect toggle button class #}
+                                            {%- set tglbtncls = in_query_params(request.args, ['host_addrs', 'host_ports', 'host_types'], ' btn-success active', ' btn-default', ' btn-default') %}
+                                            <button type="button" class="toggle-search-form btn{{ tglbtncls }}" id="switch-form-group-host" data-toggle-form-group="form-group-host" data-disable-form-group="form-group-source,form-group-target" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                                {{ gettext('Host') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        {#- Detect toggle button class #}
+                                        {%- set tglbtncls = in_query_params(request.args, ['categories', 'severities', 'groups', 'protocols', 'description'], ' btn-success active', ' btn-default', ' btn-default') %}
+                                        <button type="button" class="toggle-search-form btn{{ tglbtncls }}" id="switch-form-group-event" data-toggle-form-group="form-group-event-1,form-group-event-2" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                            {{ gettext('Event') }}
+                                        </button>
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        {#- Detect toggle button class #}
+                                        {%- set tglbtncls = in_query_params(request.args, ['detectors', 'detector_types'], ' btn-success active', ' btn-default', ' btn-default') %}
+                                        <button type="button" class="toggle-search-form btn{{ tglbtncls }}" id="switch-form-group-detector" data-toggle-form-group="form-group-detector" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                            {{ gettext('Detector') }}
+                                        </button>
+                                    </div>
+                                    {%- if permission_can('power') %}
+                                    <div class="btn-group" role="group">
+                                        {#- Detect toggle button class #}
+                                        {%- set tglbtnadm = in_query_params(request.args, ['inspection_errs', 'classes'], ' btn-success active', ' btn-default', ' btn-default') %}
+                                        <button type="button" class="toggle-search-form btn{{ tglbtnadm }}" id="switch-form-group-admin" data-toggle-form-group="form-group-admin" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                            {{ get_icon('role-admin') }} {{ gettext('Admin') }}
+                                        </button>
+                                    </div>
+                                    {%- endif %}
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            {%- set frmctrldsb = in_query_params(request.args, ['dt_from', 'dt_to'], False, True, False) %}
+                            {%- set frmctrlhdn = in_query_params(request.args, ['dt_from', 'dt_to'], '', ' hidden', '') %}
+
+                            <div class="form-group{{ frmctrlhdn }}" id="form-group-detecttime">
+                                <div class="col-sm-6">
+                                    <label>{{ g.search_form.dt_from.label }}</label>
+                                    <div id="datetimepicker-from-1" class="input-group date datetimepicker-ymdhms-from widget-datetimepicker">
+                                        {{ g.search_form.dt_from(class_='form-control', disabled=frmctrldsb) }}
+                                        <span class="input-group-addon">
+                                            {{ get_icon('calendar') }}
+                                        </span>
+                                    </div>
+                                    {%- if g.search_form.dt_from.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.dt_from.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <label>{{ g.search_form.dt_to.label }}</label>
+                                    <div id="datetimepicker-to-1" class="input-group date datetimepicker-ymdhms-to widget-datetimepicker">
+                                        {{ g.search_form.dt_to(class_='form-control', disabled=frmctrldsb) }}
+                                        <span class="input-group-addon">
+                                            {{ get_icon('calendar') }}
+                                        </span>
+                                    </div>
+                                    {%- if g.search_form.dt_to.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.dt_to.errors) }}
+                                    {%- endif %}
+                                </div>
+                            </div>
+
+                            {%- set frmctrldsb = in_query_params(request.args, ['st_from', 'st_to'], False, True, True) %}
+                            {%- set frmctrlhdn = in_query_params(request.args, ['st_from', 'st_to'], '', ' hidden', ' hidden') %}
+                            <div class="form-group{{ frmctrlhdn }}" id="form-group-storagetime">
+                                <div class="col-sm-6">
+                                    <label>{{ g.search_form.st_from.label }}</label>
+                                    <div id="datetimepicker-from-2" class="input-group date datetimepicker-ymdhms-from widget-datetimepicker">
+                                        {{ g.search_form.st_from(class_='form-control', disabled=frmctrldsb) }}
+                                        <span class="input-group-addon">
+                                            {{ get_icon('calendar') }}
+                                        </span>
+                                    </div>
+                                    {%- if g.search_form.st_from.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.st_from.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <label>{{ g.search_form.st_to.label }}</label>
+                                    <div id="datetimepicker-to-2" class="input-group date datetimepicker-ymdhms-to widget-datetimepicker">
+                                        {{ g.search_form.st_to(class_='form-control', disabled=frmctrldsb) }}
+                                        <span class="input-group-addon">
+                                            {{ get_icon('calendar') }}
+                                        </span>
+                                    </div>
+                                    {%- if g.search_form.st_to.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.st_to.errors) }}
+                                    {%- endif %}
+                                </div>
+                            </div>
+
+                            {%- set frmctrldsb = in_query_params(request.args, ['source_addrs', 'source_ports', 'source_types'], False, True, False) %}
+                            {%- set frmctrlhdn = in_query_params(request.args, ['source_addrs', 'source_ports', 'source_types'], '', ' hidden', '') %}
+                            <div class="form-group{{ frmctrlhdn }}" id="form-group-source">
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.source_addrs.label }}</label>
+                                    {{ g.search_form.source_addrs(class_='form-control', disabled=frmctrldsb) }}
+                                    {%- if g.search_form.source_addrs.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.source_addrs.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.source_ports.label }}</label>
+                                    {{ g.search_form.source_ports(class_='form-control', disabled=frmctrldsb) }}
+                                    {%- if g.search_form.source_ports.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.source_ports.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.source_types.label }}</label>
+                                    {{ g.search_form.source_types(class_='form-control selectpicker', disabled=frmctrldsb, **{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                    {%- if g.search_form.source_types.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.source_types.errors) }}
+                                    {%- endif %}
+                                </div>
+                            </div>
+
+                            {%- set frmctrldsb = in_query_params(request.args, ['target_addrs', 'target_ports', 'target_types'], False, True, True) %}
+                            {%- set frmctrlhdn = in_query_params(request.args, ['target_addrs', 'target_ports', 'target_types'], '', ' hidden', ' hidden') %}
+                            <div class="form-group{{ frmctrlhdn }}" id="form-group-target">
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.target_addrs.label }}</label>
+                                    {{ g.search_form.target_addrs(class_='form-control', disabled=frmctrldsb) }}
+                                    {%- if g.search_form.target_addrs.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.target_addrs.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.target_ports.label }}</label>
+                                    {{ g.search_form.target_ports(class_='form-control', disabled=frmctrldsb) }}
+                                    {%- if g.search_form.target_ports.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.target_ports.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.target_types.label }}</label>
+                                    {{ g.search_form.target_types(class_='form-control selectpicker', disabled=frmctrldsb, **{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                    {%- if g.search_form.target_types.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.target_types.errors) }}
+                                    {%- endif %}
+                                </div>
+                            </div>
+
+                            {%- set frmctrldsb = in_query_params(request.args, ['host_addrs', 'host_ports', 'host_types'], False, True, True) %}
+                            {%- set frmctrlhdn = in_query_params(request.args, ['host_addrs', 'host_ports', 'host_types'], '', ' hidden', ' hidden') %}
+                            <div class="form-group{{ frmctrlhdn }}" id="form-group-host">
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.host_addrs.label }}</label>
+                                    {{ g.search_form.host_addrs(class_='form-control', disabled=frmctrldsb) }}
+                                    {%- if g.search_form.host_addrs.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.host_addrs.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.host_ports.label }}</label>
+                                    {{ g.search_form.host_ports(class_='form-control', disabled=frmctrldsb) }}
+                                    {%- if g.search_form.host_ports.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.host_ports.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.host_types.label }}</label>
+                                    {{ g.search_form.host_types(class_='form-control selectpicker', disabled=frmctrldsb, **{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                    {%- if g.search_form.host_types.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.host_types.errors) }}
+                                    {%- endif %}
+                                </div>
+                            </div>
+
+                            {%- set frmctrldsb = in_query_params(request.args, ['categories', 'severities', 'groups', 'protocols', 'description'], False, True, True) %}
+                            {%- set frmctrlhdn = in_query_params(request.args, ['categories', 'severities', 'groups', 'protocols', 'description'], '', ' hidden', ' hidden') %}
+                            <div class="form-group{{ frmctrlhdn }}" id="form-group-event-1">
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.groups.label }}</label>
+                                    {{ g.search_form.groups(class_='form-control selectpicker', disabled=frmctrldsb,**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                    {%- if g.search_form.groups.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.groups.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.protocols.label }}</label>
+                                    {{ g.search_form.protocols(class_='form-control selectpicker esf-any-empty', disabled=frmctrldsb,**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                    {%- if g.search_form.protocols.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.protocols.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-4">
+                                    <label>{{ g.search_form.description.label }}</label>
+                                    {{ g.search_form.description(class_='form-control', disabled=frmctrldsb) }}
+                                    {%- if g.search_form.description.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.description.errors) }}
+                                    {%- endif %}
+                                </div>
+                            </div>
+                            <div class="form-group{{ frmctrlhdn }}" id="form-group-event-2">
+                                <div class="col-sm-6">
+                                    <label>{{ g.search_form.categories.label }}</label>
+                                    {{ g.search_form.categories(class_='form-control selectpicker esf-any-empty', disabled=frmctrldsb,**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                    {%- if g.search_form.categories.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.categories.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <label>{{ g.search_form.severities.label }}</label>
+                                    {{ g.search_form.severities(class_='form-control selectpicker esf-any-empty', disabled=frmctrldsb,**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                    {%- if g.search_form.severities.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.severities.errors) }}
+                                    {%- endif %}
+                                </div>
+                            </div>
+
+                            {%- set frmctrldsb = in_query_params(request.args, ['detectors', 'detector_types'], False, True, True) %}
+                            {%- set frmctrlhdn = in_query_params(request.args, ['detectors', 'detector_types'], '', ' hidden', ' hidden') %}
+                            <div class="form-group{{ frmctrlhdn }}" id="form-group-detector">
+                                <div class="col-sm-6">
+                                    <label>{{ g.search_form.detectors.label }}</label>
+                                    {{ g.search_form.detectors(class_='form-control selectpicker esf-any-empty', disabled=frmctrldsb, **{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                    {%- if g.search_form.detectors.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.detectors.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <label>{{ g.search_form.detector_types.label }}</label>
+                                    {{ g.search_form.detector_types(class_='form-control selectpicker esf-any-empty', disabled=frmctrldsb, **{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                    {%- if g.search_form.detector_types.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.detector_types.errors) }}
+                                    {%- endif %}
+                                </div>
+                            </div>
+
+                            {%- if permission_can('power') %}
+                            {%- set frmctrldsb = in_query_params(request.args, ['inspection_errs', 'classes'], False, True, True) %}
+                            {%- set frmctrlhdn = in_query_params(request.args, ['inspection_errs', 'classes'], '', ' hidden', ' hidden') %}
+                            <div class="form-group{{ frmctrlhdn }}" id="form-group-admin">
+                                <div class="col-sm-6">
+                                    <label>{{ g.search_form.inspection_errs.label }}</label>
+                                    {{ g.search_form.inspection_errs(class_='form-control selectpicker esf-any-empty', disabled=frmctrldsb,**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                    {%- if g.search_form.inspection_errs.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.inspection_errs.errors) }}
+                                    {%- endif %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <label>{{ g.search_form.classes.label }}</label>
+                                    {{ g.search_form.classes(class_='form-control selectpicker esf-any-empty', disabled=frmctrldsb,**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                    {%- if g.search_form.classes.errors %}
+                                    {{ macros_form.render_form_errors(g.search_form.classes.errors) }}
+                                    {%- endif %}
+                                </div>
+                            </div>
+                            {%- endif %}
+
+                            <hr>
+
+                            <div class="btn-toolbar" role="toolbar" aria-label="{{ gettext('Search menu') }}">
+                                <div class="btn-group" role="group" aria-label="{{ gettext('Search menu options') }}">
+                                    {{ g.search_form.submit(class_='btn btn-primary') }}
+                                    <a role="button" class="btn btn-default" href="{{ url_for(request.endpoint) }}">{{ gettext('Clear') }}</a>
+                                </div>
+                                {%- if permission_can('power') %}
+                                <div class="btn-group" role="group" aria-label="{{ gettext('Admin search menu') }}">
+                                    <a data-toggle="dropdown" role="button" aria-haspopup="true" href="#" class="btn btn-default dropdown-toggle" aria-expanded="false">
+                                        <span data-toggle="tooltip" title="{{ gettext('Admin search menu') }}">
+                                            {{ get_icon('role-admin') }}<span class="hidden-sm"> {{ gettext('Admin') }}</span> <span class="caret"></span>
+                                        </span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a href="{{ url_for(request.endpoint, inspection_errs = ['__ANY__'], submit = gettext('Search')) }}">
+                                                {{ get_endpoint_icon(request.endpoint) }} {{ gettext('Search for events with any inspection errors in event database') | safe }}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="{{ url_for(request.endpoint, classes = ['__EMPTY__'], submit = gettext('Search')) }}">
+                                                {{ get_endpoint_icon(request.endpoint) }} {{ gettext('Search for events without any classification in event database') | safe }}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="{{ url_for(request.endpoint, severities = ['__EMPTY__'], submit = gettext('Search')) }}">
+                                                {{ get_endpoint_icon(request.endpoint) }} {{ gettext('Search for events without assigned severity in event database') | safe }}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                {%- endif %}
+                            </div>
+
+                        </form>
+                        {%- if g.search_form.not_protocols.errors or g.search_form.not_categories.errors or g.search_form.not_classess.errors or g.search_form.not_severities.errors or g.search_form.not_detectors.errors or g.search_form.not_detector_types.errors or g.search_form.not_groups.errors or g.search_form.not_inspection_errs.errors or g.search_form.sortby.errors or g.search_form.limit.errors or g.search_form.page.errors %}
+                        <hr>
+                        {{ macros_form.render_form_errors_labeled(g.search_form.not_protocols) }}
+                        {{ macros_form.render_form_errors_labeled(g.search_form.not_categories) }}
+                        {{ macros_form.render_form_errors_labeled(g.search_form.not_classess) }}
+                        {{ macros_form.render_form_errors_labeled(g.search_form.not_severities) }}
+                        {{ macros_form.render_form_errors_labeled(g.search_form.not_detectors) }}
+                        {{ macros_form.render_form_errors_labeled(g.search_form.not_detector_types) }}
+                        {{ macros_form.render_form_errors_labeled(g.search_form.not_groups) }}
+                        {{ macros_form.render_form_errors_labeled(g.search_form.not_inspection_errs) }}
+                        {{ macros_form.render_form_errors_labeled(g.search_form.sortby) }}
+                        {{ macros_form.render_form_errors_labeled(g.search_form.limit) }}
+                        {{ macros_form.render_form_errors_labeled(g.search_form.page) }}
+                        {%- endif %}
+                    </div>
+                    <!-- Search form - END ------------------------------------>
+
+                </div> <!-- .col-lg-12 -->
+            </div>  <!-- .row -->
+
+    {%- if searched %}
+        {%- if permission_can('power') %}
+            {%- call macros_site.render_alert('info', False, 'role-admin') %}
+                <strong>{{ gettext('SQL query:') }}</strong> <code>{{ sqlquery }}</code>
+            {%- endcall %}
+        {%- endif %}
+
+        {%- if items_count %}
+            {{ macros_site.render_pager(request.endpoint, query_params, pager_index_low, pager_index_high, pager_index_limit) }}
+
+            <table class="table table-striped table-bordered table-hover table-condensed table-responsive">
+                <thead>
+                    <tr>
+                        <!--
+                        <th data-toggle="tooltip" title="{{ gettext('Index') }}">
+                            #
+                        </th>
+                        -->
+                        {%- if in_query_params(request.args, ['st_from', 'st_to'], True, False, False) %}
+                        <th data-toggle="tooltip" title="{{ gettext('Event storage time') }}">
+                            {{ gettext('Stored at') }}
+                        </th>
+                        {%- else %}
+                        <th data-toggle="tooltip" title="{{ gettext('Event detection time') }}">
+                            {{ gettext('Detected at') }}
+                        </th>
+                        {%- endif %}
+                        <th data-toggle="tooltip" title="{{ gettext('Problem sources') }}" class="hidden-xs hidden-sm">
+                            {{ gettext('Sources') }}
+                        </th>
+                        <th data-toggle="tooltip" title="{{ gettext('Targets or victims') }}" class="hidden-xs hidden-sm hidden-md">
+                            {{ gettext('Targets') }}
+                        </th>
+                        <th data-toggle="tooltip" title="{{ gettext('Event severity') }}">
+                            {{ gettext('Severity') }}
+                        </th>
+                        <th data-toggle="tooltip" title="{{ gettext('Event categorization') }}">
+                            {{ gettext('Categorization') }}
+                        </th>
+                        <th data-toggle="tooltip" title="{{ gettext('Event detector') }}">
+                            {{ gettext('Detector') }}
+                        </th>
+                        <th data-toggle="tooltip" title="{{ gettext('Abuse groups') }}">
+                            {{ gettext('Groups') }}
+                        </th>
+                        <th data-toggle="tooltip" title="{{ gettext('Contextual item actions') }}">
+                            {{ get_icon('actions') }}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                {%- for item in items %}
+                    <!--<tr class="clickable-row" data-href="{{ url_for('events.show', item_id = item.get_id()) }}">-->
+                    <tr>
+                        <!--
+                        <td>
+                            {{ pager_index_low + loop.index0 }}
+                        </td>
+                        -->
+                        {%- if in_query_params(request.args, ['st_from', 'st_to'], True, False, False) %}
+                        <td>
+                            {{ babel_format_datetime(item.get_storage_time()) | replace(' ', '&nbsp;' | safe )}}
+                        </td>
+                        {%- else %}
+                        <td>
+                            {{ babel_format_datetime(item.get_detect_time()) | replace(' ', '&nbsp;' | safe )}}
+                        </td>
+                        {%- endif %}
+                        <td class="hidden-xs hidden-sm">
+                            {{
+                                macros_site.render_widget_csag_address(
+                                    item.get_addresses('Source'),
+                                    [] + form_data['source_addrs'] +  form_data['target_addrs'] + form_data['host_addrs'], separate_dropdown = False,
+                                    item_limit = search_widget_item_limit
+                                )
+                            }}
+                        </td>
+                        <td class="hidden-xs hidden-sm hidden-md">
+                            {{
+                                macros_site.render_widget_csag_address(
+                                    item.get_addresses('Target'),
+                                    [] + form_data['source_addrs'] + form_data['target_addrs'] + form_data['host_addrs'], separate_dropdown = False,
+                                    item_limit = search_widget_item_limit
+                                )
+                            }}
+                        </td>
+                        <td>
+                            {%- set tmpval = item.get_severity() %}
+                            {%- if tmpval %}
+                            {{
+                                macros_site.render_widget_csag_severity(
+                                    [tmpval],
+                                    align_right = True,
+                                    separate_dropdown = False
+                                )
+                            }}
+                            {%- else %}
+                            <span data-toggle="tooltip" title="{{ gettext('-- unassigned --') }}">
+                                {{ get_icon('unassigned') }}
+                            </span>
+                            {%- endif %}
+                        </td>
+                        <td>
+                            {{
+                                macros_site.render_widget_csag_category(
+                                    item.get_categories(),
+                                    form_data['categories'],
+                                    align_right = True,
+                                    separate_dropdown = False
+                                )
+                            }}
+                        </td>
+                        <td>
+                            {%- set tmpval = item.get_detectors() %}
+                            {%- if tmpval %}
+                            {{
+                                macros_site.render_widget_csag_detector(
+                                    [tmpval[-1]],
+                                    form_data['detectors'],
+                                    align_right = True,
+                                    separate_dropdown = False
+                                )
+                            }}
+                            {%- else %}
+                            <span data-toggle="tooltip" title="{{ gettext('-- unassigned --') }}">
+                                {{ get_icon('unassigned') }}
+                            </span>
+                            {%- endif %}
+                        </td>
+                        <td>
+                            {{
+                                macros_site.render_widget_csag_abuse(
+                                    item.get_abuses(),
+                                    form_data['groups'],
+                                    align_right = True,
+                                    separate_dropdown = False
+                                )
+                            }}
+                        </td>
+                        <td>
+                            {{ macros_page.render_menu_context_actions(item) }}
+                        </td>
+                    </tr>
+                {%- endfor %}
+                </tbody>
+            </table>
+
+            {{ macros_site.render_pager(request.endpoint, query_params, pager_index_low, pager_index_high, pager_index_limit) }}
+
+            {%- if permission_can('developer') %}
+            <hr>
+            {{ macros_site.render_raw_var('items', items) }}
+            {%- endif %}
+
+        {%- else %}
+
+            {%- call macros_site.render_alert('warning', False) %}
+                {{ gettext('No data matches your search criteria.') }}
+            {%- endcall %}
+
+        {%- endif %}
+
+        {%- if permission_can('developer') %}
+            <hr>
+            {{ macros_site.render_raw_var('form_data',    form_data) }}
+            {{ macros_site.render_raw_var('request_args', request.args) }}
+            {{ macros_site.render_raw_var('query_params', query_params) }}
+        {%- endif %}
+
+    {%- endif %}
+
+{%- endblock content %}
+
+{%- block bodyjs %}
+{{ super() }}
+
+        <script>
+            $(document).ready(function() {
+                //
+                // Handle clicks on event search form component buttons. These
+                // buttons enable/disable appropriate parts of event search form
+                // that the user is/isn't interested in to conserve page space.
+                //
+                $('.toggle-search-form').click(function() {
+                    //
+                    // The "toggle-form-group" button data attribute may be a comma
+                    // separated list. It should contain a list of form group IDs,
+                    // that are affected by the button.
+                    //
+                    var targetlist = $(this).data("toggle-form-group").split(',');
+                    for (var target in targetlist) {
+                        var targetident   = '#' + targetlist[target];
+
+                        //
+                        // Disable the appropriate form group.
+                        //
+                        if ($(this).hasClass('active')) {
+                            $(this).removeClass('btn-success');
+                            $(this).addClass('btn-default');
+
+                            //$(targetident + ' .widget-datetimepicker').data("DateTimePicker").disable();
+                            $(targetident + ' :input').prop('disabled', true);
+                            $(targetident + ' select').prop('disabled', true);
+                            $(targetident + ' .selectpicker').selectpicker('refresh');
+                            $(targetident).addClass('hidden');
+                        }
+                        //
+                        // Enable the appropriate form group.
+                        //
+                        else {
+                            $(this).removeClass('btn-default');
+                            $(this).addClass('btn-success');
+
+                            //$(targetident + ' .widget-datetimepicker').data("DateTimePicker").enable();
+                            $(targetident + ' :input').prop('disabled', false);
+                            $(targetident + ' select').prop('disabled', false);
+                            $(targetident + ' .selectpicker').selectpicker('refresh');
+                            $(targetident).removeClass('hidden');
+                        }
+
+                        //
+                        // The "disable-form-group" button data attribute may be
+                        // a comma separated list. It should contain a list of
+                        // form group IDs, that are mutually exclusive with the
+                        // "toggle-form-group" and must be disabled.
+                        //
+                        if ($(this).data("disable-form-group")) {
+                            var identlist = $(this).data("disable-form-group").split(',');
+                            for (ident in identlist) {
+                                var disableident  = '#' + identlist[ident];
+                                var disablebutton = '#switch-' + identlist[ident];
+
+                                $(disablebutton).removeClass('active');
+                                $(disablebutton).removeClass('btn-success');
+                                $(disablebutton).addClass('btn-default');
+
+                                //$(disableident + ' .widget-datetimepicker').data("DateTimePicker").disable();
+                                $(disableident + ' :input').prop('disabled', true);
+                                $(disableident + ' select').prop('disabled', true);
+                                $(disableident + ' .selectpicker').selectpicker('refresh');
+                                $(disableident).addClass('hidden');
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
+{%- endblock bodyjs %}

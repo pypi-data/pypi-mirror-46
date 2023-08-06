@@ -1,0 +1,158 @@
+{%- extends "_layout.html" %}
+
+{%- block content %}
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <ol class="breadcrumb">
+                        <li><a href="{{ url_for('home.index') }}">{{ gettext('Home') }}</a></li>
+                        <li><a href="{{ url_for('groups.list') }}">{{ gettext('Group management') }}</a></li>
+                        <li><a href="{{ url_for('groups.show', item_id = item.group.id) }}">{{ gettext('Group detail') }}</a></li>
+                        <li><a href="{{ url_for('settings_reporting.show', item_id = item.id) }}">{{ gettext('Reporting settings') }}</a></li>
+                        <li class="active">{{ action_name }}</li>
+                    </ol>
+                    <hr>
+                    <div class="well col-md-4 col-md-offset-4">
+
+                        <form method="POST" action="{{ form_url }}">
+                            <fieldset>
+                                <legend>{{ hawat_current_view.get_view_title() }}</legend>
+    {%- if item_action == 'create' %}
+
+                                {{ macros_form.render_form_item_default(form.group) }}
+
+    {%- elif item_action == 'update' %}
+
+                                {{ macros_form.render_form_item_static(gettext('Group:'), item.group.name) }}
+
+    {%- endif %}
+
+                                {{ macros_form.render_form_item_select(form.mode) }}
+
+                                {{ macros_form.render_form_item_select(form.attachments) }}
+
+                                {{ macros_form.render_form_item_default(form.emails) }}
+
+                                {{ macros_form.render_form_item_default(form.template) }}
+
+                                {{ macros_form.render_form_item_select(form.locale) }}
+
+                                {{ macros_form.render_form_item_select(form.timezone) }}
+
+                                {{ macros_form.render_form_item_select(form.max_attachment_size) }}
+
+                                {{ macros_form.render_form_item_radiobutton(form.mute) }}
+
+                                {{ macros_form.render_form_item_radiobutton(form.redirect) }}
+
+                                {{ macros_form.render_form_item_radiobutton(form.compress) }}
+
+                                <hr>
+
+                                {{ macros_form.render_form_item_radiobutton(form.timing) }}
+
+                                <fieldset class="well">
+                                    <legend>{{ gettext('Custom timing settings')}}</legend>
+                                    <table style="width: 100%">
+                                        <tr>
+                                            <th>{{ gettext('Severity') }}</th>
+                                            <th>{{ gettext('Period') }}</th>
+                                            <th>{{ gettext('Threshold') }}</th>
+                                            <th>{{ gettext('Relapse') }}</th>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ gettext('low') }}</td>
+                                            <td>
+                                                {{ form.timing_per_lo(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                            <td>
+                                                {{ form.timing_thr_lo(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                            <td>
+                                                {{ form.timing_rel_lo(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ gettext('medium') }}</td>
+                                            <td>
+                                                {{ form.timing_per_md(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                            <td>
+                                                {{ form.timing_thr_md(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                            <td>
+                                                {{ form.timing_rel_md(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ gettext('high') }}</td>
+                                            <td>
+                                                {{ form.timing_per_hi(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                            <td>
+                                                {{ form.timing_thr_hi(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                            <td>
+                                                {{ form.timing_rel_hi(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ gettext('critical') }}</td>
+                                            <td>
+                                                {{ form.timing_per_cr(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                            <td>
+                                                {{ form.timing_thr_cr(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                            <td>
+                                                {{ form.timing_rel_cr(class_='form-control selectpicker',**{'data-live-search':'true', 'data-size': '10', 'data-selected-text-format': 'count > 3'}) }}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    {{ macros_form.render_form_errors(form.timing_per_lo.errors) }}
+                                    {{ macros_form.render_form_errors(form.timing_thr_lo.errors) }}
+                                    {{ macros_form.render_form_errors(form.timing_rel_lo.errors) }}
+                                    {{ macros_form.render_form_errors(form.timing_per_md.errors) }}
+                                    {{ macros_form.render_form_errors(form.timing_thr_md.errors) }}
+                                    {{ macros_form.render_form_errors(form.timing_rel_md.errors) }}
+                                    {{ macros_form.render_form_errors(form.timing_per_hi.errors) }}
+                                    {{ macros_form.render_form_errors(form.timing_thr_hi.errors) }}
+                                    {{ macros_form.render_form_errors(form.timing_rel_hi.errors) }}
+                                    {{ macros_form.render_form_errors(form.timing_per_cr.errors) }}
+                                    {{ macros_form.render_form_errors(form.timing_thr_cr.errors) }}
+                                    {{ macros_form.render_form_errors(form.timing_rel_cr.errors) }}
+                                </fieldset>
+
+                                <hr>
+
+                                {{ macros_form.render_form_errors(form.next.errors) }}
+                                {{ form.next }}
+                                {{ macros_form.render_form_errors(form.csrf_token.errors) }}
+                                {{ form.csrf_token }}
+
+                                <div class="btn-toolbar" role="toolbar" aria-label="{{ gettext('Form submission buttons') }}">
+                                    <div class="btn-group" role="group">
+                                        {{ form.cancel(class_='btn btn-default') }}
+                                        {{ form.submit(class_='btn btn-primary') }}
+                                    </div>
+                                </div>
+
+                            <fieldset>
+                        </form>
+
+                    </div> <!-- /.well -->
+
+    {%- if permission_can('developer') %}
+        {%- if item %}
+
+                    <hr>
+
+{{ macros_site.render_raw_item_view(item) }}
+
+        {%- endif %}
+    {%- endif %}
+
+                </div> <!-- /.col-lg-12 -->
+            </div> <!-- /.row -->
+
+{%- endblock content %}

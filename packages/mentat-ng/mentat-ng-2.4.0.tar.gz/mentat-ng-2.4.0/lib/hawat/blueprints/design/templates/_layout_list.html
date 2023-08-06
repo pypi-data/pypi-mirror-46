@@ -1,0 +1,53 @@
+{%- extends "_layout.html" %}
+
+{%- block headcss %}
+{{ super() }}
+
+        <link rel="stylesheet" href="{{ url_for('design.static', filename='vendor/datatables/css/dataTables.bootstrap.css') }}">
+        <link rel="stylesheet" href="{{ url_for('design.static', filename='vendor/datatables/css/dataTables.fontAwesome.css') }}">
+{%- endblock headcss %}
+
+{%- block bodyjs %}
+{{ super() }}
+
+        <script src="{{ url_for('design.static', filename='vendor/datatables/js/jquery.dataTables.js') }}"></script>
+        <script src="{{ url_for('design.static', filename='vendor/datatables/js/dataTables.bootstrap.js') }}"></script>
+
+        <script>
+            $(document).ready(function() {
+                $('.hawat-datatable').DataTable({
+                    "responsive": true,
+                    "pageLength": 50,
+                    "paging": true,
+                    "ordering": true,
+                    "language": {
+						"url": "{{ url_for('design.static', filename='vendor/datatables/i18n/{}.lang'.format(babel_language_in_locale())) }}"
+					},
+                    columnDefs: [
+                        { orderable: false, targets: -1 },
+                    ]
+                });
+            });
+        </script>
+{%- endblock bodyjs %}
+
+{%- block content %}
+
+            <div class="row">
+                <div class="col-lg-12">
+
+                    {{ macros_page.render_breadcrumbs() }}
+
+                    <h2>{{ hawat_current_view.get_view_title() }}</h2>
+                    <div class="pull-right">
+                        {{ macros_page.render_menu_actions() }}
+                    </div>
+                    <br>
+                    <hr>
+
+                    {%- block contentinner %}{% endblock contentinner %}
+
+                </div><!-- /.col-lg-12 -->
+            </div><!-- /.row -->
+
+{%- endblock content %}

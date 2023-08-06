@@ -1,0 +1,48 @@
+{%- extends "_layout_list.html" %}
+
+{%- block contentinner %}
+
+                    <table class="table table-bordered table-hover table-striped hawat-datatable">
+                        <thead>
+                            <tr>
+                                <th>
+                                    {{ gettext('Name') }}
+                                </th>
+                                <th>
+                                    {{ gettext('Source') }}
+                                </th>
+                                <th>
+                                    {{ gettext('Description') }}
+                                </th>
+                                <th>
+                                    {{ gettext('State') }}
+                                </th>
+                                <th data-toggle="tooltip" title="{{ gettext('Contextual item actions') }}">
+                                    {{ get_icon('actions') }} {{ gettext('Actions') }}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {%- for item in items %}
+                            <tr>
+                                <td>
+                                    {{ item.name | default(gettext('<< unknown >>'), True) }}
+                                </td>
+                                <td>
+                                    {{ item.source | default(gettext('<< unknown >>'), True) }}
+                                </td>
+                                <td>
+                                    {{ item.description | default(gettext('<< unknown >>'), True) | truncate(50) }}
+                                </td>
+                                <td>
+                                    {{ macros_site.render_label_item_state(item.enabled, True) }}
+                                </td>
+                                <td class="column-actions">
+                                    {{ macros_page.render_menu_context_actions(item) }}
+                                </td>
+                            </tr>
+                            {%- endfor %}
+                        </tbody>
+                    </table>
+
+{%- endblock contentinner %}

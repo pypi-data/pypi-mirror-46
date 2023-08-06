@@ -1,0 +1,54 @@
+{%- extends "_layout_list.html" %}
+
+{%- block contentinner %}
+
+                    <table class="table table-bordered table-hover hawat-datatable">
+                        <thead>
+                            <tr>
+                                <th>
+                                    {{ gettext('Login') }}
+                                </th>
+                                <th>
+                                    {{ gettext('Name') }}
+                                </th>
+                                <th>
+                                    {{ gettext('Organization') }}
+                                </th>
+                                <th>
+                                    {{ gettext('Roles') }}
+                                </th>
+                                <th>
+                                    {{ gettext('State') }}
+                                </th>
+                                <th data-toggle="tooltip" title="{{ gettext('Contextual item actions') }}">
+                                    {{ get_icon('actions') }} {{ gettext('Actions') }}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {%- for item in items %}
+                            <tr{% if item.has_no_role() %} class="warning"{% elif item.has_role('admin') %} class="info"{% endif %}>
+                                <td>
+                                    {{ item.login | default(gettext('<< unknown >>'), True) }}
+                                </td>
+                                <td>
+                                    {{ item.fullname | default(gettext('<< unknown >>'), True) }}
+                                </td>
+                                <td>
+                                    {{ item.organization | default(gettext('<< unknown >>'), True) | truncate(50) }}
+                                </td>
+                                <td>
+                                    {{ macros_site.render_labels_role_list(config['ROLES'], item, True) }}
+                                </td>
+                                <td>
+                                    {{ macros_site.render_label_item_state(item.enabled, True) }}
+                                </td>
+                                <td class="column-actions">
+                                    {{ macros_page.render_menu_context_actions(item) }}
+                                </td>
+                            </tr>
+                            {%- endfor %}
+                        </tbody>
+                    </table>
+
+{%- endblock contentinner %}

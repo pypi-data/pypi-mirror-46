@@ -1,0 +1,334 @@
+{% extends "_layout.html" %}
+
+{% block content %}
+
+            <div class="row">
+                <div class="col-lg-12">
+
+                    {%- if not unauth %}
+                    <ol class="breadcrumb">
+                        <li><a href="{{ url_for('home.index') }}">{{ gettext('Home') }}</a></li>
+                        <li><a href="{{ url_for('reports.search') }}">{{ gettext('Reports') }}</a></li>
+                        <li class="active">{{ gettext('Report detail') }}</li>
+                    </ol>
+                    {%- endif %}
+
+                    <h2>{{ hawat_current_view.get_view_title() }}</h2>
+                    <hr>
+                    <h3>
+                        {{ item.label }}
+                        {{ macros_site.render_report_label_type(item) }}
+                        {{ macros_site.render_report_label_severity(item) }}
+                        {{ macros_site.render_report_label_weight(item) }}
+                        {%- if item.evcount_flt_blk %}
+                            <span class="label label-default" data-toggle="tooltip" title="{{ gettext('Some of the data for this report were filtered out by reporting filters') }}" >{{ get_icon('report-data-filtered') }}</span>
+                        {%- endif %}
+                        {%- if item.evcount_rlp %}
+                            <span class="label label-danger" data-toggle="tooltip" title="{{ gettext('Report contains relapsed events') }}" >{{ get_icon('report-data-relapsed') }}</span>
+                        {%- endif %}
+                        {%- if item.flag_testdata %}
+                            <span class="label label-default" data-toggle="tooltip" title="{{ gettext('Report was generated from test data') }}" >{{ get_icon('report-data-test') }}</span>
+                        {%- endif %}
+                        {%- if item.flag_mailed %}
+                            <span class="label label-default" data-toggle="tooltip" title="{{ gettext('Report was mailed at') }} {{ babel_format_datetime(item.mail_dt) }} ({{ gettext('%(delta)s ago', delta = babel_format_timedelta(current_datetime_utc - item.mail_dt)) }}){% if item.mail_to %} {{ gettext('to') }} {{ item.mail_to | join(', ') }}{% endif %}">{{ get_icon('report-data-mailed') }}</span>
+                        {%- endif %}
+                    </h3>
+                    {%- if item.flag_testdata %}
+                    <p class="alert alert-warning">{{ get_icon('debug') }} {{ gettext('This report was generated from test data.') }}</p>
+                    {%- endif %}
+                    <p>
+                        <strong>{{ gettext('Target abuse group') }}:</strong>
+                        {%- if not unauth %}
+                        <a href="{{ url_for('groups.show', item_id = item.group.id ) }}" data-toggle="tooltip" title="{{ gettext('View details of group &quot;%(item)s&quot;', item = item.group.name) }}">
+                            {{ item.group.name }}
+                        </a>
+                        {%- else %}
+                        {{ item.group.name }}
+                        {%- endif %}
+                    </p>
+                    {%- if current_user.is_authenticated and item.parent %}
+                    <p>
+                        <strong>{{ gettext('Parent summary report') }}:</strong>
+                        <a href="{{ url_for('reports.show', item_id = item.parent.id ) }}" data-toggle="tooltip" title="{{ gettext('View parent summary report &quot;%(item)s&quot;', item = item.parent.label) }}">{{ item.parent.label }}</a>
+                    </p>
+                    {%- endif %}
+                    <p>
+                        <strong>{{ gettext('Unprotected access link') }}:</strong>
+                        <a href="{{ url_for('reports.unauth', item_id = item.label ) }}" data-toggle="tooltip" title="{{ gettext('Unprotected access to report &quot;%(item)s&quot;', item = item.label) }}">{{ item.label }}</a>
+                    </p>
+                    <div class="pull-right">
+                        {{ macros_page.render_menu_actions(item) }}
+                    </div>
+                    <p>
+                        <small>
+                            <strong>{{ gettext('Report created') }}:</strong> {{ babel_format_datetime(item.createtime) }} ({{ gettext('%(delta)s ago', delta = babel_format_timedelta(current_datetime_utc - item.createtime)) }})
+                            &nbsp;|&nbsp;
+                            <strong>{{ gettext('Report window') }}:</strong> {{ babel_format_datetime(item.dt_from) }} - {{ babel_format_datetime(item.dt_to) }} ({{ babel_format_timedelta(item.delta) }})
+                            &nbsp;|&nbsp;
+                            <strong>{{ gettext('Report mailed') }}:</strong> {% if item.flag_mailed %}{{ babel_format_datetime(item.mail_dt) }} ({{ gettext('%(delta)s ago', delta = babel_format_timedelta(current_datetime_utc - item.mail_dt)) }}){% else %}{{ gettext('never')}}{% endif %}
+                        </small>
+                    </p>
+
+                </div> <!-- /.col-lg-12 -->
+            </div> <!-- /.row -->
+
+            <!-- Tab navigation - BEGIN --------------------------------------->
+            <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="active">
+                    <a href="#tab-report-message" aria-controls="tab-report-message" role="tab" data-toggle="tab">
+                        <strong>{{ gettext('Message') }}</strong>
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a href="#tab-report-metadata" aria-controls="tab-report-metadata" role="tab" data-toggle="tab">
+                        <strong>{{ gettext('Metadata') }}</strong>
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a href="#tab-report-stats" aria-controls="tab-report-stats" role="tab" data-toggle="tab">
+                        <strong>{{ gettext('Statistics') }}</strong>
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a href="#tab-report-data-json" aria-controls="tab-report-data-json" role="tab" data-toggle="tab">
+                        <strong>{{ gettext('Data') }}</strong>
+                    </a>
+                </li>
+            </ul>
+            <!-- Tab navigation - END ----------------------------------------->
+
+            <!-- Tab panels - BEGIN ------------------------------------------->
+            <div class="tab-content">
+
+                <!-- Tab panel - BEGIN ---------------------------------------->
+                <div role="tabpanel" class="tab-pane fade in active" id="tab-report-message">
+                    <br>
+                    <samp>
+                        {{ item.message | replace("&", "&amp;") | replace("<", "&lt;") | replace(">", "&gt;") | replace("\n", "<br/>\n") | replace(' ', '&nbsp;') | replace("\t", '&nbsp;&nbsp;&nbsp;&nbsp;') | safe }}
+                    </samp>
+                </div> <!-- /.tabpanel #tab-report-message -->
+
+                <!-- Tab panel - BEGIN ---------------------------------------->
+                <div role="tabpanel" class="tab-pane fade" id="tab-report-metadata">
+                    <br>
+                    <table class="table table-condensed table-striped">
+                        <tr>
+                            <th>
+                                {{ gettext('Type') }}:
+                            </th>
+                            <td>
+                                {{ macros_site.render_report_label_type(item, True) }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                {{ gettext('Severity') }}:
+                            </th>
+                            <td>
+                                {{ macros_site.render_report_label_severity(item, True) }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                {{ gettext('Report window') }}:
+                            </th>
+                            <td>
+                                {{ babel_format_datetime(item.dt_from) }} - {{ babel_format_datetime(item.dt_to) }} ({{ babel_format_timedelta(item.delta) }})
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                {{ gettext('Report delay') }}:
+                            </th>
+                            <td>
+                                {{ babel_format_timedelta(item.createtime - item.dt_to) }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                {{ gettext('Event count') }}:
+                            </th>
+                            <td>
+                                {%- if item.type == 'summary': %}
+                                <div class="progress" data-toggle="tooltip" title="{{ gettext('Number of events in this report in comparison with total number of events that matched reporting conditions.') }}">
+                                    {%- if item.evcount_thr %}
+                                    <div class="progress-bar progress-bar-warning progress-bar" style="width: {{ '{:3.0f}'.format(item.evcount_thr/item.evcount_all*100) }}%">
+                                        <span>{{ item.evcount_thr }} {{ gettext('new events')}}</span>
+                                    </div>
+                                    {%- endif %}
+                                    {%- if item.evcount_rlp %}
+                                    <div class="progress-bar progress-bar-danger" style="width: {{ '{:3.0f}'.format(item.evcount_rlp/item.evcount_all*100) }}%">
+                                        <span>{{ item.evcount_rlp }} {{ gettext('relapsed')}}</span>
+                                    </div>
+                                    {%- endif %}
+                                </div>
+                                {%- else %}
+                                <div class="progress" data-toggle="tooltip" title="{{ gettext('Number of events in this report in comparison with total number of events in parent summary report.') }}">
+                                    <div class="progress-bar progress-bar-warning progress-bar" style="width: {{ '{:3.0f}'.format(item.evcount_rep/item.evcount_all*100) }}%">
+                                        <span>{{ item.evcount_rep }} {{ gettext('reported events')}}</span>
+                                    </div>
+                                </div>
+                                {%- endif %}
+                                <strong>{{ item.evcount_rep }} ({{ babel_format_percent(item.evcount_rep / item.evcount_all) }})</strong> {{ gettext('reported') }}{% if item.type == 'summary' %}, {{ item.evcount_all }} ({{ babel_format_percent(item.evcount_all / item.evcount_all) }}) {{ gettext('matched') }}, {{ item.evcount_new }} ({{ babel_format_percent(item.evcount_new / item.evcount_all) }}) {{ gettext('new events') }}, {{ item.evcount_flt_blk }} ({{ babel_format_percent(item.evcount_flt_blk / item.evcount_all) }}) {{ gettext('filtered out') }}, {{ item.evcount_thr_blk }} ({{ babel_format_percent(item.evcount_thr_blk / item.evcount_all) }}) {{ gettext('thresholded') }}, {{ item.evcount_rlp }} ({{ babel_format_percent(item.evcount_rlp / item.evcount_all) }}) {{ gettext('relapsed') }}{% else %}, {{ item.evcount_all }} {{ gettext('total in parent summary report') }}{%- endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                {{ gettext('IP address count') }}:
+                            </th>
+                            <td>
+                                {{ statistics['ips'] | count }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                {{ gettext('Target mail') }}:
+                            </th>
+                            <td>
+                            {%- if item.flag_mailed %}
+                                {% if item.mail_to %}{{ item.mail_to | join(', ') }}, {% endif %}{{ babel_format_datetime(item.mail_dt) }} ({{ gettext('%(delta)s ago', delta = babel_format_timedelta(current_datetime_utc - item.mail_dt)) }})
+                            {%- else %}
+                                {{ gettext('never')}}
+                            {%- endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                {{ gettext('Filtering') }}:
+                            </th>
+                            <td>
+                            {%- if item.filtering %}
+                                {%- for item in item.filtering | dictsort %}
+                                <strong>{{ item[0] }}</strong> <span class="badge">{{ item[1] }}</span>{% if not loop.last %}<br>{% endif %}
+                                {%- endfor %}
+                            {%- else %}
+                                {{ gettext('no filters matched')}}
+                            {%- endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div> <!-- /.tabpanel #tab-report-metadata -->
+
+                <!-- Tab panel - BEGIN ---------------------------------------->
+                <div role="tabpanel" class="tab-pane fade" id="tab-report-stats">
+                    <br>
+                    <!-- Search result dump - BEGIN ----------------------------------->
+                    <script>
+                        var search_result_statistics = {{ statistics | tojson }};
+                    </script>
+                    <!-- Search result dump - END ------------------------------------->
+
+                    <!-- Inner tab navigation - BEGIN ------------------------->
+                    <ul class="nav nav-tabs nav-tabs-tooltipped nav-tabs-inner" role="tablist">
+                        {{
+                            macros_chart.render_dashboard_nav(
+                                statistics,
+                                'report-stats',
+                                hide_sections = ['abuses'],
+                                active_first = True
+                            )
+                        }}
+                    </ul>
+                    <!-- Inner tab navigation - END --------------------------->
+
+                    <!-- Inner tab panels - BEGIN ----------------------------->
+                    <div class="tab-content">
+                        {{
+                            macros_chart.render_dashboard_panels(
+                                statistics,
+                                'search_result_statistics',
+                                'report-stats',
+                                hide_sections = ['abuses'],
+                                active_first = True
+                            )
+                        }}
+                    </div>
+                    <!-- Inner tab panels - END ------------------------------->
+
+                </div> <!-- /.tabpanel #tab-report-stats -->
+
+                <!-- Tab panel - BEGIN ---------------------------------------->
+                <div role="tabpanel" class="tab-pane fade" id="tab-report-data-json">
+                    <br>
+                    <button id="ajax-load-report-data" class="btn btn-default">
+                        {{ get_icon('action-reload') }} {{ gettext('Load report data') }}
+                    </button>
+
+                    <div id="ajax-load-report-data-result" style="display: none">
+
+                        <br>
+                        <!-- Inner tab navigation - BEGIN --------------------->
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active">
+                                <a href="#tab-ajax-report-data-raw" aria-controls="tab-ajax-report-data-raw" role="tab" data-toggle="tab">
+                                    <strong>{{ gettext('Raw data') }}</strong>
+                                </a>
+                            </li>
+                        </ul>
+                        <!-- Inner tab navigation - END ----------------------->
+
+                        <!-- Inner tab panels - BEGIN ------------------------->
+                        <div class="tab-content">
+
+                            <div role="tabpanel" class="tab-pane fade in active" id="tab-ajax-report-data-by-category">
+                                <br>
+                                <pre id="ajax-report-data-raw"></pre>
+                            </div>
+                        </div>
+                        <!-- Inner tab panels - END ------------------------------->
+
+                    </div> <!-- #ajax-load-report-data-result -->
+
+                </div> <!-- /.tabpanel #tab-report-data-json -->
+
+            </div>
+            <!-- Tab panels - END --------------------------------------------->
+
+    {%- if permission_can('developer') %}
+            <hr>
+            {{ macros_site.render_raw_var('item', item) }}
+            {{ macros_site.render_raw_var('statistics', statistics) }}
+            {{ macros_site.render_raw_var('filtering', item.filtering) }}
+    {%- endif %}
+
+{%- endblock content %}
+
+
+{%- block bodyjs %}
+{{ super() }}
+        <script>
+            $('#ajax-load-report-data').click(function() {
+                $.ajaxSetup({
+                    global: false,
+                    type: "GET",
+                    url: "{{ url_for('reports.data', fileid = item.label, filetype = 'json') }}",
+                    beforeSend: function () {
+                        console.log("Showing AJAX loader");
+                        $("#ajax-loader-overlay").show(100);
+                        $("#ajax-load-report-data").prop('disabled', true);
+                    },
+                    complete: function (xhr, status) {
+                        console.log("Hiding AJAX loader with status: '" + status + "'");
+                        $("#ajax-loader-overlay").hide(100);
+                        $("#ajax-load-report-data").prop('disabled', false);
+                    },
+                    error: function (xhr, status, exc) {
+                        console.log("AJAX request error: '" + status + "', '" + exc + "'");
+                        flash_message("danger", "Request error: '" + status + "', " + exc + "'");
+                        alert("Request error: '" + status + "', " + exc + "'")
+                    }
+                });
+                $.ajax({
+                    data: "{}",
+                    success: function (data, status, xhr) {
+                        console.log("AJAX request status: '" + status + "'")
+                        console.log("AJAX request result: " + JSON.stringify(data, undefined, 2));
+                        //flash_message("success", "Successfully loaded report data.");
+                        $("#ajax-report-data-raw").html(JSON.stringify(data, undefined, 2));
+                        $("#ajax-load-report-data-result").show();
+                    }
+                });
+            });
+
+        </script>
+{%- endblock bodyjs %}
