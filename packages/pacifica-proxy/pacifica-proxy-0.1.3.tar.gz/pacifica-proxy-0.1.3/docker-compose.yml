@@ -1,0 +1,39 @@
+version: '3'
+services:
+  proxyserver:
+    build:
+      context: .
+    links:
+      - metadataserver:metadata
+      - archivei:archiveinterface
+    ports:
+      - 8180:8180
+    environment:
+      METADATA_URL: http://metadata:8121
+      METADATA_STATUS_URL: http://metadata:8121/groups
+      ARCHIVEINTERFACE_URL: http://archiveinterface:8080
+
+  archivei:
+    image: pacifica/archiveinterface
+    ports:
+      - 8080:8080
+
+  metadatadb:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pacifica_metadata
+      POSTGRES_USER: metadata
+
+  metadataserver:
+    image: pacifica/metadata
+    links:
+    - metadatadb
+    ports:
+      - 8121:8121
+    environment:
+      PEEWEE_DATABASE: pacifica_metadata
+      PEEWEE_USER: metadata
+      PEEWEE_ADDR: metadatadb
+      PEEWEE_PASS: password
+      PEEWEE_PROTO: postgresql
