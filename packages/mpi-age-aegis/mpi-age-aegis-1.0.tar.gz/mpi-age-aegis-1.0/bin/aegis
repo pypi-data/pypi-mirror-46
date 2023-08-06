@@ -1,0 +1,176 @@
+#!/usr/bin/env python
+
+#################################################
+## AEGIS: Ageing of Evolving Genomes In Silico ##
+## Command-line activation script              ##
+#################################################
+
+#-----------------------------------------------------------------------------
+# Import libraries
+#-----------------------------------------------------------------------------
+
+import argparse,os,sys,warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+import aegis
+
+#-----------------------------------------------------------------------------
+# Format parent parser
+#-----------------------------------------------------------------------------
+
+mode_help="AEGIS run mode to execute:"
+
+parser = argparse.ArgumentParser(
+        description = "AEGIS: Ageing of Evolving Genomes In Silico",
+        formatter_class=argparse.RawTextHelpFormatter)
+
+subparsers = parser.add_subparsers(dest='subparser_name',help=mode_help)
+#-----------------------------------------------------------------------------
+# Format `wiz` parser
+#-----------------------------------------------------------------------------
+wiz_help = "Execute AEGIS simulation from config file, get csv files and make plots."
+
+parser_wiz = subparsers.add_parser("wiz", help=wiz_help, description=wiz_help)
+parser_wiz.add_argument('input', help="path to input Config file")
+parser_wiz.add_argument('-m', '--module', metavar='<str>', default="Core",
+        help="AEGIS module to use for simulation (default: 'Core')")
+parser_wiz.add_argument('-r', type=int, metavar="<int>", default=100,
+        help="report information every <int> stages (default:100)")
+parser_wiz.add_argument('-p', '--profile', metavar='<str>', default="",
+        help="profile simulation with cProfile and save results to this path")
+parser_wiz.add_argument('-v', '--verbose', action="store_true",
+        help="report verbosely at every report stage")
+parser_wiz.add_argument('-o', '--output', metavar='<str>', default="",
+        help="path to output dir (default: '.')")
+
+#-----------------------------------------------------------------------------
+# Format `run` parser
+#-----------------------------------------------------------------------------
+run_help = "Execute an AEGIS simulation from a Config file."
+
+parser_run = subparsers.add_parser("run", help=run_help, description=run_help)
+parser_run.add_argument('input', help="path to input Config file")
+parser_run.add_argument('-m', '--module', metavar='<str>', default="Core",
+        help="AEGIS module to use for simulation (default: 'Core')")
+parser_run.add_argument('-r', type=int, metavar="<int>", default=100,
+        help="report information every <int> stages (default:100)")
+parser_run.add_argument('-p', '--profile', metavar='<str>', default="",
+        help="profile simulation with cProfile and save results to this path")
+parser_run.add_argument('-v', '--verbose', action="store_true",
+        help="report verbosely at every report stage")
+parser_run.add_argument('-o', '--output', metavar='<str>', default="",
+        help="path to output dir (default: '.')")
+
+#-----------------------------------------------------------------------------
+# Format `get` parser
+#-----------------------------------------------------------------------------
+get_help = "Copy a default Config file to a specified path for editing."
+
+parser_get = subparsers.add_parser("get", help=get_help, description=get_help)
+parser_get.add_argument('output', help="path to save new Config file")
+parser_get.add_argument('-m', '--module', metavar='<str>', default="Core",
+        help="AEGIS module to use for Config file (default: 'Core')")
+
+#-----------------------------------------------------------------------------
+# Format `read` parser
+#-----------------------------------------------------------------------------
+read_help = "Extract information from an AEGIS Record file to a new path."
+
+parser_read = subparsers.add_parser("read", help=read_help, 
+        description = read_help)
+parser_read.add_argument('input', help="path to input Record file")
+parser_read.add_argument('-m', '--module', metavar='<str>', default="Core",
+        help="AEGIS module used to produce Record file (default: 'Core')")
+parser_read.add_argument('-v', '--verbose', action="store_true",
+        help="print runtime")
+parser_read.add_argument('-o', '--output', metavar='<str>', default="",
+        help="path to output dir (default: '.')")
+
+# Specify information to extract
+read_mode = parser_read.add_mutually_exclusive_group(required=True)
+read_mode.add_argument('--csv', action="store_true",
+        help="write data from Record file to csv (creates a dir)")
+read_mode.add_argument('-s', '--seed', action="store_true",
+        help="extract random seed from Record file")
+read_mode.add_argument('-i', '--info', action="store_true",
+        help="write general information on contents of Record file to a csv file")
+
+#-----------------------------------------------------------------------------
+# Format `plot` parser
+#-----------------------------------------------------------------------------
+plot_help = "Generate plots from AEGIS csv files."
+
+parser_plot = subparsers.add_parser("plot", help=plot_help, 
+        description=plot_help)
+parser_plot.add_argument('input', help="path to input dir containing csv files")
+parser_plot.add_argument('-m', '--module', metavar='<str>', default="Core",
+        help="AEGIS module used to produce Record file (default: 'Core')")
+parser_plot.add_argument('-v', '--verbose', action="store_true",
+        help="report verbosely during plotting")
+parser_plot.add_argument('-o', '--output', metavar='<str>', default="",
+        help="path to output dir (default: '.')")
+
+#-----------------------------------------------------------------------------
+# Parse args and execute AEGIS
+#-----------------------------------------------------------------------------
+
+args = parser.parse_args()
+
+module = getattr(aegis, args.module)
+last_K = 500 # how many last stages for per stage entries to include in the csv file
+
+import importlib,sys
+
+if args.subparser_name == "wiz":
+    if args.profile != "": # Start profiling
+        import cProfile, pstats, StringIO
+        pr = cProfile.Profile()
+        pr.enable()
+    inpath = os.path.expanduser(args.input)
+    outpath = os.path.expanduser(args.output)
+    sys.path.append(os.getcwd())
+    prefix = importlib.import_module("".join(inpath.split(".")[:-1])).output_prefix
+    csv_in = "./"+prefix+"_files/records/run0.rec"
+    plot_in = "./"+prefix+"_csv_files"
+    # run
+    module.run(inpath, args.r, args.verbose, outpath)
+    # read --csv
+    print "Reading simulation record and writing to csv files..."
+    module.get_csv(csv_in,outpath,last_K=last_K,verbose=args.verbose)
+    print "Done."
+    # plot
+    print "\nMaking plots..."
+    module.plot(plot_in, args.verbose, outpath)
+    print "Done.\n"
+
+elif args.subparser_name == "run":
+    if args.profile != "": # Start profiling
+        import cProfile, pstats, StringIO
+        pr = cProfile.Profile()
+        pr.enable()
+    inpath = os.path.expanduser(args.input)
+    outpath = os.path.expanduser(args.output)
+    module.run(inpath, args.r, args.verbose, outpath)
+
+elif args.subparser_name == "get":
+    path = os.path.expanduser(args.output)
+    module.getconfig(path)
+
+elif args.subparser_name == "read":
+    inpath = os.path.expanduser(args.input)
+    outpath = os.path.expanduser(args.output)
+    if args.csv:
+        module.get_csv(inpath,outpath,last_K=last_K,verbose=args.verbose)
+    elif args.seed:
+        module.getrseed(inpath, outpath,verbose=args.verbose)
+    elif args.info:
+        module.getrecinfo(inpath, outpath,verbose=args.verbose)
+
+elif args.subparser_name == "plot":
+    inpath = os.path.expanduser(args.input)
+    outpath = os.path.expanduser(args.output)
+    module.plot(inpath, args.verbose, outpath)
+
+if (args.subparser_name == "run" or args.subparser_name == "wiz")\
+        and args.profile != "": # Finish profiling
+    pr.create_stats()
+    pr.dump_stats(args.profile)
