@@ -1,0 +1,167 @@
+This package includes the Rockset Python SDK that includes the following:
+
+- Native Python API to connect to Rockset, manage data and execute queries. This API includes Rockset's query builder that allows for programmatic construction of advanced queries using native Python expressions.
+
+- `rock` command line utility to interact, manage and operate Rockset from a shell command line. `rock` CLI includes a SQL REPL command-line that can be entered using `rock sql`.
+
+- SQL connector for Python, which conforms to the Python DB API 2.0 specification. Refer to https://www.python.org/dev/peps/pep-0249 for more details.
+
+- SQLAlchemy dialect to bridge Rockset and SQLAlchemy applications. SQLAlchemy users can connect to Rockset using 'rockset://<api_key>:@<api_server>'
+
+Rockset documentation is available at:
+http://docs.rockset.com
+
+
+Release Notes
+-------------
+
+.. Add a line for every user-facing feature change
+.. rst syntax requires leaving an empty line before and after the sub-bullets
+
+- 0.5.30-beta.20190517
+
+   - add support for AWS Redshift
+   - `rock upload` supports uploading multiple files
+
+- 0.5.23-beta.20190225
+
+    - `rock ls` shows creation time and size of collection
+    - Better error handling
+    - Add support for Workspaces
+
+- 0.5.15-beta.20190124
+
+    - Update ‘User-Agent’ value passed in API request header
+
+- 0.5.14-beta.20190121
+
+    - Add support for Google Cloud Storage
+
+- 0.5.13-beta.20190117
+
+    - SQLAlchemy enhancements to support Apache Superset
+
+- 0.5.10-beta.20190114
+
+    - Added support for AWS External ID as a new type of integration.
+    - Added support for `prefix` and `pattern` as parameters under rs.Source.s3() 
+    - Deprecated rs.Source.s3(...prefixes=[...]). This is still supported but it's recommended that you move to using `prefix` as soon as possible.
+    - Fixed bug in `rock upload` to use current working directory.
+
+- 0.5.9-beta.20190104
+
+    - Add support for Amazon DynamoDB data source
+    - Replace `rock add` with `rock upload`
+
+- 0.5.6-beta.20181210
+
+    - Support for creating collections from XML data files
+
+- 0.5.0-beta.20181107
+
+    - First beta release
+    - Add support for kinesis data source
+    - Better error messages when an account reaches resource limit
+    - REST API over swagger_client instead of bravado
+
+- 0.4.3-alpha.20181003-3eaa5c7cc7
+
+    - Support for field masks.
+    - Support for slow rollout of leaves based on healthz checks
+
+- 0.4.3-alpha.20180916+57afbae46a
+
+    - Support for creating collections from csv data files
+
+- 0.4.2-alpha.20180910+cf9c623a49
+
+    - Support for creating collections using integrations
+    - Improved help text for rock create workflows
+
+- 0.4.1-alpha.20180822+e806a29bab
+
+    - Support for event time data and data retention during collection creation.
+    - Changes to `rock create collection ...` commandline to improve readability
+    - `rock drop ...` is now `rock drop collection ...`
+    - `rock describe ...` is now `rock describe collection ...`
+
+- 0.4.0-alpha.20180515+ecbe2a0
+
+    - Moved to new /org/{org} REST API
+    - Add SQL support that is accessible from `rock sql`
+    - Field `_id` defines the unique identified for a document (`:id` deprecated)
+    - Field `_meta` captures all other system generated fields in documents (`:collection` etc deprecated)
+
+- 0.3.0-alpha.20180314+410b55e
+
+    - Add py query builder support for <, <=, > and >= operators for string values
+
+- v0.3.0-alpha.20180206+168be7d
+
+    - Add ``F.collect()`` support to accumulate entire parent documents as part of a bucket aggregation
+
+- v0.3.0-alpha.20171206+7debcb7
+
+    - Add ``collect`` aggregate function to support bucket aggregations
+    - Add support for ``F.count()`` to do equivalent of count(*)
+
+- v0.3.0-alpha.20171121+d8c7961
+
+    - Sensitive fields can now be masked or anonymized, when collections are created from AWS S3. See ``rock help create collection`` for more details.
+    - AWS S3 bucket path prefixes can be provided to create a collection from only a subset of data in an AWS S3 bucket.
+    - Support Parquet file format for loading data into collections.
+
+- v0.3.0-alpha.20170919+49e62f5
+
+    - Simpler REST API 0.3
+    - Add fence API and write APIs returning commit markers
+    - Add View creation progress indicator to describe view API
+    - More user-friendly error messages and Python exception strings
+    - Enforce and document various system-wide limits
+
+- v0.2.2-alpha.20170824+dff8385
+
+    - Support for next version of api_key and got rid of api_secrets
+    - Added support for adding multiple documents in single API call
+    - Added rockset.source to better support managing S3 sources while creating collections and collection sources while creating views.
+    - Better client support for views with multiple analyzer mappings
+    - py/client supports async_requests to have multiple concurrent queries pending
+    - Support for sampling queries and queries on nested documents
+    - Backend: better query optimization support
+
+- v0.2.1-alpha.20170707+88ab952
+
+    - Added support for views
+
+- v0.2.1-alpha.20170629+4492c9a
+
+    - py/client now respects HTTP_PROXY and HTTPS_PROXY ENV variables
+
+- v0.2.1-alpha.20170629+7b050f5
+
+    - Fix bug that made limit queries not composable
+
+- v0.2.1-alpha.20170628+303f256
+
+    - Added cursors with automatic pagination support
+    - Added support for limit & skip queries
+
+- v0.2.1-alpha.20170624+e6aee25
+
+    - Added support for lookup operator for JOINs
+    - Auth token auto refresh will support long lived Client() objects
+
+- v0.2.1-alpha.20170615+f3df06e
+
+    - Parallel aggregations for faster performance
+    - Aggregation support for nested fields
+    - Aggregation support over large data sets
+    - Rewrote backend service discovery to make it elastic
+    - User friendly messages for all py/client exceptions
+
+- v0.1.1-alpha
+
+    - First alpha release
+
+
+
