@@ -1,0 +1,126 @@
+
+{% if component.as_pdf %}
+    {% for fieldset in component.get_active_fieldsets() %}
+        {% if fieldset.paginators|length > 1 and fieldset.fields %}
+            <h2>{{ fieldset.title }}</h2>
+        {% endif %}
+        {% if fieldset.fields %}
+            <h3>{% if fieldset.icon %}<i class="fa {{ fieldset.icon }}"></i>{% endif %}{{ fieldset.title }}</h3>
+            <table>
+                {% for fields in fieldset.fields %}
+                    <tr>
+                        {% for field in fields %}
+                            <td colspan="{{ fields|length|colspan }}">
+                                <dt>{{ field.verbose_name }}</dt>
+                                <dd>{{ component.obj|getattr(field.name)|print_format|safe }}</dd>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+        {% if component.complete %}
+            {% for paginator in fieldset.paginators %}
+                {{ paginator }}
+            {% endfor %}
+            {% for info in fieldset.extra %}
+                {{ component.obj|getattr(info) }}
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+{% else %}
+<div class="model-panel">
+    {% if component.complete or component.drop_down.has_items() %}
+    <div id="{{ uuid() }}" class="action-bar">
+        {% if component.complete %}
+        <div class="pull-left">
+            <h2>{{ component.title }}</h2>
+        </div>
+        {% endif %}
+        {% if not component.request.GET.popup %}
+        <div class="pull-right">
+            {{ component.drop_down|safe }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% for fieldset in component.get_active_fieldsets() %}
+
+
+        {% if component.tabs and loop.index0 == component.fieldsets_without_tab_name|length %}
+            <div id="tab-{{ component.obj.id }}">
+                <ul class="nav nav-tabs">
+                {% for tab_name, url in component.tabs %}
+                  <li class="{% if component.current_tab|slugify == tab_name|slugify %}active{% endif %}"><a class="ajax dontScrool" data-context="#tab-{{ component.obj.id }}" href="{{ url }}">{{ tab_name }}</a></li>
+                {% endfor %}
+                </ul>
+        {% endif %}
+
+        {% if fieldset.drop_down.has_items() %}
+            <div id="panel-{{ fieldset.title|slugify }}">
+                {% if not component.request.GET.popup %}
+                    <div class="pull-right action-bar">
+                        {{ fieldset.drop_down|safe }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+        {% if fieldset.fields %}
+            <div class="panel panel-default info-panel" id="panel-{{ fieldset.title|slugify }}">
+                <div class="panel-heading">
+                    {% if fieldset.icon %}<i class="fa {{ fieldset.icon }}"></i>{% endif %}{{ fieldset.title }}
+                </div>
+                <div class="panel-body">
+
+                    <div class="responsive-container">
+                        {% if fieldset.image %}
+                            <div class="model-panel-image">
+                                {{ component.obj|getattr(fieldset.image)|zoom_image("width=100%") }}
+                            </div>
+                        {% endif %}
+                        <div class="model-panel-fields">
+                            {% for fields in fieldset.fields %}
+                                <div  class="info-group n{{ fields|length }}">
+                                    {% for field in fields %}
+                                        <div>
+                                            <label>{{ field.verbose_name }}</label>
+                                            <div>{{ component.obj|getattr(field.name)|format(component.request)|safe }}</div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    {% if fieldset.extra  %}
+                        {% for info in fieldset.extra %}
+                            {{ component.obj|getattr(info)|safe }}
+                        {% endfor %}
+                    {% endif %}
+
+                </div>
+            </div>
+        {% else %}
+            {% if component.complete %}
+                {% for info in fieldset.extra %}
+                    {{ component.obj|getattr(info) }}
+                {% endfor %}
+                {% if fieldset.snippet %}
+                    {{ component.obj|snippet(fieldset.snippet) }}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+
+        {% if component.complete %}
+            {% for paginator in fieldset.paginators %}
+                {{ paginator|safe }}
+            {% endfor %}
+        {% endif %}
+
+        {% if component.tabs and loop.last %}
+            </div>
+        {% endif %}
+
+    {% endfor %}
+</div>
+{% endif %}

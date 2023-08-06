@@ -1,0 +1,96 @@
+{% extends "admin.html" %}
+
+{% block extra_admin_head %}
+    <script src="/static/js/jquery.mask.min-1.7.7.js"></script>
+{% endblock %}
+{% block body %}
+    <body id="login-body">
+        <div id="login-wrapper">
+            <div class="text-center">
+                <h2 class="fadeInUp animation-delay8" style="font-weight:bold">
+                    {% if settings.logo %}
+                        <img height="70px" id="login-icon" src="/media/{{ settings.logo }}" alt="Logotipo de {{ settings.initials }}" />
+                    {% endif %}
+                    <p class="text-shadow-white"><a href="/">{{ settings.initials|truncatechars(23) }}</a></p>
+
+                </h2>
+                {% if form.scope_display %}
+                <h4 class="fadeInUp animation-delay8">{{ form.scope_display }}</h4>
+                {% endif %}
+            </div>
+            <div class="login-widget animation-delay1">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div>
+                             {{ title }}
+                        </div>
+                    </div>
+                    <div class="panel-body">
+
+                        {% if form.non_field_errors() %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors() }}
+                        </div>
+                        {% endif %}
+
+                        {% block form %}
+
+                        {% endblock %}
+                    </div>
+                </div><!-- /panel -->
+                {% if settings.company %}
+                    <div class="copyright" align="center">&copy; {{ settings.company }}</div>
+                {% endif %}
+            </div><!-- /login-widget -->
+        </div><!-- /login-wrapper -->
+    </body>
+    {% if allow_social_login and can_register %}
+        <!-- FACEBOOK https://developers.facebook.com/docs/facebook-login/web/ -->
+        {% if facebook_auth_id %}
+            <script>
+                window.fbAsyncInit = function() {
+                    FB.init({appId: '341337683304718',  cookie: true,  xfbml: true, version: 'v2.8'});
+                    FB.AppEvents.logPageView();
+                };
+                (function(d, s, id){
+                 var js, fjs = d.getElementsByTagName(s)[0];
+                 if (d.getElementById(id)) {return;}
+                 js = d.createElement(s); js.id = id;
+                 js.src = "https://connect.facebook.net/en_US/sdk.js";
+                 fjs.parentNode.insertBefore(js, fjs);
+                }(document, 'script', 'facebook-jssdk'));
+
+                function statusChangeCallback(response) {
+                  if (response.status === 'connected') {
+                    document.location.href = '/admin/register/'+response.authResponse.accessToken+'/'+response.authResponse.userID+'/';
+                  }
+                }
+                function checkLoginState() { FB.getLoginStatus(function(response) { statusChangeCallback(response); });}
+                function fb_login(){FB.login(function(response) {statusChangeCallback(response);}, {scope: 'public_profile,email'});}
+            </script>
+        {% endif %}
+
+        <!-- GOOGLE http://usefulangle.com/post/55/google-login-javascript-api -->
+        {% if google_auth_key and google_auth_id %}
+            <script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};HandleGoogleApiLibrary()" onreadystatechange="if (this.readyState === 'complete') this.onload()"></script>
+            <script>
+                function HandleGoogleApiLibrary() {
+                    gapi.load('client:auth2',  {
+                        callback: function() {
+                            gapi.client.init({
+                                apiKey: '{{ google_auth_key }}',
+                                clientId: '{{ google_auth_id }}',
+                                scope: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/plus.me'
+                            }).then(
+                                function(success) {},
+                                function(error) {alert(error);}
+                            );
+                        },
+                        onerror: function() {alert('Error');}
+                    });
+                }
+                function gg_login(event){gapi.auth2.getAuthInstance().signIn().then(function(success) { document.location.href = '/admin/register/'+success.Zi.access_token+'/';}, function(error) {alert(error);});}
+            </script>
+        {% endif %}
+    {% endif %}
+{% endblock %}

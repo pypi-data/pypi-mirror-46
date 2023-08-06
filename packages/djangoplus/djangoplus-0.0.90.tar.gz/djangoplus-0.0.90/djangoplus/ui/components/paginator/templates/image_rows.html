@@ -1,0 +1,67 @@
+<div class="paginator-image-rows responsive-container">
+<div>
+    {% for obj in component.get_queryset() %}
+        <div class="image-rows-row">
+            <div class="image-rows-container">
+                {% for verbose_name, lookup, sortable, to in component.column_names %}
+                    {% if loop.first %}
+                        <div class="image-rows-image-container">
+                            {{ obj|getattr(lookup)|zoom_image("width='100%'") }}
+                        </div>
+                    {% else %}
+                    <div>
+                        {% if loop.index == 2  %}
+                            <p class="image-rows-title">
+                                {{ paginator_checkboxes(component, obj, False) }}
+                                {{ obj|getattr(lookup)|format|format }}
+                            </p>
+                        {% else %}
+                            <p><strong>{{ verbose_name }}</strong>: {{ obj|getattr(lookup)|format }}</p>
+                        {% endif %}
+                        {% if loop.last %}
+                            <div class="pull-right paginator-actions">
+                                {{ paginator_icons(component, obj, True) }}
+                                {{ add_actions(component, obj) }}
+                                {{ component.drop_down|safe }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+</div>
+<style>
+    .paginator-image-rows > div{
+        width: 100%;
+    }
+    .paginator-image-rows > div.s .image-rows-image-container{
+        width: 100%;
+    }
+    .paginator-image-rows > div.s .image-rows-image-container img{
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    .paginator-image-rows > div.m .image-rows-image-container img,
+    .paginator-image-rows > div.l .image-rows-image-container img{
+        width: 130px;
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+
+    .image-rows-row{
+        padding-left:0; min-height: 100px;
+
+    }
+    .image-rows-container{
+        border: 1px solid #ddd; border-radius: 0; padding: 10px; margin-bottom: 10px; overflow: auto; vertical-align: top;
+    }
+    .image-rows-title{
+        font-size: 130%; font-weight: bold
+    }
+    .image-rows-image-container{
+        float:left;
+    }
+</style>
