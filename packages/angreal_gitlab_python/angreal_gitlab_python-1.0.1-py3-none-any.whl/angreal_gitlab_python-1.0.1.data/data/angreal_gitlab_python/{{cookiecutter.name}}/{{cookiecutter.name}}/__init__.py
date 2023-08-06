@@ -1,0 +1,8 @@
+"""
+    {{ cookiecutter.name }}
+    ~~~~~~~~~~~~~~~~~~~~~~~
+
+    {{ cookiecutter.name }}
+
+"""
+
