@@ -1,0 +1,26 @@
+% setdefault(limit, 0)
+% setdefault('msgs', [])
+% setdefault('lvlmap', {})
+% rebase('tpl/base.html', title = 'syslog')
+<div id="start" class="w3-margin-top"></div>
+<form action="/syslog/last#end" method="GET">
+	<div class="w3-bar">
+		<span class="w3-bar-item">/syslog/last/</span>
+		<input class="w3-bar-item"
+			name="limit" type="number" value="{{limit}}">
+		<button class="w3-bar-item w3-btn">show</button>
+	</div>
+</form>
+<hr>
+<a href="#end" class="w3-small">go to bottom</a>
+<ul class="w3-ul">
+% for m in msgs:
+	% lvl = lvlmap.get(m['level'], 'default')
+	<li style="border:0;padding:0">
+		<span class="w3-text-grey w3-small">{{m['time']}}</span>
+		<span class="syslog-{{lvl}}">{{m['msg']}}</span>
+	</li>
+% end
+</ul>
+<a href="#top" class="w3-small">go to top</a>
+<div id="end"></div>
