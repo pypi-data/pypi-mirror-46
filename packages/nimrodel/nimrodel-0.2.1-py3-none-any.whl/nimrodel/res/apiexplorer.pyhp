@@ -1,0 +1,119 @@
+<html>
+	<head>
+		<title>API Explorer</title>
+		<style>
+
+			@import url('https://fonts.googleapis.com/css?family=Ubuntu');
+
+			body {
+				font-family:"Ubuntu";
+				padding:35px;
+			}
+			.collapsed > .body {
+				display:none;
+			}
+
+			.api_module, .class_module, .method_module {
+				padding-left:25px;
+			}
+
+			.api_module > .header {
+				padding:10px;
+				font-weight:bold;
+				font-size:140%;
+				cursor:pointer;
+				color:black;
+			}
+			.api_module.collapsed > .header {
+				color:grey;
+			}
+			.api_module.collapsed > .header:hover {
+				color:black;
+			}
+
+			.api_module > .body {
+
+			}
+
+
+			.class_module > .header {
+				cursor:pointer;
+			}
+			.class_module.collapsed > .header {
+				color:grey;
+			}
+			.class_module.collapsed > .header:hover {
+				color:black;
+			}
+
+
+			.method_module > .header {
+				cursor:pointer;
+				border: 1px solid black;
+			}
+
+			.method_GET, .method_POST {
+				padding:5px;
+				color:white;
+				border-radius:3px;
+			}
+			.method_GET {
+				background-color:blue;
+			}
+			.method_POST {
+				background-color:green;
+			}
+			.class_desc {
+
+			}
+		</style>
+		<script>
+			function toggleCollapse(e) {
+				e.parentElement.classList.toggle("collapsed");
+			}
+		</script>
+	</head>
+
+	<body>
+
+		<h1>API Endpoints</h1>
+		<pyhp for="api" in="apis">
+		<div class="api_module collapsed">
+			<h1 class="header" onclick="toggleCollapse(this)">
+				<pyhp echo="api['url']"></pyhp>
+			</h1>
+			<div class="body">
+				<pyhp for="cls" in="api['classes']">
+				<div class="class_module collapsed">
+					<h2 class="header" onclick="toggleCollapse(this)">
+						<pyhp echo="cls['name']"></pyhp>
+					</h2>
+					<div class="body">
+						<pyhp for="method" in="cls['methods']">
+						<div class="method_module collapsed">
+							<h3 class="header" onclick="toggleCollapse(this)">
+								<span class="method_{method['method']}"><pyhp echo="method['method']"></pyhp></span>
+								<pyhp echo="method['name']"></pyhp>
+							</h3>
+
+							<div class="body">
+								Awesome method
+							</div>
+						</div>
+
+
+						</pyhp>
+					</div>
+				</div>
+
+
+				</pyhp>
+
+			</div>
+		</div>
+
+		</pyhp>
+
+	</body>
+
+</html>
