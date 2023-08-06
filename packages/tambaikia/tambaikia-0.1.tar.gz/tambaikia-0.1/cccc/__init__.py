@@ -1,0 +1,1 @@
+from cccc.calc import add, sub, mult, div
