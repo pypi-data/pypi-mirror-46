@@ -1,0 +1,65 @@
+Metadata-Version: 2.1
+Name: aiofluent-python
+Version: 0.2.8
+Summary: A fluentd client libary intended to work with asyncio.
+Home-page: https://github.com/guyingbo/aiofluent
+Author: Yingbo Gu
+Author-email: tensiongyb@gmail.com
+Maintainer: Yingbo Gu
+Maintainer-email: tensiongyb@gmail.com
+License: MIT
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Intended Audience :: Developers
+Requires-Python: >=3.5
+Description-Content-Type: text/markdown
+Requires-Dist: msgpack (>=0.5.2)
+Requires-Dist: async-timeout (>=2.0.0)
+
+# aiofluent
+
+[![Build Status](https://travis-ci.org/guyingbo/aiofluent.svg?branch=master)](https://travis-ci.org/guyingbo/aiofluent)
+[![PyPI](https://img.shields.io/pypi/pyversions/aiofluent-python.svg)](https://pypi.python.org/pypi/aiofluent-python)
+[![PyPI](https://img.shields.io/pypi/v/aiofluent-python.svg)](https://pypi.python.org/pypi/aiofluent-python)
+[![PyPI](https://img.shields.io/pypi/format/aiofluent-python.svg)](https://pypi.python.org/pypi/aiofluent-python)
+[![PyPI](https://img.shields.io/pypi/l/aiofluent-python.svg)](https://pypi.python.org/pypi/aiofluent-python)
+[![codecov](https://codecov.io/gh/guyingbo/aiofluent/branch/master/graph/badge.svg)](https://codecov.io/gh/guyingbo/aiofluent)
+
+
+A fluentd client libary intended to work with asyncio. Inspires by [fluent-logger-python](https://github.com/fluent/fluent-logger-python)
+
+## Requirements
+
+- Python 3.5 or greater
+- msgpack-python
+- async-timeout
+
+## Installation
+
+~~~
+pip install aiofluent-python
+~~~
+
+## Example
+
+~~~python
+import asyncio
+from aiofluent import FluentSender
+loop = asyncio.get_event_loop()
+sender = FluentSender()
+
+
+async def go():
+    await sender.emit('tag', {'name': 'aiofluent'})
+    await sender.close()
+
+
+loop.run_until_complete(go())
+loop.run_until_complete(loop.shutdown_asyncgens())
+loop.close()
+~~~
+
+
