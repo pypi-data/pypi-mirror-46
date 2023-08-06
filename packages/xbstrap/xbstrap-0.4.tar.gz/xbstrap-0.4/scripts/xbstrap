@@ -1,0 +1,1443 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: MIT
+
+import argparse
+from enum import Enum
+import errno
+import os
+import re
+import shutil
+import subprocess
+import sys
+import urllib.parse
+import urllib.request
+import tarfile
+
+import colorama
+import yaml
+
+verbosity = False
+
+def touch(path):
+	with open(path, 'a') as f:
+		pass
+
+def try_mkdir(path):
+	try:
+		os.mkdir(path)
+	except OSError as e:
+		if e.errno != errno.EEXIST:
+			raise
+
+def try_unlink(path):
+	try:
+		os.unlink(path)
+	except OSError as e:
+		if e.errno != errno.ENOENT:
+			raise
+
+def try_rmtree(path):
+	try:
+		shutil.rmtree(path)
+	except OSError as e:
+		if e.errno != errno.ENOENT:
+			raise
+
+def replace_at_vars(string, resolve):
+	def do_substitute(m):
+		varname = m.group(1)
+		result = resolve(varname)
+		if result is None:
+			raise RuntimeError("Unexpected substitution {}".format(varname))
+		return result
+
+	return re.sub(r'@(\w+)@', do_substitute, string)
+
+class Config:
+	def __init__(self, root_yml):
+		self._root_yml = root_yml
+		self._sources = dict()
+		self._tool_pkgs = dict()
+		self._tool_stages = dict()
+		self._target_pkgs = dict()
+
+		for src_yml in self._root_yml['sources']:
+			src = Source(self, None, src_yml)
+			if src.name in self._sources:
+				raise RuntimeError("Duplicate source")
+			self._sources[src.name] = src
+		for pkg_yml in self._root_yml['tools']:
+			if 'source' in pkg_yml:
+				src = Source(self, pkg_yml['name'], pkg_yml['source'])
+				if src.name in self._sources:
+					raise RuntimeError("Duplicate source")
+				self._sources[src.name] = src
+		for pkg_yml in self._root_yml['packages']:
+			if 'source' in pkg_yml:
+				src = Source(self, pkg_yml['name'], pkg_yml['source'])
+				if src.name in self._sources:
+					raise RuntimeError("Duplicate source")
+				self._sources[src.name] = src
+
+		for pkg_yml in self._root_yml['tools']:
+			pkg = HostPackage(self, pkg_yml)
+			self._tool_pkgs[pkg.name] = pkg
+
+		for pkg_yml in self._root_yml['packages']:
+			pkg = TargetPackage(self, pkg_yml)
+			self._target_pkgs[pkg.name] = pkg
+
+	@property
+	def repository_url(self):
+		if 'repository' not in self._root_yml:
+			return None
+		if 'url' not in self._root_yml['repository']:
+			return None
+		return self._root_yml['repository']['url']
+
+	@property
+	def source_root(self):
+		return os.path.join(os.getcwd(),
+				os.path.dirname(os.readlink('bootstrap.link')))
+
+	@property
+	def build_root(self):
+		return os.getcwd()
+
+	@property
+	def sysroot_dir(self):
+		return os.path.join(self.build_root, 'system-root')
+
+	def get_source(self, name):
+		return self._sources[name]
+
+	def get_tool_pkg(self, name):
+		return self._tool_pkgs[name]
+
+	def all_tools(self):
+		yield from self._tool_pkgs.values()
+
+	def all_pkgs(self):
+		yield from self._target_pkgs.values()
+
+	def get_target_pkg(self, name):
+		return self._target_pkgs[name]
+
+class ScriptStep:
+	def __init__(self, step_yml):
+		self._step_yml = step_yml
+
+	@property
+	def args(self):
+		return self._step_yml['args']
+
+	@property
+	def environ(self):
+		if 'environ' not in self._step_yml:
+			return dict()
+		return self._step_yml['environ']
+
+	@property
+	def workdir(self):
+		if 'workdir' not in self._step_yml:
+			return None
+		return self._step_yml['workdir']
+
+	@property
+	def quiet(self):
+		if 'quiet' not in self._step_yml:
+			return False
+		return self._step_yml['quiet']
+
+class RequirementsMixin:
+	@property
+	def source_dependencies(self):
+		# First, return automatic dependencies induced by 'sources_required'.
+		if 'sources_required' in self._this_yml:
+			yield from self._this_yml['sources_required']
+
+		# TODO: Secondly, return explicit dependencies.
+
+	@property
+	def tools_required(self):
+		if 'tools_required' in self._this_yml:
+			for yml in self._this_yml['tools_required']:
+				if isinstance(yml, dict):
+					yield yml['tool']
+				else:
+					assert isinstance(yml, str)
+					yield yml
+
+	@property
+	def tool_dependencies(self):
+		# First, return automatic dependencies induced by 'tools_required'.
+		if 'tools_required' in self._this_yml:
+			for yml in self._this_yml['tools_required']:
+				if isinstance(yml, dict):
+					if 'stage_dependencies' in yml:
+						for stage_name in yml['stage_dependencies']:
+							yield (yml['tool'], stage_name)
+					else:
+						yield (yml['tool'], None)
+				else:
+					assert isinstance(yml, str)
+					yield (yml, None)
+
+		# Secondly, return explicit dependencies.
+		if 'tool_dependencies' in self._this_yml:
+			for yml in self._this_yml['tool_dependencies']:
+				if isinstance(yml, dict):
+					yield (yml['tool'], yml['stage'])
+				else:
+					assert isinstance(yml, str)
+					yield (yml, None)
+
+	@property
+	def pkg_dependencies(self):
+		# First, return automatic dependencies induced by 'pkgs_required'.
+		if 'pkgs_required' in self._this_yml:
+			yield from self._this_yml['pkgs_required']
+
+		# TODO: Secondly, return explicit dependencies.
+
+class Source(RequirementsMixin):
+	def __init__(self, cfg, induced_name, yml):
+		self._cfg = cfg
+		self._name = None
+		self._this_yml = yml
+		self._regenerate_steps = [ ]
+
+		if 'name' in self._this_yml:
+			self._name = self._this_yml['name']
+		else:
+			self._name = induced_name
+
+		if 'regenerate' in self._this_yml:
+			for step_yml in self._this_yml['regenerate']:
+				self._regenerate_steps.append(ScriptStep(step_yml))
+
+	@property
+	def name(self):
+		return self._name
+
+	@property
+	def subject_id(self):
+		return self._name
+
+	@property
+	def subject_type(self):
+		return 'source'
+
+	@property
+	def sub_dir(self):
+		if 'subdir' in self._this_yml:
+			return os.path.join(self._cfg.source_root, self._this_yml['subdir'])
+		return self._cfg.source_root
+
+	@property
+	def source_dir(self):
+		return os.path.join(self.sub_dir, self._name)
+
+	@property
+	def source_archive_format(self):
+		assert 'url' in self._this_yml
+		return self._this_yml['format']
+
+	@property
+	def source_archive_file(self):
+		assert 'url' in self._this_yml
+		return os.path.join(self.sub_dir, self._name + '.' + self.source_archive_format)
+
+	@property
+	def patch_dir(self):
+		return os.path.join(self._cfg.source_root, 'patches', self._name)
+
+	@property
+	def regenerate_steps(self):
+		yield from self._regenerate_steps
+
+	def check_if_fetched(self):
+		if 'git' in self._this_yml:
+			# There is a TOCTOU here; we assume that users do not concurrently delete directories.
+			if not os.path.isdir(self.source_dir):
+				return False
+			args = ['git', 'show-ref', '-q', '--verify']
+			if 'tag' in self._this_yml:
+				args.append('refs/tags/' + self._this_yml['tag'])
+			else:
+				args.append('refs/heads/' + self._this_yml['branch'])
+			return subprocess.call(args, cwd=self.source_dir) == 0
+		else:
+			assert 'url' in self._this_yml
+			return os.access(self.source_archive_file, os.F_OK)
+
+	def check_if_checkedout(self):
+		path = os.path.join(self.source_dir, 'checkedout.xbstrap')
+		return os.access(path, os.F_OK)
+
+	def mark_as_checkedout(self):
+		touch(os.path.join(self.source_dir, 'checkedout.xbstrap'))
+
+	def check_if_patched(self):
+		path = os.path.join(self.source_dir, 'patched.xbstrap')
+		return os.access(path, os.F_OK)
+
+	def mark_as_patched(self):
+		touch(os.path.join(self.source_dir, 'patched.xbstrap'))
+
+	def check_if_regenerated(self):
+		path = os.path.join(self.source_dir, 'regenerated.xbstrap')
+		return os.access(path, os.F_OK)
+
+	def mark_as_regenerated(self):
+		touch(os.path.join(self.source_dir, 'regenerated.xbstrap'))
+
+class HostStage(RequirementsMixin):
+	def __init__(self, cfg, pkg, inherited, stage_yml):
+		self._cfg = cfg
+		self._pkg = pkg
+		self._inherited = inherited
+		self._this_yml = stage_yml
+		self._compile_steps = [ ]
+		self._install_steps = [ ]
+
+		if 'compile' in self._this_yml:
+			for step_yml in self._this_yml['compile']:
+				self._compile_steps.append(ScriptStep(step_yml))
+		if 'install' in self._this_yml:
+			for step_yml in self._this_yml['install']:
+				self._install_steps.append(ScriptStep(step_yml))
+
+	@property
+	def pkg(self):
+		return self._pkg
+
+	@property
+	def stage_name(self):
+		if self._inherited:
+			return None
+		return self._this_yml['name']
+
+	@property
+	def subject_id(self):
+		return (self._pkg.name, self.stage_name)
+
+	@property
+	def subject_type(self):
+		return 'tool stage'
+
+	@property
+	def compile_steps(self):
+		yield from self._compile_steps
+
+	@property
+	def install_steps(self):
+		yield from self._install_steps
+
+	def check_if_compiled(self):
+		stage_spec = ''
+		if not self._inherited:
+			stage_spec = '@' + self.stage_name
+		path = os.path.join(self._pkg.build_dir, 'built' + stage_spec + '.xbstrap')
+		return os.access(path, os.F_OK)
+
+	def mark_as_compiled(self):
+		stage_spec = ''
+		if not self._inherited:
+			stage_spec = '@' + self.stage_name
+		touch(os.path.join(self._pkg.build_dir, 'built' + stage_spec + '.xbstrap'))
+
+	def check_if_installed(self):
+		stage_spec = ''
+		if not self._inherited:
+			stage_spec = '@' + self.stage_name
+		path = os.path.join(self._pkg.prefix_dir, 'etc', 'xbstrap',
+				self._pkg.name + stage_spec + '.installed')
+		return os.access(path, os.F_OK)
+
+	def mark_as_installed(self):
+		stage_spec = ''
+		if not self._inherited:
+			stage_spec = '@' + self.stage_name
+		try_mkdir(os.path.join(self._pkg.prefix_dir, 'etc'))
+		try_mkdir(os.path.join(self._pkg.prefix_dir, 'etc', 'xbstrap'))
+		path = os.path.join(self._pkg.prefix_dir, 'etc', 'xbstrap',
+				self._pkg.name + stage_spec + '.installed')
+		touch(path)
+
+
+class HostPackage(RequirementsMixin):
+	def __init__(self, cfg, pkg_yml):
+		self._cfg = cfg
+		self._this_yml = pkg_yml
+		self._configure_steps = [ ]
+		self._stages = dict()
+
+		if 'stages' in self._this_yml:
+			for stage_yml in self._this_yml['stages']:
+				stage = HostStage(self._cfg, self, False, stage_yml)
+				self._stages[stage.stage_name] = stage
+		else:
+			stage = HostStage(self._cfg, self, True, self._this_yml)
+			self._stages[stage.stage_name] = stage
+
+		if 'configure' in self._this_yml:
+			for step_yml in self._this_yml['configure']:
+				self._configure_steps.append(ScriptStep(step_yml))
+
+	@property
+	def exports_shared_libs(self):
+		if 'exports_shared_libs' not in self._this_yml:
+			return False
+		return self._this_yml['exports_shared_libs']
+
+	@property
+	def exports_aclocal(self):
+		if 'exports_aclocal' not in self._this_yml:
+			return False
+		return self._this_yml['exports_aclocal']
+
+	@property
+	def source(self):
+		if 'from_source' in self._this_yml:
+			return self._this_yml['from_source']
+		if 'name' in self._this_yml['source']:
+			return self._this_yml['source']['name']
+		return self.name
+
+	@property
+	def recursive_tools_required(self):
+		if 'tools_required' in self._this_yml:
+			for yml in self._this_yml['tools_required']:
+				if not isinstance(yml, dict):
+					continue
+				if 'recursive' not in yml:
+					continue
+				yield yml['tool']
+
+	@property
+	def build_dir(self):
+		return os.path.join(self._cfg.build_root, 'tool-builds', self.name)
+
+	@property
+	def prefix_dir(self):
+		return os.path.join(self._cfg.build_root, 'tools', self.name)
+
+	@property
+	def name(self):
+		return self._this_yml['name']
+
+	@property
+	def subject_id(self):
+		return self.name
+
+	@property
+	def subject_type(self):
+		return 'tool'
+
+	@property
+	def is_default(self):
+		if 'default' not in self._this_yml:
+			return True
+		return self._this_yml['default']
+
+	def all_stages(self):
+		yield from self._stages.values()
+
+	def get_stage(self, name):
+		return self._stages[name]
+
+	@property
+	def configure_steps(self):
+		yield from self._configure_steps
+
+	def check_if_configured(self):
+		return os.access(os.path.join(self.build_dir, 'configured.xbstrap'), os.F_OK)
+
+	def mark_as_configured(self, mark=True):
+		if mark:
+			touch(os.path.join(self.build_dir, 'configured.xbstrap'))
+		else:
+			os.unlink(os.path.join(self.build_dir, 'configured.xbstrap'))
+
+class TargetPackage(RequirementsMixin):
+	def __init__(self, cfg, pkg_yml):
+		self._cfg = cfg
+		self._this_yml = pkg_yml
+		self._configure_steps = [ ]
+		self._build_steps = [ ]
+
+		for step_yml in self._this_yml['configure']:
+			self._configure_steps.append(ScriptStep(step_yml))
+		for step_yml in self._this_yml['build']:
+			self._build_steps.append(ScriptStep(step_yml))
+
+	@property
+	def source(self):
+		if 'from_source' in self._this_yml:
+			return self._this_yml['from_source']
+		if 'name' in self._this_yml['source']:
+			return self._this_yml['source']['name']
+		return self.name
+
+	@property
+	def build_dir(self):
+		return os.path.join(self._cfg.build_root, 'pkg-builds', self.name)
+
+	@property
+	def collect_dir(self):
+		return os.path.join(self._cfg.build_root, 'packages', self.name + '.collect')
+
+	@property
+	def archive_file(self):
+		return os.path.join(self._cfg.build_root, 'packages', self.name + '.tar.gz')
+
+	@property
+	def name(self):
+		return self._this_yml['name']
+
+	@property
+	def subject_id(self):
+		return self.name
+
+	@property
+	def subject_type(self):
+		return 'package'
+
+	@property
+	def is_default(self):
+		if 'default' not in self._this_yml:
+			return True
+		return self._this_yml['default']
+
+	@property
+	def is_implicit(self):
+		if 'implict_package' not in self._this_yml:
+			return False
+		return self._this_yml['implict_package']
+
+	@property
+	def configure_steps(self):
+		yield from self._configure_steps
+
+	@property
+	def build_steps(self):
+		yield from self._build_steps
+
+	def check_if_configured(self):
+		return os.access(os.path.join(self.build_dir, 'configured.xbstrap'), os.F_OK)
+
+	def mark_as_configured(self, mark=True):
+		if mark:
+			touch(os.path.join(self.build_dir, 'configured.xbstrap'))
+		else:
+			os.unlink(os.path.join(self.build_dir, 'configured.xbstrap'))
+
+	def check_archive(self):
+		return os.access(self.archive_file, os.F_OK)
+
+	def check_if_installed(self):
+		path = os.path.join(self._cfg.sysroot_dir, 'etc', 'xbstrap', self.name + '.installed')
+		return os.access(path, os.F_OK)
+
+	def mark_as_installed(self):
+		try_mkdir(os.path.join(self._cfg.sysroot_dir, 'etc'))
+		try_mkdir(os.path.join(self._cfg.sysroot_dir, 'etc', 'xbstrap'))
+		path = os.path.join(self._cfg.sysroot_dir, 'etc', 'xbstrap', self.name + '.installed')
+		touch(path)
+
+def config_for_dir():
+	with open('bootstrap.link', 'r') as f:
+		return Config(yaml.load(f, Loader=yaml.BaseLoader))
+
+class EnvironmentComposer:
+	def __init__(self, cfg):
+		self.cfg = cfg
+		self.path_dirs = [ ]
+		self.shared_lib_dirs = [ ]
+		self.aclocal_dirs = [ ]
+
+	def compose(self, for_package=False):
+		environ = os.environ.copy()
+
+		if for_package:
+			pkgcfg_libdir = os.path.join(self.cfg.sysroot_dir, 'usr', 'lib', 'pkgconfig')
+			pkgcfg_libdir += ':' + os.path.join(self.cfg.sysroot_dir, 'usr', 'share', 'pkgconfig')
+
+			environ.pop('PKG_CONFIG_PATH', None)
+			environ['PKG_CONFIG_SYSROOT_DIR'] = self.cfg.sysroot_dir
+			environ['PKG_CONFIG_LIBDIR'] = pkgcfg_libdir
+
+		self._prepend_dirs(environ, 'PATH', self.path_dirs)
+		self._prepend_dirs(environ, 'LD_LIBRARY_PATH', self.shared_lib_dirs)
+		self._prepend_dirs(environ, 'ACLOCAL_PATH', self.aclocal_dirs)
+		return environ
+
+	def _prepend_dirs(self, environ, varname, dirs):
+		if not dirs:
+			return
+		joined = ':'.join(dirs)
+		if varname in environ and environ[varname]:
+			environ[varname] = joined + ':' + environ[varname]
+		else:
+			environ[varname] = joined
+
+	def _append_dirs(self, environ, varname, dirs):
+		if not dirs:
+			return
+		joined = ':'.join(dirs)
+		if varname in environ and environ[varname]:
+			environ[varname] += ':' + joined
+		else:
+			environ[varname] = joined
+
+def run_tool(cfg, args, tool_pkgs=[], workdir=None, extra_environ=dict(),
+		for_package=False, quiet=False):
+	pkg_queue = []
+	pkg_visited = set()
+
+	for pkg in tool_pkgs:
+		assert pkg.name not in pkg_visited
+		pkg_queue.append(pkg)
+		pkg_visited.add(pkg.name)
+
+	i = 0 # Need index-based loop as pkg_queue is mutated in the loop.
+	while i < len(pkg_queue):
+		pkg = pkg_queue[i]
+		for dep_name in pkg.recursive_tools_required:
+			if dep_name in pkg_visited:
+				continue
+			dep_pkg = cfg.get_tool_pkg(dep_name)
+			pkg_queue.append(dep_pkg)
+			pkg_visited.add(dep_name)
+		i += 1
+
+	composer = EnvironmentComposer(cfg)
+	for pkg in pkg_queue:
+		composer.path_dirs.append(os.path.join(pkg.prefix_dir, 'bin'))
+		if pkg.exports_shared_libs:
+			composer.shared_lib_dirs.append(os.path.join(pkg.prefix_dir, 'lib'))
+		if pkg.exports_aclocal:
+			composer.aclocal_dirs.append(os.path.join(pkg.prefix_dir, 'share/aclocal'))
+	environ = composer.compose(for_package=for_package)
+	environ.update(extra_environ)
+
+	output = None # Default: Do not redirect output.
+	if quiet:
+		output = subprocess.DEVNULL
+
+	print("{}xbstrap{}: Running {} (tools: {})".format(
+			colorama.Style.BRIGHT, colorama.Style.RESET_ALL,
+			args, [tool.name for tool in pkg_queue]))
+	subprocess.check_call(args, env=environ, cwd=workdir,
+			stdout=output, stderr=output)
+
+def run_step(cfg, step, default_workdir, substitute, tool_pkgs,
+		for_package=False):
+	if isinstance(step.args, list):
+		args = [replace_at_vars(arg, substitute) for arg in step.args]
+	else:
+		assert isinstance(step.args, str)
+		args = ['/bin/bash', '-c', replace_at_vars(step.args, substitute)]
+
+	environ = dict()
+	for (key, value) in step.environ.items():
+		environ[key] = replace_at_vars(value, substitute)
+
+	if step.workdir is not None:
+		workdir = replace_at_vars(step.workdir, substitute)
+	else:
+		workdir = default_workdir
+
+	quiet = step.quiet and not verbosity
+
+	run_tool(cfg, args, tool_pkgs=tool_pkgs, workdir=workdir,
+			extra_environ=environ, for_package=for_package,
+			quiet=quiet)
+
+def postprocess_libtool(cfg, pkg):
+	for libdir in ['lib', 'usr/lib']:
+		filelist = []
+		try:
+			filelist = os.listdir(os.path.join(pkg.collect_dir, libdir))
+		except OSError as e:
+			if e.errno != errno.ENOENT:
+				raise
+
+		for ent in filelist:
+			if not ent.endswith('.la'):
+				continue
+			print('xbstrap: Removing libtool file {}'.format(ent))
+			os.unlink(os.path.join(pkg.collect_dir, libdir, ent))
+
+# ---------------------------------------------------------------------------------------
+# Source management.
+# ---------------------------------------------------------------------------------------
+
+def fetch_src(cfg, src):
+	try_mkdir(src.sub_dir)
+	try_mkdir(src.source_dir)
+	source = src._this_yml
+
+	if 'git' in source:
+		subprocess.check_call(['git', 'init'], cwd=src.source_dir)
+		args = ['git', 'fetch']
+		if 'disable_shallow_fetch' not in source or not source['disable_shallow_fetch']:
+			args.append('--depth=1')
+		if 'tag' in source:
+			args.extend([source['git'], 'tag', source['tag']])
+		else:
+			args.extend(['--update-head-ok', source['git'],
+					source['branch'] + ':' + source['branch']])
+		subprocess.check_call(args, cwd=src.source_dir)
+	else:
+		assert 'url' in source
+
+		with urllib.request.urlopen(source['url']) as req:
+			with open(src.source_archive_file, 'wb') as f:
+				shutil.copyfileobj(req, f)
+
+def checkout_src(cfg, src):
+	source = src._this_yml
+
+	if 'git' in source:
+		args = ['git', 'checkout']
+		if 'tag' in source:
+			args.append('refs/tags/' + source['tag'])
+		else:
+			args.append(source['branch'])
+		subprocess.check_call(args, cwd=src.source_dir)
+	else:
+		assert src.source_archive_format.startswith('tar.')
+
+		compression = {
+			'tar.gz': 'gz',
+			'tar.xz': 'xz'
+		}
+		with tarfile.open(src.source_archive_file,
+				'r|' + compression[src.source_archive_format]) as tar:
+			for info in tar:
+				prefix = source['extract_path'] + '/'
+				if info.name.startswith(prefix):
+					info.name = src.name + '/' + info.name[len(prefix):]
+					tar.extract(info, src.sub_dir)
+
+	src.mark_as_checkedout()
+
+def patch_src(cfg, src):
+	# Patches need to be applied in a sorted order.
+	patches = []
+	try:
+		patches = os.listdir(src.patch_dir)
+	except OSError as e:
+		if e.errno != errno.ENOENT:
+			raise
+	patches.sort()
+
+	for patch in patches:
+		if not patch.endswith('.patch'):
+			continue
+		subprocess.check_call(['git', 'am', os.path.join(src.patch_dir, patch)],
+				cwd=src.source_dir)
+
+	src.mark_as_patched()
+
+def regenerate_src(cfg, src):
+	for step in src.regenerate_steps:
+		tool_pkgs = []
+		for dep_name in src.tools_required:
+			tool_pkgs.append(cfg.get_tool_pkg(dep_name))
+
+		def substitute(varname):
+			if varname == 'SOURCE_ROOT':
+				return cfg.source_root
+			elif varname == 'BUILD_ROOT':
+				return cfg.build_root
+			elif varname == 'SYSROOT_DIR':
+				return cfg.sysroot_dir
+			if varname == 'THIS_SOURCE_DIR':
+				return src.source_dir
+
+		run_step(cfg, step, src.source_dir, substitute, tool_pkgs)
+
+	src.mark_as_regenerated()
+
+# ---------------------------------------------------------------------------------------
+# Tool building.
+# ---------------------------------------------------------------------------------------
+
+def configure_tool(cfg, pkg):
+	src = cfg.get_source(pkg.source)
+
+	try_mkdir(os.path.join(cfg.build_root, 'tool-builds'))
+	try_rmtree(pkg.build_dir)
+	try_mkdir(pkg.build_dir)
+
+	for step in pkg.configure_steps:
+		tool_pkgs = []
+		for dep_name in pkg.tools_required:
+			tool_pkgs.append(cfg.get_tool_pkg(dep_name))
+
+		def substitute(varname):
+			if varname == 'SOURCE_ROOT':
+				return cfg.source_root
+			elif varname == 'BUILD_ROOT':
+				return cfg.build_root
+			elif varname == 'SYSROOT_DIR':
+				return cfg.sysroot_dir
+			elif varname == 'THIS_SOURCE_DIR':
+				return src.source_dir
+			elif varname == 'PREFIX':
+				return pkg.prefix_dir
+
+		run_step(cfg, step, pkg.build_dir, substitute, tool_pkgs)
+
+	pkg.mark_as_configured()
+
+def compile_tool_stage(cfg, stage):
+	pkg = stage.pkg
+	src = cfg.get_source(pkg.source)
+
+	for step in stage.compile_steps:
+		tool_pkgs = []
+		for dep_name in pkg.tools_required:
+			tool_pkgs.append(cfg.get_tool_pkg(dep_name))
+
+		def substitute(varname):
+			if varname == 'SOURCE_ROOT':
+				return cfg.source_root
+			elif varname == 'BUILD_ROOT':
+				return cfg.build_root
+			elif varname == 'SYSROOT_DIR':
+				return cfg.sysroot_dir
+			elif varname == 'THIS_SOURCE_DIR':
+				return src.source_dir
+			elif varname == 'PREFIX':
+				return pkg.prefix_dir
+			elif varname == 'PARALLELISM':
+				nthreads = len(os.sched_getaffinity(0))
+				return str(nthreads)
+
+		run_step(cfg, step, pkg.build_dir, substitute, tool_pkgs)
+
+	stage.mark_as_compiled()
+
+def install_tool_stage(cfg, stage):
+	pkg = stage.pkg
+	src = cfg.get_source(pkg.source)
+
+	try_mkdir(os.path.join(cfg.build_root, 'tools'))
+#	try_rmtree(pkg.prefix_dir)
+	try_mkdir(pkg.prefix_dir)
+
+	for step in stage.install_steps:
+		tool_pkgs = []
+		for dep_name in pkg.tools_required:
+			tool_pkgs.append(cfg.get_tool_pkg(dep_name))
+
+		def substitute(varname):
+			if varname == 'SOURCE_ROOT':
+				return cfg.source_root
+			elif varname == 'BUILD_ROOT':
+				return cfg.build_root
+			elif varname == 'SYSROOT_DIR':
+				return cfg.sysroot_dir
+			elif varname == 'THIS_SOURCE_DIR':
+				return src.source_dir
+			elif varname == 'PREFIX':
+				return pkg.prefix_dir
+
+		run_step(cfg, step, pkg.build_dir, substitute, tool_pkgs)
+
+	stage.mark_as_installed()
+
+# ---------------------------------------------------------------------------------------
+# Package building.
+# ---------------------------------------------------------------------------------------
+
+def configure_pkg(cfg, pkg):
+	src = cfg.get_source(pkg.source)
+
+	try_mkdir(os.path.join(cfg.build_root, 'pkg-builds'))
+	try_rmtree(pkg.build_dir)
+	try_mkdir(pkg.build_dir)
+
+	for step in pkg.configure_steps:
+		tool_pkgs = []
+		for dep_name in pkg.tools_required:
+			tool_pkgs.append(cfg.get_tool_pkg(dep_name))
+
+		def substitute(varname):
+			if varname == 'SOURCE_ROOT':
+				return cfg.source_root
+			elif varname == 'BUILD_ROOT':
+				return cfg.build_root
+			elif varname == 'SYSROOT_DIR':
+				return cfg.sysroot_dir
+			elif varname == 'THIS_SOURCE_DIR':
+				return src.source_dir
+
+		run_step(cfg, step, pkg.build_dir, substitute, tool_pkgs,
+				for_package=True)
+
+	pkg.mark_as_configured()
+
+def build_pkg(cfg, pkg):
+	src = cfg.get_source(pkg.source)
+
+	try_mkdir('packages')
+	try_rmtree(pkg.collect_dir)
+	os.mkdir(pkg.collect_dir)
+
+	for step in pkg.build_steps:
+		tool_pkgs = []
+		for dep_name in pkg.tools_required:
+			tool_pkgs.append(cfg.get_tool_pkg(dep_name))
+
+		def substitute(varname):
+			if varname == 'SOURCE_ROOT':
+				return cfg.source_root
+			elif varname == 'BUILD_ROOT':
+				return cfg.build_root
+			elif varname == 'SYSROOT_DIR':
+				return cfg.sysroot_dir
+			elif varname == 'THIS_SOURCE_DIR':
+				return src.source_dir
+			elif varname == 'THIS_COLLECT_DIR':
+				return pkg.collect_dir
+			elif varname == 'PARALLELISM':
+				nthreads = len(os.sched_getaffinity(0))
+				return str(nthreads)
+
+		run_step(cfg, step, pkg.build_dir, substitute, tool_pkgs,
+				for_package=True)
+
+	postprocess_libtool(cfg, pkg)
+
+	with tarfile.open(pkg.archive_file, 'w|gz') as tar:
+		for ent in os.listdir(pkg.collect_dir):
+			tar.add(os.path.join(pkg.collect_dir, ent), arcname=ent)
+
+def install_pkg(cfg, pkg):
+	try_mkdir(cfg.sysroot_dir)
+
+	with tarfile.open(pkg.archive_file, 'r|gz') as tar:
+		for info in tar:
+			if not info.isdir():
+				try_unlink(os.path.join(cfg.sysroot_dir, info.name))
+			tar.extract(info, cfg.sysroot_dir)
+
+	pkg.mark_as_installed()
+
+# ---------------------------------------------------------------------------------------
+# Build planning.
+# ---------------------------------------------------------------------------------------
+
+class Action(Enum):
+	NULL = 0
+	# Source-related actions.
+	FETCH_SRC = 1
+	CHECKOUT_SRC = 2
+	PATCH_SRC = 3
+	REGENERATE_SRC = 4
+	# Tool-related actions.
+	CONFIGURE_TOOL = 5
+	COMPILE_TOOL_STAGE = 6
+	INSTALL_TOOL_STAGE = 7
+	# Package-related actions.
+	CONFIGURE_PKG = 8
+	BUILD_PKG = 9
+	INSTALL_PKG = 10
+	# "Virtual" actions that are only used during planning.
+	# The ENSURE_X_INSTALLED action recursively expand to ENSURE_X_INSTALLED of dependencies.
+	# They only expand to INSTALL_X if the given package is not installed.
+	# This way, recursive installation dependencies are handed correctly,
+	# even if users delete packages from the sysroot.
+	ENSURE_TOOL_STAGE_INSTALLED = 11
+	ENSURE_PKG_INSTALLED = 12
+
+	def is_virtual(self):
+		return self == Action.ENSURE_TOOL_STAGE_INSTALLED or self == Action.ENSURE_PKG_INSTALLED
+
+Action.strings = {
+	Action.FETCH_SRC: 'fetch',
+	Action.CHECKOUT_SRC: 'checkout',
+	Action.PATCH_SRC: 'patch',
+	Action.REGENERATE_SRC: 'regenerate',
+	Action.CONFIGURE_TOOL: 'configure-tool',
+	Action.COMPILE_TOOL_STAGE: 'compile-tool',
+	Action.INSTALL_TOOL_STAGE: 'install-tool',
+	Action.CONFIGURE_PKG: 'configure',
+	Action.BUILD_PKG: 'build',
+	Action.INSTALL_PKG: 'install',
+	Action.ENSURE_TOOL_STAGE_INSTALLED: 'install-tool?',
+	Action.ENSURE_PKG_INSTALLED: 'install?'
+}
+
+class ExecutionFailureException(Exception):
+	def __init__(self, step, subject):
+		super().__init__("Action {} of {} {} failed".format(Action.strings[step],
+				subject.subject_type, subject.subject_id))
+		self.step = step
+		self.subject = subject
+
+class Plan:
+	def __init__(self, cfg):
+		self._cfg = cfg
+		self._order = [ ]
+		self.reconfigure_pkgs = set()
+		self.rebuild_pkgs = set()
+
+	def expand_plan(self, action, subject):
+		links = [ ]
+
+		def add_implicit_pkgs():
+			if not subject.is_implicit:
+				for implicit in self._cfg.all_pkgs():
+					if implicit.is_implicit:
+						links.append((action.ENSURE_PKG_INSTALLED, implicit))
+
+		def add_source_dependencies(s):
+			for src_name in s.source_dependencies:
+				dep_source = self._cfg.get_source(src_name)
+				# In contrast to tool/pkg dependencies,
+				# source dependencies are *not* recursive for now.
+				if not dep_source.check_if_patched():
+					links.append((action.PATCH_SRC, dep_source))
+
+		def add_tool_dependencies(s):
+			for (tool_name, stage_name) in s.tool_dependencies:
+				dep_tool = self._cfg.get_tool_pkg(tool_name)
+				if stage_name is None:
+					links.extend([(action.ENSURE_TOOL_STAGE_INSTALLED, stage)
+							for stage in dep_tool.all_stages()])
+				else:
+					tool_stage = dep_tool.get_stage(stage_name)
+					links.append((action.ENSURE_TOOL_STAGE_INSTALLED, tool_stage))
+
+		def add_pkg_dependencies(s):
+			for pkg_name in s.pkg_dependencies:
+				dep_pkg = self._cfg.get_target_pkg(pkg_name)
+				links.append((action.ENSURE_PKG_INSTALLED, dep_pkg))
+
+		sid = subject.subject_id
+
+		def check_reconfigure():
+			if sid in self.reconfigure_pkgs:
+				return True
+			return False
+
+		def check_rebuild():
+			if sid in self.rebuild_pkgs:
+				return True
+			return check_reconfigure()
+
+		if action == Action.FETCH_SRC:
+			# FETCH_SRC has no dependencies.
+			pass
+
+		elif action == Action.CHECKOUT_SRC:
+			if not subject.check_if_fetched():
+				links.append((action.FETCH_SRC, subject))
+
+		elif action == Action.PATCH_SRC:
+			if not subject.check_if_checkedout():
+				links.append((action.CHECKOUT_SRC, subject))
+
+		elif action == Action.REGENERATE_SRC:
+			if not subject.check_if_patched():
+				links.append((action.PATCH_SRC, subject))
+
+			add_source_dependencies(subject)
+			add_tool_dependencies(subject)
+
+		elif action == Action.CONFIGURE_TOOL:
+			src = self._cfg.get_source(subject.source)
+			if not src.check_if_regenerated():
+				links.append((action.REGENERATE_SRC, src))
+
+			add_tool_dependencies(subject)
+			add_pkg_dependencies(subject)
+
+		elif action == Action.COMPILE_TOOL_STAGE:
+			if not subject.pkg.check_if_configured():
+				links.append((action.CONFIGURE_TOOL, subject.pkg))
+
+			add_tool_dependencies(subject.pkg)
+			add_tool_dependencies(subject)
+			add_pkg_dependencies(subject)
+
+		elif action == Action.INSTALL_TOOL_STAGE:
+			if not subject.check_if_compiled():
+				links.append((action.COMPILE_TOOL_STAGE, subject))
+
+			add_tool_dependencies(subject.pkg)
+			add_tool_dependencies(subject)
+			add_pkg_dependencies(subject)
+
+		elif action == Action.ENSURE_TOOL_STAGE_INSTALLED:
+			if not subject.check_if_installed():
+				links.append((action.INSTALL_TOOL_STAGE, subject))
+
+			add_tool_dependencies(subject.pkg)
+			add_tool_dependencies(subject)
+			add_pkg_dependencies(subject)
+
+		elif action == Action.CONFIGURE_PKG:
+			src = self._cfg.get_source(subject.source)
+			if not src.check_if_regenerated():
+				links.append((action.REGENERATE_SRC, src))
+
+			# Configuration requires all dependencies to be present.
+			add_implicit_pkgs()
+			add_pkg_dependencies(subject)
+			add_tool_dependencies(subject)
+
+		elif action == Action.BUILD_PKG:
+			if not subject.check_if_configured() or check_reconfigure():
+				links.append((action.CONFIGURE_PKG, subject))
+
+			# Usually dependencies will already be installed during the configuration phase.
+			# However, if the sysroot is removed, we might need to install again.
+			add_implicit_pkgs()
+			add_pkg_dependencies(subject)
+			add_tool_dependencies(subject)
+
+		elif action == Action.INSTALL_PKG:
+			if not subject.check_archive() or check_rebuild():
+				links.append((action.BUILD_PKG, subject))
+
+			# See Action.BUILD_PKG for rationale.
+			add_implicit_pkgs()
+			add_pkg_dependencies(subject)
+
+		elif action == Action.ENSURE_PKG_INSTALLED:
+			if not subject.check_if_installed() or check_rebuild():
+				links.append((action.INSTALL_PKG, subject))
+
+			# See Action.BUILD_PKG for rationale.
+			add_implicit_pkgs()
+			add_pkg_dependencies(subject)
+
+		return links
+
+	def compute_plan(self, desired):
+		class State(Enum):
+			NULL = 0
+			EXPANDING = 1
+			ORDERED = 2
+
+		# The following code does a topologic sort of the desired items.
+		# It lazily expands their dependencies using expand_plan().
+		stack = [ ]
+		state = dict()
+
+		def visit(action, subject):
+			if (action, subject.subject_id) not in state:
+				links = self.expand_plan(action, subject)
+				state[(action, subject.subject_id)] = State.EXPANDING
+				stack.append((action, subject, links))
+			elif state[(action, subject.subject_id)] == State.EXPANDING:
+				for (circ_action, circ_subject, _) in stack:
+					print(Action.strings[circ_action], circ_subject.subject_id)
+				raise RuntimeError("Package has circular dependencies")
+			else:
+				# Packages that are already ordered do not need to be considered again.
+				assert state[(action, subject.subject_id)] == State.ORDERED
+
+		for (action, subject) in desired:
+			visit(action, subject)
+
+			while stack:
+				(action, subject, rem_links) = stack[-1]
+				if not rem_links:
+					assert state[(action, subject.subject_id)] == State.EXPANDING
+					state[(action, subject.subject_id)] = State.ORDERED
+					stack.pop()
+					if not action.is_virtual():
+						self._order.append((action, subject))
+				else:
+					(link_action, link_subject) = rem_links.pop()
+					visit(link_action, link_subject)
+
+	def run_plan(self):
+		print('{}xbstrap{}: Running the following plan:'.format(
+				colorama.Style.BRIGHT, colorama.Style.RESET_ALL))
+		for (action, subject) in self._order:
+			if isinstance(subject, HostStage):
+				if subject.stage_name:
+					print('    {:12} {}, stage: {}'.format(Action.strings[action],
+							subject.pkg.name, subject.stage_name))
+				else:
+					print('    {:12} {}'.format(Action.strings[action], subject.pkg.name))
+			else:
+				print('    {:12} {}'.format(Action.strings[action], subject.name))
+
+		for (n, (action, subject)) in enumerate(self._order):
+			print('{}xbstrap{}: {} {} [{}/{}]'.format(
+					colorama.Style.BRIGHT, colorama.Style.RESET_ALL,
+					Action.strings[action], subject.subject_id,
+					n + 1, len(self._order)))
+			try:
+				if action == Action.FETCH_SRC:
+					fetch_src(self._cfg, subject)
+				elif action == Action.CHECKOUT_SRC:
+					checkout_src(self._cfg, subject)
+				elif action == Action.PATCH_SRC:
+					patch_src(self._cfg, subject)
+				elif action == Action.REGENERATE_SRC:
+					regenerate_src(self._cfg, subject)
+				elif action == Action.CONFIGURE_TOOL:
+					configure_tool(self._cfg, subject)
+				elif action == Action.COMPILE_TOOL_STAGE:
+					compile_tool_stage(self._cfg, subject)
+				elif action == Action.INSTALL_TOOL_STAGE:
+					install_tool_stage(self._cfg, subject)
+				elif action == Action.CONFIGURE_PKG:
+					configure_pkg(self._cfg, subject)
+				elif action == Action.BUILD_PKG:
+					build_pkg(self._cfg, subject)
+				elif action == Action.INSTALL_PKG:
+					install_pkg(self._cfg, subject)
+				else:
+					raise AssertionError("Unexpected action")
+			except subprocess.CalledProcessError:
+				raise ExecutionFailureException(action, subject)
+
+# ---------------------------------------------------------------------------------------
+# Command line parsing.
+# ---------------------------------------------------------------------------------------
+
+main_parser = argparse.ArgumentParser()
+main_parser.add_argument('-v', dest='verbose', action='store_true',
+		help="verbose")
+main_subparsers = main_parser.add_subparsers(dest='command')
+
+def do_run(args):
+	cfg = config_for_dir()
+
+	tool_pkgs = []
+	for name in args.t:
+		tool_pkgs.append(cfg.get_tool_pkg(name))
+
+	run_tool(cfg, args.args, tool_pkgs=tool_pkgs)
+
+do_run.parser = main_subparsers.add_parser('run')
+do_run.parser.add_argument('-t', action='append')
+do_run.parser.add_argument('args', nargs=argparse.REMAINDER)
+
+def do_init(args):
+	if not os.access(os.path.join(args.src_root, 'bootstrap.yml'), os.F_OK):
+		raise RuntimeError("Given src_root does not contain a bootstrap.yml")
+	os.symlink(os.path.join(args.src_root, 'bootstrap.yml'), 'bootstrap.link')
+
+do_init.parser = main_subparsers.add_parser('init')
+do_init.parser.add_argument('src_root', type=str)
+
+def do_fetch(args):
+	cfg = config_for_dir()
+	src = cfg.get_source(args.source)
+	plan = Plan(cfg)
+	plan.compute_plan([(Action.FETCH_SRC, src)])
+	plan.run_plan()
+
+do_fetch.parser = main_subparsers.add_parser('fetch')
+do_fetch.parser.add_argument('source', type=str)
+
+def do_checkout(args):
+	cfg = config_for_dir()
+	src = cfg.get_source(args.source)
+	plan = Plan(cfg)
+	plan.compute_plan([(Action.CHECKOUT_SRC, src)])
+	plan.run_plan()
+
+do_checkout.parser = main_subparsers.add_parser('checkout')
+do_checkout.parser.add_argument('source', type=str)
+
+def do_patch(args):
+	cfg = config_for_dir()
+	src = cfg.get_source(args.source)
+	plan = Plan(cfg)
+	plan.compute_plan([(Action.PATCH_SRC, src)])
+	plan.run_plan()
+
+do_patch.parser = main_subparsers.add_parser('patch')
+do_patch.parser.add_argument('source', type=str)
+
+def do_regenerate(args):
+	cfg = config_for_dir()
+	src = cfg.get_source(args.source)
+	plan = Plan(cfg)
+	plan.compute_plan([(Action.REGENERATE_SRC, src)])
+	plan.run_plan()
+
+do_regenerate.parser = main_subparsers.add_parser('regenerate')
+do_regenerate.parser.add_argument('source', type=str)
+
+def select_tools(cfg, args):
+	if args.all:
+		return [tool for tool in cfg.all_tools() if tool.is_default]
+	else:
+		return [cfg.get_tool_pkg(name) for name in args.tools]
+
+select_tools.parser = argparse.ArgumentParser(add_help=False)
+select_tools.parser.add_argument('--all', action='store_true')
+select_tools.parser.add_argument('tools', nargs='*', type=str)
+
+def do_configure_tool(args):
+	cfg = config_for_dir()
+	sel = select_tools(cfg, args)
+	plan = Plan(cfg)
+	plan.compute_plan([(Action.CONFIGURE_TOOL, pkg) for pkg in sel])
+	plan.run_plan()
+
+do_configure_tool.parser = main_subparsers.add_parser('configure-tool',
+		parents=[select_tools.parser])
+
+def do_compile_tool(args):
+	cfg = config_for_dir()
+	sel = select_tools(cfg, args)
+	plan = Plan(cfg)
+	plan.compute_plan([(Action.COMPILE_TOOL_STAGE, stage) for pkg in sel
+			for stage in pkg.all_stages()])
+	plan.run_plan()
+
+do_compile_tool.parser = main_subparsers.add_parser('compile-tool',
+		parents=[select_tools.parser])
+
+def do_install_tool(args):
+	cfg = config_for_dir()
+	sel = select_tools(cfg, args)
+	plan = Plan(cfg)
+	plan.compute_plan([(Action.INSTALL_TOOL_STAGE, stage) for pkg in sel
+			for stage in pkg.all_stages()])
+	plan.run_plan()
+
+do_install_tool.parser = main_subparsers.add_parser('install-tool',
+		parents=[select_tools.parser])
+
+def select_pkgs(cfg, args):
+	if args.all:
+		return [pkg for pkg in cfg.all_pkgs() if pkg.is_default]
+	else:
+		return [cfg.get_target_pkg(name) for name in args.packages]
+
+select_pkgs.parser = argparse.ArgumentParser(add_help=False)
+select_pkgs.parser.add_argument('--all', action='store_true')
+select_pkgs.parser.add_argument('packages', nargs='*', type=str)
+
+def reconfigure_and_rebuild_pkgs(plan, args, sel):
+	if args.reconfigure:
+		for pkg in sel:
+			plan.reconfigure_pkgs.add(pkg.subject_id)
+	elif args.rebuild:
+		for pkg in sel:
+			plan.rebuild_pkgs.add(pkg.subject_id)
+
+reconfigure_and_rebuild_pkgs.parser = argparse.ArgumentParser(add_help=False)
+reconfigure_and_rebuild_pkgs.parser.add_argument('--reconfigure', action='store_true')
+reconfigure_and_rebuild_pkgs.parser.add_argument('--rebuild', action='store_true')
+
+def do_configure(args):
+	cfg = config_for_dir()
+	sel = select_pkgs(cfg, args)
+	plan = Plan(cfg)
+	reconfigure_and_rebuild_pkgs(plan, args, sel)
+	plan.compute_plan([(Action.CONFIGURE_PKG, pkg) for pkg in sel])
+	plan.run_plan()
+
+do_configure.parser = main_subparsers.add_parser('configure',
+		parents=[reconfigure_and_rebuild_pkgs.parser, select_pkgs.parser])
+
+def do_build(args):
+	cfg = config_for_dir()
+	sel = select_pkgs(cfg, args)
+	plan = Plan(cfg)
+	reconfigure_and_rebuild_pkgs(plan, args, sel)
+	plan.compute_plan([(Action.BUILD_PKG, pkg) for pkg in sel])
+	plan.run_plan()
+
+do_build.parser = main_subparsers.add_parser('build',
+		parents=[reconfigure_and_rebuild_pkgs.parser, select_pkgs.parser])
+
+def do_download(args):
+	cfg = config_for_dir()
+	sel = select_pkgs(cfg, args)
+
+	if cfg.repository_url is None:
+		raise RuntimeError('No repository URL in bootstrap.yml')
+
+	for pkg in sel:
+		url = urllib.parse.urljoin(cfg.repository_url + '/', pkg.name + '.tar.gz')
+		temp_archive = pkg.archive_file + '.tar.gz.download'
+		print('{}xbstrap{}: Downloading package {} from {}'.format(
+				colorama.Style.BRIGHT, colorama.Style.RESET_ALL,
+				pkg.name, url))
+
+		print('...', end='') # This will become the status line.
+
+		def show_progress(num_blocks, block_size, file_size):
+			progress = min(num_blocks * block_size, file_size)
+			print('\r\x1b[K{:8.0f} KiB / {:8.0f} KiB, {:7.2f}%'.format(progress / 1024,
+					file_size / 1024,
+					progress / file_size * 100), end='')
+
+		urllib.request.urlretrieve(url, temp_archive, show_progress)
+		os.rename(temp_archive, pkg.archive_file)
+		print()
+
+do_download.parser = main_subparsers.add_parser('download',
+		parents=[reconfigure_and_rebuild_pkgs.parser, select_pkgs.parser])
+
+def do_install(args):
+	cfg = config_for_dir()
+	sel = select_pkgs(cfg, args)
+	plan = Plan(cfg)
+	reconfigure_and_rebuild_pkgs(plan, args, sel)
+	plan.compute_plan([(Action.INSTALL_PKG, pkg) for pkg in sel])
+	plan.run_plan()
+
+do_install.parser = main_subparsers.add_parser('install',
+		parents=[reconfigure_and_rebuild_pkgs.parser, select_pkgs.parser])
+
+args = main_parser.parse_args()
+
+colorama.init()
+
+if args.verbose:
+	verbosity = True
+
+try:
+	if args.command == 'init':
+		do_init(args)
+	elif args.command == 'run':
+		do_run(args)
+	elif args.command == 'fetch':
+		do_fetch(args)
+	elif args.command == 'checkout':
+		do_checkout(args)
+	elif args.command == 'patch':
+		do_patch(args)
+	elif args.command == 'regenerate':
+		do_regenerate(args)
+	elif args.command == 'configure-tool':
+		do_configure_tool(args)
+	elif args.command == 'compile-tool':
+		do_compile_tool(args)
+	elif args.command == 'install-tool':
+		do_install_tool(args)
+	elif args.command == 'configure':
+		do_configure(args)
+	elif args.command == 'build':
+		do_build(args)
+	elif args.command == 'download':
+		do_download(args)
+	elif args.command == 'install':
+		do_install(args)
+	else:
+		assert not "Unexpected command"
+except ExecutionFailureException as e:
+	print('{}xbstrap{}: {}{}{}'.format(colorama.Style.BRIGHT, colorama.Style.RESET_ALL,
+			colorama.Fore.RED, e, colorama.Style.RESET_ALL))
+	sys.exit(1)
+
