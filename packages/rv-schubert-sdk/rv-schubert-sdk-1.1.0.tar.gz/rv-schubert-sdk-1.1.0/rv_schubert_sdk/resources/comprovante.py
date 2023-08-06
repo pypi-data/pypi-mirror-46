@@ -1,0 +1,33 @@
+class Comprovante:
+
+    def generate_for_online(self, data_hora, loja, cod_online, operadora, valor, telefone, mensagem, nsu):
+        print("\n\n+----------------------------------+")
+        print("           RECARGA ONLINE           ")
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("DATA/HORA :: {data_hora}".format(data_hora=data_hora.format('D/MM/Y HH:mm:ss')))
+        print("{loja}".format(loja=loja))
+        print("CODIGO DA COMPRA :: {cod_online}".format(cod_online=cod_online))
+        print("NSU :: {nsu}\n".format(nsu=nsu))
+        print("{operadora} :: R$ {valor}\n".format(operadora=operadora, valor=valor))
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("TELEFONE :: {telefone}".format(telefone=telefone))
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("    **  MENSAGEM PROMOCIONAL  **    ")
+        print("{mensagem}".format(mensagem=mensagem))
+        print("+----------------------------------+\n\n")
+
+    def generate_for_pin(self, data_hora, loja, cod_online, operadora, valor, pin, lote_serie, mensagem):
+        print("\n\n+----------------------------------+")
+        print("            RECARGA PIN             ")
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("DATA/HORA :: {data_hora}".format(data_hora=data_hora.format('D/MM/Y HH:mm:ss')))
+        print("{loja}".format(loja=loja))
+        print("CODIGO DA COMPRA :: {cod_online}\n".format(cod_online=cod_online))
+        print("{operadora} :: R$ {valor}\n".format(operadora=operadora, valor=valor))
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("PIN :: {pin}".format(pin=pin))
+        print("LOTE/SERIE :: {lote_serie}".format(lote_serie=lote_serie))
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("    **  MENSAGEM PROMOCIONAL  **    ")
+        print("{mensagem}".format(mensagem=mensagem))
+        print("+----------------------------------+\n\n")
