@@ -1,0 +1,84 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n question_extras utils_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'statistics_graphs' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='statistics' %}{% endblock %}
+{% block subtitle %}{% trans 'Graphs' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with survey=survey %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span12 {{ question.kind|lower }}">
+            <div class="statistics-item options">
+                {% if question.category %}
+                    <div class="category">
+                        {{ question.category }}
+                    </div>
+                {% endif %}
+                <div class="well">
+                    <div class="clearfix header">
+                        <div class="title pull-left">{% question_label question %}</div>
+                        <div class="total pull-right">
+                            <span class="text">{% trans 'Total answers' %}:</span> <span class="number">{{ total_answers }}</span>
+                        </div>
+                    </div>
+
+                    <div class="options-list">
+                        {% for option in options %}
+                            {% if survey.round_set.count > 1 and not is_public_view %}
+                                <div class="option quiz row">
+                                    <div class="span1 mark {% if option.is_correct %}correct{% endif %}"></div>
+                                    <div class="span8">
+                                        <div class="option-title row">
+                                            <div class="span6">{% if option.title %}{{ option.title|safe }}{% else %}{% trans 'Empty' %}{% endif %}</div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="progress {% if option.class %}{{ option.class }}{% else %}progress-success{% endif %} span6">
+                                                <div class="bar" style="width: {{ option.percent|stringformat:"d" }}%"></div>
+{#                                                <div class="bar" style="width: {{ option.percent|divide:max_percent|multiply:100|stringformat:"d" }}%"></div>#}
+                                            </div>
+                                            <span class="span2">
+                                                <div class="percent {% if option.percent == max_percent %}max{% endif %}">{{ option.percent }}%</div>
+                                                <div class="number">{% trans 'votes' %}: {{ option.count }}</div>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="option quiz row">
+                                    <div class="span1 mark {% if option.is_correct %}correct{% endif %}"></div>
+                                    <div class="span10">
+                                        <div class="option-title row">
+                                            <div class="span8">{% if option.title %}{{ option.title|safe }}{% else %}{% trans 'Empty' %}{% endif %}</div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="progress {% if option.class %}{{ option.class }}{% else %}progress-success{% endif %} span8">
+                                                <div class="bar" style="width: {{ option.percent|stringformat:"d" }}%"></div>
+{#                                                <div class="bar" style="width: {{ option.percent|divide:max_percent|multiply:100|stringformat:"d" }}%"></div>#}
+                                            </div>
+                                            <span class="span2">
+                                                <div class="percent {% if option.percent == max_percent %}max{% endif %}">{{ option.percent }}%</div>
+                                                <div class="number">{% trans 'votes' %}: {{ option.count }}</div>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                        {% endfor %}
+                    </div>
+
+                    {% include 'votebase/helpers/pagination-listview.html' with page_obj=pagination.page is_paginated=pagination.is_paginated %}
+
+                    <a href="{{ export_url }}" class="btn btn-primary export span2">{% trans 'Export to .csv' %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

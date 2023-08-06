@@ -1,0 +1,50 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'questions_index' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='advanced' %}{% endblock %}
+{% block subtitle %}{% trans 'Settings' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with survey=survey %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span3">
+            {% include 'surveys/helpers/settings_tabs.html' with active='segments' survey=survey reversed=1 %}
+
+            <br>
+            <div class="segments-info">
+                <h2>{% trans 'Adress this one survey to different audiences!' %}</h2>
+                <hr>
+                <a href="{% url 'surveys_create_round' survey.pk %}" class="create">{% trans 'Create segment' %}</a>
+            </div><!-- /.segments-info -->
+        </div>
+{#        <div class="span3">#}
+{#            {% include 'surveys/helpers/rounds-advanced.html' with survey=survey round=round rounds=survey.round_set.all %}#}
+{#        </div>#}
+
+        <div class="span9">
+            <ul class="nav nav-tabs">
+                {% for r in survey.round_set.all.reverse %}
+                    <li class="{% if r.id == object.id %}active{% endif %}">
+                        <a href="{% url 'surveys_settings_segments_update' survey.pk r.pk %}">{{ r.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <form method="post" action="{% url 'surveys_settings_segments_update' survey.pk object.pk %}" class="form-horizontal well">
+                {% csrf_token %}
+                {% include 'votebase/helpers/form.html' %}
+
+                <div class="form-actions">
+                    <input type="submit" class="btn btn-primary" value="{% trans 'Update segment' %}" />
+                    <a href="{% url 'surveys_settings_segments_delete' object.pk %}" class="btn btn-danger" onclick="javascript:return confirm('{% trans 'Delete segment' %} {{ object.title }}? It will also delete all voters and its anwers in this segment.')">{% trans 'Delete segment' %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

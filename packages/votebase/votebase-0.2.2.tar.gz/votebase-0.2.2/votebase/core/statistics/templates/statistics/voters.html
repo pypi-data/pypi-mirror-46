@@ -1,0 +1,75 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n voter_extras utils_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'questions_index' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='statistics' %}{% endblock %}
+{% block subtitle %}{% trans 'Voters' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with survey=survey %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        {% if survey.round_set.all.count > 1 %}
+            <div class="span3">
+                {% include 'surveys/helpers/rounds.html' with rounds=survey.round_set.all round=round url='statistics_voters_round' reversed=1 %}
+            </div>
+        {% endif %}
+
+        <div class="voters-list{% if survey.round_set.all.count > 1 %} span9{% else %} span12{% endif %}">
+            {% if object_list %}
+                {% if survey.voter_set.count > request.user.get_profile.get_voters_limit %}
+                    <div class="statistics-voters-limit">
+                        {% blocktrans with survey.voter_set.count as voters_count and request.user.get_profile.get_voters_limit as package_voters_limit and request.user.get_profile.get_package_display as package %}
+                            You have {{ voters_count }} voters in this survey, but
+                            your voter limit per survey is <span class="limit">{{ package_voters_limit }}</span> ({{ package }} package).
+                        {% endblocktrans %}
+                        <a href="{% url 'pricing' %}">{% trans 'View pricing'%}</a>
+                    </div>
+                {% endif %}
+
+                <table class="table">
+                    <tbody>
+                        {% for voter in object_list %}
+                            <tr>
+                                <td class="number">
+                                    {{ pagination.page.number|subtract:"1"|multiply:"-1"|multiply:pagination.page.paginator.per_page|add:pagination.total_count|subtract:forloop.counter|add:"1"|stringformat:"d" }}.
+                                </td>
+                                <td class="title">
+                                    <a href="{{ voter.get_absolute_url }}">
+                                        {% if voter.user %}
+                                            {{ voter.user.get_profile.get_full_name|truncatechars:190 }}
+                                        {% else %}
+                                            {% trans 'Anonymous' %}
+                                        {% endif %}
+                                    </a>
+                                    {% if voter.flag %}<br><small>{{ voter.flag }}</small>{% endif %}
+                                </td>
+
+                                {% if survey_is_quiz %}
+                                    <td class="quiz-result">{{ voter.quiz_result }}%</td>
+                                {% endif %}
+
+                                <td class="date">{{ voter.created }}</td>
+{#                                <td class="date">{{ voter.get_nice_voting_duration }}</td>#}
+                                <td class="date">{{ voter.voting_duration|niceseconds }}</td>
+
+                                <td class="actions">
+                                    <a href="{% url 'statistics_voter_update' voter.pk %}" class="edit btn btn-primary">{% trans 'Edit' %}</a>
+                                    <a href="{{ voter.get_absolute_url }}" class="answers btn btn-primary">{% trans 'Show answers' %}</a>
+                                    <a href="{% url 'statistics_delete_voter' voter.pk %}" class="delete btn btn-danger" onclick="javascript:return confirm('{% trans 'Delete voter' %} {{ voter.user }}?')">{% trans 'Delete' %}</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% include 'votebase/helpers/pagination-listview.html' with page_obj=pagination.page is_paginated=pagination.is_paginated %}
+            {% else %}
+                {% trans 'No voters found. Share your survey.' %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

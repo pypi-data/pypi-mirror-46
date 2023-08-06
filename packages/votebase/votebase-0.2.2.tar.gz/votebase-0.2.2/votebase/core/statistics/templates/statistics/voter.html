@@ -1,0 +1,47 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n question_extras voter_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'statistics_voters' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='statistics' %}{% endblock %}
+
+{% block content %}
+    <div class="voting voter row" data-survey-id="{{ survey.pk }}">
+        <div class="span12">
+            <form>
+
+            {% if forms %}
+                {% if voter.survey.is_quiz and show_quiz_result %}
+                    {% voter_quiz_result voter %}
+                {% endif %}
+
+                {% for form in forms %}
+                    <div class="well{% if form.question.is_quiz and show_quiz_correct_options %} result {% voter_form_result_class form voter %}{% endif %}" data-question-id="{{ form.question.pk }}">
+{#                    <div class="well">#}
+{#                        {% if form.question.is_quiz and show_quiz_correct_options %}#}
+{#                            {% voter_form_result form voter %}#}
+{#                        {% endif %}#}
+                        {% include 'votebase/helpers/form.html' %}
+                    </div>
+
+                    {% if not forloop.last %}
+                        <hr>
+                    {% endif %}
+                {% endfor %}
+
+            {% else %}
+                {% trans "Voter hasn't voted in any question." %}
+            {% endif %}
+
+            </form>
+
+            {% if voter and survey.is_quiz %}
+                {% trans 'Results of this voter are also available here:' %}<br>
+                <a href="{{ voter.get_absolute_hash_url }}">{{ protocol }}{{ host }}{{ voter.get_absolute_hash_url }}</a><br><br>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

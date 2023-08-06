@@ -1,0 +1,132 @@
+{% load i18n %}
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        function secondsToTime(s){
+            var h  = Math.floor( s / ( 60 * 60 ) );
+            s -= h * ( 60 * 60 );
+            var m  = Math.floor( s / 60 );
+            s -= m * 60;
+            return h+"h:"+m+"m:"+s+"s"
+        }
+
+        function minutesToTime(m){
+            var h  = Math.floor( m / 60 );
+            m -= h * ( 60 );
+            return h+"h:"+m+"m"
+        }
+
+        if($('#data-age').length) {
+            new Morris.Bar({
+                element: 'data-age', // ID of the element in which to draw the chart.
+                data: [ // Chart data records -- each entry in this array corresponds to a point on the chart.
+                        {% for data in data_age %}{ age: '{{ data.age }}', count: {{ data.count }} },
+                        {% endfor %}
+                ],
+                xkey: 'age', // The name of the data record attribute that contains x-values.
+                ykeys: ['count'], // A list of names of data record attributes that contain y-values.
+                labels: ['{% trans 'Count' %}'], // Labels for the ykeys -- will be displayed when you hover over the chart.
+    //                                  stacked:true,
+                hideHover:'auto'
+    {#                                  ,hoverCallback: function (index, options, content) {#}
+    {#                                        var data = options.data[index];#}
+    {#                                        return '<div class="morris-hover-row-label">{% trans 'Age' %}: ' + data.age + '</div><div class="morris-hover-point" style="color: #0b62a4">{% trans 'Count' %}: ' + data.count + '</div>'#}
+    {#                                    }#}
+            });
+        }
+
+        if($('#data-gender').length) {
+            new Morris.Donut({
+                element: 'data-gender',
+                data: [
+                        {% for data in data_gender %}{ label: '{{ data.label }}', value: {{ data.count }} },
+                        {% endfor %}
+                ]
+            });
+        }
+
+        if($('#data-voters').length) {
+            new Morris.Line({
+                element: 'data-voters',
+                data: [
+                        {% for data in data_voters %}{ date: '{{ data.date }}', count: {{ data.count }} },
+                        {% endfor %}
+                ],
+                xkey: 'date',
+                ykeys: ['count'],
+                labels: ['{% trans 'Count' %}'],
+                hideHover:'auto'
+            });
+        }
+
+        if($('#data-voters-total').length) {
+            new Morris.Area({
+                element: 'data-voters-total',
+                data: [
+                        {% for data in data_voters_total %}{ date: '{{ data.date }}', count: {{ data.count }} },
+                        {% endfor %}
+                ],
+                xkey: 'date',
+                ykeys: ['count'],
+                labels: ['{% trans 'Total count' %}'],
+                hideHover:'auto'
+            });
+        }
+
+        if($('#data-voting-duration').length) {
+            new Morris.Bar({
+                element: 'data-voting-duration',
+                data: [
+                        {% for data in data_voting_duration %}{ duration: '{{ data.duration }}', count: {{ data.count }} },
+                        {% endfor %}
+                ],
+                xkey: 'duration',
+                ykeys: ['count'],
+                labels: ['{% trans 'Count' %}'],
+                hideHover:'auto',
+                hoverCallback: function (index, options, content) {
+                    var data = options.data[index];
+                    return '<div class="morris-hover-row-label">{% trans 'Duration' %}: ' + minutesToTime(data.duration) + '</div><div class="morris-hover-point" style="color: #0b62a4">{% trans 'Count' %}: ' + data.count + '</div>'
+                }
+            });
+        }
+
+        {% if survey.is_quiz %}
+            if($('#data-quiz-result').length) {
+                new Morris.Bar({
+                    element: 'data-quiz-result',
+                    data: [
+                            {% for data in data_quiz_result %}{ quiz_result: '{{ data.quiz_result }}', count: {{ data.count }} },
+                            {% endfor %}
+                    ],
+                    xkey: 'quiz_result',
+                    ykeys: ['count'],
+                    labels: ['{% trans 'Count' %}'],
+                    hideHover:'auto',
+                    hoverCallback: function (index, options, content) {
+                        var data = options.data[index];
+                        return '<div class="morris-hover-row-label">{% trans 'Quiz result' %}: ' + data.quiz_result + '%</div><div class="morris-hover-point" style="color: #0b62a4">{% trans 'Count' %}: ' + data.count + '</div>'
+                    }
+                });
+            }
+
+            if($('#data-quiz-result-by-age').length) {
+                new Morris.Bar({
+                    element: 'data-quiz-result-by-age',
+                    data: [
+                            {% for data in data_quiz_result_by_age %}{ average_result: '{{ data.average_result|floatformat:"2" }}', age: {{ data.age }} },
+                            {% endfor %}
+                    ],
+                    xkey: 'age',
+                    ykeys: ['average_result'],
+                    labels: ['{% trans 'Count' %}'],
+                    hideHover:'auto',
+                    hoverCallback: function (index, options, content) {
+                        var data = options.data[index];
+                        return '<div class="morris-hover-row-label">{% trans 'Quiz result' %}: ' + data.average_result + '%</div><div class="morris-hover-point" style="color: #0b62a4">{% trans 'Age' %}: ' + data.age + '</div>'
+                    }
+                });
+            }
+        {% endif %}
+    });
+</script>

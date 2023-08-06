@@ -1,0 +1,58 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n utils_extras question_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'statistics_graphs' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='statistics' %}{% endblock %}
+{% block subtitle %}{% trans 'Statistics' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with survey=survey %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span12">
+            <div class="statistics-item matrix">
+                {% if question.category %}
+                    <div class="category">
+                        {{ question.category }}
+                    </div>
+                {% endif %}
+                <div class="well">
+                    <div class="title pull-left">{% question_label question %}</div>
+                    <span class="">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    {% for column in columns %}
+                                        <th>{{ column.get_image_title }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for row in rows %}
+                                    <tr>
+                                        <th>{{ row.title }}</th>
+                                        {% for column in row.columns %}
+    {#                                        result opacity = (value / max value) * (max opacity - min opacity) + min opacity#}
+                                            <td style="opacity: {{ column.percent|divide:max_percent|multiply:"0.85"|add:"0.15"|stringformat:"f" }}">
+                                                <div class="percent{% if column.percent > 0 %} bold{% endif %}{% if column.percent == max_percent %} max{% endif %}">{{ column.percent }}%</div>
+                                                <div class="votes">{% trans 'votes' %}: <span class="number">{{ column.count }}</span></div>
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </span>
+
+                    <a href="{{ export_url }}" class="btn btn-primary export span2">{% trans 'Export to .csv' %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

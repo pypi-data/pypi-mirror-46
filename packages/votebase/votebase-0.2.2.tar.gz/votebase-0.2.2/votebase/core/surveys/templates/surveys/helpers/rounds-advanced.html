@@ -1,0 +1,28 @@
+{% load i18n %}
+
+<div class="segments-info">
+    <h2>{% trans 'Adress this one survey to different audiences!' %}</h2>
+
+    <hr>
+
+    <ul>
+        {% if rounds.count > 1 %}
+            {% for r in rounds %}
+                <li {% if r == round %}class="active"{% endif %}>
+                    <div class="wrapper">
+                        <a href="{% url 'surveys_share_round' r.survey.pk r.pk %}" class="link">
+                            {{ r|truncatechars:20 }}
+                        </a>
+                        <a href="{% url 'surveys_settings_segments_update' survey.pk r.pk %}" class="edit"></a>
+                    </div>
+                </li>
+            {% endfor %}
+        {% endif %}
+    </ul>
+
+    <a href="{% url 'surveys_create_round' survey.pk %}" class="create">{% trans 'Create segment' %}</a>
+</div><!-- /.segments-info -->
+
+<div class="segments-more">
+    <a href="{% url 'surveys_settings_segments' survey.pk %}">{% trans 'Manage segments' %}</a>
+</div><!-- /.segments-more -->

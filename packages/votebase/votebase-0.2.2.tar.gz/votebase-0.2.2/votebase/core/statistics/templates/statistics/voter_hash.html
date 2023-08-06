@@ -1,0 +1,43 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n question_extras voter_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block body_class %}voter-hash{% endblock %}
+{% block content_title %}
+    <a href="{{ back_url }}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+
+{% block content %}
+    <div class="voting voter row" data-survey-id="{{ survey.pk }}">
+        <div class="span12">
+            <form>
+
+            {% if forms %}
+                {% if voter.survey.is_quiz and show_quiz_result %}
+                    {% voter_quiz_result voter %}
+                {% endif %}
+
+                {% for form in forms %}
+                    <div class="well{% if form.question.is_quiz and show_quiz_correct_options %} result {% voter_form_result_class form voter %}{% endif %}" data-question-id="{{ form.question.pk }}">
+{#                    <div class="well result-wrong">#}
+{#                        {% if form.question.is_quiz and show_quiz_correct_options %}#}
+{#                            {% voter_form_result form voter %}#}
+{#                        {% endif %}#}
+                        {% include 'votebase/helpers/form.html' %}
+                    </div>
+
+                    {% if not forloop.last %}
+                        <hr>
+                    {% endif %}
+                {% endfor %}
+
+            {% else %}
+                {% trans "Voter hasn't voted in any question." %}
+            {% endif %}
+
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

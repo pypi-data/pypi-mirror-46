@@ -1,0 +1,33 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'questions_index' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='advanced' %}{% endblock %}
+{% block js %}{% include 'votebase/helpers/redactor.html' %}{% endblock %}
+{% block subtitle %}{% trans 'Settings' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with survey=survey %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span3">
+            {% include 'surveys/helpers/settings_tabs.html' with active='general' survey=survey reversed=1 %}
+        </div>
+
+        <div class="span9">
+            <form method="post" action="{% url 'surveys_settings_general' object.pk %}" class="form-horizontal well">
+                {% csrf_token %}
+                {% include 'votebase/helpers/form.html' %}
+
+                <div class="form-actions">
+                    <input type="submit" class="btn btn-primary" value="{% trans 'Update survey' %}" />
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+{% endblock %}

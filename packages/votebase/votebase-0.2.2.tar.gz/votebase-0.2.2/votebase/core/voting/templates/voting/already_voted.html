@@ -1,0 +1,20 @@
+{% extends 'votebase/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}{{ survey.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="span12">
+        {% trans 'You have already voted in this survey.' %}
+
+        {% if voters and survey.is_quiz %}
+            {% trans 'Your results are available here:' %}<br><br>
+            {% for voter in voters %}
+                {{ voter.created }}<br><a href="{{ voter.get_absolute_hash_url }}">{{ protocol }}{{ host }}{{ voter.get_absolute_hash_url }}</a><br><br>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

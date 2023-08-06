@@ -1,0 +1,62 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n question_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}
+    <a href="{% url 'statistics_graphs' survey.pk %}" class="back">{% trans 'Back' %}</a>{{ survey.title }}
+{% endblock %}
+{% block content_title_extra %}{% include 'surveys/helpers/advanced.html' with active='statistics' %}{% endblock %}
+{% block subtitle %}{% trans 'Statistics' %}{% endblock %}
+{% block subtitle_extra %}{% include 'surveys/helpers/tabs.html' with survey=survey %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span12">
+            <div class="statistics-item thumbs">
+                {% if question.category %}
+                    <div class="category">
+                        {{ question.category }}
+                    </div>
+                {% endif %}
+                <div class="well">
+                    <div class="clearfix header">
+                        <div class="title pull-left">{% question_label question %}</div>
+                        <div class="total pull-right">
+                            <span class="text">{% trans 'Total answers' %}:</span> <span class="number">{{ total_answers }}</span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <br>
+                        <span class="span1">
+                            {{ options.0.percent }}%<br>
+                            {% trans 'votes' %}: {{ options.0.count }}
+                        </span>
+
+                        {% if survey.round_set.count > 1 and not is_public_view %}
+                            <span class="span6">
+                        {% else %}
+                            <span class="span9">
+                        {% endif %}
+
+                            <div class="progress">
+                                <div class="bar bar-danger" style="width: {{ options.0.percent }}%;"></div>
+                                <div class="bar bar-success" style="width: {{ options.1.percent }}%;"></div>
+                            </div>
+                        </span>
+
+                        <span class="span1">
+                            {{ options.1.percent }}%<br>
+                            {% trans 'votes' %}: {{ options.1.count }}
+                        </span>
+                    </div>
+
+                    <br>
+                    <a href="{{ export_url }}" class="btn btn-primary export span2">{% trans 'Export to .csv' %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

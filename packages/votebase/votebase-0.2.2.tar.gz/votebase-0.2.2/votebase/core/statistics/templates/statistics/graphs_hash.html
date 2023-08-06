@@ -1,0 +1,85 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n graph_extras staticfiles %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+{% block content_title %}{{ survey.title }}{% endblock %}
+{% block content_title_extra %}{% endblock %}
+{% block subtitle %}{% if round %}{{ round }}{% endif %}{% endblock %}
+{% block subtitle_extra %}{% endblock %}
+
+{% block body_class %}graphs-hash{% endblock %}
+
+{% block js %}
+    {% if object_list %}
+        <script type="text/javascript" src="{{ protocol }}{{ host }}{% static 'votebase/js/ajax_graphs.js' %}"></script>
+        <script type="text/javascript" src="{{ protocol }}{{ host }}{% static 'votebase/js/export_to_pdf.js' %}"></script>
+        <script type="text/javascript">$(function(){export_to_pdf('{{ protocol }}{{ host }}{% url 'statistics_export_pdf' survey.pk %}', 'table.table')});</script>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span12">
+        {% if not object_list %}
+            {% trans 'There is no question in this survey. Create some.' %}
+        {% else %}
+
+            <!-- CATEGORIES -->
+            {% if statistics_categories %}
+                <div class="statistics-categories">
+                    <h3 class="subtitle">{% trans 'Average result of categories' %}</h3>
+                    {% for cstats in statistics_categories %}
+                        <div class="statistics-item">
+                            <div class="category">
+                                <span class="title">{{ cstats.category }}</span>
+                                <span class="percent">{{ cstats.percent|floatformat:"2" }}%</span>
+                                <span class="count-questions">{% trans 'Count of questions' %}: {{ cstats.count_questions }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div><!-- ./statistics-categories -->
+            {% endif %}
+
+            <!-- QUESTIONS -->
+            <div class="statistics-list">
+                {% if statistics_categories %}<h3 class="subtitle">{% trans 'Questions' %}</h3>{% endif %}
+
+                <div class="ajax-loader">{% trans 'Loading, please wait.' %}</div>
+
+                <table class="table">
+                    <tbody>
+                    {% for question in object_list %}
+                        <tr class="{{ question.kind|lower }}">
+                            <td class="counter">{{ forloop.counter}}.</td>
+
+                            <td class="title">
+                                {% if survey.round_set.all.count == 1 or not round %}
+                                    <a href="{% url question|statistics_graph_url:"total" question.pk %}">
+                                        {% autoescape off %}{{ question.title|striptags|truncatechars:190 }}{% endautoescape %}
+                                        {% if question.is_required %}<span class="required">*</span>{% endif %}
+                                    </a>
+                                {% else %}
+                                    <a href="{% url question|statistics_graph_url:"round" question.pk round.pk %}">
+                                        {% autoescape off %}{{ question.title|striptags|truncatechars:190 }}{% endautoescape %}
+                                        {% if question.is_required %}<span class="required">*</span>{% endif %}
+                                    </a>
+                                {% endif %}
+                            </td>
+
+                            <td class="actions">
+                                {% if survey.round_set.all.count == 1 or not round %}
+                                    <a href="{% url question|statistics_graph_url:"total" question.pk %}" class="btn btn-info">{{ survey }}</a>
+                                {% else %}
+                                    <a href="{% url question|statistics_graph_url:"round" question.pk round.pk %}"class="btn btn-info">{{ round }}</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div><!-- ./statistics-list -->
+        {% endif %}
+        </div>
+    </div>
+{% endblock %}

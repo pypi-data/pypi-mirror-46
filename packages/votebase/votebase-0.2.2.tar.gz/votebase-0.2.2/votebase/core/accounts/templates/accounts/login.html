@@ -1,0 +1,22 @@
+{% extends 'votebase/base.html' %}
+
+{% load i18n %}
+
+{% block title %}{% trans 'Login' %}{% endblock %}
+{% block content_title %}{% trans 'Login' %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span7">
+            <form method="post" class="well form-horizontal" action="{% url 'accounts_login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+                {% csrf_token %}
+                {% include 'votebase/helpers/form.html' %}
+
+                <div class="form-actions">
+                    <input type="submit" class="btn first btn-primary" value="{% trans 'Login' %}" />
+                    <a href="{% url 'accounts_recovery' %}" class="btn last btn-primary">{% trans 'Forgot password?' %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
