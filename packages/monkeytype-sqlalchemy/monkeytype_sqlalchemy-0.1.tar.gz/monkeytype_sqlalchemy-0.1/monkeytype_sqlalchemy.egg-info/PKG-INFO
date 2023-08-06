@@ -1,0 +1,48 @@
+Metadata-Version: 2.1
+Name: monkeytype-sqlalchemy
+Version: 0.1
+Summary: A SQLAlchemy backed call trace store for MonkeyType
+Home-page: https://github.com/DisruptiveLabs/MonkeyType_SQLAlchemy
+Author: Disruptive Labs
+Author-email: oss+monkeytype_sqlalchemy@comanage.com
+License: BSD
+Description: ## Monkeytype SQLAlchemy
+        
+        A SQLAlchemy-backed store for use with [monkeytype](https://github.com/Instagram/MonkeyType) by Instagram.
+        
+        This store is schema-compatible with the default SQLite-backend store, merely using SQLAlchemy for database 
+         interactions. This allows easy use of any 
+         [database dialect supported by SQLAlchemy](https://docs.sqlalchemy.org/en/13/dialects/index.html)
+         
+        ### Usage
+        
+        Create a `monkeytype_config.py` in your project folder as suggested by the MonkeyType docs
+        
+        ```python
+        from monkeytype_sqlalchemy import SQLAlchemyConfig
+        
+        CONFIG = SQLAlchemyConfig()
+        ```
+        
+        Alternately, modify your Config class to return an instance of the `SQLAlchemyStore` call trace store
+        
+        ```python
+        from monkeytype.config import Config
+        from monkeytype.db.base import CallTraceStore
+        from monkeytype_sqlalchemy import SQLAlchemyStore
+        
+        class MyConfig(Config):
+            def trace_store(self) -> CallTraceStore:
+                return SQLAlchemyStore.make_store("postgresql+psycopg:///localhost/my_database")
+        ```
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Description-Content-Type: text/markdown
