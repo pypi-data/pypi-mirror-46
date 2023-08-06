@@ -1,0 +1,9 @@
+workspace_id = 'wspf490d665de0ca450'
+# core 1
+core_id_1 = 'cref4b4280eb582f237'
+view_id_1 = 'viwf4b42ff400027978'
+table_id_1 = 'tblf4b42bfea00999d5'
+# core 2
+core_id_2 = 'cref4923722f48100ed'
+view_id_2 = 'viwf4913c5f1f053d44'
+table_id_2 = 'tblf491396630863dfd'
