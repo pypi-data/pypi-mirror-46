@@ -1,0 +1,70 @@
+== Working with the code
+
+=== Install dependencies
+
+It's assumed a Python environment with pip is installed.
+
+==== Windows
+Make sure the http://www.swig.org/[swig] executable is in your PATH. Add http://libusb.info/[libusb]
+and https://developers.yubico.com/yubikey-personalization/[ykpers] DLLs to the root of the repository.
+
+==== macOS
+
+    $ brew install swig ykpers libusb
+
+==== Linux (Debian-based distributions)
+
+    $ sudo apt install swig libykpers-1-1 libu2f-udev pcscd libpcsclite-dev
+
+=== Install yubikey-manager from source
+
+Clone the repository:
+
+    $ git clone https://github.com/Yubico/yubikey-manager.git
+    $ cd yubikey-manager
+
+Install in editable mode with pip:
+
+    $ pip install -e .
+
+Show available commands:
+
+    $ ykman --help
+
+Show information about inserted YubiKey:
+
+    $ ykman info
+
+Run ykman in DEBUG mode:
+
+    $ ykman --log-level DEBUG info
+
+To uninstall, run:
+
+    $ pip uninstall yubikey-manager
+
+=== Code Style
+
+This project uses http://flake8.pycqa.org/[Flake8] for code style with a http://pre-commit.com/[pre-commit] hook.
+To use these:
+
+    $ pip install pre-commit flake8
+    $ pre-commit install
+
+=== Unit tests
+
+To run unit tests:
+
+    $ python setup.py test
+
+=== Integration tests
+
+WARNING: ONLY run these on a dedicated developer key, as it will permanently delete data on the device!
+
+To run integration tests, indicate the serial number (given by `ykman list`) of the YubiKey to test with:
+
+   $ DESTRUCTIVE_TEST_YUBIKEY_SERIAL=123456 python setup.py test
+
+=== Packaging
+
+For third-party packaging, use the source releases and signatures available https://developers.yubico.com/yubikey-manager/Releases/[here].
