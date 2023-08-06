@@ -1,0 +1,50 @@
+---
+- hosts: primary
+  vars:
+    logs_dir: "/tmp/logs"
+    kayobe_src_dir: "{{ ansible_env.PWD ~ '/' ~ zuul.projects['opendev.org/x/kayobe'].src_dir }}"
+    kayobe_config_src_dir: "{{ ansible_env.PWD ~ '/' ~ zuul.projects['opendev.org/x/kayobe-config-dev'].src_dir }}"
+  environment:
+    KAYOBE_CONFIG_SOURCE_PATH: "{{ kayobe_config_src_dir }}"
+  roles:
+    - role: kayobe-diagnostics
+      kayobe_diagnostics_phase: "pre"
+      kayobe_diagnostics_log_dir: "{{ logs_dir }}"
+
+    - role: kayobe-ci-prep
+  tasks:
+    # NOTE(mgoddard): Copying upper constraints to somewhere accessible by both
+    # the zuul and stack users.
+    - name: Ensure upper-contraints.txt exists
+      copy:
+        src: "{{ zuul.projects['opendev.org/openstack/requirements'].src_dir ~ '/upper-constraints.txt' }}"
+        dest: "/tmp"
+        mode: 0644
+        remote_src: true
+
+    # NOTE(mgoddard): Use the name zz-overrides.yml to ensure this takes
+    # precedence over the standard config files.
+    - name: Ensure kayobe-config override config file exists
+      template:
+        src: overrides.yml.j2
+        dest: "{{ kayobe_config_src_dir }}/etc/kayobe/zz-overrides.yml"
+
+    # NOTE(mgoddard): The kayobe dev config by default expects a bridge -
+    # breth1 - to exist with an IP address of 192.168.33.3.
+    - name: Ensure all-in-one network bridge interface exists
+      command: "{{ item }}"
+      become: true
+      with_items:
+        - "ip l add breth1 type bridge"
+        - "ip l set breth1 up"
+        - "ip a add 192.168.33.3/24 dev breth1"
+
+    - name: Ensure kayobe is installed
+      shell:
+        cmd: dev/install.sh > {{ logs_dir }}/ansible/install
+        chdir: "{{ kayobe_src_dir }}"
+
+    - name: Configure the firewall
+      shell:
+        cmd: dev/configure-firewall.sh
+        chdir: "{{ kayobe_src_dir }}"
