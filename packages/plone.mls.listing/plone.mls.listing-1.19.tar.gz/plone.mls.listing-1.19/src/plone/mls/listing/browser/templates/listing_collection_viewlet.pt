@@ -1,0 +1,134 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      lang="en"
+      i18n:domain="plone.mls.listing"
+      tal:omit-tag=""
+      tal:condition="view/available | nothing"
+      tal:define="listings view/listings | nothing;
+                  batch view/batching | nothing;
+                  results batch/sequence_length | nothing;">
+  <section id="listing-collection" class="listing-summary"
+           tal:condition="view/available | nothing"
+           tal:define="page_url view/view_url | nothing;
+                       is_view_template context/@@plone_context_state/is_view_template;
+                       b_size view/limit;
+                       b_orphan python: 1;
+                       b_start request/b_start | python: 0;">
+
+    <tal:listings tal:condition="listings">
+
+      <div metal:use-macro="context/batch_macros/macros/navigation" />
+
+      <div class="tileItem visualIEFloatFix"
+           tal:repeat="listing batch">
+        <h2 class="tileHeadline"><a href="" class="summary url"
+            tal:attributes="href string:${page_url}${listing/id/value}"><span
+            tal:replace="listing/title/value">[Listing Title]</span></a></h2>
+
+        <figure tal:define="image listing/lead_image_high_res | listing/lead_image | nothing">
+          <a href="" tal:attributes="href string:${page_url}${listing/id/value};
+                                     title listing/title/value"><img src="" alt=""
+                     tal:condition="image"
+                     tal:attributes="src image" /><img
+                     tal:condition="not:image" alt="" title=""
+                     src="++resource++plone.mls.listing.images/no-image.png" /></a>
+          <figcaption>
+            <small tal:content="listing/title/value">[Caption]</small>
+          </figcaption>
+        </figure>
+
+        <section>
+          <dl>
+            <div class="listing__price_calculated" tal:define="item listing/calculated_price | nothing" tal:condition="item">
+              <dt class="row" tal:content="item/label">[Label]</dt>
+              <dd tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__price" tal:define="item listing/price | nothing" tal:condition="item">
+              <dt class="row" tal:content="item/label">[Label]</dt>
+              <dd tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__workflow_status" tal:define="item listing/workflow_status | nothing" tal:condition="item">
+              <dt tal:content="item/label">[Label]</dt>
+              <dd tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__listing_type" tal:define="item listing/listing_type | nothing" tal:condition="item">
+              <dt tal:content="item/label">[Label]</dt>
+              <dd tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__image_count" tal:define="item listing/image_count | nothing" tal:condition="item">
+              <dt tal:content="item/label">[Label]</dt>
+              <dd tal:attributes="class item/value" tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__object_type" tal:define="item listing/object_type | nothing" tal:condition="item">
+              <dt class="row" tal:content="item/label">[Label]</dt>
+              <dd tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__beds_baths" tal:define="item listing/beds_baths | nothing" tal:condition="item">
+              <dt tal:content="item/label">[Label]</dt>
+              <dd tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__beds" tal:define="item listing/rooms_beds | nothing" tal:condition="item">
+              <dt tal:content="item/label">[Label]</dt>
+              <dd tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__baths" tal:define="item listing/rooms_baths | nothing" tal:condition="item">
+              <dt tal:content="item/label">[Label]</dt>
+              <dd tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__location" tal:define="item listing/location | nothing" tal:condition="item">
+              <dt class="row" tal:content="item/label">[Label]</dt>
+              <dd class="full" tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__location_type" tal:define="item listing/location_type | nothing" tal:condition="item">
+              <dt class="row" tal:content="item/label">[Label]</dt>
+              <dd class="full" tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__view_type" tal:define="item listing/view_type | nothing" tal:condition="item">
+              <dt class="row" tal:content="item/label">[Label]</dt>
+              <dd class="full" tal:content="item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__lot_size" tal:define="item listing/lot_size | nothing" tal:condition="item">
+              <dt class="row" tal:content="item/label">[Label]</dt>
+              <dd class="full" tal:content="structure item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__living_area" tal:define="item listing/living_area | nothing" tal:condition="item">
+              <dt class="row" tal:content="item/label">[Label]</dt>
+              <dd class="full" tal:content="structure item/value">[Value]</dd>
+            </div>
+
+            <div class="listing__interior_area" tal:define="item listing/interior_area | nothing" tal:condition="item">
+              <dt class="row" tal:content="item/label">[Label]</dt>
+              <dd class="full" tal:content="structure item/value">[Value]</dd>
+            </div>
+          </dl>
+        </section>
+
+        <p class="listing__description"
+            tal:condition="listing/description/value | nothing"
+            tal:content="listing/description/value">
+            [Description]
+        </p>
+
+        <div class="visualClear"></div>
+      </div>
+
+      <div metal:use-macro="context/batch_macros/macros/navigation" />
+
+    </tal:listings>
+  </section>
+</html>

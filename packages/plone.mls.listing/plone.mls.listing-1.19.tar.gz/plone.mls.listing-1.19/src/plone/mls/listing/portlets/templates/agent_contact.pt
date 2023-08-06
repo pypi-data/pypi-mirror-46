@@ -1,0 +1,33 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      lang="en"
+      i18n:domain="plone.mls.listing"
+      tal:omit-tag="">
+  <dl class="portlet portletAgentContact"
+      tal:define="email_enabled view/can_send_email | nothing;">
+    <dt class="portletHeader">
+      <span class="portletTopLeft"></span>
+      <span tal:omit-tag="" tal:content="view/title | nothing"></span>
+      <span class="portletTopRight"></span>
+    </dt>
+    <dd class="portletItem"
+        tal:condition="not: email_enabled"
+        i18n:domain="plone"
+        i18n:translate="text_no_email_setup">This site doesn't have a valid email setup, so you cannot use any contact forms.</dd>
+    <dd class="portletItem"
+        tal:define="already_sent view/already_sent | nothing"
+        tal:condition="email_enabled">
+      <p class="sent" tal:condition="already_sent"
+         tal:content="view/mail_sent_msg | nothing"></p>
+      <tal:block tal:condition="not: already_sent">
+        <p tal:condition="view/description | nothing"
+           tal:content="view/description | nothing"></p>
+        <div tal:replace="structure view/form | nothing"></div>
+      </tal:block>
+    </dd>
+    <div class="visualClear"></div>
+  </dl>
+</html>
