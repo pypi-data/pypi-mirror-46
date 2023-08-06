@@ -1,0 +1,2 @@
+# st2-flake8
+This repo is intended to include flake8 extensions required for StackStorm related projects. These flake8 extensions include custom flake8 extensions, along with unit tests, written by StackStorm team and other 3rd party flake8 extensions listed in requirements.txt. StackStorm related projects just need to include this module in their test-requirements.txt. This enforces consistency for flake8 checks across multiple projects. Individual project still has the flexibility with their own flake8 config file to enable or disable the use of these extensions.
