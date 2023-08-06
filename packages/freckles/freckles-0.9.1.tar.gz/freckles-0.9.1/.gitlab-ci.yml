@@ -1,0 +1,110 @@
+---
+
+cache:
+  paths:
+    - vendor/python
+    - vendor/node
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+image: python
+
+stages:
+  - test
+  - build
+  - release
+
+before_script:
+ - curl -O https://bootstrap.pypa.io/get-pip.py
+ - python get-pip.py
+ - pip install -U setuptools
+
+python27:
+  image: python:2.7
+  stage: test
+  script:
+    - pip install tox
+    - tox -e py27
+
+#python34:
+#  image: python:3.4
+#  stage: test
+#  script:
+#    - pip install tox
+#    - tox -e py34
+
+python35:
+  image: python:3.5
+  stage: test
+  script:
+    - pip install tox
+    - tox -e py35
+
+python36:
+  image: python:3.6
+  stage: test
+  script:
+    - pip install tox
+    - tox -e py36
+
+python37:
+  image: python:3.7
+  stage: test
+  script:
+    - pip install tox
+    - tox -e py37
+
+#docs:
+#  before_script:
+#    - pip install Sphinx
+#  script:
+#    - python setup.py docs
+
+flake8:
+  image: python
+  stage: test
+  script:
+    - pip install tox
+    - tox -e flake8
+
+commitlint:
+  stage: test
+  image: node:8
+  only:
+    - master
+    - merge_requests
+    - develop
+  script:
+    - npm install -g @commitlint/cli @commitlint/config-conventional
+    - echo CI_COMMIT_REF_NAME=${CI_COMMIT_REF_NAME}
+    - echo CI_MERGE_REQUEST_SOURCE_BRANCH_SHA=${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA}
+    - echo CI_MERGE_REQUEST_TARGET_BRANCH_SHA=${CI_MERGE_REQUEST_TARGET_BRANCH_SHA}
+    - echo CI_MERGE_REQUEST_SOURCE_BRANCH_NAME=${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}
+    - echo CI_MERGE_REQUEST_TARGET_BRANCH_NAME=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
+    - (if [[ ${CI_COMMIT_REF_NAME} = "master" ]] || [[ ${CI_COMMIT_REF_NAME} = "develop" ]]; then commitlint --from 6519d2fa; fi)
+
+
+#      else
+#        git fetch origin ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME};
+#        git fetch origin ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME};
+#        commitlint --from=origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} -to=origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME};
+#      fi
+
+
+build:
+  stage: build
+  only:
+    - develop
+    - before_0.9
+  script:
+    - pip install devpi-client
+    - rm -rf dist build
+    - devpi use https://pkgs.frkl.io/
+    - devpi login frkl --password="${DEVPI_PASSWORD}"
+    - devpi use /frkl/dev
+    - devpi upload
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 month
