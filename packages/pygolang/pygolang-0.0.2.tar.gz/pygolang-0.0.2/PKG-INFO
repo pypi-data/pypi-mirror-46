@@ -1,0 +1,419 @@
+Metadata-Version: 2.1
+Name: pygolang
+Version: 0.0.2
+Summary: Go-like features for Python
+Home-page: https://lab.nexedi.com/kirr/pygolang
+Author: Kirill Smelkov
+Author-email: kirr@nexedi.com
+License: GPLv3+ with wide exception for Open-Source
+Description: ========================================
+         Pygolang - Go-like features for Python
+        ========================================
+        
+        Package `golang` provides Go-like features for Python:
+        
+        - `gpython` is Python interpreter with support for lightweight threads.
+        - `go` spawns lightweight thread.
+        - `chan` and `select` provide channels with Go semantic.
+        - `func` allows to define methods separate from class.
+        - `defer` allows to schedule a cleanup from the main control flow.
+        - `gimport` allows to import python modules by full path in a Go workspace.
+        
+        Additional packages and utilities are also provided__ to close other gaps
+        between Python and Go environments.
+        
+        __ `Additional packages and utilities`_
+        
+        
+        GPython
+        -------
+        
+        Command `gpython` provides Python interpreter that supports lightweight threads
+        via tight integration with gevent__. The standard library of GPython is API
+        compatible with Python standard library, but inplace of OS threads lightweight
+        coroutines are provided, and IO is internally organized via
+        libuv__/libev__-based IO scheduler. Consequently programs can spawn lots of
+        coroutines cheaply, and modules like `time`, `socket`, `ssl`, `subprocess` etc -
+        all could be used from all coroutines simultaneously, and in the same blocking way
+        as if every coroutine was a full OS thread. This gives ability to scale programs
+        without changing concurrency model and existing code.
+        
+        __ http://www.gevent.org/
+        __ http://libuv.org/
+        __ http://software.schmorp.de/pkg/libev.html
+        
+        
+        Additionally GPython sets UTF-8 to be default encoding always, and puts `go`,
+        `chan`, `select` etc into builtin namespace.
+        
+        .. note::
+        
+           GPython is optional and the rest of Pygolang can be used from under standard Python too.
+           However without gevent integration `go` spawns full - not lightweight - OS thread.
+        
+        
+        Goroutines and channels
+        -----------------------
+        
+        `go` spawns a coroutine, or thread if gevent was not activated. It is possible to
+        exchange data in between either threads or coroutines via channels. `chan`
+        creates a new channel with Go semantic - either synchronous or buffered. Use
+        `chan.recv`, `chan.send` and `chan.close` for communication. `nilchan`
+        stands for the nil channel. `select` can be used to multiplex on several
+        channels. For example::
+        
+            ch1 = chan()    # synchronous channel
+            ch2 = chan(3)   # channel with buffer of size 3
+        
+            def _():
+                ch1.send('a')
+                ch2.send('b')
+            go(_)
+        
+            ch1.recv()      # will give 'a'
+            ch2.recv_()     # will give ('b', True)
+        
+            ch2 = nilchan   # rebind ch2 to nil channel
+            _, _rx = select(
+                ch1.recv,           # 0
+                ch1.recv_,          # 1
+                (ch1.send, obj),    # 2
+                ch2.recv,           # 3
+                default,            # 4
+            )
+            if _ == 0:
+                # _rx is what was received from ch1
+                ...
+            if _ == 1:
+                # _rx is (rx, ok) of what was received from ch1
+                ...
+            if _ == 2:
+                # we know obj was sent to ch1
+                ...
+            if _ == 3:
+                # this case will be never selected because
+                # send/recv on nil channel block forever.
+                ...
+            if _ == 4:
+                # default case
+                ...
+        
+        Methods
+        -------
+        
+        `func` decorator allows to define methods separate from class.
+        
+        For example::
+        
+          @func(MyClass)
+          def my_method(self, ...):
+              ...
+        
+        will define `MyClass.my_method()`.
+        
+        `func` can be also used on just functions, for example::
+        
+          @func
+          def my_function(...):
+              ...
+        
+        
+        Defer / recover / panic
+        -----------------------
+        
+        `defer` allows to schedule a cleanup to be executed when current function
+        returns. It is similar to `try`/`finally` but does not force the cleanup part
+        to be far away in the end. For example::
+        
+           wc = wcfs.join(zurl)    │     wc = wcfs.join(zurl)
+           defer(wc.close)         │     try:
+                                   │        ...
+           ...                     │        ...
+           ...                     │        ...
+           ...                     │     finally:
+                                   │        wc.close()
+        
+        For completeness there is `recover` and `panic` that allow to program with
+        Go-style error handling, for example::
+        
+           def _():
+              r = recover()
+              if r is not None:
+                 print("recovered. error was: %s" % (r,))
+           defer(_)
+        
+           ...
+        
+           panic("aaa")
+        
+        But `recover` and `panic` are probably of less utility since they can be
+        practically natively modelled with `try`/`except`.
+        
+        If `defer` is used, the function that uses it must be wrapped with `@func`
+        decorator.
+        
+        Import
+        ------
+        
+        `gimport` provides way to import python modules by full path in a Go workspace.
+        
+        For example
+        
+        ::
+        
+            lonet = gimport('lab.nexedi.com/kirr/go123/xnet/lonet')
+        
+        will import either
+        
+        - `lab.nexedi.com/kirr/go123/xnet/lonet.py`, or
+        - `lab.nexedi.com/kirr/go123/xnet/lonet/__init__.py`
+        
+        located in `src/` under `$GOPATH`.
+        
+        --------
+        
+        Additional packages and utilities
+        ---------------------------------
+        
+        The following additional packages and utilities are also provided to close gaps
+        between Python and Go environments:
+        
+        .. contents::
+           :local:
+        
+        Concurrency
+        ~~~~~~~~~~~
+        
+        In addition to `go` and channels, the following packages are provided to help
+        handle concurrency in structured ways:
+        
+        - `golang.context` provides contexts to propagate deadlines, cancellation and
+          task-scoped values among spawned goroutines [*]_.
+        
+        - `golang.sync` provides `sync.WorkGroup` to spawn group of goroutines working
+          on a common task. It also provides low-level primitives - for example
+          `sync.Once` and `sync.WaitGroup` - that are sometimes useful too.
+        
+        - `golang.time` provides timers integrated with channels.
+        
+        .. [*] See `Go Concurrency Patterns: Context`__ for overview of contexts.
+        
+        __ https://blog.golang.org/context
+        
+        
+        String conversion
+        ~~~~~~~~~~~~~~~~~
+        
+        `qq` (import from `golang.gcompat`) provides `%q` functionality that quotes as
+        Go would do. For example the following code will print name quoted in `"`
+        without escaping printable UTF-8 characters::
+        
+           print('hello %s' % qq(name))
+        
+        `qq` accepts both `str` and `bytes` (`unicode` and `str` on Python2)
+        and also any other type that can be converted to `str`.
+        
+        Package `golang.strconv` provides direct access to conversion routines, for
+        example `strconv.quote` and `strconv.unquote`.
+        
+        
+        Benchmarking and testing
+        ~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        `py.bench` allows to benchmark python code similarly to `go test -bench` and `py.test`.
+        For example, running `py.bench` on the following code::
+        
+            def bench_add(b):
+                x, y = 1, 2
+                for i in xrange(b.N):
+                    x + y
+        
+        gives something like::
+        
+            $ py.bench --count=3 x.py
+            ...
+            pymod: bench_add.py
+            Benchmarkadd    50000000        0.020 µs/op
+            Benchmarkadd    50000000        0.020 µs/op
+            Benchmarkadd    50000000        0.020 µs/op
+        
+        Package `golang.testing` provides corresponding runtime bits, e.g. `testing.B`.
+        
+        `py.bench` produces output in `Go benchmark format`__, and so benchmark results
+        can be analyzed and compared with standard Go tools, for example with
+        `benchstat`__.
+        Additionally package `golang.x.perf.benchlib` can be used to load and process
+        such benchmarking data in Python.
+        
+        __ https://github.com/golang/proposal/blob/master/design/14313-benchmark-format.md
+        __ https://godoc.org/golang.org/x/perf/cmd/benchstat
+        
+        ----
+        
+        Pygolang change history
+        -----------------------
+        
+        0.0.2 (2019-05-16)
+        ~~~~~~~~~~~~~~~~~~
+        
+        - Add `time` package with `time.Timer` and `time.Ticker` (`commit 1`__, 2__, 3__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/81dfefa0
+          __ https://lab.nexedi.com/kirr/pygolang/commit/6e3b3ff4
+          __ https://lab.nexedi.com/kirr/pygolang/commit/9c260fde
+        
+        - Add support for deadlines and timeouts to `context` package (`commit 1`__, 2__, 3__, 4__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/58ba1765
+          __ https://lab.nexedi.com/kirr/pygolang/commit/e5687f2f
+          __ https://lab.nexedi.com/kirr/pygolang/commit/27f91b78
+          __ https://lab.nexedi.com/kirr/pygolang/commit/b2450310
+        
+        0.0.1 (2019-05-09)
+        ~~~~~~~~~~~~~~~~~~
+        
+        - Add support for nil channels (commit__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/2aad64bb
+        
+        - Add `context` package to propagate cancellation and task-scoped values among
+          spawned goroutines (commit__, `overview`__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/e9567c7b
+          __ https://blog.golang.org/context
+        
+        - Add `sync` package with `sync.WorkGroup` to spawn group of goroutines working
+          on a common task (`commit 1`__, 2__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/e6bea2cf
+          __ https://lab.nexedi.com/kirr/pygolang/commit/9ee7ba91
+        
+        - Remove deprecated `@method` (commit__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/262f8986
+        
+        0.0.0.dev8 (2019-03-24)
+        ~~~~~~~~~~~~~~~~~~~~~~~
+        
+        - Fix `gpython` to properly initialize `sys.path` (commit__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/6b4990f6
+        
+        - Fix channel tests to pass irregardless of surround OS load (commit__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/731f39e3
+        
+        - Deprecate `@method(cls)` in favour of `@func(cls)` (commit__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/942ee900
+        
+        - Support both `PyPy2` and `PyPy3` (`commit 1`__, 2__, 3__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/da68a8ae
+          __ https://lab.nexedi.com/kirr/pygolang/commit/e847c550
+          __ https://lab.nexedi.com/kirr/pygolang/commit/704d99f0
+        
+        0.0.0.dev7 (2019-01-16)
+        ~~~~~~~~~~~~~~~~~~~~~~~
+        
+        - Provide `gpython` interpreter, that sets UTF-8 as default encoding, integrates
+          gevent and puts `go`, `chan`, `select` etc into builtin namespace (commit__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/32a21d5b
+        
+        0.0.0.dev6 (2018-12-13)
+        ~~~~~~~~~~~~~~~~~~~~~~~
+        
+        - Add `strconv` package with `quote` and `unquote` (`commit 1`__, 2__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/f09701b0
+          __ https://lab.nexedi.com/kirr/pygolang/commit/ed6b7895
+        
+        - Support `PyPy` as well (commit__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/c859940b
+        
+        0.0.0.dev5 (2018-10-30)
+        ~~~~~~~~~~~~~~~~~~~~~~~
+        
+        - Fix `select` bug that was causing several cases to be potentially executed
+          at the same time (`commit 1`__, 2__, 3__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/f0b592b4
+          __ https://lab.nexedi.com/kirr/pygolang/commit/b51b8d5d
+          __ https://lab.nexedi.com/kirr/pygolang/commit/2fc6797c
+        
+        - Add `defer` and `recover` (commit__).
+          The implementation is partly inspired by work of Denis Kolodin (1__, 2__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/5146eb0b
+          __ https://habr.com/post/191786
+          __ https://stackoverflow.com/a/43028386/9456786
+        
+        - Fix `@method` on Python3 (commit__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/ab69e0fa
+        
+        - A leaked goroutine no longer prevents whole program to exit (`commit 1`__, 2__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/69cef96e
+          __ https://lab.nexedi.com/kirr/pygolang/commit/ec929991
+        
+        
+        0.0.0.dev4 (2018-07-04)
+        ~~~~~~~~~~~~~~~~~~~~~~~
+        
+        - Add `py.bench` program and `golang.testing` package with corresponding bits (commit__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/9bf03d9c
+        
+        0.0.0.dev3 (2018-07-02)
+        ~~~~~~~~~~~~~~~~~~~~~~~
+        
+        - Support both Python2 and Python3; `qq` now does not escape printable UTF-8
+          characters. (`commit 1`__, 2__, 3__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/02dddb97
+          __ https://lab.nexedi.com/kirr/pygolang/commit/e01e5c2f
+          __ https://lab.nexedi.com/kirr/pygolang/commit/622ccd82
+        
+        - `golang/x/perf/benchlib:` New module to load & work with data in Go benchmark
+          format (commit__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/812e7ed7
+        
+        
+        0.0.0.dev2 (2018-06-20)
+        ~~~~~~~~~~~~~~~~~~~~~~~
+        
+        - Turn into full pygolang: `go`, `chan`, `select`, `method` and `gcompat.qq`
+          are provided in addition to `gimport` (commit__). The implementation is
+          not very fast, but should be working correctly including `select` - `select`
+          sends for synchronous channels.
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/afa46cf5
+        
+        
+        0.0.0.dev1 (2018-05-21)
+        ~~~~~~~~~~~~~~~~~~~~~~~
+        
+        - Initial release; `gimport` functionality only (commit__).
+        
+          __ https://lab.nexedi.com/kirr/pygolang/commit/9c61f254
+        
+Keywords: golang go channel goroutine concurrency GOPATH python import gpython gevent
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Topic :: Software Development :: Interpreters
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Description-Content-Type: text/x-rst
+Provides-Extra: test
