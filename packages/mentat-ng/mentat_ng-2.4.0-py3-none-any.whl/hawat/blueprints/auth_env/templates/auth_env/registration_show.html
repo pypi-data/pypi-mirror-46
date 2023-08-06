@@ -1,0 +1,45 @@
+{%- extends "_layout.html" %}
+
+{%- block content %}
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="well col-md-6 col-md-offset-3">
+                        <h1>{{ gettext('Account is registered') }}</h1>
+                        <p class="lead">
+                            {{ gettext('Following account matching your current credentials was found in database:') }}
+                        </p>
+                        <table class="table">
+                            <tr>
+                                <th>{{ gettext('Login:') }}</th>
+                                <td>{{ item.login }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ gettext('Full name:') }}</th>
+                                <td>{{ item.fullname }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ gettext('Email:') }}</th>
+                                <td>{{ item.email }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ gettext('Organization:') }}</th>
+                                <td>{{ item.organization }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ gettext('Registered at:') }}</th>
+                                <td>{{ babel_format_datetime(item.createtime) }} ({{ gettext('%(delta)s ago', delta = babel_format_timedelta(current_datetime_utc - item.createtime)) }})</td>
+                            </tr>
+                        </table>
+                        <h2>
+    {%- if item.enabled -%}
+                            <span class="label label-success">{{ gettext('Account is currently enabled') }}</span>
+    {%- else -%}
+                            <span class="label label-danger">{{ gettext('Account is currently disabled') }}</span>
+    {%- endif -%}
+                        </h2>
+                    </div> <!-- /.well -->
+                </div> <!-- /.col-lg-12 -->
+            </div> <!-- /.row -->
+
+{%- endblock content %}

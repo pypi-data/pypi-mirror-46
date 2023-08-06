@@ -1,0 +1,58 @@
+{%- extends "_layout.html" %}
+
+{%- block content %}
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <ol class="breadcrumb">
+                        <li><a href="{{ url_for('home.index') }}">{{ gettext('Home') }}</a></li>
+                        <li class="active">{{ gettext('Register user account') }}</li>
+                    </ol>
+                    <hr>
+                    <div class="well col-md-4 col-md-offset-4">
+
+                        <form method="POST" action="{{ form_url }}">
+                            <fieldset>
+                                <legend>{{ hawat_current_view.get_view_title() }}</legend>
+
+                                {{ macros_form.render_form_item_static(gettext('Login:'), item.login) }}
+
+                                {{ macros_form.render_form_item_default(form.fullname) }}
+
+                                {{ macros_form.render_form_item_default(form.email) }}
+
+                                {{ macros_form.render_form_item_default(form.organization) }}
+
+                                {{ macros_form.render_form_item_default(form.justification) }}
+
+                                <hr>
+
+                                {{ macros_form.render_form_item_select(form.memberships) }}
+
+                                <hr>
+
+                                {{ macros_form.render_form_item_select(form.locale) }}
+
+                                {{ macros_form.render_form_item_select(form.timezone) }}
+
+                                <hr>
+
+                                {{ macros_form.render_form_errors(form.csrf_token.errors) }}
+                                {{ form.csrf_token }}
+                                {{ form.cancel(class_='btn btn-default') }}
+                                {{ form.submit(class_='btn btn-primary') }}
+
+                            <fieldset>
+                        </form>
+
+    {%- if permission_can('developer') %}
+                        <pre>
+{{ apacheenv | pprint }}
+                        </pre>
+    {%- endif -%}
+
+                    </div> <!-- /.well -->
+                </div> <!-- /.col-lg-12 -->
+            </div> <!-- /.row -->
+
+{%- endblock content %}

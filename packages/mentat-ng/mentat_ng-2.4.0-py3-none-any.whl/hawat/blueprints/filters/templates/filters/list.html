@@ -1,0 +1,62 @@
+{%- extends "_layout_list.html" %}
+
+{%- block contentinner %}
+
+                    <table class="table table-bordered table-hover table-striped hawat-datatable">
+                        <thead>
+                            <tr>
+                                <th>
+                                    {{ gettext('Group') }}
+                                </th>
+                                <th>
+                                    {{ gettext('Name') }}
+                                </th>
+                                <th>
+                                    {{ gettext('Type') }}
+                                </th>
+                                <th>
+                                    {{ gettext('Description') }}
+                                </th>
+                                <th>
+                                    {{ gettext('Hits') }}
+                                </th>
+                                <th>
+                                    {{ gettext('State') }}
+                                </th>
+                                <th data-toggle="tooltip" title="{{ gettext('Contextual item actions') }}">
+                                    {{ get_icon('actions') }} {{ gettext('Actions') }}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {%- for item in items %}
+                            <tr>
+                                <td>
+                                    <a data-toggle="tooltip" href="{{ url_for('groups.show', item_id = item.group.id ) }}" title="{{ gettext('View details of group &quot;%(item)s&quot;', item = item.group.name) }}">
+                                        {{ item.group.name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {{ item.name | default(gettext('<< unknown >>'), True) }}
+                                </td>
+                                <td>
+                                    {{ item.type | default(gettext('<< unknown >>'), True) }}
+                                </td>
+                                <td>
+                                    {{ item.description | default(gettext('<< unknown >>'), True) | truncate(50) }}
+                                </td>
+                                <td>
+                                    {{ item.hits }}
+                                </td>
+                                <td>
+                                    {{ macros_site.render_label_item_state(item.enabled, True) }}
+                                </td>
+                                <td class="column-actions">
+                                    {{ macros_page.render_menu_context_actions(item) }}
+                                </td>
+                            </tr>
+                            {%- endfor %}
+                        </tbody>
+                    </table>
+
+{%- endblock contentinner %}

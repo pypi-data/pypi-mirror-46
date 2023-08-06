@@ -1,0 +1,88 @@
+{%- extends "_layout.html" %}
+
+{%- block content %}
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <ol class="breadcrumb">
+                        <li><a href="{{ url_for('home.index') }}">{{ gettext('Home') }}</a></li>
+                        <li><a href="{{ url_for('networks.list') }}">{{ gettext('Network management') }}</a></li>
+    {%- if item_action == 'update' %}
+                        <li><a href="{{ url_for('networks.show', item_id = item.id) }}">{{ gettext('Network detail') }}</a></li>
+    {%- endif %}
+                        <li class="active">{{ action_name }}</li>
+                    </ol>
+                    <hr>
+                    <div class="well col-md-6 col-md-offset-3">
+
+                        <form method="POST" action="{{ form_url }}">
+                            <fieldset>
+                                <legend>{{ hawat_current_view.get_view_title() }}</legend>
+
+    {%- if item_action == 'createfor' %}
+
+                                {{ macros_form.render_form_item_static(gettext('Group:'), parent.name) }}
+
+    {%- elif item_action == 'create' or current_user.has_role('admin') %}
+
+                                {{ macros_form.render_form_item_select(form.group) }}
+
+    {%- elif item_action == 'update' %}
+
+                                {{ macros_form.render_form_item_static(gettext('Group:'), item.group.name) }}
+
+    {%- endif %}
+
+                                {{ macros_form.render_form_item_default(form.netname) }}
+
+                                {{ macros_form.render_form_item_default(form.description) }}
+
+                                {{ macros_form.render_form_item_default(form.network) }}
+
+                                <hr>
+
+                                {{ macros_form.render_form_errors(form.source.errors) }}
+                                {{ form.source }}
+                                {{ macros_form.render_form_errors(form.next.errors) }}
+                                {{ form.next }}
+                                {{ macros_form.render_form_errors(form.csrf_token.errors) }}
+                                {{ form.csrf_token }}
+
+                                <div class="btn-toolbar" role="toolbar" aria-label="{{ gettext('Form submission buttons') }}">
+                                    <div class="btn-group" role="group">
+                                        {{ form.cancel(class_='btn btn-default') }}
+                                        {{ form.submit(class_='btn btn-primary') }}
+                                    </div>
+                                </div>
+
+                            <fieldset>
+                        </form>
+
+                    </div> <!-- /.well -->
+
+                </div> <!-- /.col-lg-12 -->
+            </div> <!-- /.row -->
+
+    {%- if permission_can('developer') %}
+
+            <div class="row">
+                <div class="col-lg-12">
+
+        {%- if form.errors %}
+
+{{ macros_site.render_raw_var('form-errors', form.errors) }}
+
+        {%- endif %}
+
+        {%- if item %}
+
+{{ macros_site.render_raw_item_view(item) }}
+
+        {%- endif %}
+
+    {%- endif %}
+
+                </div> <!-- /.col-lg-12 -->
+            </div> <!-- /.row -->
+
+{%- endblock content %}

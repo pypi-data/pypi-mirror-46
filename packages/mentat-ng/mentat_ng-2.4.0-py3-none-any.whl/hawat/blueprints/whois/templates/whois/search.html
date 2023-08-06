@@ -1,0 +1,71 @@
+{%- extends "_layout.html" %}
+
+{%- block content %}
+            <div class="row">
+                <div class="col-lg-12">
+
+                    <div class="jumbotron" style="margin-top: 1em;">
+                        <h2>{{ hawat_current_view.get_view_title() }}</h2>
+                        <form method="GET" class="form-inline" action="{{ url_for('whois.search') }}">
+                            <div class="form-group{% if search_form.search.errors %}{{ ' has-error' }}{% endif %}">
+                                {{ search_form.search.label(class_='sr-only') }}
+                                <div class="input-group">
+                                    <div data-toggle="tooltip" class="input-group-addon" title="{{ gettext('Search local whois database for:') }}">{{ get_icon('action-search') }}</div>
+                                    {{ search_form.search(class_='form-control', placeholder=gettext('IP address, range, network or abuse email'), size='50') }}
+                                </div>
+
+                                <div class="btn-group" role="group">
+                                    {{ search_form.submit(class_='btn btn-primary') }}
+                                    <a role="button" class="btn btn-default" href="{{ url_for('whois.search') }}">{{ gettext('Clear') }}</a>
+                                </div>
+                            </div>
+                            {{ macros_form.render_form_errors(search_form.search.errors) }}
+                        </form>
+                    </div> <!-- /.jumbotron -->
+
+                </div> <!-- /.col-lg-12 -->
+            </div>  <!-- /.row -->
+    {%- if search_item %}
+
+            <div class="row">
+                <div class="col-lg-12">
+
+        {%- if search_result %}
+                    <div class="panel panel-default">
+                        <ul class="list-group">
+            {%- for item in search_result %}
+                            <li class="list-group-item">
+                                <p class="lead">
+                                    <em>{% if 'netname' in item %}{{ item['netname'] }}: {% endif %}{{ item['network'] }}</em>
+                                </p>
+                                <p>
+                                    {{ gettext('Target abuse contacts:') }} <strong>{{ item['resolved_abuses'] | join(', ') }}</strong>
+                                </p>
+                                <p>
+                                    {% if 'description' in item %}{{ item['description'] }} {% endif %}(source: {{ item['source'] }})
+                                </p>
+                            </li>
+            {%- endfor %}
+                        </ul>
+                    </div>
+
+        {%- else %}
+                    {%- call macros_site.render_alert('info', False) %}
+                    {{ gettext('There are no records for <strong>%(item_id)s</strong> in <em>Whois</em> database.', item_id = search_item) | safe }}
+                    {%- endcall %}
+        {%- endif %}
+
+                </div> <!-- /.col-lg-12 -->
+            </div> <!-- /.row -->
+
+        {%- if permission_can('developer') %}
+            <hr>
+            {{ macros_site.render_raw_var('form_data', form_data) }}
+            {{ macros_site.render_raw_var('search_result', search_result) }}
+            {{ macros_site.render_raw_var('request_args', request_args) }}
+            {{ macros_site.render_raw_var('query_params', query_params) }}
+        {%- endif %}
+
+    {%- endif %}
+
+{%- endblock content %}
