@@ -1,0 +1,71 @@
+Metadata-Version: 2.1
+Name: aot-client
+Version: 2.1.0
+Summary: The Official Python Client of the Array of Things API
+Home-page: https://github.com/UrbanCCD-UChicago/aot-client-py
+Author: Vince Forgione
+Author-email: vforgione@uchicago.edu
+License: MIT
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Environment :: Console
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: System Administrators
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3.6
+Description-Content-Type: text/markdown
+Requires-Dist: requests
+
+# Array of Things Client
+
+This library serves as the official Python client to the [Array of Things API](https://api.arrayofthings.org/).
+
+## System Requirements
+
+This library will only run on Python 3.6 or better.
+
+We __will not__ support Python 2 or earlier versions of Python 3.
+
+## Using the Library
+
+The AoT Client is available on PyPI:
+
+```bash
+$ pip install aot-client
+```
+
+You can then use it pull down lists of metadata and observations
+as well as detailed information about metadata.
+
+```python
+from aot_client import AotClient
+
+client = AotClient()
+projects = client.list_projects()
+for page in projects:
+  for proj in page.data:
+    print(f'{proj["name"]} is available at /api/projects/{proj["slug"]}')
+```
+
+## Development and Contributing
+
+To run the tests locally:
+
+```bash
+$ pipenv install --dev
+$ pipenv run python -m pytest
+```
+
+To build a release and push it to PyPI:
+
+```bash
+$ pipenv run python setup.py sdist bdist_wheel
+$ pipenv run twine upload dist/*
+```
+
+
