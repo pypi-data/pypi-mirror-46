@@ -1,0 +1,54 @@
+dist: trusty
+language: python
+python: '3.6'
+sudo: false
+env:
+  global:
+    - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
+    - SEGFAULT_SIGNALS=all
+  matrix:
+    - TOXENV=py27-django111
+
+    - TOXENV=py36-django111
+
+    - TOXENV=py36-django21
+
+    - TOXENV=py36-django22
+
+    - TOXENV=flake8
+
+    - TOXENV=manifest
+
+    - TOXENV=readme
+
+    - TOXENV=isort
+
+
+before_install:
+  - pip install coveralls
+  - python --version
+  - uname -a
+  - lsb_release -a
+install:
+  - pip install tox
+  - virtualenv --version
+  - easy_install --version
+  - pip --version
+  - tox --version
+script:
+  - tox -v
+after_success:
+  - tox -e coverage-report
+  - coveralls
+after_failure:
+  - more .tox/log/* | cat
+  - more .tox/*/log/* | cat
+before_cache:
+  - rm -rf $HOME/.cache/pip/log
+cache:
+  directories:
+    - $HOME/.cache/pip
+notifications:
+  email:
+    on_success: never
+    on_failure: always
