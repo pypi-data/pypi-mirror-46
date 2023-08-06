@@ -1,0 +1,29 @@
+var Component,FOCUSABLE_INPUTS,ReactorChannel,all_reactor_components,base_element,base_html_element,component_name,merge_objects,name,origin,reactor_channel,send,indexOf=[].indexOf;origin=new Date();FOCUSABLE_INPUTS=['text','textarea','number','email','password','search','tel','url'];ReactorChannel=class ReactorChannel{constructor(url1='/reactor',retry_interval=100){this.on=this.on.bind(this);this.url=url1;this.retry_interval=retry_interval;this.online=false;this.callbacks={};}
+on(event_name,callback){return this.callbacks[event_name]=callback;}
+trigger(event_name,...args){var base;return typeof(base=this.callbacks)[event_name]==="function"?base[event_name](...args):void 0;}
+open(){var protocol,ref;if(this.retry_interval<10000){this.retry_interval+=1000;}
+if(navigator.onLine){if((ref=this.websocket)!=null){ref.close();}
+if(window.location.protocol==='https:'){protocol='wss://';}else{protocol='ws://';}
+this.websocket=new WebSocket(`${protocol}${window.location.host}${this.url}`);this.websocket.onopen=(e)=>{this.online=true;this.trigger('open');return this.retry_interval=1000;};this.websocket.onclose=(e)=>{this.online=false;this.trigger('close');return setTimeout((()=>{return this.open();}),this.retry_interval);};return this.websocket.onmessage=(e)=>{var data;data=JSON.parse(e.data);return this.trigger('message',data);};}else{return setTimeout((()=>{return this.open();}),this.retry_interval);}}
+send(command,payload){var data;data={command:command,payload:payload};if(this.online){try{return this.websocket.send(JSON.stringify(data));}catch(error){return console.log('Failed sending');}}}};reactor_channel=new ReactorChannel();reactor_channel.open();all_reactor_components=((function(){var i,len,ref,results;ref=Object.keys(reactor_components);results=[];for(i=0,len=ref.length;i<len;i++){name=ref[i];results.push(`${name},[is='${name}']`);}
+return results;})()).join(',');console.log(all_reactor_components);reactor_channel.on('open',function(){var el,i,len,ref,results;console.log('ON-LINE');ref=document.querySelectorAll(all_reactor_components);results=[];for(i=0,len=ref.length;i<len;i++){el=ref[i];el.classList.remove('reactor-disconnected');results.push(el.connect());}
+return results;});reactor_channel.on('close',function(){var el,i,len,ref,results;ref=document.querySelectorAll(all_reactor_components);results=[];for(i=0,len=ref.length;i<len;i++){el=ref[i];results.push(el.classList.add('reactor-disconnected'));}
+return results;});reactor_channel.on('message',function({type,id,html_diff,url}){var el;console.log('<<<',type.toUpperCase(),id||url);if(type==='redirect'){return location.assign(url);}else{el=document.getElementById(id);if(el!=null){if(type==='render'){return el.apply_diff(html_diff);}else if(type==='remove'){return window.requestAnimationFrame(function(){return el.remove();});}}}});for(component_name in reactor_components){base_html_element=reactor_components[component_name];base_element=document.createElement(base_html_element);Component=class Component extends base_element.constructor{constructor(...args){super(...args);this.tag_name=this.getAttribute('is')||this.tagName.toLowerCase();this._last_received_html='';}
+connectedCallback(){return this.connect();}
+disconnectedCallback(){return reactor_channel.send('leave',{id:this.id});}
+is_root(){return!this.parent_component();}
+parent_component(){var component;component=this.parentElement;while(component){if(component.dispatch!=null){return component;}
+component=component.parentElement;}}
+connect(){var state;if(this.is_root()){console.log('>>> JOIN',this.tag_name);state=JSON.parse(this.getAttribute('state'));return reactor_channel.send('join',{tag_name:this.tag_name,state:state});}}
+apply_diff(html_diff){var cursor,diff,html,i,len;console.log(new Date()-origin);html=[];cursor=0;console.log(html_diff);for(i=0,len=html_diff.length;i<len;i++){diff=html_diff[i];if(typeof diff==='string'){html.push(diff);}else if(diff<0){cursor-=diff;}else{html.push(this._last_received_html.slice(cursor,cursor+diff));cursor+=diff;}}
+html=html.join('');if(this._last_received_html!==html){this._last_received_html=html;return window.requestAnimationFrame(()=>{var ref;morphdom(this,html,{onBeforeElUpdated:function(from_el,to_el){var ref;if((ref=from_el.type,indexOf.call(FOCUSABLE_INPUTS,ref)>=0)&&from_el===document.activeElement&&indexOf.call(to_el.getAttributeNames(),'reactor-override-value')<0){to_el.getAttributeNames().forEach(function(name){return from_el.setAttribute(name,to_el.getAttribute(name));});from_el.readOnly=to_el.readOnly;return false;}
+return true;}});return(ref=this.querySelector('[reactor-focus]'))!=null?ref.focus():void 0;});}}
+dispatch(name,args){var k,state,v;state=this.serialize();for(k in args){v=args[k];state[k]=v;}
+console.log('>>> USER_EVENT',this.tag_name,name,state);origin=new Date();return reactor_channel.send('user_event',{name:name,state:state});}
+serialize(state){var checked,i,j,len,len1,obj,part,ref,ref1,satte,type,value;if(state==null){state={id:this.id};}
+ref=this.querySelectorAll('[name]');for(i=0,len=ref.length;i<len;i++){({type,name,value,checked}=ref[i]);value=type==='checkbox'?checked:value;ref1=name.split('.').reverse();for(j=0,len1=ref1.length;j<len1;j++){part=ref1[j];obj={};obj[part]=value;value=obj;}
+satte=merge_objects(state,value);}
+return state;}};customElements.define(component_name,Component,{extends:base_html_element});}
+merge_objects=function(target,source){var k,v;for(k in source){v=source[k];if(typeof target[k]==='object'){merge_objects(target[k],v);}else{target[k]=v;}}
+return target;};send=function(element,name,args){while(element){if(element.dispatch!=null){return element.dispatch(name,args||{});}
+element=element.parentElement;}};
