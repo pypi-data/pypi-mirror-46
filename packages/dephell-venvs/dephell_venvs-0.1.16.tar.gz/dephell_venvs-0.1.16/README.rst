@@ -1,0 +1,104 @@
+
+Dephell VEnvs
+-------------
+
+
+.. image:: https://travis-ci.org/dephell/dephell_venvs.svg?branch=master
+   :target: https://travis-ci.org/dephell/dephell_venvs
+   :alt: travis
+
+
+.. image:: https://ci.appveyor.com/api/projects/status/github/dephell/dephell_venvs?svg=true
+   :target: https://ci.appveyor.com/project/orsinium/dephell-venvs
+   :alt: appveyor
+
+
+.. image:: https://img.shields.io/pypi/l/dephell-venvs.svg
+   :target: https://github.com/dephell/dephell_venvs/blob/master/LICENSE
+   :alt: MIT License
+
+
+Manage Python virtual environments.
+
+Installation
+------------
+
+Install from `PyPI <https://pypi.org/project/dephell-venvs>`_\ :
+
+.. code-block:: bash
+
+   python3 -m pip install --user dephell_venvs
+
+Get venv from manager
+---------------------
+
+.. code-block:: python
+
+   from pathlib import Path
+   from dephell_venvs import VEnv, VEnvs
+
+   # pass here path with substitutions:
+   venvs = VEnvs(path=Path() / '{project}-{digest}' / '{env}')
+
+``VEnvs`` gets argument ``path`` that is path to the virtual environment with substitutions:
+
+
+* ``{project}`` - last part of the path to the project.
+* ``{digest}`` - short hash of full path to the project to avoid collisions.
+* ``{env}`` - name of sub-environment because most of project need more than one environment. For example, ``tests``\ , ``docs``\ , ``tests-py35``.
+
+Ways to get ``VEnv`` object from ``VEnvs``\ :
+
+
+* ``venvs.get(project_path, env)``. Pass here path to the project and sub-environment name and DepHell will substitute them is the path template and return ``VEnv`` instance for this path.
+* ``venvs.get_by_name(name)``. Pass only name and this will be substituted as ``{project}`` and other substitutions (\ ``{digest}``\ , ``{env}``\ ) will be just dropped out.
+* ``venvs.current`` -- returns current active venv if some venv is active.
+
+Example:
+
+.. code-block:: python
+
+   venv = venvs.get(project_path=Path('dephell_venvs'), env='pytest')
+   # VEnv(path=PosixPath('dephell_venvs/pytest'), project='dephell_venvs', env='pytest')
+
+Manage venv
+-----------
+
+``VEnv`` can be got from ``VEnvs`` ot created manually:
+
+.. code-block:: python
+
+   venv = VEnv(path=Path('venv'))
+
+Check existence:
+
+.. code-block:: python
+
+   venv.exists()
+   # False
+
+Create and destroy:
+
+.. code-block:: python
+
+   venv.create()
+   venv.destroy()
+
+Some other useful information:
+
+.. code-block:: python
+
+   venv.bin_path
+   # PosixPath('dephell_venvs-njyT/pytest/bin')
+   venv.lib_path
+   # PosixPath('dephell_venvs-njyT/pytest/lib/python3.7/site-packages')
+   venv.python_path
+   # PosixPath('dephell_venvs-njyT/pytest/bin/python3.7')
+
+   venv.prompt
+   # 'dephell_venvs/pytest'
+
+   venv.python
+   # Python(path=PosixPath('dephell_venvs-njyT/pytest/bin/python3.7'), version='3.7.0', implementation='python', abstract=False)
+
+For details about ``Python`` object see `dephell_pythons <https://github.com/dephell/dephell_pythons>`_.
