@@ -1,0 +1,811 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>mdfreader module documentation &#8212; mdfreader 2.8 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdfreader 2.8 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-mdfreader.mdfreader">
+<span id="mdfreader-module-documentation"></span><h1>mdfreader module documentation<a class="headerlink" href="#module-mdfreader.mdfreader" title="Permalink to this headline">¶</a></h1>
+<p>Measured Data Format file reader main module</p>
+<div class="section" id="platform-and-python-version">
+<h2>Platform and python version<a class="headerlink" href="#platform-and-python-version" title="Permalink to this headline">¶</a></h2>
+<p>With Unix and Windows for python 2.6+ and 3.2+</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Author:</th><td class="field-body"><a class="reference external" href="https://github.com/ratal/mdfreader">Aymeric Rateau</a></td>
+</tr>
+</tbody>
+</table>
+<p>Created on Sun Oct 10 12:57:28 2010</p>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Python &gt;2.6, &gt;3.2 &lt;<a class="reference external" href="http://www.python.org">http://www.python.org</a>&gt;</li>
+<li>Numpy &gt;1.6 &lt;<a class="reference external" href="http://numpy.scipy.org">http://numpy.scipy.org</a>&gt;</li>
+<li>Sympy to convert channels with formula</li>
+<li>bitarray for not byte aligned data parsing</li>
+<li>Matplotlib &gt;1.0 &lt;<a class="reference external" href="http://matplotlib.sourceforge.net">http://matplotlib.sourceforge.net</a>&gt;</li>
+<li>NetCDF</li>
+<li>h5py for the HDF5 export</li>
+<li>xlwt for the excel export (not existing for python3)</li>
+<li>openpyxl for the excel 2007 export</li>
+<li>scipy for the Matlab file conversion</li>
+<li>zlib to uncompress data block if needed</li>
+</ul>
+</div>
+<div class="section" id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>PythonVersion <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Python version currently running, needed for compatibility of both python 2.6+ and 3.2+</dd>
+</dl>
+</div>
+<div class="section" id="mdfreader-module">
+<h2>mdfreader module<a class="headerlink" href="#mdfreader-module" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mdfreader.mdfreader.mdf">
+<em class="property">class </em><code class="descclassname">mdfreader.mdfreader.</code><code class="descname">mdf</code><span class="sig-paren">(</span><em>fileName=None</em>, <em>channelList=None</em>, <em>convertAfterRead=True</em>, <em>filterChannelNames=False</em>, <em>noDataLoading=False</em>, <em>compression=False</em>, <em>convertTables=False</em>, <em>metadata=2</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../mdf3reader/index.html#mdfreader.mdf3reader.mdf3" title="mdfreader.mdf3reader.mdf3"><code class="xref py py-class docutils literal notranslate"><span class="pre">mdfreader.mdf3reader.mdf3</span></code></a>, <a class="reference internal" href="../mdf4reader/index.html#mdfreader.mdf4reader.mdf4" title="mdfreader.mdf4reader.mdf4"><code class="xref py py-class docutils literal notranslate"><span class="pre">mdfreader.mdf4reader.mdf4</span></code></a></p>
+<p>mdf class</p>
+<p class="rubric">Notes</p>
+<p>mdf class is a nested dict
+Channel name is the primary dict key of mdf class
+At a higher level, each channel includes the following keys :</p>
+<blockquote>
+<div><ul class="simple">
+<li>‘data’ : containing vector of data (numpy)</li>
+<li>‘unit’ : unit (string)</li>
+<li>‘master’ : master channel of channel (time, crank angle, etc.)</li>
+<li>‘description’ : Description of channel</li>
+<li><dl class="first docutils">
+<dt>‘conversion’: mdfinfo nested dict for CCBlock.</dt>
+<dd>Exist if channel not converted, used to convert with getChannelData method</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">mdfreader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">=</span><span class="n">mdfreader</span><span class="o">.</span><span class="n">mdf</span><span class="p">(</span><span class="s1">&#39;NameOfFile&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="c1"># list channels names</span>
+<span class="go"># list channels grouped by raster or master channel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">masterChannelList</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;channelName&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">yop</span><span class="o">.</span><span class="n">plot</span><span class="p">({</span><span class="s1">&#39;channel1&#39;</span><span class="p">,</span><span class="s1">&#39;channel2&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span> <span class="ow">or</span> <span class="n">yop</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">channelName</span><span class="o">=</span><span class="s1">&#39;master3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">exportoCSV</span><span class="p">(</span><span class="n">sampling</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">exportNetCDF</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">exporttoHDF5</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">exporttoMatlab</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">exporttoExcel</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">exporttoXlsx</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">convertToPandas</span><span class="p">()</span> <span class="c1"># converts data groups into pandas dataframes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">write</span><span class="p">()</span> <span class="c1"># writes mdf file</span>
+<span class="go"># drops all the channels except the one in argument</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">keepChannels</span><span class="p">({</span><span class="s1">&#39;channel1&#39;</span><span class="p">,</span><span class="s1">&#39;channel2&#39;</span><span class="p">,</span><span class="s1">&#39;channel3&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yop</span><span class="o">.</span><span class="n">getChannelData</span><span class="p">(</span><span class="s1">&#39;channelName&#39;</span><span class="p">)</span> <span class="c1"># returns channel numpy array</span>
+</pre></div>
+</div>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>fileName</strong></td>
+<td>(str) file name</td>
+</tr>
+<tr class="row-even"><td><strong>MDFVersionNumber</strong></td>
+<td>(int) mdf file version number</td>
+</tr>
+<tr class="row-odd"><td><strong>masterChannelList</strong></td>
+<td>(dict) Represents data structure: a key per master channel with corresponding value containing a list of channels One key or master channel represents then a data group having same sampling interval.</td>
+</tr>
+<tr class="row-even"><td><strong>multiProc</strong></td>
+<td>(bool) Flag to request channel conversion multi processed for performance improvement. One thread per data group.</td>
+</tr>
+<tr class="row-odd"><td><strong>file_metadata</strong></td>
+<td>(dict) file metadata with minimum keys : author, organisation, project, subject, comment, time, date</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="60%" />
+<col width="40%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>read( fileName = None, multiProc = False, channelList=None, convertAfterRead=True, filterChannelNames=False,</strong></td>
+<td>noDataLoading=False, compression=False) reads mdf file version 3.x and 4.x</td>
+</tr>
+<tr class="row-even"><td><strong>write( fileName=None )</strong></td>
+<td>writes simple mdf file</td>
+</tr>
+<tr class="row-odd"><td><strong>getChannelData( channelName )</strong></td>
+<td>returns channel numpy array</td>
+</tr>
+<tr class="row-even"><td><strong>convertAllChannel()</strong></td>
+<td>converts all channel data according to CCBlock information</td>
+</tr>
+<tr class="row-odd"><td><strong>getChannelUnit( channelName )</strong></td>
+<td>returns channel unit</td>
+</tr>
+<tr class="row-even"><td><strong>plot( channels )</strong></td>
+<td>Plot channels with Matplotlib</td>
+</tr>
+<tr class="row-odd"><td><strong>resample( samplingTime = 0.1, masterChannel=None )</strong></td>
+<td>Resamples all data groups</td>
+</tr>
+<tr class="row-even"><td><strong>exportToCSV( filename = None, sampling = 0.1 )</strong></td>
+<td>Exports mdf data into CSV file</td>
+</tr>
+<tr class="row-odd"><td><strong>exportToNetCDF( filename = None, sampling = None )</strong></td>
+<td>Exports mdf data into netcdf file</td>
+</tr>
+<tr class="row-even"><td><strong>exportToHDF5( filename = None, sampling = None )</strong></td>
+<td>Exports mdf class data structure into hdf5 file</td>
+</tr>
+<tr class="row-odd"><td><strong>exportToMatlab( filename = None )</strong></td>
+<td>Exports mdf class data structure into Matlab file</td>
+</tr>
+<tr class="row-even"><td><strong>exportToExcel( filename = None )</strong></td>
+<td>Exports mdf data into excel 95 to 2003 file</td>
+</tr>
+<tr class="row-odd"><td><strong>exportToXlsx( filename=None )</strong></td>
+<td>Exports mdf data into excel 2007 and 2010 file</td>
+</tr>
+<tr class="row-even"><td><strong>convertToPandas( sampling=None )</strong></td>
+<td>converts mdf data structure into pandas dataframe(s)</td>
+</tr>
+<tr class="row-odd"><td><strong>keepChannels( channelList )</strong></td>
+<td>keeps only list of channels and removes the other channels</td>
+</tr>
+<tr class="row-even"><td><strong>mergeMdf( mdfClass ):</strong></td>
+<td>Merges data of 2 mdf classes</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.allPlot">
+<code class="descname">allPlot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.allPlot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.convertAllChannel">
+<code class="descname">convertAllChannel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.convertAllChannel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts all channels from raw data to converted data according to CCBlock information
+Converted data will take more memory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.convertToPandas">
+<code class="descname">convertToPandas</code><span class="sig-paren">(</span><em>sampling=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.convertToPandas" title="Permalink to this definition">¶</a></dt>
+<dd><p>converts mdf data structure into pandas dataframe(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>sampling</strong> : float, optional</p>
+<blockquote class="last">
+<div><p>resampling interval</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>One pandas dataframe is converted per data group
+Not adapted yet for mdf4 as it considers only time master channels</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>make a shallow copy a mdf class</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.cut">
+<code class="descname">cut</code><span class="sig-paren">(</span><em>begin=None</em>, <em>end=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.cut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>begin</strong> : float</p>
+<blockquote>
+<div><p>beginning value in master channel from which to start cutting in all channels</p>
+</div></blockquote>
+<p><strong>end</strong> : float</p>
+<blockquote class="last">
+<div><p>ending value in master channel from which to start cutting in all channels</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Use this method if whole data in mdf are using same physical or type of
+master channel (for instance time).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.exportToCSV">
+<code class="descname">exportToCSV</code><span class="sig-paren">(</span><em>filename=None</em>, <em>sampling=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.exportToCSV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports mdf data into CSV file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : str, optional</p>
+<blockquote>
+<div><p>file name. If no name defined, it will use original mdf name and path</p>
+</div></blockquote>
+<p><strong>sampling</strong> : float, optional</p>
+<blockquote class="last">
+<div><p>sampling interval. None by default</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Data saved in CSV fille be automatically resampled as it is difficult to save in this format
+data not sharing same master channel
+Warning: this can be slow for big data, CSV is text format after all</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.exportToExcel">
+<code class="descname">exportToExcel</code><span class="sig-paren">(</span><em>filename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.exportToExcel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports mdf data into excel 95 to 2003 file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>file name. If no name defined, it will use original mdf name and path</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>xlwt is not fast even for small files, consider other binary formats like HDF5 or Matlab
+If there are more than 256 channels, data will be saved over different worksheets
+Also Excel 2003 is becoming rare these days, prefer using exportToXlsx</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.exportToHDF5">
+<code class="descname">exportToHDF5</code><span class="sig-paren">(</span><em>filename=None</em>, <em>sampling=None</em>, <em>compression=None</em>, <em>compression_opts=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.exportToHDF5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports mdf class data structure into hdf5 file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : str, optional</p>
+<blockquote>
+<div><p>file name. If no name defined, it will use original mdf name and path</p>
+</div></blockquote>
+<p><strong>sampling</strong> : float, optional</p>
+<blockquote>
+<div><p>sampling interval.</p>
+</div></blockquote>
+<p><strong>compression</strong> : str, optional</p>
+<blockquote>
+<div><p>HDF5 compression algorithm. Valid options are ‘gzip’, ‘lzf’.
+gzip compression recommended for portability.
+szip compression not supported due to legal reasons.</p>
+</div></blockquote>
+<p><strong>compression_opts</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>HDF5 gzip compression level, 0-9. Only valid if gzip compression is used.
+Level 4 (default) recommended for best balance between compression and time.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The maximum attributes will be stored
+Data structure will be similar has it is in masterChannelList attribute</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.exportToMatlab">
+<code class="descname">exportToMatlab</code><span class="sig-paren">(</span><em>filename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.exportToMatlab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export mdf data into Matlab file format 5, tentatively compressed</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>file name. If no name defined, it will use original mdf name and path</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This method will dump all data into Matlab file but you will loose below information:
+- unit and descriptions of channel
+- data structure, what is corresponding master channel to a channel.</p>
+<blockquote>
+<div>Channels might have then different lengths</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.exportToNetCDF">
+<code class="descname">exportToNetCDF</code><span class="sig-paren">(</span><em>filename=None</em>, <em>sampling=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.exportToNetCDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports mdf data into netcdf file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : str, optional</p>
+<blockquote>
+<div><p>file name. If no name defined, it will use original mdf name and path</p>
+</div></blockquote>
+<p><strong>sampling</strong> : float, optional</p>
+<blockquote class="last">
+<div><p>sampling interval.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.exportToXlsx">
+<code class="descname">exportToXlsx</code><span class="sig-paren">(</span><em>filename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.exportToXlsx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports mdf data into excel 2007 and 2010 file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>file name. If no name defined, it will use original mdf name and path</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>It is recommended to export resampled data for performances</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.getChannelData">
+<code class="descname">getChannelData</code><span class="sig-paren">(</span><em>channelName</em>, <em>raw_data=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.getChannelData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return channel numpy array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>channelName</strong> : str</p>
+<blockquote>
+<div><p>channel name</p>
+</div></blockquote>
+<p><strong>raw_data: bool</strong></p>
+<blockquote class="last">
+<div><p>flag to return non converted data</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This method is the safest to get channel data as numpy array from ‘data’ dict key might contain raw data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.keepChannels">
+<code class="descname">keepChannels</code><span class="sig-paren">(</span><em>channelList</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.keepChannels" title="Permalink to this definition">¶</a></dt>
+<dd><p>keeps only list of channels and removes the other channels</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>channelList</strong> : list of str</p>
+<blockquote class="last">
+<div><p>list of channel names</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.mergeMdf">
+<code class="descname">mergeMdf</code><span class="sig-paren">(</span><em>mdfClass</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.mergeMdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merges data of 2 mdf classes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>mdfClass</strong> : mdf</p>
+<blockquote class="last">
+<div><p>mdf class instance to be merge with self</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>both classes must have been resampled, otherwise, impossible to know master channel to match
+create union of both channel lists and fill with Nan for unknown sections in channels</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>channel_name_list_of_list</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot channels with Matplotlib</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>channel_name_list_of_list</strong> : str or list of str or list of list of str</p>
+<blockquote class="last">
+<div><p>channel name or list of channel names or list of list of channel names
+list of list will create multiplots</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Channel description and unit will be tentatively displayed with axis labels</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>fileName=None</em>, <em>multiProc=False</em>, <em>channelList=None</em>, <em>convertAfterRead=True</em>, <em>filterChannelNames=False</em>, <em>noDataLoading=False</em>, <em>compression=False</em>, <em>metadata=2</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>reads mdf file version 3.x and 4.x</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fileName</strong> : str, optional</p>
+<blockquote>
+<div><p>file name</p>
+</div></blockquote>
+<p><strong>multiProc</strong> : bool</p>
+<blockquote>
+<div><p>flag to activate multiprocessing of channel data conversion</p>
+</div></blockquote>
+<p><strong>channelList</strong> : list of str, optional</p>
+<blockquote>
+<div><p>list of channel names to be read
+If you use channelList, reading might be much slower but it will save you memory.
+Can be used to read big files</p>
+</div></blockquote>
+<p><strong>convertAfterRead</strong> : bool, optional</p>
+<blockquote>
+<div><p>flag to convert channel after read, True by default
+If you use convertAfterRead by setting it to false, all data from channels will be kept raw,
+no conversion applied. If many float are stored in file, you can gain from 3 to 4 times memory footprint
+To calculate value from channel, you can then use method .getChannelData()</p>
+</div></blockquote>
+<p><strong>filterChannelNames</strong> : bool, optional</p>
+<blockquote>
+<div><p>flag to filter long channel names from its module names separated by ‘.’</p>
+</div></blockquote>
+<p><strong>noDataLoading</strong> : bool, optional</p>
+<blockquote>
+<div><p>Flag to read only file info but no data to have minimum memory use</p>
+</div></blockquote>
+<p><strong>compression</strong> : bool or str, optional</p>
+<blockquote>
+<div><p>To compress data in memory using blosc or bcolz, takes cpu time
+if compression = int(1 to 9), uses bcolz for compression
+if compression = ‘blosc’, uses blosc for compression
+Choice given, efficiency depends of data</p>
+</div></blockquote>
+<p><strong>metadata: int, optional, default = 2</strong></p>
+<blockquote class="last">
+<div><p>Reading metadata has impact on performance, especially for mdf 4.x using xml.
+2: minimal metadata reading (mostly channel blocks)
+1: used for noDataLoading
+0: all metadata reading, including Source Information, Attachment, etc..</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<dl class="docutils">
+<dt>If you keep convertAfterRead to true, you can set attribute mdf.multiProc to activate channel conversion</dt>
+<dd>in multiprocessing. Gain in reading time can be around 30% if file is big and using a lot of float channels</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.resample">
+<code class="descname">resample</code><span class="sig-paren">(</span><em>samplingTime=None</em>, <em>masterChannel=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.resample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resamples all data groups into one data group having defined
+sampling interval or sharing same master channel</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>samplingTime</strong> : float, optional</p>
+<blockquote>
+<div><p>resampling interval, None by default. If None, will merge all datagroups
+into a unique datagroup having the highest sampling rate from all datagroups</p>
+</div></blockquote>
+<p><strong>**or**</strong></p>
+<p><strong>masterChannel</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>master channel name to be used for all channels</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>1. resampling is relatively safe for mdf3 as it contains only time series.
+However, mdf4 can contain also distance, angle, etc. It might make not sense
+to apply one resampling to several data groups that do not share same kind
+of master channel (like time resampling to distance or angle data groups)
+If several kind of data groups are used, you should better use pandas to resample</p>
+<p>2. resampling will convert all your channels so be careful for big files
+and memory consumption</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdf.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>fileName=None</em>, <em>compression=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdf.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes simple mdf file, same format as originally read, default is 4.x</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fileName</strong> : str, optional</p>
+<blockquote>
+<div><p>Name of file
+If file name is not input, written file name will be the one read with appended ‘_new’ string before extension</p>
+</div></blockquote>
+<p><strong>compression</strong> : bool</p>
+<blockquote class="last">
+<div><p>Flag to store data compressed (from mdf version 4.1)
+If activated, will write in version 4.1 even if original file is in version 3.x</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>All channels will be converted, so size might be bigger than original file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mdfreader.mdfreader.mdfinfo">
+<em class="property">class </em><code class="descclassname">mdfreader.mdfreader.</code><code class="descname">mdfinfo</code><span class="sig-paren">(</span><em>) -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's (key</em>, <em>value) pairs dict(iterable) -&gt; new dictionary initialized as if via: d = {} for k</em>, <em>v in iterable: d[k] = v dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs in the keyword argument list.  For example:  dict(one=1</em>, <em>two=2</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdfinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">fromkeys</span></code>($type,&nbsp;iterable[,&nbsp;value])</td>
+<td>Returns a new dict with keys from iterable and values equal to value.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code>(k[,d])</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">items</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">keys</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.mdfreader.mdfinfo.listChannels" title="mdfreader.mdfreader.mdfinfo.listChannels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">listChannels</span></code></a>([fileName])</td>
+<td>Read MDF file blocks and returns a list of contained channels</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">pop</span></code>(k[,d])</td>
+<td>If key is not found, d is returned if given, otherwise KeyError is raised</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">popitem</span></code>()</td>
+<td>2-tuple; but raise KeyError if D is empty.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.mdfreader.mdfinfo.readinfo" title="mdfreader.mdfreader.mdfinfo.readinfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">readinfo</span></code></a>([fileName,&nbsp;fid,&nbsp;minimal])</td>
+<td>Reads MDF file and extracts its complete structure</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">setdefault</span></code>(k[,d])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code>([E,&nbsp;]**F)</td>
+<td>If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k] If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v In either case, this is followed by: for k in F:  D[k] = F[k]</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">values</span></code>()</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="mdfreader.mdfreader.mdfinfo.fid">
+<code class="descname">fid</code><a class="headerlink" href="#mdfreader.mdfreader.mdfinfo.fid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.mdfreader.mdfinfo.fileName">
+<code class="descname">fileName</code><a class="headerlink" href="#mdfreader.mdfreader.mdfinfo.fileName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.mdfreader.mdfinfo.filterChannelNames">
+<code class="descname">filterChannelNames</code><a class="headerlink" href="#mdfreader.mdfreader.mdfinfo.filterChannelNames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdfinfo.listChannels">
+<code class="descname">listChannels</code><span class="sig-paren">(</span><em>fileName=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdfinfo.listChannels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read MDF file blocks and returns a list of contained channels</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fileName</strong> : string</p>
+<blockquote>
+<div><p>file name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>nameList</strong> : list of string</p>
+<blockquote class="last">
+<div><p>list of channel names</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.mdfreader.mdfinfo.mdfversion">
+<code class="descname">mdfversion</code><a class="headerlink" href="#mdfreader.mdfreader.mdfinfo.mdfversion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.mdfreader.mdfinfo.readinfo">
+<code class="descname">readinfo</code><span class="sig-paren">(</span><em>fileName=None</em>, <em>fid=None</em>, <em>minimal=0</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.mdfreader.mdfinfo.readinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads MDF file and extracts its complete structure</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fileName</strong> : str, optional</p>
+<blockquote>
+<div><p>file name. If not input, uses fileName attribute</p>
+</div></blockquote>
+<p><strong>fid</strong> : file identifier, optional</p>
+<p><strong>minimal</strong> : int</p>
+<blockquote class="last">
+<div><p>0 will load every metadata
+1 will load DG, CG, CN and CC
+2 will load only DG</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.mdfreader.mdfinfo.zipfile">
+<code class="descname">zipfile</code><a class="headerlink" href="#mdfreader.mdfreader.mdfinfo.zipfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">mdfreader module documentation</a><ul>
+<li><a class="reference internal" href="#platform-and-python-version">Platform and python version</a></li>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
+<li><a class="reference internal" href="#mdfreader-module">mdfreader module</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/mdfreader/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdfreader 2.8 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Aymeric Rateau.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+    </div>
+  </body>
+</html>

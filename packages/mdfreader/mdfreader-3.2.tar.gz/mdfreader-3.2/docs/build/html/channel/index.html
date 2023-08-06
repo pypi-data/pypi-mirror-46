@@ -1,0 +1,1199 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>channel module documentation &#8212; mdfreader 2.8 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdfreader 2.8 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-mdfreader.channel">
+<span id="channel-module-documentation"></span><h1>channel module documentation<a class="headerlink" href="#module-mdfreader.channel" title="Permalink to this headline">¶</a></h1>
+<p>Measured Data Format file reader module.</p>
+<div class="section" id="platform-and-python-version">
+<h2>Platform and python version<a class="headerlink" href="#platform-and-python-version" title="Permalink to this headline">¶</a></h2>
+<p>With Unix and Windows for python 2.7 and 3.4+</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Author:</th><td class="field-body"><a class="reference external" href="https://github.com/ratal/mdfreader">Aymeric Rateau</a></td>
+</tr>
+</tbody>
+</table>
+<p>Created on Wed Oct 04 21:13:28 2017</p>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Python &gt;2.6, &gt;3.4 &lt;<a class="reference external" href="http://www.python.org">http://www.python.org</a>&gt;</li>
+<li>Numpy &gt;1.6 &lt;<a class="reference external" href="http://numpy.scipy.org">http://numpy.scipy.org</a>&gt;</li>
+</ul>
+</div>
+<div class="section" id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>PythonVersion <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Python version currently running, needed for compatibility of both
+python 2.6+ and 3.4+</dd>
+</dl>
+</div>
+<div class="section" id="channel-module">
+<h2>channel module<a class="headerlink" href="#channel-module" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mdfreader.channel.Channel3">
+<em class="property">class </em><code class="descclassname">mdfreader.channel.</code><code class="descname">Channel3</code><span class="sig-paren">(</span><em>info</em>, <em>dataGroup</em>, <em>channelGroup</em>, <em>channelNumber</em>, <em>recordIDnumber</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.Channel3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Channel class gathers all about channel structure in a record</p>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="81%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>name</strong></td>
+<td>(str) Name of channel</td>
+</tr>
+<tr class="row-even"><td><strong>unit</strong></td>
+<td>(str, default empty string) channel unit</td>
+</tr>
+<tr class="row-odd"><td><strong>desc</strong></td>
+<td>(str) channel description</td>
+</tr>
+<tr class="row-even"><td><strong>conversion</strong></td>
+<td>(info class) conversion dictionnary</td>
+</tr>
+<tr class="row-odd"><td><strong>channelNumber</strong></td>
+<td>(int) channel number corresponding to mdfinfo3.info3 class</td>
+</tr>
+<tr class="row-even"><td><strong>signalDataType</strong></td>
+<td>(int) signal type according to specification</td>
+</tr>
+<tr class="row-odd"><td><strong>bitCount</strong></td>
+<td>(int) number of bits used to store channel record</td>
+</tr>
+<tr class="row-even"><td><strong>nBytes</strong></td>
+<td>(int) number of bytes (1 byte = 8 bits) taken by channel record</td>
+</tr>
+<tr class="row-odd"><td><strong>dataFormat</strong></td>
+<td>(str) numpy dtype as string</td>
+</tr>
+<tr class="row-even"><td><strong>CFormat</strong></td>
+<td>(struct class instance) struct instance to convert from C Format</td>
+</tr>
+<tr class="row-odd"><td><strong>byteOffset</strong></td>
+<td>(int) position of channel record in complete record in bytes</td>
+</tr>
+<tr class="row-even"><td><strong>bitOffset</strong></td>
+<td>(int) bit position of channel value inside byte in case of channel having bit count below 8</td>
+</tr>
+<tr class="row-odd"><td><strong>recAttributeName</strong></td>
+<td>(str) channel name compliant to a valid python identifier (recarray attribute)</td>
+</tr>
+<tr class="row-even"><td><strong>RecordFormat</strong></td>
+<td>(list of str) dtype format used for numpy.core.records functions ((name_title,name),str_stype)</td>
+</tr>
+<tr class="row-odd"><td><strong>channelType</strong></td>
+<td>(int) channel type</td>
+</tr>
+<tr class="row-even"><td><strong>posByteBeg</strong></td>
+<td>(int) start position in number of bit of channel record in complete record</td>
+</tr>
+<tr class="row-odd"><td><strong>posByteEnd</strong></td>
+<td>(int) end position in number of bit of channel record in complete record</td>
+</tr>
+<tr class="row-even"><td><strong>bit_masking_needed</strong></td>
+<td>(bool, default false) True if bit masking needed after data read</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="75%" />
+<col width="25%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>__init__(info, dataGroup, channelGroup, channelNumber, recordIDnumber)</strong></td>
+<td>constructor</td>
+</tr>
+<tr class="row-even"><td><strong>__str__()</strong></td>
+<td>to print class attributes</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="mdfreader.channel.Channel3.changeChannelName">
+<code class="descname">changeChannelName</code><span class="sig-paren">(</span><em>channelGroup</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.Channel3.changeChannelName" title="Permalink to this definition">¶</a></dt>
+<dd><p>In case of duplicate channel names within several channel groups
+for unsorted data, rename channel name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>channelGroup</strong> : int</p>
+<blockquote class="last">
+<div><p>channelGroup bumber</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mdfreader.channel.arrayformat4">
+<code class="descclassname">mdfreader.channel.</code><code class="descname">arrayformat4</code><span class="sig-paren">(</span><em>signalDataType</em>, <em>numberOfBytes</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.arrayformat4" title="Permalink to this definition">¶</a></dt>
+<dd><p>function returning numpy style string from channel data type and number of bits</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>signalDataType</strong> : int</p>
+<blockquote>
+<div><p>channel data type according to specification</p>
+</div></blockquote>
+<p><strong>numberOfBytes</strong> : int</p>
+<blockquote>
+<div><p>number of bytes taken by channel data in a record</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>endian, dataType</strong> : str</p>
+<blockquote class="last">
+<div><p>numpy dtype format used by numpy.core.records to read channel raw data</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="mdfreader.channel.channel4">
+<em class="property">class </em><code class="descclassname">mdfreader.channel.</code><code class="descname">channel4</code><a class="headerlink" href="#mdfreader.channel.channel4" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.CABlock" title="mdfreader.channel.channel4.CABlock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CABlock</span></code></a>(info)</td>
+<td>Extracts channel CA Block from info4</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.CANOpenOffset" title="mdfreader.channel.channel4.CANOpenOffset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CANOpenOffset</span></code></a>()</td>
+<td>CANopen channel bytes offset</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.CFormat" title="mdfreader.channel.channel4.CFormat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CFormat</span></code></a>(info)</td>
+<td>channel data C format struct object</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.CNBlock" title="mdfreader.channel.channel4.CNBlock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNBlock</span></code></a>(info)</td>
+<td>channel block</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.Format" title="mdfreader.channel.channel4.Format"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format</span></code></a>(info)</td>
+<td>channel data C format</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.attachment" title="mdfreader.channel.channel4.attachment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">attachment</span></code></a>(fid,&nbsp;info)</td>
+<td>In case of sync channel attached to channel</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.bitCount" title="mdfreader.channel.channel4.bitCount"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bitCount</span></code></a>(info)</td>
+<td>calculates channel number of bits</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.bitOffset" title="mdfreader.channel.channel4.bitOffset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bitOffset</span></code></a>(info)</td>
+<td>channel data bit offset in record</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.bit_masking_needed" title="mdfreader.channel.channel4.bit_masking_needed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bit_masking_needed</span></code></a>(info)</td>
+<td>Valid if bit masking need</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.calc_byteOffset" title="mdfreader.channel.channel4.calc_byteOffset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_byteOffset</span></code></a>(info)</td>
+<td>channel data bytes offset in record (without record id)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.calc_bytes" title="mdfreader.channel.channel4.calc_bytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_bytes</span></code></a>(info)</td>
+<td>calculates channel bytes number</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.changeChannelName" title="mdfreader.channel.channel4.changeChannelName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">changeChannelName</span></code></a>(channelGroup)</td>
+<td>In case of duplicate channel names within several channel groups for unsorted data, rename channel name</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.channelSyncType" title="mdfreader.channel.channel4.channelSyncType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">channelSyncType</span></code></a>(info)</td>
+<td>Extracts channel sync type from info4</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.channelType" title="mdfreader.channel.channel4.channelType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">channelType</span></code></a>(info)</td>
+<td>Extracts channel type from info4</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.conversion" title="mdfreader.channel.channel4.conversion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">conversion</span></code></a>(info)</td>
+<td>channel conversion CCBlock</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.data" title="mdfreader.channel.channel4.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a>(info)</td>
+<td>returns data block pointer for VLSD, MLD or sync channels</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.dataFormat" title="mdfreader.channel.channel4.dataFormat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataFormat</span></code></a>(info)</td>
+<td>channel numpy.core.records data format</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.desc" title="mdfreader.channel.channel4.desc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">desc</span></code></a>(info)</td>
+<td>channel description</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.has_invalid_bit" title="mdfreader.channel.channel4.has_invalid_bit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_invalid_bit</span></code></a>(info)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.invalid_bit" title="mdfreader.channel.channel4.invalid_bit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">invalid_bit</span></code></a>(info)</td>
+<td>extracts from info4 the channels valid bits positions</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.isCABlock" title="mdfreader.channel.channel4.isCABlock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isCABlock</span></code></a>(info)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.isnumeric" title="mdfreader.channel.channel4.isnumeric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isnumeric</span></code></a>(info)</td>
+<td>check this is numeric channel from data type</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.little_endian" title="mdfreader.channel.channel4.little_endian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">little_endian</span></code></a>(info)</td>
+<td>check if channel is little endian</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.nativedataFormat" title="mdfreader.channel.channel4.nativedataFormat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nativedataFormat</span></code></a>(info)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.numpy_format" title="mdfreader.channel.channel4.numpy_format"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy_format</span></code></a>(info)</td>
+<td>channel numpy.core.records data format</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.posBitBeg" title="mdfreader.channel.channel4.posBitBeg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">posBitBeg</span></code></a>(info)</td>
+<td>channel data bit starting position in record</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.posBitEnd" title="mdfreader.channel.channel4.posBitEnd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">posBitEnd</span></code></a>(info)</td>
+<td>channel data bit ending position in record</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.posByteBeg" title="mdfreader.channel.channel4.posByteBeg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">posByteBeg</span></code></a>(info)</td>
+<td>channel data bytes starting position in record</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.posByteEnd" title="mdfreader.channel.channel4.posByteEnd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">posByteEnd</span></code></a>(info)</td>
+<td>channel data bytes ending position in record</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.recAttributeName" title="mdfreader.channel.channel4.recAttributeName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recAttributeName</span></code></a>(info)</td>
+<td>clean up channel name from unauthorised characters</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.recordIDsize" title="mdfreader.channel.channel4.recordIDsize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recordIDsize</span></code></a>(info)</td>
+<td>Extracts record id size from info4</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.set" title="mdfreader.channel.channel4.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set</span></code></a>(info,&nbsp;dataGroup,&nbsp;channelGroup,&nbsp;channelNumber)</td>
+<td>channel initialisation</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.setCANOpen" title="mdfreader.channel.channel4.setCANOpen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setCANOpen</span></code></a>(info,&nbsp;dataGroup,&nbsp;channelGroup,&nbsp;…)</td>
+<td>CANOpen channel intialisation</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.setInvalidBytes" title="mdfreader.channel.channel4.setInvalidBytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setInvalidBytes</span></code></a>(info,&nbsp;dataGroup,&nbsp;…)</td>
+<td>invalid_bytes channel initialisation</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mdfreader.channel.channel4.signalDataType" title="mdfreader.channel.channel4.signalDataType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">signalDataType</span></code></a>(info[,&nbsp;byte_aligned])</td>
+<td>extract signal data type from info4 class</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mdfreader.channel.channel4.unit" title="mdfreader.channel.channel4.unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit</span></code></a>(info)</td>
+<td>channel unit</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="mdfreader.channel.channel4.CABlock">
+<code class="descname">CABlock</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.CABlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts channel CA Block from info4</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">CABlock object from mdfinfo4 module</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.CANOpenOffset">
+<code class="descname">CANOpenOffset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.CANOpenOffset" title="Permalink to this definition">¶</a></dt>
+<dd><p>CANopen channel bytes offset</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">integer, channel bytes offset</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.CFormat">
+<code class="descname">CFormat</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.CFormat" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel data C format struct object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">string data C format struct object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.CNBlock">
+<code class="descname">CNBlock</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.CNBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel block</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">CNBlock class from mdfinfo4 module</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.Format">
+<code class="descname">Format</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.Format" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel data C format</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">string data C format</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.channel.channel4.VLSD_CG_Flag">
+<code class="descname">VLSD_CG_Flag</code><a class="headerlink" href="#mdfreader.channel.channel4.VLSD_CG_Flag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.attachment">
+<code class="descname">attachment</code><span class="sig-paren">(</span><em>fid</em>, <em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.attachment" title="Permalink to this definition">¶</a></dt>
+<dd><p>In case of sync channel attached to channel</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fid</strong> : class</p>
+<blockquote>
+<div><p>file identifier</p>
+</div></blockquote>
+<p><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">ATBlock class from mdfinfo4 module</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.bitCount">
+<code class="descname">bitCount</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.bitCount" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates channel number of bits</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">integer corresponding to channel number of bits</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.bitOffset">
+<code class="descname">bitOffset</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.bitOffset" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel data bit offset in record</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">integer, channel bit offset</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.bit_masking_needed">
+<code class="descname">bit_masking_needed</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.bit_masking_needed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Valid if bit masking need</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">boolean True if channel needs bit masking, otherwise False</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.channel.channel4.byteOffset">
+<code class="descname">byteOffset</code><a class="headerlink" href="#mdfreader.channel.channel4.byteOffset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.calc_byteOffset">
+<code class="descname">calc_byteOffset</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.calc_byteOffset" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel data bytes offset in record (without record id)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">integer, channel bytes offset</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.calc_bytes">
+<code class="descname">calc_bytes</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.calc_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates channel bytes number</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">number of bytes integer</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.changeChannelName">
+<code class="descname">changeChannelName</code><span class="sig-paren">(</span><em>channelGroup</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.changeChannelName" title="Permalink to this definition">¶</a></dt>
+<dd><p>In case of duplicate channel names within several channel groups
+for unsorted data, rename channel name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>channelGroup</strong> : int</p>
+<blockquote class="last">
+<div><p>channelGroup bumber</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.channel.channel4.channelGroup">
+<code class="descname">channelGroup</code><a class="headerlink" href="#mdfreader.channel.channel4.channelGroup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.channel.channel4.channelNumber">
+<code class="descname">channelNumber</code><a class="headerlink" href="#mdfreader.channel.channel4.channelNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.channelSyncType">
+<code class="descname">channelSyncType</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.channelSyncType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts channel sync type from info4</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">integer corresponding to channel sync type</p>
+<p>0 no sync, normal data</p>
+<p>1 time</p>
+<p>2 angle</p>
+<p>3 distance</p>
+<p class="last">4 index</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.channelType">
+<code class="descname">channelType</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.channelType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts channel type from info4</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">integer describing channel type</p>
+<p>0 normal channel</p>
+<p>1 variable length</p>
+<p>2 master channel</p>
+<p>3 virtual master channel</p>
+<p>4 sync channel</p>
+<p>5 max length data</p>
+<p class="last">6 virtual data channel</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.conversion">
+<code class="descname">conversion</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.conversion" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel conversion CCBlock</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">CCBlock</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.data">
+<code class="descname">data</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns data block pointer for VLSD, MLD or sync channels</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.dataFormat">
+<code class="descname">dataFormat</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.dataFormat" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel numpy.core.records data format</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">string data format</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.channel.channel4.dataGroup">
+<code class="descname">dataGroup</code><a class="headerlink" href="#mdfreader.channel.channel4.dataGroup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.desc">
+<code class="descname">desc</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel description</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">channel description string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.has_invalid_bit">
+<code class="descname">has_invalid_bit</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.has_invalid_bit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.invalid_bit">
+<code class="descname">invalid_bit</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.invalid_bit" title="Permalink to this definition">¶</a></dt>
+<dd><p>extracts from info4 the channels valid bits positions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">channel valid bit position</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.isCABlock">
+<code class="descname">isCABlock</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.isCABlock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.isnumeric">
+<code class="descname">isnumeric</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.isnumeric" title="Permalink to this definition">¶</a></dt>
+<dd><p>check this is numeric channel from data type</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">boolean, true if numeric channel, otherwise false</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.little_endian">
+<code class="descname">little_endian</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.little_endian" title="Permalink to this definition">¶</a></dt>
+<dd><p>check if channel is little endian</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">boolean</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.channel.channel4.nBytes">
+<code class="descname">nBytes</code><a class="headerlink" href="#mdfreader.channel.channel4.nBytes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.channel.channel4.name">
+<code class="descname">name</code><a class="headerlink" href="#mdfreader.channel.channel4.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.nativedataFormat">
+<code class="descname">nativedataFormat</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.nativedataFormat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.numpy_format">
+<code class="descname">numpy_format</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.numpy_format" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel numpy.core.records data format</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>endian, dataType</strong> : string data format</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.posBitBeg">
+<code class="descname">posBitBeg</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.posBitBeg" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel data bit starting position in record</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">integer, channel bit starting position</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.posBitEnd">
+<code class="descname">posBitEnd</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.posBitEnd" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel data bit ending position in record</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">integer, channel bit ending position</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.posByteBeg">
+<code class="descname">posByteBeg</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.posByteBeg" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel data bytes starting position in record</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">integer, channel bytes starting position</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.posByteEnd">
+<code class="descname">posByteEnd</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.posByteEnd" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel data bytes ending position in record</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">integer, channel bytes ending position</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.recAttributeName">
+<code class="descname">recAttributeName</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.recAttributeName" title="Permalink to this definition">¶</a></dt>
+<dd><p>clean up channel name from unauthorised characters</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">channel name compliant to python attributes names (for recarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.recordIDsize">
+<code class="descname">recordIDsize</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.recordIDsize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts record id size from info4</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">integer describing record id size</p>
+<p>0 no record id used</p>
+<p>1 uint8</p>
+<p>2 uint16</p>
+<p>4 uint32</p>
+<p class="last">8 uint64</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.set">
+<code class="descname">set</code><span class="sig-paren">(</span><em>info</em>, <em>dataGroup</em>, <em>channelGroup</em>, <em>channelNumber</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel initialisation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<p><strong>dataGroup</strong> : int</p>
+<blockquote>
+<div><p>data group number in mdfinfo4.info4 class</p>
+</div></blockquote>
+<p><strong>channelGroup</strong> : int</p>
+<blockquote>
+<div><p>channel group number in mdfinfo4.info4 class</p>
+</div></blockquote>
+<p><strong>channelNumber</strong> : int</p>
+<blockquote class="last">
+<div><p>channel number in mdfinfo4.info4 class</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.setCANOpen">
+<code class="descname">setCANOpen</code><span class="sig-paren">(</span><em>info</em>, <em>dataGroup</em>, <em>channelGroup</em>, <em>channelNumber</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.setCANOpen" title="Permalink to this definition">¶</a></dt>
+<dd><p>CANOpen channel intialisation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<p><strong>dataGroup</strong> : int</p>
+<blockquote>
+<div><p>data group number in mdfinfo4.info4 class</p>
+</div></blockquote>
+<p><strong>channelGroup</strong> : int</p>
+<blockquote>
+<div><p>channel group number in mdfinfo4.info4 class</p>
+</div></blockquote>
+<p><strong>channelNumber</strong> : int</p>
+<blockquote>
+<div><p>channel number in mdfinfo4.info4 class</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote class="last">
+<div><p>name of channel. Should be in (‘ms’, ‘day’, ‘days’, ‘hour’,
+‘month’, ‘minute’, ‘year’)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.setInvalidBytes">
+<code class="descname">setInvalidBytes</code><span class="sig-paren">(</span><em>info</em>, <em>dataGroup</em>, <em>channelGroup</em>, <em>channelNumber</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.setInvalidBytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>invalid_bytes channel initialisation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<p><strong>dataGroup</strong> : int</p>
+<blockquote>
+<div><p>data group number in mdfinfo4.info4 class</p>
+</div></blockquote>
+<p><strong>channelGroup</strong> : int</p>
+<blockquote>
+<div><p>channel group number in mdfinfo4.info4 class</p>
+</div></blockquote>
+<p><strong>channelNumber</strong> : int</p>
+<blockquote class="last">
+<div><p>channel number in mdfinfo4.info4 class</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.signalDataType">
+<code class="descname">signalDataType</code><span class="sig-paren">(</span><em>info</em>, <em>byte_aligned=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.signalDataType" title="Permalink to this definition">¶</a></dt>
+<dd><p>extract signal data type from info4 class</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+<p><strong>byte_aligned</strong> : bool</p>
+<blockquote>
+<div><p>flag activated if channel is part of a record byte aligned</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">integer corresponding to channel data type</p>
+<p>0 unsigned integer little endian</p>
+<p>1 unsigned integer big endian</p>
+<p>2 signed integer little endian</p>
+<p>3 signed integer big endian</p>
+<p>4 float little endian</p>
+<p>5 float big endian</p>
+<p>6 string latin</p>
+<p>7 string utf-8</p>
+<p>9 string utf-16</p>
+<p>10 byte array</p>
+<p>11 mime sample</p>
+<p>12 mime stream</p>
+<p>13 CANopen date</p>
+<p class="last">14 CANopen time</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mdfreader.channel.channel4.type">
+<code class="descname">type</code><a class="headerlink" href="#mdfreader.channel.channel4.type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdfreader.channel.channel4.unit">
+<code class="descname">unit</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.channel4.unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel unit</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : mdfinfo4.info4 class</p>
+<blockquote>
+<div><p>info4 class containing all MDF Blocks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">channel unit string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mdfreader.channel.datatypeformat4">
+<code class="descclassname">mdfreader.channel.</code><code class="descname">datatypeformat4</code><span class="sig-paren">(</span><em>signalDataType</em>, <em>numberOfBytes</em><span class="sig-paren">)</span><a class="headerlink" href="#mdfreader.channel.datatypeformat4" title="Permalink to this definition">¶</a></dt>
+<dd><p>function returning C format string from channel data type and number of bits</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>signalDataType</strong> : int</p>
+<blockquote>
+<div><p>channel data type according to specification</p>
+</div></blockquote>
+<p><strong>numberOfBytes</strong> : int</p>
+<blockquote>
+<div><p>number of bytes taken by channel data in a record</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dataType</strong> : str</p>
+<blockquote class="last">
+<div><p>C format used by fread to read channel raw data</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">channel module documentation</a><ul>
+<li><a class="reference internal" href="#platform-and-python-version">Platform and python version</a></li>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
+<li><a class="reference internal" href="#channel-module">channel module</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/channel/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdfreader 2.8 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Aymeric Rateau.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+    </div>
+  </body>
+</html>
