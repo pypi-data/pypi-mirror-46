@@ -1,0 +1,247 @@
+Metadata-Version: 2.1
+Name: cloudview
+Version: 0.2.7
+Summary: View instance information on all supported cloud providers
+Home-page: https://github.com/ricardobranco777/cloudview
+Author: Ricardo Branco
+Author-email: rbranco@suse.de
+License: MIT License
+Keywords: cloudview
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Topic :: System :: Monitoring
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Operating System :: Unix
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3 :: Only
+Requires-Python: >=3.5
+Description-Content-Type: text/markdown
+Requires-Dist: Babel (==2.6.0)
+Requires-Dist: PasteDeploy (==2.0.1)
+Requires-Dist: PyJWT (==1.7.1)
+Requires-Dist: PyYAML (==5.1)
+Requires-Dist: WebOb (==1.8.5)
+Requires-Dist: adal (==1.2.1)
+Requires-Dist: asn1crypto (==0.24.0)
+Requires-Dist: azure-common (==1.1.20)
+Requires-Dist: azure-mgmt-compute (==5.0.0)
+Requires-Dist: boto3 (==1.9.140)
+Requires-Dist: botocore (==1.12.140)
+Requires-Dist: cachetools (==3.1.0)
+Requires-Dist: certifi (==2019.3.9)
+Requires-Dist: cffi (==1.12.3)
+Requires-Dist: chardet (==3.0.4)
+Requires-Dist: cryptography (==2.6.1)
+Requires-Dist: debtcollector (==1.21.0)
+Requires-Dist: docutils (==0.14)
+Requires-Dist: google-api-core (==1.10.0)
+Requires-Dist: google-api-python-client (==1.7.8)
+Requires-Dist: google-auth-httplib2 (==0.0.3)
+Requires-Dist: google-auth (==1.6.3)
+Requires-Dist: google-cloud-core (==0.29.1)
+Requires-Dist: google-cloud-resource-manager (==0.28.3)
+Requires-Dist: googleapis-common-protos (==1.5.10)
+Requires-Dist: httplib2 (==0.12.3)
+Requires-Dist: hupper (==1.6.1)
+Requires-Dist: idna (==2.8)
+Requires-Dist: iso8601 (==0.1.12)
+Requires-Dist: isodate (==0.6.0)
+Requires-Dist: jmespath (==0.9.4)
+Requires-Dist: keystoneauth1 (==3.14.0)
+Requires-Dist: msgpack (==0.6.1)
+Requires-Dist: msrest (==0.6.6)
+Requires-Dist: msrestazure (==0.6.0)
+Requires-Dist: netaddr (==0.7.19)
+Requires-Dist: netifaces (==0.10.9)
+Requires-Dist: oauth2client (==4.1.3)
+Requires-Dist: oauthlib (==3.0.1)
+Requires-Dist: os-service-types (==1.6.0)
+Requires-Dist: oslo.i18n (==3.23.1)
+Requires-Dist: oslo.serialization (==2.29.0)
+Requires-Dist: oslo.utils (==3.41.0)
+Requires-Dist: pbr (==5.2.0)
+Requires-Dist: plaster-pastedeploy (==0.7)
+Requires-Dist: plaster (==1.0)
+Requires-Dist: prettytable (==0.7.2)
+Requires-Dist: protobuf (==3.7.1)
+Requires-Dist: pyasn1-modules (==0.2.5)
+Requires-Dist: pyasn1 (==0.4.5)
+Requires-Dist: pycparser (==2.19)
+Requires-Dist: pyparsing (==2.4.0)
+Requires-Dist: pyramid (==1.10.4)
+Requires-Dist: python-dateutil (==2.8.0)
+Requires-Dist: python-novaclient (==13.0.0)
+Requires-Dist: pytz (==2019.1)
+Requires-Dist: requests-oauthlib (==1.2.0)
+Requires-Dist: requests (==2.21.0)
+Requires-Dist: rsa (==4.0)
+Requires-Dist: s3transfer (==0.2.0)
+Requires-Dist: simplejson (==3.16.0)
+Requires-Dist: six (==1.12.0)
+Requires-Dist: stevedore (==1.30.1)
+Requires-Dist: timeago (==1.0.10)
+Requires-Dist: translationstring (==1.3)
+Requires-Dist: uritemplate (==3.0.0)
+Requires-Dist: urllib3 (==1.24.2)
+Requires-Dist: venusian (==1.2.0)
+Requires-Dist: wrapt (==1.11.1)
+Requires-Dist: zope.deprecation (==4.4.0)
+Requires-Dist: zope.interface (==4.6.0)
+
+# cloudview
+View instance information on all supported cloud providers: Amazon Web Services, Azure, Google Compute Platform & OpenStack.
+
+[![Build Status](https://travis-ci.org/ricardobranco777/cloudview.svg?branch=master)](https://travis-ci.org/ricardobranco777/cloudview)
+
+## Usage
+
+```
+Usage: cloudview [OPTIONS]
+Options:
+    -h, --help                          show this help message and exit
+    -l, --log debug|info|warning|error|critical
+    -o, --output text|html|json|JSON    output type
+    -p, --port PORT                     run a web server on port PORT
+    -r, --reverse                       reverse sort
+    -s, --sort name|time|status         sort type
+    -S, --status stopped|running|all    filter by instance status
+    -T, --time TIME_FORMAT              time format as used by strftime(3)
+    -v, --verbose                       be verbose
+    -V, --version                       show version and exit
+Filter options:
+    --filter-aws NAME VALUE             may be specified multiple times
+    --filter-azure FILTER               Filter for Azure
+    --filter-gcp FILTER                 Filter for GCP
+    --filter-nova NAME VALUE            may be specified multiple times
+```
+
+**NOTES**:
+  - Use `--output JSON` to dump _all_ available information received from each provider.
+  - Remember to set these environment variables:
+    - `GOOGLE_APPLICATION_CREDENTIALS`
+    - `AWS_ACCESS_KEY_ID`
+    - `AWS_DEFAULT_REGION`
+    - `AWS_SECRET_ACCESS_KEY`
+    - `AZURE_TENANT_ID`
+    - `AZURE_SUBSCRIPTION_ID`
+    - `AZURE_CLIENT_SECRET`
+    - `AZURE_CLIENT_ID`
+    - `OS_USERNAME`
+    - `OS_PASSWORD`
+    - `OS_PROJECT_ID`
+    - `OS_AUTH_URL`
+    - `OS_USER_DOMAIN_NAME`
+    - `OS_CACERT`
+
+This script is best run with Docker to have all dependencies in just one package, but it may be run stand-alone on systems with Python 3.5+
+
+## To run stand-alone:
+
+```
+pip3 install --user cloudview
+```
+
+## To run with Docker:
+
+Build image with:
+```
+docker build -t cloud --pull .
+```
+
+Export the variables listed in the [.dockerenv](.dockerenv) file and run with:
+
+```
+docker run --rm -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -v "$OS_CACERT:$OS_CACERT:ro" --env-file .dockerenv cloudview --status all
+```
+
+## Run the web server with [Docker Compose](https://docs.docker.com/compose/install/):
+
+If you have a TLS key pair, rename the certificate to `cert.pem`, the private key to `key.pem` and the file containing the password to the private key to `key.txt`.  Then edit the [docker-compose.yml](docker-compose.yml) file to mount them to `/etc/nginx/ssl` in read-only mode like this: `- "/path/to/tls:/etc/nginx/ssl:ro"`.
+
+If you don't have a TLS key pair, a self-signed certificate will be generated.  Be aware of the typical problems with time resolution related to TLS certificates.
+
+
+```
+docker-compose up -d
+```
+
+Now browse to [https://localhost:8443](https://localhost:8443)
+
+To stop the web server:
+```
+docker-compose down
+```
+
+To rebuild with latest version:
+```
+docker-compose build --pull
+```
+
+### Filter options (AWS)
+
+Usage: `--filter-aws NAME VALUE`
+
+May be specified multiple times.
+
+Complete list of filters:
+
+[https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html)
+
+Example: `--filter-aws tag-key production`
+
+Note: If `instance-state-name` is present in the filter name, the `--status` option is ignored.
+
+### Filter options (Azure)
+
+Usage: `--filter-azure FILTER`
+
+Note: This filtering is done in the client SDK using [JMESPath](http://jmespath.org/) to filter the JSON response.  You can view the JSON output using `--output JSON` or following the instance link in the HTML table.
+
+Complete list of filters:
+https://github.com/MicrosoftDocs/azure-docs-cli/blob/master/docs-ref-conceptual/query-azure-cli.md#filter-arrays
+
+Example: `--filter-azure "location == 'westeurope' && !(name == 'admin')"`
+
+Note: If `instance_view.statuses` is present in the filter, the `--status` option is ignored.
+
+### Filter options (GCP)
+
+Usage: `--filter-gcp FILTER`
+
+Note: You may filter the resources listed in the API response.
+
+Complete list of resources:
+
+[https://cloud.google.com/compute/docs/reference/rest/v1/instances/list](https://cloud.google.com/compute/docs/reference/rest/v1/instances/list)
+
+Example: `--filter-gcp 'name: instance-1 AND canIpForward: false'`
+
+Note: If `status` is present in the filter, the `--status` option is ignored.
+
+### Filter options (Nova)
+
+Usage: `--filter-nova NAME VALUE`
+
+May be specified multiple times.
+
+Complete list of filters:
+
+https://developer.openstack.org/api-ref/compute/?expanded=list-servers-detail#listServers
+
+Example: `--filter-nova name admin`1
+
+Note: If `status` is present in the filter, the `--status` option is ignored.
+
+## TODO
+  - Search by tag (this can be done currently with the filter-\* options)
+  - Sort by instance type
+  - Use apache-libcloud?
+  - Improve documentation with use cases
+
+
