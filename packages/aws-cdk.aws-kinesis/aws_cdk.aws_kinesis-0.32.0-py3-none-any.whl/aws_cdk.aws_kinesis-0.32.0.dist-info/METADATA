@@ -1,0 +1,54 @@
+Metadata-Version: 2.1
+Name: aws-cdk.aws-kinesis
+Version: 0.32.0
+Summary: CDK Constructs for AWS Kinesis
+Home-page: https://github.com/awslabs/aws-cdk
+Author: Amazon Web Services
+License: UNKNOWN
+Project-URL: Source, https://github.com/awslabs/aws-cdk.git
+Platform: UNKNOWN
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: jsii (~=0.11.0)
+Requires-Dist: publication (>=0.0.3)
+Requires-Dist: aws-cdk.aws-iam (~=0.32.0)
+Requires-Dist: aws-cdk.aws-kms (~=0.32.0)
+Requires-Dist: aws-cdk.aws-logs (~=0.32.0)
+Requires-Dist: aws-cdk.cdk (~=0.32.0)
+
+## AWS Kinesis Construct Library
+
+Define an unencrypted Kinesis stream.
+
+```ts
+new Stream(this, 'MyFirstStream');
+```
+
+### Encryption
+
+Define a KMS-encrypted stream:
+
+```ts
+const stream = newStream(this, 'MyEncryptedStream', {
+    encryption: StreamEncryption.Kms
+});
+
+// you can access the encryption key:
+assert(stream.encryptionKey instanceof kms.EncryptionKey);
+```
+
+You can also supply your own key:
+
+```ts
+const myKmsKey = new kms.EncryptionKey(this, 'MyKey');
+
+const stream = new Stream(this, 'MyEncryptedStream', {
+    encryption: StreamEncryption.Kms,
+    encryptionKey: myKmsKey
+});
+
+assert(stream.encryptionKey === myKmsKey);
+```
+
+
+
