@@ -1,0 +1,99 @@
+Metadata-Version: 2.1
+Name: fasvaorm
+Version: 0.2.8
+Summary: fasvaorm is a ORM to access the database used within FASva.
+Home-page: UNKNOWN
+Author: Lars Klitzke
+Author-email: Lars.Klitzke@hs-emden-leer.de
+License: GNU GPLv3
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Unix Shell
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: Manufacturing
+Classifier: License :: Other/Proprietary License
+Classifier: Operating System :: POSIX
+Classifier: Topic :: Scientific/Engineering :: Information Analysis
+Description-Content-Type: text/x-rst
+Requires-Dist: pymysql
+Requires-Dist: sqlalchemy
+Requires-Dist: sqlalchemy-utils
+Requires-Dist: marshmallow (==3.0.0b13)
+Requires-Dist: pymodconf
+
+FASva MySQL-ORM
+================
+
+|pipeline| |coverage|
+
+This project contains a Object-relational mapping (ORM) that is used to access the MySQL/MariaDB
+used within the research project `FASva`_ using SQLAlchemy.
+
+
+Installation
+-------------
+
+You can find the latest version on `PyPi <https://pypi.org/project/fasvaorm/>`__.
+
+.. code-block:: bash
+
+    $ pip install fasvaorm
+
+Usage
+------
+
+Utilizing ``fasvaorm`` for accessing the database is quite straightforward. Each available table is represented as a
+class in the ``fasvaorm.models`` module. Here is an example on how to initialize and query the database.
+
+.. code-block:: python
+
+    from fasvaorm import init_engine, get_session
+    from fasvaorm.models import Drive
+
+    # initialize the engine. Will also try to create the database if it does not exist.
+    engine = init_engine("mysql+pymysql://{user}@{host}:{port}/{database}".format(**dict(user='root', host='localhost',
+                                                                                         port=3306,
+                                                                                         database='database')))
+
+    # now get a session
+    session = get_session()
+
+    # and use that session to query all available drives
+    for d in session.query(Drive).all():
+        print(d.name)
+
+        # use can also access all records of that drive
+        for r in d.records:
+            print(r.filepath)
+
+        # or the vehicle
+        print(d.vehicle.serial_number)
+
+        # or also all scenes of that drive
+        for a in d.aggregations:
+            print(a.timestamp)
+
+For further examples on how to use ``fasvaorm`` see the ``tests`` package.
+
+Authors
+========
+
+``Lars Klitzke``  (HSEL_, GitHub_, XING_, LinkedIn_, `PyPi <https://pypi.org/user/LarsKlitzke>`_, `Docker Hub`_)
+
+.. _HSEL: http://oldweb.hs-emden-leer.de/no_cache/hochschule/beschaeftigte.html?tx_wtdirectory_pi1%5Bshow%5D=861&tx_wtdirectory_pi1%5Bfilter%5D%5Blast_name%5D=klitzke&cHash=b51f314fd4d1dbe3cf54bfdc99c1a609
+.. _GitHub: https://github.com/larsklitzke
+.. _XING: https://www.xing.com/profile/Lars_Klitzke
+.. _LinkedIn: https://www.linkedin.com/in/larsklitzke
+.. _Docker Hub: https://hub.docker.com/u/larsklitzke
+
+.. _FASva: https://www.hs-emden-leer.de/en/faculties/faculty-of-technology/projects/fasva/
+
+.. |pipeline| image:: https://gitlab.klitzke-web.de/fasva/fasvaorm/badges/master/pipeline.svg
+                :target: https://gitlab.klitzke-web.de/fasva/fasvaorm/commits/master
+
+.. |coverage| image:: https://gitlab.klitzke-web.de/fasva/fasvaorm/badges/master/coverage.svg
+                :target: https://gitlab.klitzke-web.de/fasva/fasvaorm/commits/master
+
+
