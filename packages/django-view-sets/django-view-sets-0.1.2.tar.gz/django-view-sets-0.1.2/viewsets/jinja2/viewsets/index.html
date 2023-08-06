@@ -1,0 +1,21 @@
+{% extends 'viewsets/base.html' %}
+
+{% block breadcrumbs_items %}
+  <li class="breadcrumb-item active">{{ _('Home') }}</li>
+{% endblock %}
+
+{% block body_title %}{{ _('Home') }}{% endblock %}
+
+{% block content %}
+  <ul>
+    {% for model, set in view.viewset.registered %}
+      {% if set.has_list_permission(request) %}
+        <li>
+          <a href="{{ viewset_url(set, 'list') }}">
+            {{ set.opts.verbose_name_plural|capfirst }}
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+{% endblock %}
