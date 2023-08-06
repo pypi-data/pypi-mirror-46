@@ -1,0 +1,80 @@
+version: 0.1.{build}
+pull_requests:
+  do_not_increment_build_number: true
+
+services:
+- postgresql
+
+environment:
+  PGUSER: postgres
+  PGPASSWORD: Password12!
+  PGSQL_PATH: C:\Program Files\PostgreSQL\9.6
+  PEEWEE_URL: postgres://postgres:Password12!@localhost/pacifica_metadata
+  BROKER_URL: redis://127.0.0.1:6379/0
+  BACKEND_URL: redis://127.0.0.1:6379/0
+  matrix:
+    - PYTHON: C:\Python27-x64
+    - PYTHON: C:\Python36-x64
+
+install:
+  - ps: >
+      & "$env:PYTHON\python.exe" -m virtualenv C:\pacifica;
+      C:\pacifica\Scripts\activate.ps1;
+      Invoke-WebRequest -Uri "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.5.zip" -OutFile "elasticsearch.zip";
+      Expand-Archive "elasticsearch.zip" -DestinationPath "C:\elasticsearch";
+      Start-Process C:\elasticsearch\elasticsearch-5.6.5\bin\elasticsearch;
+      python -m pip install --upgrade pip setuptools wheel;
+      nuget install redis-64 -excludeversion;
+      redis-64\tools\redis-server.exe --service-install;
+      redis-64\tools\redis-server.exe --service-start;
+      python -m pip install -r requirements-dev.txt;
+      python -m pip install 'redis';
+      echo 'Done';
+
+build: off
+
+before_test:
+- ps: >
+    $env:PATH = "${env:PGSQL_PATH}\bin;${env:PYTHON}\Scripts;${env:PATH}";
+    createdb pacifica_metadata;
+    C:\pacifica\Scripts\activate.ps1;
+    $env:METADATA_CPCONFIG = "$PWD/travis/metadata/server.conf";
+    $env:POLICY_CPCONFIG = "$PWD/travis/policy/server.conf";
+    $env:CARTD_CPCONFIG = "$PWD/travis/cartd/server.conf";
+    $env:ARCHIVEINTERFACE_CPCONFIG = "$PWD/travis/archive/server.conf";
+    $env:ARCHIVEINTERFACE_CONFIG = "$PWD/travis/archive/config.cfg";
+    C:\pacifica\Scripts\pacifica-metadata-cmd.exe dbsync;
+    Start-Process C:\pacifica\Scripts\pacifica-metadata.exe -RedirectStandardError metadata-error.log -RedirectStandardOutput metadata-output.log;
+    C:\pacifica\Scripts\pacifica-cartd-cmd.exe dbsync;
+    Start-Process C:\pacifica\Scripts\pacifica-cartd.exe -RedirectStandardError server-error.log -RedirectStandardOutput server-output.log;
+    Start-Process C:\pacifica\Scripts\celery.exe -ArgumentList "-A pacifica.cartd.tasks worker -l info -P solo -c 1" -RedirectStandardError celery-error.log -RedirectStandardOutput celery-output.log;
+    Start-Process C:\pacifica\Scripts\pacifica-archiveinterface.exe -RedirectStandardError archive-error.log -RedirectStandardOutput archive-output.log;
+    $MD_VERSION = `pip show pacifica-metadata | grep Version: | awk '{ print $2 }';
+    Invoke-WebRequest https://github.com/pacifica/pacifica-metadata/archive/v${MD_VERSION}.zip -OutFile pacifica-metadata.zip;
+    Expand-Archive pacifica-metadata.zip -DestinationPath C:\pacifica-metadata;
+    pushd C:\pacifica-metadata\pacifica-metadata-${MD_VERSION};
+    sleep 10; Invoke-WebRequest http://localhost:8121/users;
+    python tests\test_files\loadit_test.py;
+    popd;
+    python test_files\archiveinterfacepreload.py;
+    Invoke-WebRequest -InFile README.md -Method PUT -Headers @{'Last-Modified'='Sun, 06 Nov 1994 08:49:37 GMT'} http://127.0.0.1:8080/103;
+    Invoke-WebRequest -InFile README.md -Method PUT -Headers @{'Last-Modified'='Sun, 06 Nov 1994 08:49:37 GMT'} http://127.0.0.1:8080/104;
+    $size = (Get-Item README.md).length;
+    $hash = (Get-FileHash -Algorithm sha1 readme.md).hash;
+    '{ "hashsum": "'+$hash.ToLower()+'", "hashtype": "sha1", "size": '+$size+'}' | Invoke-WebRequest -Method POST -Headers @{ "content-type" = "application/json" } http://127.0.0.1:8121/files?_id=103;
+    '{ "hashsum": "'+$hash.ToLower()+'", "hashtype": "sha1", "size": '+$size+'}' | Invoke-WebRequest -Method POST -Headers @{ "content-type" = "application/json" } http://127.0.0.1:8121/files?_id=104;
+    $env:METADATA_URL = "http://127.0.0.1:8121";
+    $env:STATUS_URL = "http://127.0.0.1:8121/groups";
+    Start-Process C:\pacifica\Scripts\pacifica-policy.exe -RedirectStandardError policy-error.log -RedirectStandardOutput policy-output.log;
+    sleep 5;
+    Invoke-WebRequest http://127.0.0.1:8181/status/transactions/by_id/67;
+
+test_script:
+  - ps: >
+      $env:ARCHIVE_INTERFACE_URL = 'http://127.0.0.1:8080/';
+      mkdir C:\tmp; C:\pacifica\Scripts\activate.ps1;
+      pre-commit run -a;
+      pip install .;
+      cd tests;
+      coverage run --include='*/site-packages/pacifica/downloader/*' -m pytest -xv;
+      coverage report -m --fail-under=100;

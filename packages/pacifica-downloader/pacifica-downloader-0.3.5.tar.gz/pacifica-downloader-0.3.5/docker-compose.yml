@@ -1,0 +1,61 @@
+version: '2'
+
+volumes:
+  archivedata:
+  cartdata:
+
+services:
+  cartrabbit:
+    image: rabbitmq
+    ports:
+    - 5672:5672
+
+  cartmysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pacifica_cart
+      MYSQL_USER: cartd
+      MYSQL_PASSWORD: cartd
+    ports:
+    - 3306:3306
+
+  archiveinterface:
+    image: pacifica/archiveinterface
+    ports:
+    - 8080:8080
+    volumes:
+    - archivedata:/srv
+
+
+  cartworkers:
+    image: pacifica/cartd-backend
+    links:
+    - cartrabbit
+    - cartmysql
+    - archiveinterface
+    volumes:
+    - cartdata:/shared
+    environment:
+      VOLUME_PATH: /shared/
+      LRU_BUFFER_TIME: 0
+      ARCHIVEI_PORT_8080_TCP_ADDR: archiveinterface
+      AMQP_PORT_5672_TCP_ADDR: cartrabbit
+      MYSQL_PORT_3306_TCP_ADDR: cartmysql
+
+  cartserver:
+    image: pacifica/cartd-frontend
+    ports:
+    - 8081:8081
+    links:
+    - cartrabbit
+    - cartmysql
+    - archiveinterface
+    volumes:
+    - cartdata:/shared
+    environment:
+      VOLUME_PATH: /shared/
+      LRU_BUFFER_TIME: 0
+      ARCHIVEI_PORT_8080_TCP_ADDR: archiveinterface
+      AMQP_PORT_5672_TCP_ADDR: cartrabbit
+      MYSQL_PORT_3306_TCP_ADDR: cartmysql
