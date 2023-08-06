@@ -1,0 +1,308 @@
+Metadata-Version: 2.1
+Name: ftw.events
+Version: 1.11.0
+Summary: Events with simplelayout.
+Home-page: https://github.com/4teamwork/ftw.events
+Author: 4teamwork AG
+Author-email: mailto:info@4teamwork.ch
+License: GPL2
+Description: ==============================================================================
+        ftw.events
+        ==============================================================================
+        
+        .. contents:: Table of Contents
+        
+        ``ftw.events`` is a Plone add-on allowing you to add containers (event folders)
+        containing items representing an event (event page). It is backed by
+        ``plone.app.event`` and is powered by ``ftw.simplelayout``.
+        
+        This Plone add-on is compatible with Plone 4.3.x
+        
+        
+        Installation
+        ************
+        
+        - Add the package to your buildout configuration:
+        
+        ::
+        
+            [instance]
+            eggs +=
+                ...
+                ftw.events
+        
+        - Install the "default" GenericSetup profile.
+        
+        
+        Usage
+        *****
+        
+        Start by creating a container which will hold the events by adding a *event folder*.
+        Add as many *event pages* to the event folder as you like.
+        
+        
+        Mopage Support
+        ==============
+        
+        ``ftw.events`` provides integration for the mopage mobile app
+        (http://web.anthrazit.org/).
+        
+        
+        Data Endpoint
+        -------------
+        
+        The view ``mopage.events.xml`` returns an XML-feed with the latest events within
+        the context it is called. It can becalled on any type of object.
+        
+        - The mopage-API expects a ``partnerid`` and a ``importid``.
+          They are incldued when submitted via GET-parameter, e.g.:
+          ``http://foo.com/events/mopage.events.xml?partnerid=123&importid=456``
+        
+        - The endpoint returns only 100 events by default.
+          This can be changed with the parameter ``?per_page=200``.
+        
+        - The endpoint returns ``Link``-headers in the response with pagination links.
+        
+        
+        Trigger behavior
+        ----------------
+        
+        The behavior ``ftw.events.behaviors.mopage.IPublisherMopageTrigger`` can be added
+        on a event folder in order to configure automatic notification to the mopage API
+        that new events are published.
+        
+        In order for the behavior to work properly you need an ``ftw.publisher`` setup.
+        Only the receiver-side (public website) will trigger the notification.
+        A configured ``collective.taskqueue`` is required for this to work.
+        
+        Buildout example:
+        
+        .. code:: ini
+        
+            [instance]
+            eggs +=
+                ftw.events[mopage_publisher_receiver]
+        
+            zope-conf-additional +=
+                %import collective.taskqueue
+                <taskqueue />
+                <taskqueue-server />
+        
+        
+        Then enable the behavior for the event folder type and configure the trigger
+        with the newly availabe fields.
+        
+        
+        Background
+        **********
+        
+        The name of the content type *event page* has been chosen in order to avoid confusion
+        with the content type *event* of Plone.
+        
+        
+        Development
+        ***********
+        
+        **Python:**
+        
+        1. Fork this repo
+        2. Clone your fork
+        3. Shell: ``ln -s development.cfg buildout.cfg``
+        4. Shell: ``python boostrap.py``
+        5. Shell: ``bin/buildout``
+        
+        Run ``bin/test`` to test your changes.
+        
+        Or start an instance by running ``bin/instance fg``.
+        
+        
+        Links
+        *****
+        
+        - Github: https://github.com/4teamwork/ftw.events
+        - Issues: https://github.com/4teamwork/ftw.events/issues
+        - PyPI: http://pypi.python.org/pypi/ftw.events
+        - Continuous integration: https://jenkins.4teamwork.ch/search?q=ftw.events
+        
+        
+        Copyright
+        *********
+        
+        This package is copyright by `4teamwork <http://www.4teamwork.ch/>`_.
+        
+        ``ftw.events`` is licensed under GNU General Public License, version 2.
+        
+        Changelog
+        =========
+        
+        
+        1.11.0 (2019-05-14)
+        -------------------
+        
+        - Add event archive portlet [Nachtalb]
+        - Add missing plone 5 registry.xml records (previously plone 4 propertiestool.xml) [Nachtalb]
+        
+        1.10.0 (2019-05-01)
+        -------------------
+        
+        - Add event_listing view for EventFolder [Nachtalb]
+        - Add plone 5.1 support [busykoala]
+        
+        
+        1.9.0 (2019-01-18)
+        ------------------
+        
+        - Add simplelayout view to plone views action.
+          The prefix "@@"" hides the simplelayout view in plone views action.
+          Removing this makes it accessible. [busykoala]
+        
+        - Add arrow in front of "more"-button, to create a similar appearance as
+          in ftw.news. [busykoala]
+        
+        
+        1.8.0 (2018-11-05)
+        ------------------
+        
+        - Enable "ics_view" on event folder, so a ICS file can be exported containing
+          all the events within the event folder. [mbaechtold]
+        
+        
+        1.7.1 (2018-02-06)
+        ------------------
+        
+        - Add RSS view for eventlisting block.
+          [raphael-s]
+        
+        
+        1.7.0 (2017-12-08)
+        ------------------
+        
+        - Add collective.taskqueue to test-dependencies [raphael-s]
+        
+        - Group fields of the event listing block into separate fieldsets for
+          better user experience. [mbaechtold]
+        
+        - Use ReferenceObjSourceBinder for filter by path field in eventlistingblock.
+          [mathias.leimgruber]
+        
+        - Fix filter for subject on eventlistingblock: UnicodeDecodeError of the subject had umlauts.
+          [mathias.leimgruber]
+        
+        - Use "ftw.keywordwidget" for setting the keywords on the event listing
+          block and the event page. [mbaechtold]
+        
+        
+        1.6.2 (2017-04-28)
+        ------------------
+        
+        - Add compatibilty with lates ftw.testbrowser 1.21.0.
+          [mathias.leimgruber]
+        
+        - Respect `exclude_past_events` setting of block, also on the event listing view.
+          [mathias.leimgruber]
+        
+        
+        1.6.1 (2017-03-30)
+        ------------------
+        
+        - Fix a bug which prevented inactive event pages from being shown in
+          combination with Solr. [mbaechtold]
+        
+        
+        1.6.0 (2017-03-22)
+        ------------------
+        
+        - Add option allowing to hide the event listing block if there are no
+          events to be shown. [mbaechtold]
+        
+        - Show inactive events if the user has the permission to add
+          events. [mbaechtold]
+        
+        
+        1.5.0 (2017-02-28)
+        ------------------
+        
+        - Move the global ics export documentaction.
+          [Kevin Bieri]
+        
+        - Make Event and EventFolder linkable in TinyMCE
+          [raphael-s]
+        
+        
+        1.4.0 (2017-01-19)
+        ------------------
+        
+        - Convert "filter_by_path" references of the event listing blocks.
+          This should have been done in 1.2.0.
+          [mbaechtold]
+        
+        - Show text of "ICS Export" action again.
+          [Kevin Bieri]
+        
+        
+        1.3.0 (2016-12-06)
+        ------------------
+        
+        - Use a text field for the value of the zip code instead of an integer
+          field. [mbaechtold]
+        
+        
+        1.2.1 (2016-10-20)
+        ------------------
+        
+        - Fix chameleon support for mopage export. [jone]
+        
+        
+        1.2.0 (2016-10-18)
+        ------------------
+        
+        - Use ftw.referencewidget for saving path relations in eventlistingblocks.
+          Beacuse of a bug in MultiContentTreeFieldWidget, references were not saved
+          after a restart of the instance which lead to the blocks not working anymore.
+          [raphael-s]
+        
+        - Implement mopage support. [jone]
+        
+        - Split up location into structured fields title, street, ZIP and city. [jone]
+        
+        
+        1.1.0 (2016-09-26)
+        ------------------
+        
+        - Make EventFolder and EventListingBlock addable on the Plone Site.
+          [lknoepfel]
+        
+        
+        1.0.1 (2016-09-20)
+        ------------------
+        
+        - Change German translation for event listing block. [jone]
+        
+        - Fix AttributeError in create_event_listing_block. [jone]
+        
+        - Added action for ics export. [tschanzt]
+        
+        
+        1.0.0 (2016-08-02)
+        ------------------
+        
+        - Fixed bug where default value on eventlistingblock was not set. [lknoepfel]
+        
+        - Added ftw.calendar integration. [lknoepfel]
+        
+        - Don't list EventPage in the navigation [lkoepfel]
+        
+        - Initial implementation [jone]
+        
+Keywords: ftw events
+Platform: UNKNOWN
+Classifier: Framework :: Plone
+Classifier: Framework :: Plone :: 4.3
+Classifier: Framework :: Plone :: 5.1
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Provides-Extra: development
+Provides-Extra: tests
+Provides-Extra: mopage_publisher_receiver

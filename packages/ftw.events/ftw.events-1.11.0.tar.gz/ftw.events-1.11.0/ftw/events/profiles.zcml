@@ -1,0 +1,33 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
+    xmlns:upgrade-step="http://namespaces.zope.org/ftw.upgrade"
+    i18n_domain="ftw.events">
+
+    <include package="ftw.upgrade"/>
+
+    <genericsetup:registerProfile
+        zcml:condition="not-have plone-5"
+        name="default"
+        title="ftw.events"
+        description="Provides event pages based on simplelayout."
+        directory="profiles/default"
+        provides="Products.GenericSetup.interfaces.EXTENSION"
+        />
+
+    <genericsetup:registerProfile
+        zcml:condition="have plone-5"
+        name="default"
+        title="ftw.events"
+        description="Provides event pages based on simplelayout."
+        directory="profiles/default_plone5"
+        provides="Products.GenericSetup.interfaces.EXTENSION"
+        />
+
+    <upgrade-step:directory
+        profile="ftw.events:default"
+        directory="upgrades"
+        />
+
+</configure>

@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<import xmlns:tal="http://xml.zope.org/namespaces/tal"
+        xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+        i18n:domain="ftw.events"
+        tal:define="attributes view/import_node_attributes"
+        tal:attributes="export_time attributes/export_time;
+                        partner attributes/partner;
+                        partnerid attributes/partnerid;
+                        passwort attributes/passwort;
+                        importid attributes/importid;
+                        vaterobjekt attributes/vaterobjekt">
+
+    <item tal:repeat="item view/items"
+          tal:attributes="mutationsdatum item/modified_date"
+          status="1"
+          suchbar="1">
+        <id tal:content="item/uid" />
+        <titel tal:content="item/title" />
+        <termin tal:repeat="occurence item/occurences"
+                tal:attributes="allday python:occurence.whole_day and 1 or None">
+            <von tal:content="python:view.normalize_date(occurence.start)" />
+            <bis tal:content="python:view.normalize_date(occurence.end)" />
+        </termin>
+        <textlead tal:content="structure item/textlead" />
+        <url_bild tal:content="item/image_url" tal:condition="item/image_url" />
+        <textmobile tal:define="context nocall:item/obj;
+                                html simplelayout:default">
+            <tal:TEXT replace="structure python:view.cleanup_body_html(html)" />
+        </textmobile>
+        <rubrik tal:repeat="subject item/subjects"
+                tal:content="subject" />
+        <veranstaltungsort tal:condition="item/location">
+            <titel tal:content="item/location/title" />
+            <adresse tal:content="item/location/street" />
+            <plz tal:content="item/location/zip" />
+            <ort tal:content="item/location/city" />
+        </veranstaltungsort>
+    </item>
+
+</import>
