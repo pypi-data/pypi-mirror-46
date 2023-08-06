@@ -1,0 +1,31 @@
+sudo: false
+language: python
+
+os: linux
+dist: xenial
+
+git:
+  depth: 3
+  submodules: false
+
+branches:
+  only: master
+
+matrix:
+  fast_finish: true
+
+python:
+  - 3.4
+  - 3.5
+  - 3.6
+  - 3.7
+
+cache: pip
+
+install:
+  - pip install -r requirements-test.txt --upgrade
+  - pip install -r requirements.txt --upgrade
+  - python3 setup.py build
+  - pip install -e .
+
+script: ./check.sh
