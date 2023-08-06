@@ -1,0 +1,66 @@
+Metadata-Version: 2.1
+Name: django-tools-socialnetworks
+Version: 1.1.4
+Summary: Simple Django app to manage a website social network links
+Home-page: https://github.com/semicolom/django-tools-socialnetworks
+Author: Toni Colom
+Author-email: toni@semicolom.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Framework :: Django :: 2.0
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
+Description-Content-Type: text/markdown
+
+# Django Tools SocialNetworks
+
+Simple Django app to manage a website social network links
+
+## Installation
+
+1. Install with pip install `django-tools-socialnetworks`.
+
+2. Add `djtools.socialnetworks` to your INSTALLED_APPS setting like this:
+```
+INSTALLED_APPS = [
+    ...
+    'djtools.socialnetworks',
+]
+```
+
+3.1 Add the context processor to your settings file if need the social networks in all your pages.
+```
+TEMPLATES = [
+    {
+        ...
+        'OPTIONS': {
+            'context_processors': [
+                ...
+                'djtools.socialnetworks.context_processors.social_networks',
+            ],
+        },
+    },
+]
+```
+3.2 Or extend the `get_context` function of your view like this:
+```
+def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context['social_networks'] = SocialNetwork.get_social_networks()
+    return context
+```
+
+4. Run migrations commands `python manage.py migrate`
+
+5. Include social_networks.html snippet in your template or override it.
+```
+{% include "djtools/socialnetworks/social_networks.html" %}
+```
+
+
