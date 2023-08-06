@@ -1,0 +1,37 @@
+import boto3
+
+
+def upload_file(file, bucket, file_name, output_format=None):
+    exception = None
+    session = boto3.session.Session()
+    s3 = session.resource('s3')
+    try:
+        s3.meta.client.upload_file(file, bucket, file_name)
+    except Exception as e:
+        print(e)
+        exception = e
+    finally:
+        return ReturnObject(exception=exception,
+                            output_format=output_format).result()
+
+
+def get_object(bucket, file_path, output_format=None):
+    data = None
+    exception = None
+    full_response = None
+    session = boto3.session.Session()
+    s3 = session.resource('s3')
+    try:
+        full_response = s3.meta.client.get_object(Bucket=bucket, Key=file_path)
+        data = full_response.get('Body').read().decode('utf-8')
+    except Exception as e:
+        print(e)
+        exception = e
+    finally:
+        return ReturnObject(data=data,
+                            exception=exception,
+                            output_format=output_format,
+                            full_response=full_response).result()
+
+
+# asd = get_object('nelson123', 'etest_data.json', output_format='json')
