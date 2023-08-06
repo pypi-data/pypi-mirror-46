@@ -1,0 +1,37 @@
+Metadata-Version: 2.1
+Name: grpcio-helpers
+Version: 0.0.9
+Summary: Helper tools for importing and serving gRPC services
+Home-page: https://github.com/KnowitSolutions/grpcio-helpers
+Author: Andreas Hagen
+Author-email: a.hagen@knowit.no
+License: MIT
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+Requires-Dist: grpcio
+Requires-Dist: grpcio-tools
+Provides-Extra: proxy
+Requires-Dist: quart ; extra == 'proxy'
+Provides-Extra: well-known-protos
+Requires-Dist: googleapis-common-protos ; extra == 'well-known-protos'
+
+# gRPC Importer
+This package contains helper tools for working with gRPC services in Python.
+Specifically it provides import hooks for the Python import machinery which lets users import `.proto` files directly
+without having to precompile them, and a gRPC server setup wrapper to streamline the process of hosting gRPC services.
+
+### Usage
+Register import hooks by calling `register_import_hook()`. This call optionally takes the arguments `save_compiled`,
+`well_known_protos`, and `extra_args`, which specifies if compiled Python files should be written into the project
+folder and gives additional arguments to `protoc`. All arguments are specified per package, for which the closest parent
+package or `__main__`'s configuration is used.
+
+After registration the gRPC importer will auto-magically be used to import modules ending in `_pb2` or `_pb2_grpc` if
+a corresponding `.proto` file is present in the same package. The importer checks the modified time on the produced
+Python source files to determine if a fresh compile is needed for every import.
+
+This package also includes a helper function `serve()` which can be used to start a gRPC server.
+
