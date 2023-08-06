@@ -1,0 +1,113 @@
+<div>
+
+    {% if part.type == 1 %}
+        <div>
+            <h5>已有视频：</h5>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>排序</th>
+                    <th>文件名</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                {% for video in part.video_set.all %}
+                    <tr>
+                        <td>{{ video.number }}</td>
+                        <td>{{ video.file_name }}</td>
+                        <td>
+                            <a href="{% url 'bee_django_course_simple:video_detail' video_id=video.id %}">详情</a>
+                            {% if perms.bee_django_course_simple.change_section %}
+                                <a href="{% url 'bee_django_course_simple:edit_video_content' video_id=video.id %}">
+                                    修改</a>
+                                <a href="#" onclick="delete_video($(this))"
+                                   data-confirm="{% url 'bee_django_course_simple:delete_video' video_id=video.id %}">删除</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% elif part.type == 2 %}
+        {% for question in part.question_set.all %}
+            <div>
+                <span>{{ question.title }}</span>
+                {% if perms.bee_django_course_simple.change_section %}
+                    <span>
+                    <a href="{% url 'bee_django_course_simple:option_add' question.id %}">添加选项</a>
+                    <a href="{% url 'bee_django_course_simple:question_update' question.id %}">修改</a>
+
+                    <a href="#" id="delete_{{ question.id }}"
+                       data-confirm="{% url "bee_django_course_simple:question_delete" question.id %}"
+                       onclick="click_del(this,'question')">删除</a>
+                </span>
+                {% endif %}
+
+            </div>
+            {% for option in question.option_set.all %}
+                <div>
+                    {{ option.title }}
+                    {% if option.is_correct %}（正确答案）{% endif %}
+                    {% if perms.bee_django_course_simple.change_section %}
+                        <a href="{% url 'bee_django_course_simple:option_update' option.id %}">修改</a>
+                        <a href="#" id="delete_{{ question.id }}"
+                           data-confirm="{% url "bee_django_course_simple:option_delete" option.id %}"
+                           onclick="click_del(this,'option')">删除</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <hr>
+        {% endfor %}
+    {% endif %}
+</div>
+<script type="text/javascript">
+
+    function click_del(_this, _type) {
+        var msg = '';
+        if (_type == 'question') {
+            msg = '删除问题，会同时删除选项及学生答题，是否要删除？';
+        }
+        else if (_type == 'option') {
+            msg = '是否删除该选项？'
+        }
+        else if (_type == 'part') {
+            msg = '删除小节，同时会删除小节中包含的视频或选择题，确认删除吗？'
+        }
+        if (!confirm(msg)) {
+            return false;
+        }
+        var url = $(_this).attr('data-confirm');
+        $.post(url).done(function (data) {
+            alert('删除成功!');
+            location.reload();
+        });
+    }
+
+    function delete_video(t) {
+        if (confirm('确定删除此视频?')) {
+            var url = t.attr('data-confirm');
+            $.post(url).done(function (data) {
+                    var rc = data['rc'];
+                    if (rc === 0) {
+                        alert(data['message']);
+                        location.reload();
+                    } else if (rc === -1) {
+                        alert(data['message']);
+                    }
+                }
+            ).fail(function () {
+                alert('操作失败');
+            });
+        }
+    }
+
+    window.click_del = click_del;
+
+</script>
+

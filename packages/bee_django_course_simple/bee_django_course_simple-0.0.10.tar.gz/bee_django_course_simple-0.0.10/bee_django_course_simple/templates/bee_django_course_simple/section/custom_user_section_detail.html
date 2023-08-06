@@ -1,0 +1,43 @@
+{# TODO: 回答完有正确答案的选择，提醒战胜了多少对手 #}
+{% extends "bee_django_course_simple/user_base.html" %}
+{% load bee_django_course_simple_filter %}
+{% load bootstrap3 %}
+
+{% block content %}
+    <h4>
+        {% if user_section.is_pass %}
+            {{ user_section.section.title|default:"" }} {{ user_section.section.extra_title }}（已通过）
+        {% elif user_section.is_open %}
+            {{ user_section.section.title|default:"" }}（学习中）
+        {% endif %}
+    </h4>
+    <div class=" text-right"><a
+            href="{% url 'bee_django_course_simple:custom_user_section_list' user_id=user_section.user_course.user.id user_course_id=user_section.user_course.id %}"
+            class="btn btn-default">全部课程</a>
+    </div>
+
+    <div id="user_parts">
+        <div v-for="user_part in user_parts" v-bind:key="user_part.id">
+            <video_part v-if="user_part.part_type === 1" v-bind:title="user_part.part_title"
+                        v-bind:user_part_id="user_part.id" v-bind:extra_title="user_part.extra_title"
+                        v-bind:status.sync="user_part.status" v-bind:videos="user_part.videos">
+            </video_part>
+            <question_part v-else-if="user_part.part_type === 2" v-bind:title="user_part.part_title"
+                           v-bind:user_part_id="user_part.id" v-bind:extra_title="user_part.extra_title"
+                           v-bind:status.sync="user_part.status" v-bind:questions="user_part.questions">
+            </question_part>
+        </div>
+    </div>
+
+    <div id="next_section_button">
+        <a id="next_section_button" v-show="display()" class="btn btn-success"
+           v-bind:href="url">继续</a>
+    </div>
+
+
+{% endblock content %}
+
+{% block scripts %}
+    {% include 'bee_django_course_simple/section/_vue_template.html' %}
+    {% include 'bee_django_course_simple/section/_custom_alert.html' %}
+{% endblock scripts %}

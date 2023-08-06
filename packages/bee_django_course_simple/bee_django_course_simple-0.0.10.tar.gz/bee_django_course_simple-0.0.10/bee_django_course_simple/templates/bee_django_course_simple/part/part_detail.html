@@ -1,0 +1,193 @@
+{% extends "bee_django_course_simple/base.html" %}
+{% load bootstrap3 %}
+{% load bee_django_course_simple_filter %}
+{% block styles %}
+    <style>
+        .section_info img {
+            max-width: 100%;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <h4>
+        <a href="{% url 'bee_django_course_simple:course_detail'  pk=part.section.course.id %}">{{ part.section.course.title }}</a>
+        ->
+        <a href="{% url 'bee_django_course_simple:section_detail'  pk=part.section.id %}">课件【{{ part.section.title }}】详情 </a>
+        ->
+        小节【{{ part.title }}】详情
+    </h4>
+
+    <a href="{% url 'bee_django_course_simple:part_update'  part.id %}">修改小节</a>
+    <div>
+        <table class="table">
+
+
+            <tr>
+                <td class="col-xs-3">标题</td>
+                <td>{{ part.title }}</td>
+            </tr>
+            <tr>
+                <td class="col-xs-3">额外标题</td>
+                <td>{{ part.extra_title|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="">顺序</td>
+                <td>{{ part.number }}</td>
+            </tr>
+            <tr>
+                <td class="">类型</td>
+                <td>{{ part.get_type }}</td>
+            </tr>
+
+
+        </table>
+
+        <div>
+            {% if part.type == 2 %}
+                <div>
+                    <a href="{% url 'bee_django_course_simple:question_add' part_id=part.id %}">为该小节添加选择题</a>
+                </div>
+            {% endif %}
+            <hr>
+            {% include 'bee_django_course_simple/part/_part_info.html' %}
+        </div>
+
+        {% if part.type == 1 %}
+            <div>
+                <h4>上传新视频</h4>
+                <div id="control-container">
+                    <input type="file" id="choose_file"/>
+                    <button class="btn btn-default control-upload" id="upload_file">
+                        开始上传
+                    </button>
+                </div>
+
+                <div id="totalBar"
+                     style="float:left;width:80%;height:30px;border:1px solid;border-radius:3px;display:none;">
+                    <div id="totalBarColor"
+                         style="width:0;border:0;background-color:rgba(232,152,39,0.8);height:28px;"></div>
+                    <p class="speed"></p>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript" src="https://unpkg.com/qiniu-js@2.5.4/dist/qiniu.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#choose_file').on("change", function () {
+                var file = this.files[0];
+                if (!file) {
+                    return;
+                }
+
+                var current_date = new Date();
+                var time_now = String(current_date.getFullYear()) + '-' + String(current_date.getMonth() + 1) + '-'
+                    + String(current_date.getDate()) + '-' + String(current_date.getHours()) + String(current_date.getMinutes())
+                    + String(current_date.getSeconds());
+
+                var name_array = file.name.split('.');
+                var key = '';
+                if (name_array.length === 1) {
+                    key = file.name + '@' + time_now;
+                } else {
+                    name_array[name_array.length - 2] = name_array[name_array.length - 2] + '@' + time_now;
+                    key = name_array.join('.');
+                }
+
+
+                var url ='{% url "bee_django_course_simple:uptoken" %}?key=';
+                $.ajax({
+                    url: url + key, success: function (res) {
+                        var token = res.uptoken;
+                        var domain = res.domain;
+                        var config = {
+                            useCdnDomain: true,
+                            disableStatisticsReport: false,
+                            retryCount: 6
+                        };
+                        var putExtra = {
+                            fname: "",
+                            params: {},
+                            mimeType: null
+                        };
+
+
+                        var compareChunks = [];
+                        var finishedAttr = [];
+                        var dom_total = $("#totalBar").children("#totalBarColor");
+                        // 设置next,error,complete对应的操作，分别处理相应的进度信息，错误信息，以及完成后的操作
+                        var error = function (err) {
+                            $("#upload_file").text("继续上传");
+                            console.log(err);
+                            alert("上传出错")
+                        };
+
+                        var complete = function (res) {
+                            $("#totalBar").addClass("hide");
+                            $("#control-container")
+                                .html(
+                                    "上传完毕，视频为：" + res.key
+                                );
+
+                            // 将上传至七牛的视频，添加到小节里面
+                            var options = {
+                                'file_name': res.key
+                            };
+                            var url = "{% url 'bee_django_course_simple:add_video_to_part' part_id=part.id %}";
+                            $.post(url, options).done(function (data) {
+                                var rc = data['rc'];
+                                if (rc === 0) {
+                                    window.history.go();
+                                } else {
+                                    console.log(data);
+                                }
+                            })
+                        };
+
+                        var next = function (response) {
+                            var chunks = response.chunks || [];
+                            var total = response.total;
+                            // 这里对每个chunk更新进度，并记录已经更新好的避免重复更新，同时对未开始更新的跳过
+                            for (var i = 0; i < chunks.length; i++) {
+                                if (chunks[i].percent === 0 || finishedAttr[i]) {
+                                    continue;
+                                }
+                                if (compareChunks[i].percent === chunks[i].percent) {
+                                    continue;
+                                }
+                                if (chunks[i].percent === 100) {
+                                    finishedAttr[i] = true;
+                                }
+                            }
+                            $(".speed")
+                                .text("进度：" + total.percent + "% ");
+                            dom_total.css(
+                                "width",
+                                total.percent + "%"
+                            );
+                            compareChunks = chunks;
+                        };
+
+                        var observable = qiniu.upload(file, key, token, putExtra, config);
+                        var subscription;
+                        var sub_object = {
+                            next: next,
+                            error: error,
+                            complete: complete
+                        };
+                        $("#upload_file").click(function (e) {
+                            $('#control-container').html("");
+                            $('#totalBar').show();
+                            subscription = observable.subscribe(sub_object);
+                        });
+                    }
+                });
+            });
+
+        })
+    </script>
+{% endblock %}
