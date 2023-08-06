@@ -1,0 +1,187 @@
+Metadata-Version: 2.1
+Name: hfexcel
+Version: 0.0.12
+Summary: human friendly excel creation in python
+Home-page: https://github.com/ebsaral/hfexcel
+Author: Emin Bugra Saral
+Author-email: eminbugrasaral@me.com
+License: BSD
+Project-URL: Documentation, https://github.com/ebsaral/hfexcel
+Project-URL: Funding, https://github.com/ebsaral/hfexcel
+Project-URL: Source, https://github.com/ebsaral/hfexcel
+Description: # hfexcel 0.0.12 [![CircleCI](https://circleci.com/gh/ebsaral/hfexcel.svg?style=svg)](https://circleci.com/gh/ebsaral/hfexcel)
+        
+        human friendly excel creation in python
+        
+        # development versions of dependencies
+        
+        - Python 3.x
+        - XlsxWriter==1.1.8
+        - jsonschema==2.6.0
+        - pytest
+        - codecov
+        - pytest-cov
+        
+        # install
+        
+        ```
+        pip install hfexcel
+        ```
+        
+        # features
+        
+        - Human readable coding, building
+        - Object-Obriented based readable models: `HFExcelWorkbook`, `HFExcelSheet`, `HFExcelColumn`, `HFExcelColumn`
+        - `HFExcelWorkbookFilter`: Helper class to populate Excel from a JSON data (python `dict`) with a pre-defined json schema. (default:`hfexcel.schemas.DEFAULT_SCHEMA`)
+        - `HFExcelWorkbook.output`: Output creation on `filename (string)` input being null, and created `output` parameter with the type `BytesIO` linked to workbook itself
+        
+        
+        # playground
+        
+        - http://www.hfexcel.io/
+        
+        # example
+        
+        ```python
+        from hfexcel import HFExcel
+        from hfexcel.schemas import DEFAULT_SCHEMA
+        
+        
+        excel_data = {
+            "sheets": [
+                {
+                    "key": "sheet1",
+                    "name": "Example Sheet 1",
+                    "columns": [
+                        {
+                            "name": "Column 1",
+                            "width": 2,
+                            "args": [
+                                "headline"
+                            ],
+                            "rows": [
+                                {
+                                    "data": "Column 1 Row 1"
+        
+                                },
+                                {
+                                    "data": "Column 1 Row 2"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Column 2",
+                            "rows": [
+                                {
+                                    "data": "Column 2 Row 1",
+                                },
+                                {
+                                    "data": "Column 2 Row 2",
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Column 3",
+                            "rows": [
+                                {
+                                    "data": "Column 3 Row 1"
+                                },
+                                {
+                                    "data": "Column 3 Row 2"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "styles": [
+                {
+                    "name": "headline",
+                    "style": {
+                        "bold": 1,
+                        "font_size": 14,
+                        "font": "Arial",
+                        "align": "center"
+                    }
+                }
+            ]
+        }
+        
+        hf_workbook = HFExcel.hf_workbook('example.xlsx', set_default_styles=False)
+        hf_workbook.filter().populate_with_json(excel_data, schema=DEFAULT_SCHEMA)
+        hf_workbook.save()
+        ```
+        
+        or 
+        
+        ```python
+        from hfexcel import HFExcel
+        
+        hf_workbook = HFExcel.hf_workbook('example.xlsx', set_default_styles=False)
+        
+        hf_workbook.add_style(
+            "headline", 
+            {
+                "bold": 1,
+                "font_size": 14,
+                "font": "Arial",
+                "align": "center"
+            }
+        )
+        
+        sheet1 = hf_workbook.add_sheet("sheet1", name="Example Sheet 1")
+        
+        column1, _ = sheet1.add_column('headline', name='Column 1', width=2)
+        column1.add_row(data='Column 1 Row 1')
+        column1.add_row(data='Column 1 Row 2')
+        
+        column2, _ = sheet1.add_column(name='Column 2')
+        column2.add_row(data='Column 2 Row 1')
+        column2.add_row(data='Column 2 Row 2')
+        
+        
+        column3, _ = sheet1.add_column(name='Column 3')
+        column3.add_row(data='Column 3 Row 1')
+        column3.add_row(data='Column 3 Row 2')
+        
+        # In order to get a row with coordinates:
+        # sheet[column_index][row_index] => row
+        print(sheet1[1][1].data)
+        assert(sheet1[1][1].data == 'Column 2 Row 2')
+        
+        hf_workbook.save()
+        ```
+        
+        # example output file
+        
+        - https://github.com/ebsaral/hfexcel/blob/master/example.xlsx
+        
+        # contributors
+        
+        - @ebsaral - author
+        - feel free to contribute
+        
+        # dependencies
+        
+        - @jmcnamara: Based on XlsxWriter https://github.com/jmcnamara/XlsxWriter (to have a human readable object-oriented design on writing Excel documents)
+        - @Julian: JSON Schema Validation, jsonschema https://github.com/Julian/jsonschema
+        
+        # warning
+        
+        - Happy path tests are written.
+        - Still, not ready for production use. Tests are being written. Feel free to contribute.
+        
+Keywords: xlsxwriter xlsx excel json writing python wrapper
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
+Classifier: Topic :: Text Processing :: Linguistic
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Description-Content-Type: text/markdown
