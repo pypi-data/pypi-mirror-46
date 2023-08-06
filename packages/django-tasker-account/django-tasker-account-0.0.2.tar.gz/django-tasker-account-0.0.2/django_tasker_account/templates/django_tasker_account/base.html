@@ -1,0 +1,72 @@
+{% load i18n %}
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="Kostya Ten">
+        <title>Django Tasker Account</title>
+        <!-- <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/floating-labels/"> -->
+        <!-- Bootstrap core CSS -->
+        <link href="https://getbootstrap.com/docs/4.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom styles for this template -->
+        <link href="https://getbootstrap.com/docs/4.0/examples/floating-labels/floating-labels.css" rel="stylesheet">
+
+        <link rel="stylesheet" href="https://d1azc1qln24ryf.cloudfront.net/114779/Socicon/style-cf.css?u8vidh">
+    </head>
+    <body>
+        <div class="container">
+            {% if request.user.is_authenticated %}
+            <div class="row">
+                <ul class="nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'django_tasker_account:profile' %}">{% trans "Personal info" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'django_tasker_account:profile_change_password' %}">{% trans "Change password" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'django_tasker_account:profile_mylocation' %}">{% trans "My location" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'django_tasker_account:profile_avatar' %}">{% trans "Avatar" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'django_tasker_account:logout' %}">{% trans "Log out" %}</a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col">
+                    {% block form %}{% endblock %}
+
+                </div>
+            </div>
+
+            {% if not request.user.is_authenticated %}
+            <hr>
+            <div class="row">
+                <div class="col">
+                    <p class="mt-6 mb-3 text-muted text-center">
+                        <a href="{% url 'django_tasker_account:oauth_google' %}?next={{ request.GET.next|default:'/' }}" class="btn btn-outline-primary">Google</a>
+                        <a href="{% url 'django_tasker_account:oauth_yandex' %}?next={{ request.GET.next|default:'/' }}" class="btn btn-outline-primary">Yandex</a>
+                        <a href="{% url 'django_tasker_account:oauth_mailru' %}?next={{ request.GET.next|default:'/' }}" class="btn btn-outline-primary">Mail.ru</a>
+                    </p>
+
+                    <p class="mt-6 mb-3 text-muted text-center">
+                        <a href="{% url 'django_tasker_account:oauth_facebook' %}?next={{ request.GET.next|default:'/' }}" class="btn btn-outline-primary">Facebook</a>
+                        <a href="{% url 'django_tasker_account:oauth_vk' %}?next={{ request.GET.next|default:'/' }}" class="btn btn-outline-primary">VK.com</a>
+                    </p>
+                    <p class="mt-5 mb-3 text-muted text-center">&copy; Django Tasker Account {{ YEAR }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </body>
+</html>
