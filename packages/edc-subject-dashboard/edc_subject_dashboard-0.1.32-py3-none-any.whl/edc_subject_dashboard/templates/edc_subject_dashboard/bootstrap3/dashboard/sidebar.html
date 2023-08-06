@@ -1,0 +1,60 @@
+{% extends 'edc_subject_dashboard/bootstrap3/dashboard/sidebar/sidebar.html' %}
+
+{% load tz %}
+{% load edc_dashboard_extras %}
+{% load edc_prn_extras %}
+{% load action_item_extras %}
+
+{% block demographics %}   
+	
+    	{% include 'edc_subject_dashboard/bootstrap3/dashboard/sidebar/demographics.html' %}
+
+{% endblock demographics %}
+
+
+{% block prn_forms %}   
+
+	<div class="list-group list-group-default">
+
+    {% add_action_item_popover subject_identifier subject_dashboard_url %}
+    
+    {% if appointment %}
+    	{% add_prn_crf_popover appointment.object subject_dashboard_url %}
+    	{% add_prn_requisition_popover appointment.object subject_dashboard_url %}
+    {% endif %}
+    
+	</div>
+{% endblock prn_forms %}
+
+{% block prn_lists %}   
+
+    {% prn_list_items subject_identifier %}
+
+{% endblock prn_lists %}
+
+
+{% block consents %}
+
+    {% include 'edc_subject_dashboard/bootstrap3/dashboard/sidebar/consents.html' %}
+
+{% endblock consents %}
+
+
+{% block action_items %}   
+
+	{% if open_action_items %}
+	    
+	    <div class="list-group list-group-default">
+	    	
+	        {% for action_item in open_action_items %}
+
+	            {% action_item_with_popover action_item forloop.counter %}
+
+	       {% endfor %}
+	    </div>
+
+	{% endif %}
+
+{% endblock action_items %}
+
+
