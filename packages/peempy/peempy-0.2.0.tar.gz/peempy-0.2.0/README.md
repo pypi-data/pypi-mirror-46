@@ -1,0 +1,46 @@
+# peempy
+
+A suite for processing PEEM-XMCD data from I06 Diamond Light Source.
+
+
+## PEEM-XMCD work flow
+
+XMCD signals are from the difference of images taken under two different circular polarisation of X-ray.
+There are two types of data - XMCD4 and XMCD2. The former captures 4N images of resonance+, off-resonance+, resonance-, off-resonance-.
+Usually N=10. Images of each set are averaged. The polarisation dependent signal is taken from the difference between on and off resonance.
+
+The difficulty is that there is drift over time but averaging the signal is required to reduce noise. 
+The images need to be drift-corrected to minimize mismatch between them before taking the average.
+In addition, on and off resonance images need to be drift corrected separately.
+
+
+## What this does
+### Drift correction for each capture
+A more robust drift correction scheme is implemented, taking the advantage that the drift is aggregation process.
+In the original Igor implementation, an ROI containing a feature needs to be selected and the feature has to stay in the ROI in the entire series.
+Here, we allow a *floating* ROI for each frame.
+The ROI of the next frame is shifted based on the calculated absolute displacement of the current frame.
+This effectively makes the ROI "lock on" to feature in the image series.
+Hence, the initial ROI only need to be as large as the *feature*, given that the relative drift between the frames does not move the feature completely out of the ROI. 
+
+The routine in `skimage.feature.register_translation` is used. 
+It is much faster than the standard (super-sampled) image convolution scheme.
+The reference image is improved on-the-fly by adding weight averages of the corrected frames for noisy data.
+
+### Batch processing
+A script for batch processing has been written. Using python's `multiprocessing` module, 
+parallel batch processing can be performed to use all computational power.
+Captures can be previewed before processing for selecting a sensible drift area.
+For memory efficiency, it is desirable to use the *inplace* drift processing model to avoid creating addition copies of the data.
+
+### XMCD signal calculation
+XMCD signal image can be generated using `peempy.xmcd`
+
+### XMCD vector map construction
+XMCD vector map can be generated from the signal of more than one of the angles. 
+Due to the distortion from the instrument, frames need to be aligned before fitting.
+This package allows image alignment between an arbitrary number of frames based on any number of control points for alignment.
+Three-dimensional vector map can be constructed if XMCD images are captured with more than three angles. 
+
+## TODOs
+* Write quick-start documentations
