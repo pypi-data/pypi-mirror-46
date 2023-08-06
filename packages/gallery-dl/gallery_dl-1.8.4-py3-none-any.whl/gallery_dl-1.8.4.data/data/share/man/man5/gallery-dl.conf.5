@@ -1,0 +1,1711 @@
+.TH "GALLERY-DL.CONF" "5" "2019-05-17" "1.8.4-dev" "gallery-dl Manual"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+
+.SH NAME
+gallery-dl.conf \- gallery-dl configuration file
+
+.SH DESCRIPTION
+gallery-dl will search for configuration files in the following places
+every time it is started, unless
+.B --ignore-config
+is specified:
+.PP
+.RS 4
+.nf
+.I /etc/gallery-dl.conf
+.I $HOME/.config/gallery-dl/config.json
+.I $HOME/.gallery-dl.conf
+.fi
+.RE
+.PP
+It is also possible to specify additional configuration files with the
+.B -c/--config
+command-line option or to add further option values with
+.B -o/--option
+as <key>=<value> pairs,
+
+Configuration files are JSON-based and therefore don't allow any ordinary
+comments, but, since unused keys are simply ignored, it is possible to utilize
+those as makeshift comments by settings their values to arbitrary strings.
+
+.SH EXAMPLE
+{
+.RS 4
+"base-directory": "/tmp/",
+.br
+"extractor": {
+.RS 4
+"pixiv": {
+.RS 4
+"directory": ["Pixiv", "Works", "{user[id]}"],
+.br
+"filename": "{id}{num}.{extension}",
+.br
+"username": "foo",
+.br
+"password": "bar"
+.RE
+},
+.br
+"flickr": {
+.RS 4
+"_comment": "OAuth keys for account 'foobar'",
+.br
+"access-token": "0123456789-0123456789abcdef",
+.br
+"access-token-secret": "fedcba9876543210"
+.RE
+}
+.RE
+},
+.br
+"downloader": {
+.RS 4
+"retries": 3,
+.br
+"timeout": 2.5
+.RE
+}
+.RE
+}
+
+.SH EXTRACTOR OPTIONS
+.SS extractor.*.filename
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Example:" 4
+"{manga}_c{chapter}_{page:>03}.{extension}"
+
+.IP "Description:" 4
+A \f[I]format string\f[] to build the resulting filename
+for a downloaded file.
+
+The available replacement keys depend on the extractor used. A list
+of keys for a specific one can be acquired by calling *gallery-dl*
+with the \f[I]-K\f[]/\f[I]--list-keywords\f[] command-line option.
+For example:
+
+.. code::
+
+$ gallery-dl -K http://seiga.nicovideo.jp/seiga/im5977527
+Keywords for directory names:
+
+category
+seiga
+subcategory
+image
+
+Keywords for filenames:
+
+category
+seiga
+extension
+None
+image-id
+5977527
+subcategory
+image
+
+Note: Even if the value of the \f[I]extension\f[] key is missing or
+\f[I]None\f[], it will filled in later when the file download is
+starting. This key is therefore always available to provide
+a valid filename extension.
+
+.SS extractor.*.directory
+.IP "Type:" 6
+\f[I]list\f[] of \f[I]strings\f[]
+
+.IP "Example:" 4
+["{category}", "{manga}", "c{chapter} - {title}"]
+
+.IP "Description:" 4
+A list of \f[I]format strings\f[] for the resulting target directory.
+
+Each individual string in such a list represents a single path
+segment, which will be joined together and appended to the
+\f[I]base-directory\f[] to form the complete target directory path.
+
+.SS extractor.*.base-directory
+.IP "Type:" 6
+\f[I]Path\f[]
+
+.IP "Default:" 9
+\f[I]"./gallery-dl/"\f[]
+
+.IP "Description:" 4
+Directory path used as the base for all download destinations.
+
+.SS extractor.*.skip
+.IP "Type:" 6
+\f[I]bool\f[] or \f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Controls the behavior when downloading files whose filename
+already exists.
+
+
+* \f[I]true\f[]: Skip downloads
+
+* \f[I]false\f[]: Overwrite already existing files
+
+
+* \f[I]"abort"\f[]: Abort the current extractor run
+
+* \f[I]"abort:N"\f[]: Skip downloads and abort extractor run
+after \f[I]N\f[] consecutive skips
+
+
+* \f[I]"exit"\f[]: Exit the program altogether
+
+* \f[I]"exit:N"\f[]: Skip downloads and exit the program
+after \f[I]N\f[] consecutive skips
+
+.SS extractor.*.sleep
+.IP "Type:" 6
+\f[I]float\f[]
+
+.IP "Default:" 9
+\f[I]0\f[]
+
+.IP "Description:" 4
+Number of seconds to sleep before each download.
+
+.SS extractor.*.username & .password
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Description:" 4
+The username and password to use when attempting to log in to
+another site.
+
+Specifying username and password is
+required for the \f[I]pixiv\f[], \f[I]nijie\f[] and \f[I]seiga\f[] modules and
+optional (but strongly recommended) for \f[I]danbooru\f[], \f[I]exhentai\f[],
+\f[I]sankaku\f[] and \f[I]idolcomplex\f[].
+
+These values can also be set via the \f[I]-u/--username\f[] and
+\f[I]-p/--password\f[] command-line options or by using a \f[I].netrc\f[] file.
+(see Authentication_)
+
+Note: The password for \f[I]danbooru\f[] is the API key found in your
+user profile, not the password for your account.
+
+.SS extractor.*.netrc
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Enable the use of \f[I].netrc\f[] authentication data.
+
+.SS extractor.*.cookies
+.IP "Type:" 6
+\f[I]Path\f[] or \f[I]object\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Description:" 4
+Source to read additional cookies from.
+
+
+* If this is a \f[I]Path\f[], it specifies a
+Mozilla/Netscape format cookies.txt file.
+
+* If this is an \f[I]object\f[], its key-value pairs, which should both
+be \f[I]strings\f[], will be used as cookie-names and -values.
+
+.SS extractor.*.proxy
+.IP "Type:" 6
+\f[I]string\f[] or \f[I]object\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Description:" 4
+Proxy (or proxies) to be used for remote connections.
+
+
+* If this is a \f[I]string\f[], it is the proxy URL for all
+outgoing requests.
+
+* If this is an \f[I]object\f[], it is a scheme-to-proxy mapping to
+specify different proxy URLs for each scheme.
+It is also possible to set a proxy for a specific host by using
+\f[I]scheme://host\f[] as key.
+See \f[I]Requests' proxy documentation\f[] for more details.
+
+Example:
+
+.. code::
+
+{
+"http": "http://10.10.1.10:3128",
+"https": "http://10.10.1.10:1080",
+"http://10.20.1.128": "http://10.10.1.10:5323"
+}
+
+Note: All proxy URLs should include a scheme,
+otherwise \f[I]http://\f[] is assumed.
+
+.SS extractor.*.user-agent
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]"Mozilla/5.0 (X11; Linux x86_64; rv:62.0) Gecko/20100101 Firefox/62.0"\f[]
+
+.IP "Description:" 4
+User-Agent header value to be used for HTTP requests.
+
+Note: This option has no effect on pixiv and
+readcomiconline extractors, as these need specific values to
+function correctly.
+
+.SS extractor.*.keywords
+.IP "Type:" 6
+\f[I]object\f[]
+
+.IP "Example:" 4
+{"type": "Pixel Art", "type_id": 123}
+
+.IP "Description:" 4
+Additional key-value pairs to be added to each metadata dictionary.
+
+.SS extractor.*.keywords-default
+.IP "Type:" 6
+any
+
+.IP "Default:" 9
+\f[I]"None"\f[]
+
+.IP "Description:" 4
+Default value used for missing or undefined keyword names in
+format strings.
+
+.SS extractor.*.category-transfer
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+Extractor-specific
+
+.IP "Description:" 4
+Transfer an extractor's (sub)category values to all child
+extractors spawned by it, to let them inherit their parent's
+config options.
+
+.SS extractor.*.archive
+.IP "Type:" 6
+\f[I]Path\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Description:" 4
+File to store IDs of downloaded files in. Downloads of files
+already recorded in this archive file will be skipped_.
+
+The resulting archive file is not a plain text file but an SQLite3
+database, as either lookup operations are significantly faster or
+memory requirements are significantly lower when the
+amount of stored IDs gets reasonably large.
+
+.SS extractor.*.archive-format
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Example:" 4
+"{id}_{offset}"
+
+.IP "Description:" 4
+An alternative \f[I]format string\f[] to build archive IDs with.
+
+.SS extractor.*.postprocessors
+.IP "Type:" 6
+\f[I]list\f[] of \f[I]Postprocessor Configuration\f[] objects
+
+.IP "Example:" 4
+.. code::
+
+[
+{"name": "zip", "compression": "zip"},
+{"name": "exec",  "command": ["/home/foobar/script", "{category}", "{image_id}"]}
+]
+
+
+.IP "Description:" 4
+A list of post-processors to be applied to each downloaded file
+in the same order as they are specified.
+
+.SS extractor.*.retries
+.IP "Type:" 6
+\f[I]integer\f[]
+
+.IP "Default:" 9
+\f[I]5\f[]
+
+.IP "Description:" 4
+Number of times a failed HTTP request is retried before giving up.
+
+.SS extractor.*.timeout
+.IP "Type:" 6
+\f[I]float\f[] or \f[I]null\f[]
+
+.IP "Default:" 9
+\f[I]30\f[]
+
+.IP "Description:" 4
+Amount of time (in seconds) to wait for a successful connection
+and response from a remote server.
+
+This value gets internally used as the \f[I]timeout\f[] parameter for the
+\f[I]requests.request()\f[] method.
+
+.SS extractor.*.verify
+.IP "Type:" 6
+\f[I]bool\f[] or \f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Controls whether to verify SSL/TLS certificates for HTTPS requests.
+
+If this is a \f[I]string\f[], it must be the path to a CA bundle to use
+instead of the default certificates.
+
+This value gets internally used as the \f[I]verify\f[] parameter for the
+\f[I]requests.request()\f[] method.
+
+.SS extractor.*.image-range
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Example:" 4
+"10-20",
+.br
+"-5, 10, 30-50, 100-"
+.br
+
+.IP "Description:" 4
+Index-range(s) specifying which images to download.
+
+Note: The index of the first image is \f[I]1\f[].
+
+.SS extractor.*.chapter-range
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Description:" 4
+Like \f[I]image-range\f[], but applies to delegated URLs
+like manga-chapters, etc.
+
+.SS extractor.*.image-filter
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Example:" 4
+"width >= 1200 and width/height > 1.2",
+.br
+"re.search(r'foo(bar)+', description)"
+.br
+
+.IP "Description:" 4
+Python expression controlling which images to download.
+.br
+Files for which the expression evaluates to \f[I]False\f[]
+.br
+are ignored.
+Available keys are the filename-specific ones listed
+.br
+by \f[I]-K\f[] or \f[I]-j\f[].
+
+.SS extractor.*.chapter-filter
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Description:" 4
+Like \f[I]image-filter\f[], but applies to delegated URLs
+like manga-chapters, etc.
+
+.SH EXTRACTOR-SPECIFIC OPTIONS
+.SS extractor.artstation.external
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Try to follow external URLs of embedded players.
+
+.SS extractor.deviantart.flat
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Select the directory structure created by the Gallery- and
+Favorite-Extractors.
+
+
+* \f[I]true\f[]: Use a flat directory structure.
+
+* \f[I]false\f[]: Collect a list of all gallery-folders or
+favorites-collections and transfer any further work to other
+extractors (\f[I]folder\f[] or \f[I]collection\f[]), which will then
+create individual subdirectories for each of them.
+
+.SS extractor.deviantart.journals
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]"html"\f[]
+
+.IP "Description:" 4
+Selects the output format of journal entries.
+
+
+* \f[I]"html"\f[]: HTML with (roughly) the same layout as on DeviantArt.
+
+* \f[I]"text"\f[]: Plain text with image references and HTML tags removed.
+
+* \f[I]"none"\f[]: Don't download journals.
+
+.SS extractor.deviantart.mature
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Enable mature content.
+
+This option simply sets the \f[I]mature_content\f[] parameter for API
+calls to either \f[I]"true"\f[] or \f[I]"false"\f[] and does not do any other
+form of content filtering.
+
+.SS extractor.deviantart.metadata
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Request extended metadata for deviation objects to additionally
+provide \f[I]description\f[], \f[I]tags\f[], \f[I]license\f[] and \f[I]is_watching\f[]
+fields.
+
+.SS extractor.deviantart.original
+.IP "Type:" 6
+\f[I]bool\f[] or \f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Download original files if available.
+
+Setting this option to \f[I]"images"\f[] only downloads original
+files if they are images and falls back to preview versions for
+everything else (archives, etc.).
+
+.SS extractor.deviantart.refresh-token
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Description:" 4
+The \f[I]refresh_token\f[] value you get from linking your
+DeviantArt account to *gallery-dl*.
+
+Using a \f[I]refresh_token\f[] allows you to access private or otherwise
+not publicly available deviations.
+
+.SS extractor.deviantart.wait-min
+.IP "Type:" 6
+\f[I]integer\f[]
+
+.IP "Default:" 9
+\f[I]0\f[]
+
+.IP "Description:" 4
+Minimum wait time in seconds before API requests.
+
+Note: This value will internally be rounded up
+to the next power of 2.
+
+.SS extractor.exhentai.limits
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Check image download limits
+and stop extraction when they are exceeded.
+
+.SS extractor.exhentai.original
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Download full-sized original images if available.
+
+.SS extractor.exhentai.wait-min & .wait-max
+.IP "Type:" 6
+\f[I]float\f[]
+
+.IP "Default:" 9
+\f[I]3.0\f[] and \f[I]6.0\f[]
+
+.IP "Description:" 4
+Minimum and maximum wait time in seconds between each image
+
+ExHentai detects and blocks automated downloaders.
+*gallery-dl* waits a randomly selected number of
+seconds between \f[I]wait-min\f[] and \f[I]wait-max\f[] after
+each image to prevent getting blocked.
+
+.SS extractor.flickr.access-token & .access-token-secret
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Description:" 4
+The \f[I]access_token\f[] and \f[I]access_token_secret\f[] values you get
+from linking your Flickr account to *gallery-dl*.
+
+.SS extractor.flickr.videos
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Extract and download videos.
+
+.SS extractor.flickr.size-max
+.IP "Type:" 6
+\f[I]integer\f[] or \f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Description:" 4
+Sets the maximum allowed size for downloaded images.
+
+
+* If this is an \f[I]integer\f[], it specifies the maximum image dimension
+(width and height) in pixels.
+
+* If this is a \f[I]string\f[], it should be one of Flickr's format specifiers
+(\f[I]"Original"\f[], \f[I]"Large"\f[], ... or \f[I]"o"\f[], \f[I]"k"\f[], \f[I]"h"\f[],
+\f[I]"l"\f[], ...) to use as an upper limit.
+
+.SS extractor.gelbooru.api
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Enable use of Gelbooru's API.
+
+Set this value to false if the API has been disabled to switch
+to manual information extraction.
+
+.SS extractor.gfycat.format
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]"mp4"\f[]
+
+.IP "Description:" 4
+The name of the preferred animation format, which can be one of
+\f[I]"mp4"\f[], \f[I]"webm"\f[], \f[I]"gif"\f[], \f[I]"webp"\f[] or \f[I]"mjpg"\f[].
+
+If the selected format is not available, \f[I]"mp4"\f[], \f[I]"webm"\f[]
+and \f[I]"gif"\f[] (in that order) will be tried instead, until an
+available format is found.
+
+.SS extractor.imgur.mp4
+.IP "Type:" 6
+\f[I]bool\f[] or \f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Controls whether to choose the GIF or MP4 version of an animation.
+
+
+* \f[I]true\f[]: Follow Imgur's advice and choose MP4 if the
+\f[I]prefer_video\f[] flag in an image's metadata is set.
+
+* \f[I]false\f[]: Always choose GIF.
+
+* \f[I]"always"\f[]: Always choose MP4.
+
+.SS extractor.oauth.browser
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Controls how a user is directed to an OAuth authorization site.
+
+
+* \f[I]true\f[]: Use Python's \f[I]webbrowser.open()\f[] method to automatically
+open the URL in the user's browser.
+
+* \f[I]false\f[]: Ask the user to copy & paste an URL from the terminal.
+
+.SS extractor.photobucket.subalbums
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Download subalbums.
+
+.SS extractor.pixiv.ugoira
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Download Pixiv's Ugoira animations or ignore them.
+
+These animations come as a \f[I].zip\f[] file containing all the single
+animation frames in JPEG format.
+
+.SS extractor.plurk.comments
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Also search Plurk comments for URLs.
+
+.SS extractor.reactor.wait-min & .wait-max
+.IP "Type:" 6
+\f[I]float\f[]
+
+.IP "Default:" 9
+\f[I]3.0\f[] and \f[I]6.0\f[]
+
+.IP "Description:" 4
+Minimum and maximum wait time in seconds between HTTP requests
+during the extraction process.
+
+.SS extractor.recursive.blacklist
+.IP "Type:" 6
+\f[I]list\f[] of \f[I]strings\f[]
+
+.IP "Default:" 9
+\f[I]["directlink", "oauth", "recursive", "test"]\f[]
+
+.IP "Description:" 4
+A list of extractor categories which should be ignored when using
+the \f[I]recursive\f[] extractor.
+
+.SS extractor.reddit.comments
+.IP "Type:" 6
+\f[I]integer\f[] or \f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]500\f[]
+
+.IP "Description:" 4
+The value of the \f[I]limit\f[] parameter when loading
+a submission and its comments.
+This number (roughly) specifies the total amount of comments
+being retrieved with the first API call.
+
+Reddit's internal default and maximum values for this parameter
+appear to be 200 and 500 respectively.
+
+The value 0 ignores all comments and significantly reduces the
+time required when scanning a subreddit.
+
+.SS extractor.reddit.morecomments
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Retrieve additional comments by resolving the \f[I]more\f[] comment
+stubs in the base comment tree.
+
+This requires 1 additional API call for every 100 extra comments.
+
+.SS extractor.reddit.date-min & .date-max
+.IP "Type:" 6
+\f[I]integer\f[] or \f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]0\f[] and \f[I]253402210800\f[] (timestamp of \f[I]datetime.max\f[])
+
+.IP "Description:" 4
+Ignore all submissions posted before/after this date.
+
+
+* If this is an \f[I]integer\f[], it represents the date as UTC timestamp.
+
+* If this is a \f[I]string\f[], it will get parsed according to date-format_.
+
+.SS extractor.reddit.date-format
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]"%Y-%m-%dT%H:%M:%S"\f[]
+
+.IP "Description:" 4
+An explicit format string used to parse the \f[I]string\f[] values of
+\f[I]date-min and date-max\f[].
+
+See \f[I]strptime\f[] for a list of formatting directives.
+
+.SS extractor.reddit.id-min & .id-max
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Example:" 4
+"6kmzv2"
+
+.IP "Description:" 4
+Ignore all submissions posted before/after the submission with
+this ID.
+
+.SS extractor.reddit.recursion
+.IP "Type:" 6
+\f[I]integer\f[]
+
+.IP "Default:" 9
+\f[I]0\f[]
+
+.IP "Description:" 4
+Reddit extractors can recursively visit other submissions
+linked to in the initial set of submissions.
+This value sets the maximum recursion depth.
+
+Special values:
+
+
+* \f[I]0\f[]: Recursion is disabled
+
+* \f[I]-1\f[]: Infinite recursion (don't do this)
+
+.SS extractor.reddit.refresh-token
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Description:" 4
+The \f[I]refresh_token\f[] value you get from linking your
+Reddit account to *gallery-dl*.
+
+Using a \f[I]refresh_token\f[] allows you to access private or otherwise
+not publicly available subreddits, given that your account is
+authorized to do so,
+but requests to the reddit API are going to be rate limited
+at 600 requests every 10 minutes/600 seconds.
+
+.SS extractor.sankaku.wait-min & .wait-max
+.IP "Type:" 6
+\f[I]float\f[]
+
+.IP "Default:" 9
+\f[I]3.0\f[] and \f[I]6.0\f[]
+
+.IP "Description:" 4
+Minimum and maximum wait time in seconds between each image
+
+Sankaku Channel responds with \f[I]429 Too Many Requests\f[] if it
+receives too many HTTP requests in a certain amount of time.
+Waiting a few seconds between each request tries to prevent that.
+
+.SS extractor.smugmug.videos
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Download video files.
+
+.SS extractor.tumblr.avatar
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Download blog avatars.
+
+.SS extractor.tumblr.external
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Follow external URLs (e.g. from "Link" posts) and try to extract
+images from them.
+
+.SS extractor.tumblr.inline
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Search posts for inline images and videos.
+
+.SS extractor.tumblr.reblogs
+.IP "Type:" 6
+\f[I]bool\f[] or \f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+
+* \f[I]true\f[]: Extract media from reblogged posts
+
+* \f[I]false\f[]: Skip reblogged posts
+
+* \f[I]"same-blog"\f[]: Skip reblogged posts unless the original post
+is from the same blog
+
+.SS extractor.tumblr.posts
+.IP "Type:" 6
+\f[I]string\f[] or \f[I]list\f[] of \f[I]strings\f[]
+
+.IP "Default:" 9
+\f[I]"all"\f[]
+
+.IP "Example:" 4
+"video,audio,link" or ["video", "audio", "link"]
+
+.IP "Description:" 4
+A (comma-separated) list of post types to extract images, etc. from.
+
+Possible types are \f[I]text\f[], \f[I]quote\f[], \f[I]link\f[], \f[I]answer\f[],
+\f[I]video\f[], \f[I]audio\f[], \f[I]photo\f[], \f[I]chat\f[].
+
+You can use \f[I]"all"\f[] instead of listing all types separately.
+
+.SS extractor.twitter.retweets
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Extract images from retweets.
+
+.SS extractor.twitter.videos
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Use \f[I]youtube-dl\f[] to download from video tweets.
+
+.SS extractor.[booru].tags
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Categorize tags by their respective types
+and provide them as \f[I]tags_<type>\f[] metadata fields.
+
+Note: This requires 1 additional HTTP request for each post.
+
+.SS extractor.[manga-extractor].chapter-reverse
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Reverse the order of chapter URLs extracted from manga pages.
+
+
+* \f[I]true\f[]: Start with the latest chapter
+
+* \f[I]false\f[]: Start with the first chapter
+
+.SH DOWNLOADER OPTIONS
+.SS downloader.*.enabled
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Enable/Disable this downloader module.
+
+.SS downloader.*.part
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Controls the use of \f[I].part\f[] files during file downloads.
+
+
+* \f[I]true\f[]: Write downloaded data into \f[I].part\f[] files and rename
+them upon download completion. This mode additionally supports
+resuming incomplete downloads.
+
+* \f[I]false\f[]: Do not use \f[I].part\f[] files and write data directly
+into the actual output files.
+
+.SS downloader.*.part-directory
+.IP "Type:" 6
+\f[I]Path\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Description:" 4
+Alternate location for \f[I].part\f[] files.
+
+Missing directories will be created as needed.
+If this value is \f[I]null\f[], \f[I].part\f[] files are going to be stored
+alongside the actual output files.
+
+.SS downloader.*.rate
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Examples:" 4
+\f[I]"32000"\f[], \f[I]"500k"\f[], \f[I]"2.5M"\f[]
+
+.IP "Description:" 4
+Maximum download rate in bytes per second.
+
+Possible values are valid integer or floating-point numbers
+optionally followed by one of \f[I]k\f[], \f[I]m\f[]. \f[I]g\f[], \f[I]t\f[] or \f[I]p\f[].
+These suffixes are case-insensitive.
+
+.SS downloader.*.retries
+.IP "Type:" 6
+\f[I]integer\f[]
+
+.IP "Default:" 9
+\f[I]extractor.*.retries\f[]
+
+.IP "Description:" 4
+Number of retries during file downloads.
+
+.SS downloader.*.timeout
+.IP "Type:" 6
+\f[I]float\f[] or \f[I]null\f[]
+
+.IP "Default:" 9
+\f[I]extractor.*.timeout\f[]
+
+.IP "Description:" 4
+Connection timeout during file downloads.
+
+.SS downloader.*.verify
+.IP "Type:" 6
+\f[I]bool\f[] or \f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]extractor.*.verify\f[]
+
+.IP "Description:" 4
+Certificate validation during file downloads.
+
+.SS downloader.ytdl.format
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+youtube-dl's default, currently \f[I]"bestvideo+bestaudio/best"\f[]
+
+.IP "Description:" 4
+Video \f[I]format selection
+<https://github.com/ytdl-org/youtube-dl#format-selection>\f[]
+directly passed to youtube-dl.
+
+.SS downloader.ytdl.logging
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Route youtube-dl's output through gallery-dl's logging system.
+.br
+Otherwise youtube-dl will write its output directly to stdout/stderr.
+.br
+
+Note: Set \f[I]quiet\f[] and \f[I]no_warnings\f[] in
+\f[I]downloader.ytdl.raw-options\f[] to \f[I]true\f[] to suppress all output.
+
+.SS downloader.ytdl.raw-options
+.IP "Type:" 6
+\f[I]object\f[]
+
+.IP "Example:" 4
+.. code::
+
+{
+"quiet": true,
+"writesubtitles": true,
+"merge_output_format": "mkv"
+}
+
+
+.IP "Description:" 4
+Additional options passed directly to the \f[I]YoutubeDL\f[] constructor.
+.br
+All available options can be found in \f[I]youtube-dl's docstrings
+.br
+<https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/YoutubeDL.py#L138-L318>\f[].
+
+.SH OUTPUT OPTIONS
+.SS output.mode
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]"auto"\f[]
+
+.IP "Description:" 4
+Controls the output string format and status indicators.
+
+
+* \f[I]"null"\f[]: No output
+
+* \f[I]"pipe"\f[]: Suitable for piping to other processes or files
+
+* \f[I]"terminal"\f[]: Suitable for the standard Windows console
+
+* \f[I]"color"\f[]: Suitable for terminals that understand ANSI escape codes and colors
+
+* \f[I]"auto"\f[]: Automatically choose the best suitable output mode
+
+.SS output.shorten
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Controls whether the output strings should be shortened to fit
+on one console line.
+
+.SS output.progress
+.IP "Type:" 6
+\f[I]bool\f[] or \f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Controls the progress indicator when *gallery-dl* is run with
+multiple URLs as arguments.
+
+
+* \f[I]true\f[]: Show the default progress indicator
+(\f[I]"[{current}/{total}] {url}"\f[])
+
+* \f[I]false\f[]: Do not show any progress indicator
+
+* Any \f[I]string\f[]: Show the progress indicator using this
+as a custom \f[I]format string\f[]. Possible replacement keys are
+\f[I]current\f[], \f[I]total\f[]  and \f[I]url\f[].
+
+.SS output.log
+.IP "Type:" 6
+\f[I]string\f[] or \f[I]Logging Configuration\f[]
+
+.IP "Default:" 9
+\f[I]"[{name}][{levelname}] {message}"\f[]
+
+.IP "Description:" 4
+Configuration for standard logging output to stderr.
+
+If this is a simple \f[I]string\f[], it specifies
+the format string for logging messages.
+
+.SS output.logfile
+.IP "Type:" 6
+\f[I]Path\f[] or \f[I]Logging Configuration\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Description:" 4
+File to write logging output to.
+
+.SS output.unsupportedfile
+.IP "Type:" 6
+\f[I]Path\f[] or \f[I]Logging Configuration\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Description:" 4
+File to write external URLs unsupported by *gallery-dl* to.
+
+The default format string here is \f[I]"{message}"\f[].
+
+.SS output.num-to-str
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Convert numeric values (\f[I]integer\f[] or \f[I]float\f[]) to \f[I]string\f[]
+before outputting them as JSON.
+
+.SH POSTPROCESSOR OPTIONS
+.SS classify.mapping
+.IP "Type:" 6
+\f[I]object\f[]
+
+.IP "Default:" 9
+.. code::
+
+{
+"Pictures" : ["jpg", "jpeg", "png", "gif", "bmp", "svg", "webp"],
+"Video"    : ["flv", "ogv", "avi", "mp4", "mpg", "mpeg", "3gp", "mkv", "webm", "vob", "wmv"],
+"Music"    : ["mp3", "aac", "flac", "ogg", "wma", "m4a", "wav"],
+"Archives" : ["zip", "rar", "7z", "tar", "gz", "bz2"]
+}
+
+
+.IP "Description:" 4
+A mapping from directory names to filename extensions that should
+be stored in them.
+
+Files with an extension not listed will be ignored and stored
+in their default location.
+
+.SS exec.async
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Controls whether to wait for a subprocess to finish
+or to let it run asynchronously.
+
+.SS exec.command
+.IP "Type:" 6
+\f[I]list\f[] of \f[I]strings\f[]
+
+.IP "Example:" 4
+["echo", "{user[account]}", "{id}"]
+
+.IP "Description:" 4
+The command to run.
+
+Each element of this list is treated as a \f[I]format string\f[] using
+the files' metadata.
+
+.SS metadata.mode
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]"json"\f[]
+
+.IP "Description:" 4
+Select how to write metadata.
+
+
+* \f[I]"json"\f[]: all metadata using \f[I]json.dump()
+<https://docs.python.org/3/library/json.html#json.dump>\f[]
+
+* \f[I]"tags"\f[]: \f[I]tags\f[] separated by newlines
+
+* \f[I]"custom"\f[]: result of applying \f[I]metadata.format\f[] to a file's
+metadata dictionary
+
+.SS metadata.extension
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]"json"\f[] or \f[I]"txt"\f[]
+
+.IP "Description:" 4
+Filename extension for metadata files.
+
+.SS metadata.format
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Example:" 4
+"tags:\\n\\n{tags:J\\n}\\n"
+
+.IP "Description:" 4
+Custom format string to build content of metadata files.
+
+Note: Only applies for \f[I]"mode": "custom"\f[].
+
+.SS ugoira.extension
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]"webm"\f[]
+
+.IP "Description:" 4
+Filename extension for the resulting video files.
+
+.SS ugoira.ffmpeg-args
+.IP "Type:" 6
+\f[I]list\f[] of \f[I]strings\f[]
+
+.IP "Default:" 9
+\f[I]null\f[]
+
+.IP "Example:" 4
+["-c:v", "libvpx-vp9", "-an", "-b:v", "2M"]
+
+.IP "Description:" 4
+Additional FFmpeg command-line arguments.
+
+.SS ugoira.ffmpeg-location
+.IP "Type:" 6
+\f[I]Path\f[]
+
+.IP "Default:" 9
+\f[I]"ffmpeg"\f[]
+
+.IP "Description:" 4
+Location of the \f[I]ffmpeg\f[] (or \f[I]avconv\f[]) executable to use.
+
+.SS ugoira.ffmpeg-output
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Show FFmpeg output.
+
+.SS ugoira.ffmpeg-twopass
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Enable Two-Pass encoding.
+
+.SS ugoira.framerate
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]"auto"\f[]
+
+.IP "Description:" 4
+Controls the frame rate argument (\f[I]-r\f[]) for FFmpeg
+
+
+* \f[I]"auto"\f[]: Automatically assign a fitting frame rate
+based on delays between frames.
+
+* any other \f[I]string\f[]:  Use this value as argument for \f[I]-r\f[].
+
+* \f[I]null\f[] or an empty \f[I]string\f[]: Don't set an explicit frame rate.
+
+.SS ugoira.keep-files
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Keep ZIP archives after conversion.
+
+.SS ugoira.libx264-prevent-odd
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]true\f[]
+
+.IP "Description:" 4
+Prevent \f[I]"width/height not divisible by 2"\f[] errors
+when using \f[I]libx264\f[] or \f[I]libx265\f[] encoders
+by applying a simple cropping filter. See this \f[I]Stack Overflow
+thread <https://stackoverflow.com/questions/20847674>\f[]
+for more information.
+
+This option, when \f[I]libx264/5\f[] is used, automatically
+adds \f[I]["-vf", "crop=iw-mod(iw\\\\,2):ih-mod(ih\\\\,2)"]\f[]
+to the list of FFmpeg command-line arguments
+to reduce an odd width/height by 1 pixel and make them even.
+
+.SS zip.compression
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]"store"\f[]
+
+.IP "Description:" 4
+Compression method to use when writing the archive.
+
+Possible values are \f[I]"store"\f[], \f[I]"zip"\f[], \f[I]"bzip2"\f[], \f[I]"lzma"\f[].
+
+.SS zip.extension
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "Default:" 9
+\f[I]"zip"\f[]
+
+.IP "Description:" 4
+Filename extension for the created ZIP archive.
+
+.SS zip.keep-files
+.IP "Type:" 6
+\f[I]bool\f[]
+
+.IP "Default:" 9
+\f[I]false\f[]
+
+.IP "Description:" 4
+Keep the actual files after writing them to a ZIP archive.
+
+.SH MISCELLANEOUS OPTIONS
+.SS cache.file
+.IP "Type:" 6
+\f[I]Path\f[]
+
+.IP "Default:" 9
+\f[I]tempfile.gettempdir()\f[] + \f[I]".gallery-dl.cache"\f[]
+
+.IP "Description:" 4
+Path of the SQLite3 database used to cache login sessions,
+cookies and API tokens across gallery-dl invocations.
+
+Set this option to \f[I]null\f[] or an invalid path to disable
+this cache.
+
+.SH API TOKENS & IDS
+.SS extractor.deviantart.client-id & .client-secret
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "How To:" 4
+
+* login and visit DeviantArt's
+\f[I]Applications & Keys <https://www.deviantart.com/developers/apps>\f[]
+section
+
+* click "Register your Application"
+
+* scroll to "OAuth2 Redirect URI Whitelist (Required)"
+and enter "https://mikf.github.io/gallery-dl/oauth-redirect.html"
+
+* click "Save" (top right)
+
+* copy \f[I]client_id\f[] and \f[I]client_secret\f[] of your new
+application and put them in your configuration file
+
+.SS extractor.flickr.api-key & .api-secret
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "How To:" 4
+
+* login and \f[I]Create an App <https://www.flickr.com/services/apps/create/apply/>\f[]
+in Flickr's \f[I]App Garden <https://www.flickr.com/services/>\f[]
+
+* click "APPLY FOR A NON-COMMERCIAL KEY"
+
+* fill out the form with a random name and description
+and click "SUBMIT"
+
+* copy \f[I]Key\f[] and \f[I]Secret\f[] and put them in your configuration
+file
+
+.SS extractor.pawoo.access-token
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "How To
+:" 4
+
+
+.SS extractor.reddit.client-id & .user-agent
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "How To:" 4
+
+* login and visit the \f[I]apps <https://www.reddit.com/prefs/apps/>\f[]
+section of your account's preferences
+
+* click the "are you a developer? create an app..." button
+
+* fill out the form, choose "installed app", preferably set
+"http://localhost:6414/" as "redirect uri" and finally click
+"create app"
+
+* copy the client id (third line, under your application's name and
+"installed app") and put it in your configuration file
+
+* use "\f[I]Python:<application name>:v1.0 (by /u/<username>)\f[]" as
+user-agent and replace \f[I]<application name>\f[] and \f[I]<username>\f[]
+accordingly (see Reddit's
+\f[I]API access rules <https://github.com/reddit/reddit/wiki/API>\f[])
+
+.SS extractor.smugmug.api-key & .api-secret
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "How To:" 4
+
+* login and \f[I]Apply for an API Key <https://api.smugmug.com/api/developer/apply>\f[]
+
+* use a random name and description,
+set "Type" to "Application", "Platform" to "All",
+and "Use" to "Non-Commercial"
+
+* fill out the two checkboxes at the bottom and click "Apply"
+
+* copy \f[I]API Key\f[] and \f[I]API Secret\f[]
+and put them in your configuration file
+
+.SS extractor.tumblr.api-key & .api-secret
+.IP "Type:" 6
+\f[I]string\f[]
+
+.IP "How To:" 4
+
+* login and visit Tumblr's
+\f[I]Applications <https://www.tumblr.com/oauth/apps>\f[] section
+
+* click "Register application"
+
+* fill out the form: use a random name and description, set
+https://example.org/ as "Application Website" and "Default
+callback URL"
+
+* solve Google's "I'm not a robot" challenge and click "Register"
+
+* click "Show secret key" (below "OAuth Consumer Key")
+
+* copy your \f[I]OAuth Consumer Key\f[] and \f[I]Secret Key\f[]
+and put them in your configuration file
+
+.SH CUSTOM TYPES
+.SS Path
+.IP "Type:" 6
+\f[I]string\f[] or \f[I]list\f[] of \f[I]strings\f[]
+
+.IP "Examples:" 4
+
+* \f[I]"file.ext"\f[]
+
+* \f[I]"~/path/to/file.ext"\f[]
+
+* \f[I]"$HOME/path/to/file.ext"\f[]
+
+* \f[I]["$HOME", "path", "to", "file.ext"]\f[]
+
+.IP "Description:" 4
+A \f[I]Path\f[] is a \f[I]string\f[] representing the location of a file
+or directory.
+
+Simple \f[I]tilde expansion <https://docs.python.org/3/library/os.path.html#os.path.expanduser>\f[]
+and \f[I]environment variable expansion <https://docs.python.org/3/library/os.path.html#os.path.expandvars>\f[]
+is supported.
+
+In Windows environments, backslashes (\f[I]"\\"\f[]) can, in addition to
+forward slashes (\f[I]"/"\f[]), be used as path separators.
+Because backslashes are JSON's escape character,
+they themselves have to be escaped.
+The path \f[I]C:\\path\\to\\file.ext\f[] has therefore to be written as
+\f[I]"C:\\\\path\\\\to\\\\file.ext"\f[] if you want to use backslashes.
+
+.SS Logging Configuration
+.IP "Type:" 6
+\f[I]object\f[]
+
+
+.IP "Example:" 4
+.. code::
+
+{
+"format": "{asctime} {name}: {message}",
+"format-date": "%H:%M:%S",
+"path": "~/log.txt",
+"encoding": "ascii"
+}
+
+
+.IP "Description:" 4
+Extended logging output configuration.
+
+
+* format
+
+* Format string for logging messages
+
+In addition to the default
+\f[I]LogRecord attributes <https://docs.python.org/3/library/logging.html#logrecord-attributes>\f[],
+it is also possible to access the current
+\f[I]extractor <https://github.com/mikf/gallery-dl/blob/2e516a1e3e09cb8a9e36a8f6f7e41ce8d4402f5a/gallery_dl/extractor/common.py#L24>\f[]
+and \f[I]job <https://github.com/mikf/gallery-dl/blob/2e516a1e3e09cb8a9e36a8f6f7e41ce8d4402f5a/gallery_dl/job.py#L19>\f[]
+objects as well as their attributes
+(e.g. \f[I]"{extractor.url}"\f[])
+
+* Default: \f[I]"[{name}][{levelname}] {message}"\f[]
+
+* format-date
+
+* Format string for \f[I]{asctime}\f[] fields in logging messages
+(see \f[I]strftime() directives <https://docs.python.org/3/library/time.html#time.strftime>\f[])
+
+* Default: \f[I]"%Y-%m-%d %H:%M:%S"\f[]
+
+* level
+
+* Minimum logging message level
+(one of \f[I]"debug"\f[], \f[I]"info"\f[], \f[I]"warning"\f[], \f[I]"error"\f[], \f[I]"exception"\f[])
+
+* Default: \f[I]"info"\f[]
+
+* path
+
+* \f[I]Path\f[] to the output file
+
+* mode
+
+* Mode in which the file is opened;
+use \f[I]"w"\f[] to truncate or \f[I]"a"\f[] to append
+(see \f[I]open() <https://docs.python.org/3/library/functions.html#open>\f[])
+
+* Default: \f[I]"w"\f[]
+
+* encoding
+
+* File encoding
+
+* Default: \f[I]"utf-8"\f[]
+
+Note: path, mode and encoding are only applied when configuring
+logging output to a file.
+
+.SS Postprocessor Configuration
+.IP "Type:" 6
+\f[I]object\f[]
+
+
+.IP "Example:" 4
+.. code::
+
+{
+"name": "zip",
+"compression": "store",
+"extension": "cbz",
+"whitelist": ["mangadex", "exhentai", "nhentai"]
+}
+
+
+.IP "Description:" 4
+An object with the \f[I]name\f[] of a post-processor and its options.
+
+See \f[I]Postprocessor Options\f[] for a list of all available
+post-processors and their respective options.
+
+You can also set a \f[I]whitelist\f[] or \f[I]blacklist\f[] to
+only enable or disable a post-processor for the specified
+extractor categories.
+
+
+.SH BUGS
+https://github.com/mikf/gallery-dl/issues
+
+.SH AUTHORS
+Mike Fährmann <mike_faehrmann@web.de>
+.br
+and https://github.com/mikf/gallery-dl/graphs/contributors
+
+.SH "SEE ALSO"
+.BR gallery-dl (1)
