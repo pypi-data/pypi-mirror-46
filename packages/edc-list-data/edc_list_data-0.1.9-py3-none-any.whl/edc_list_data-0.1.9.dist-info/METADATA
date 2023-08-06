@@ -1,0 +1,83 @@
+Metadata-Version: 2.1
+Name: edc-list-data
+Version: 0.1.9
+Summary: Populate list data and other static model data on startup
+Home-page: http://github.com/clinicedc/edc-list-data
+Author: Erik van Widenfelt
+Author-email: ew2789@gmail.com
+License: GPL license, see LICENSE
+Keywords: django Edc action items reminders
+Platform: UNKNOWN
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
+Requires-Python: >=3.7
+Requires-Dist: edc-model
+
+|pypi| |travis| |coverage|
+
+edc-list-data
+-------------
+
+Populate list data and other static model data on ``Django`` startup.
+
+To install add ``edc_list_data.apps.AppConfig`` to your `INSTALLED_APPS`, then create a ``list_data.py`` in the root of your app.
+
+Most commonly used to populate M2M data known here as ``list_data``. M2M field models should use the ``ListModelMixin``.
+
+For example:
+
+.. code-block:: python
+
+	class Antibiotic(ListModelMixin, BaseUuidModel):
+
+	    class Meta(ListModelMixin.Meta):
+	        pass
+
+
+An example ``list_data.py``:
+
+
+.. code-block:: python
+
+	from edc_constants.constants import OTHER
+	from edc_list_data import PreloadData
+
+	list_data = {
+	    'my_lists_app.antibiotic': [
+	        ('flucloxacillin', 'Flucloxacillin'),
+	        ('gentamicin', 'Gentamicin'),
+	        ('ceftriaxone', 'Ceftriaxone'),
+	        ('amoxicillin_ampicillin', 'Amoxicillin/Ampicillin'),
+	        ('doxycycline', 'Doxycycline'),
+	        ('erythromycin', 'Erythromycin'),
+	        ('ciprofloxacin', 'Ciprofloxacin'),
+	        (OTHER, 'Other, specify')
+	    ],
+	}
+
+	preload_data = PreloadData(list_data=list_data)
+
+
+``PreloadData`` will persist the list data in model ``Antibiotic`` and maintain the order in which the list items are declared.
+
+See also call to ``site_list_data.autodiscover`` called in ``edc_list_data.apps.AppConfig``.
+
+
+
+.. |pypi| image:: https://img.shields.io/pypi/v/edc-list-data.svg
+    :target: https://pypi.python.org/pypi/edc-list-data
+
+.. |travis| image:: https://travis-ci.org/clinicedc/edc-list-data.svg?branch=develop
+    :target: https://travis-ci.org/clinicedc/edc-list-data
+
+.. |coverage| image:: https://coveralls.io/repos/github/clinicedc/edc-list-data/badge.svg?branch=develop
+    :target: https://coveralls.io/github/clinicedc/edc-list-data?branch=develop
+
+
