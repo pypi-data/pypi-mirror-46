@@ -1,0 +1,68 @@
+before_script:
+  - VERSION=`cat {{cookiecutter.name}}/VERSION`
+  - pip install virtualenv
+  - virtualenv ~/.venv/{{cookiecutter.name}}
+  - source ~/.venv/{{cookiecutter.name}}/bin/activate
+  - pip install -r requirements/dev.txt
+
+stages:
+  - unit-test
+  - release
+  - pages
+
+unit-test-py3:
+  image: python:3
+  stage: unit-test
+  script:
+    - angreal tests
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+  except:
+    - tags
+
+unit-test-py2:
+  image: python:2
+  stage: unit-test
+  script:
+    - angreal tests
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+  except:
+    - tags
+  allow_failure: true
+
+pages:
+  image: python:3
+  stage: pages
+  script:
+    - angreal docs --no_open
+    - mkdir public
+    - cp -r docs/build/html/* public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - tags
+
+release:
+  image: python:3
+  stage: release
+  before_script:
+    - VERSION=`cat {{cookiecutter.name}}/VERSION`
+    - if ! [[ "$CI_BUILD_TAG" = "$VERSION" ]]; then echo "$VERSION does not match $CI_BUILD_TAG"; exit -1 ; fi
+  script:
+    - pip install -r requirements/dev.txt
+    - echo "[server-login]" >> ~/.pypirc
+    - echo "username="$PYPI_USER >> ~/.pypirc
+    - echo "password="$PYPI_PASSWORD >> ~/.pypirc
+    - python setup.py check sdist bdist_wheel upload
+    - echo "" > ~/.pypirc && rm ~/.pypirc
+  only:
+    - tags
+
+
+cleanup_release:
+  stage: release
+  when: always
+  script:
+    - rm -vf ~/.pypirc
+  only:
+    - tags
