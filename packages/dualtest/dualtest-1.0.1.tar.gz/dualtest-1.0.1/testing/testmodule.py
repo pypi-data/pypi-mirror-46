@@ -1,0 +1,2 @@
+def testmethod():
+    return True
