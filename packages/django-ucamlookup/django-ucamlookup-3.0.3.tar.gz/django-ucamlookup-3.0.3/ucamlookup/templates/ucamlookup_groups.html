@@ -1,0 +1,79 @@
+{% load dictionary_tag %}
+<script>
+  $(document).ready(function() {
+    /**
+     * Creates an object defining the group in a format expected by select2
+     */
+    var create_data = function(lookup_id, group_name) {
+      return {
+        id: lookup_id,
+        text: group_name
+      }
+    };
+    /**
+     * The id of the last AJAX search request we sent.
+     */
+    var searchId_g = 0;
+    /**
+     * Initialises select2.
+     */
+    var $select = $("select#{{ input_tag_id }}").select2({
+      placeholder: '{{ placeholder|default:"Search for groups" }}',
+      minimumInputLength: 3,
+      multiple: {{ multiple }},
+      ajax: {
+        delay: 250,
+        url: "{%  url 'ucamlookup_find_groups' %}",
+        dataType: 'json',
+        data: function (params) {
+          return {
+            query: params.term,
+            searchId_g: ++searchId_g
+          };
+        },
+        processResults: function (data) {
+          if (data.searchId_g != searchId_g)
+            return;
+          // create the set of current selections
+          var groupids = new Set($select.select2('data').map(function(item) {return item.id}));
+          // filter out any results that are currently selected
+          return {
+            results: data.groups.filter(function(group) {
+              return ! groupids.has(group.groupid)
+            }).map(function(group) {
+              return create_data(group.groupid, group.title)
+            })
+          };
+        }
+      },
+      disabled: {{ disabled|default:'false' }},
+      containerCssClass: 'ucamlookup-group-container',
+      dropdownCssClass: 'ucamlookup-group-dropdown',
+      width: 'auto'
+    });
+    /**
+     * Add an option to the select and triggers select2 change and select events.
+     */
+    var add_option = function(lookup_id, group_name) {
+      var data = create_data(lookup_id, group_name);
+      $select.append(
+        new Option(data.text, data.id, true, true)
+      ).trigger('change').trigger({
+        type: 'select2:select',
+        params: {data: data}
+      })
+    };
+
+    // Define the initial selections (deprecated - <option> should be used instead).
+
+    {% if group_list %}
+      {% for group in lookup_lists|get_item:group_list %}
+        add_option('{{ group.lookup_id  }}', '{{ group.name }}');
+      {% endfor %}
+    {% endif %}
+
+    {% if single_group %}
+      add_option('{{ single_group.lookup_id  }}', '{{ single_group.name }}');
+    {% endif %}
+  });
+</script>

@@ -1,0 +1,72 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+{% load i18n %}
+
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'select2-4.0.6-rc.1.min.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static 'jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'select2-4.0.6-rc.1.full.min.js' %}"></script>
+{% endblock %}
+
+{% block form_top %}
+    <p>
+        Add a new group. The autocomplete field searches by group name or group id in the lookup
+        service of the University of Cambridge.
+    </p>
+{% endblock %}
+
+{% block field_sets %}
+    <fieldset style="margin: 20px 0; border: 0;">
+        <label for="ucamlookup_admin_username" style="margin-right: 40px;">
+          Lookup ID:
+        </label>
+        <select name="lookup_id" id="ucamlookup_admin_lookup_id"></select>
+    </fieldset>
+{% endblock %}
+
+{% block after_field_sets %}
+<script type="text/javascript">
+  /**
+   * ID of the last AJAX search request we sent.
+   */
+  var searchId_g = 0;
+
+  $(document).ready(function() {
+    $("select#ucamlookup_admin_lookup_id").select2({
+      delay: 250,
+      placeholder: "Search for a group",
+      minimumInputLength: 3,
+      multiple: false,
+      ajax: {
+          url: "{%  url 'ucamlookup_find_groups' %}",
+          dataType: 'json',
+          data: function (params) {
+            return {
+              query: params.term,
+              searchId_g: ++searchId_g
+            };
+          },
+          processResults: function (data) {
+            if (data.searchId_g != searchId_g)
+              return;
+            return {
+              results: $.map(data.groups, function(group) {
+                return {
+                  id: group.groupid,
+                  text: group.title
+                }
+              })
+            };
+          }
+      },
+      width: '50%'
+    });
+  });
+</script>
+{% endblock %}

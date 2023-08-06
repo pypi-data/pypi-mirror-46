@@ -1,0 +1,70 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+{% load i18n %}
+
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'select2-4.0.6-rc.1.min.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static 'jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'select2-4.0.6-rc.1.full.min.js' %}"></script>
+{% endblock %}
+
+{% block form_top %}
+    <p>The autocomplete field searches by name or crsid in the lookup service of the University of Cambridge.</p>
+{% endblock %}
+
+{% block field_sets %}
+    <fieldset style="margin: 20px 0; border: 0;">
+        <label for="ucamlookup_admin_username" style="margin-right: 40px;">
+          Username:
+        </label>
+        <select name="username" id="ucamlookup_admin_username"></select>
+    </fieldset>
+{% endblock %}
+
+{% block after_field_sets %}
+<script type="text/javascript">
+  /**
+   * ID of the last AJAX search request we sent.
+   */
+  var searchId_u = 0;
+
+  $(document).ready(function() {
+    $("select#ucamlookup_admin_username").select2({
+      placeholder: "Search for a University of Cambridge user",
+      minimumInputLength: 3,
+      multiple: false,
+      ajax: {
+          delay: 250,
+          url: "{%  url 'ucamlookup_find_people' %}",
+          dataType: 'json',
+          data: function (params) {
+            return {
+              query: params.term,
+              searchId_u: ++searchId_u
+            };
+          },
+          processResults: function (data) {
+            if (data.searchId_u != searchId_u)
+              return;
+            return {
+              results: $.map(data.persons, function(person) {
+                return {
+                  id: person.crsid,
+                  text: person.visibleName + ' (' + person.crsid+ ')'
+                }
+              })
+            };
+          }
+      },
+      width: '50%'
+    });
+  });
+</script>
+{% endblock %}
+
