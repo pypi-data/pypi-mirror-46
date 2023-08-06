@@ -1,0 +1,114 @@
+Metadata-Version: 2.1
+Name: wayback-machine-archiver
+Version: 1.2.0
+Summary: A Python script to submit web pages to the Wayback Machine for archiving.
+Home-page: https://github.com/agude/wayback-machine-archiver
+Author: Alexander Gude
+Author-email: alex.public.account@gmail.com
+License: MIT
+Keywords: Internet Archive,Wayback Machine
+Platform: any
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: System Administrators
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Utilities
+Requires-Python: >=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4
+Requires-Dist: requests
+
+Wayback Machine Archiver
+========================
+
+Wayback Machine Archiver (Archiver for short) is a commandline utility
+writen in Python to backup Github Pages using the `Internet
+Archive <https://archive.org/>`__.
+
+Installation
+------------
+
+The best way to install Archiver is with ``pip``:
+
+.. code:: bash
+
+    pip install wayback-machine-archiver
+
+This will give you access to the script simply by calling:
+
+.. code:: bash
+
+    archiver --help
+
+You can also clone this repository:
+
+.. code:: bash
+
+    git clone https://github.com/agude/wayback-machine-archiver.git
+    cd wayback-machine-archiver
+    python ./wayback_machine_archiver/archiver.py --help
+
+If you clone the repository, Archiver can be installed as a local
+application using the ``setup.py`` script:
+
+.. code:: bash
+
+    git clone https://github.com/agude/wayback-machine-archiver.git
+    cd wayback-machine-archiver
+    ./setup.py install
+
+Which, like using ``pip``, will give you access to the script by calling
+``archiver``.
+
+Usage
+-----
+
+You can schedule a backup by specifying the URL a web page, like so:
+
+.. code:: bash
+
+    archiver https://alexgude.com
+
+This will submit the main page of my blog,
+`alexgude.com <https://alexgude.com>`__, to the Wayback Machine for
+archiving.
+
+You can also archive all the URLs specified in a
+```sitemap.xml`` <https://en.wikipedia.org/wiki/Sitemaps>`__ as follows:
+
+.. code:: bash
+
+    archiver --sitemaps https://alexgude.com/sitemap.xml
+
+This will backup every page listed in the sitemap of my website,
+`alexgude.com <https://alexgude.com>`__.
+
+You can backup multiple pages by specifying multiple URLs or sitemaps:
+
+.. code:: bash
+
+    archiver https://radiokeysmusic.com --sitemaps https://charles.uno/sitemap.xml https://alexgude.com/sitemaps.xml
+
+Sitemaps often exclude themselves, so you can request that the sitemap
+itself be backed up using the flag ``--archive-sitemap-also``:
+
+.. code:: bash
+
+    archiver --sitemaps https://alexgude.com/sitemaps.xml --archive-sitemap-also
+
+Archiver requires `the ``requests``
+library <https://github.com/kennethreitz/requests>`__ by Kenneth Reitz.
+Archiver supports Python 2.7, and Python 3.4+.
+
+Setting Up a ``Sitemap.xml`` for Github Pages
+---------------------------------------------
+
+It is easy to automatically generate a sitemap for a Github Pages Jekyll
+site. Simply use
+`jekyll/jekyll-sitemap <https://github.com/jekyll/jekyll-sitemap>`__.
+
+Setup instructions can be found on the above site; they require changing
+just a single line of your site's ``_config.yml``.
+
+
