@@ -1,0 +1,3049 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.1" />
+<title>htpio.telnetio API documentation</title>
+<meta name="description" content="This is a telnet client i/o control module.
+Telnet is a client/server text-oriented communication protocol using a virtual
+terminal connection and …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>htpio.telnetio</code></h1>
+</header>
+<section id="section-intro">
+<p>This is a telnet client i/o control module.
+Telnet is a client/server text-oriented communication protocol using a virtual
+terminal connection and operates over TCP. It provides a command-line interface
+to the operating system on a remote host.</p>
+<p><strong><em> Example: </em></strong></p>
+<pre><code class="python">
+import htpio.telnetio as telnetio
+
+r = telnetio.RaspberryPi(host = '192.168.199.31',
+                         port = 23,
+                         user = 'pi',
+                         password = 'raspberry')
+
+try:
+    r.lock(14)
+except:
+    r.logout()
+    raise
+
+r.configure(14, telnetio.RaspberryPi.OUTPUT)
+r.set(14, 1)
+
+print(r.get(14))
+
+r.unlock(14)
+r.deconfigure(14)
+
+</code></pre>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python"># Copyright (c) Hilscher GmbH. All Rights Reserved.
+#
+# $Author: bgeorgiev $
+# $Date: 2019-05-16 11:34:02 +0300 (Thu, 16 May 2019) $
+# $Revision: 654 $
+
+
+&#34;&#34;&#34;
+This is a telnet client i/o control module.
+Telnet is a client/server text-oriented communication protocol using a virtual
+terminal connection and operates over TCP. It provides a command-line interface
+to the operating system on a remote host.
+
+*** Example: ***
+
+```python
+
+import htpio.telnetio as telnetio
+
+r = telnetio.RaspberryPi(host = &#39;192.168.199.31&#39;,
+                         port = 23,
+                         user = &#39;pi&#39;,
+                         password = &#39;raspberry&#39;)
+
+try:
+    r.lock(14)
+except:
+    r.logout()
+    raise
+
+r.configure(14, telnetio.RaspberryPi.OUTPUT)
+r.set(14, 1)
+
+print(r.get(14))
+
+r.unlock(14)
+r.deconfigure(14)
+
+```
+
+&#34;&#34;&#34;
+
+# Compatibility imports
+from __future__ import unicode_literals
+from __future__ import absolute_import
+
+# Third party imports
+from telnetlib import Telnet
+
+# Local imports
+from htpio.bridge import Device
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# EXCEPTION CLASSES
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class PinLockedByOtherProcess(Exception):
+    &#34;&#34;&#34;
+    Raised when the gpio pin is used by other process from the same class.
+    &#34;&#34;&#34;
+
+    def __init__(self, lock_owner=None, my_session=None):
+        self.lock_owner = lock_owner
+        self.my_session = my_session
+
+    def __str__(self):
+        return repr(self.lock_owner + &#34; (my session is &#34; + self.my_session + &#34;)&#34;)
+
+
+class CannotCreateLockDirectory(Exception):
+    &#34;&#34;&#34;
+    Raised when the lockfolder cannot be created.
+    &#34;&#34;&#34;
+    pass
+
+
+class CannotMountRamDisk(Exception):
+    &#34;&#34;&#34;
+    Raised when the ram disk cannot be mapped to the lock folder
+    &#34;&#34;&#34;
+    pass
+
+
+class InvalidLoginDetails(Exception):
+    &#34;&#34;&#34;
+    Raised when user or password provided not valid
+    &#34;&#34;&#34;
+    pass
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# DEVICE CLASSES
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class RaspberryPi(Telnet, Device):
+    &#34;&#34;&#34;
+    RaspberryPi telnet remote i/o access class.
+    
+    This class provides basic funcitonality for controlling the GPIO by
+    using a remote telnet session and sending commands to the operating system.
+
+    ## Configuration
+
+    The user should be part of the sudo and gpio group and the visudo file
+    should be configured for no password prompt when using the sudo. This is
+    accomplished by executing the following commands :
+
+    ```
+    sudo adduser htp
+    sudo usermod -a -G gpio htp                
+    sudo usermod -a -G sudo htp
+
+    sudo visudo                
+        (add line) htp     ALL=(ALL) NOPASSWD: ALL            
+        (add line) %gpio   ALL=(ALL) NOPASSWD: ALL
+
+    ```
+
+    ## Class attributes
+
+        LOCK_DIR         Location of lock files (ramdisk)
+        MAX_GPIO         Maximum number of gpio locks ( from 0 .. MAX)
+        INPUT            GPIO is digital input
+        OUTPUT           GPIO is digital output
+        EOF              End of file
+
+
+    ## Instance attributes
+
+        host            : ip v4 address
+        port            : port (from 0 to 65535)
+        user            : user
+        password        : user password
+        login_prompt    : token to detect when login is expected
+        password_prompt : token to detect when password is expected
+        shell_prompt    : token to detect return after command execution
+        timeout         : timeout time in case of connectivity problems
+
+    ## Public methods
+
+        islocked(gpio)              : Check if the gpio is locked
+        lock(gpio)                  : Locks the gpio
+        unlock(gpio)                : Unlocks the gpio
+        isconfigured(gpio)          : Checks if the gpio is configured
+        configure(gpio, direction)  : Configures the gpio with direction
+        deconfigure(gpio)           : Restores the default configuration
+        get(gpio)                   : Reads the gpio status
+        set(gpio, value)            : Writes new value to gpio
+        login()                     : Registers to the remote system
+        logout()                    : Unregisters from the remote system
+        reset()                     : Deletes all configuration data
+    &#34;&#34;&#34;
+
+    LOCKDIR = &#34;/tmp/htp/locks&#34;
+    &#34;&#34;&#34; Directory containing the lock files &#34;&#34;&#34;
+
+    RAMDISK = &#34;htp_lockdir&#34;
+    &#34;&#34;&#34; Label for the ramdisk mounted on the lock directory &#34;&#34;&#34;
+
+    MAX_GPIO = 128
+    &#34;&#34;&#34; Maximum number of gpio lock files &#34;&#34;&#34;
+
+    INPUT = 0
+    &#34;&#34;&#34; Direction of gpio is input &#34;&#34;&#34;
+
+    OUTPUT = 1
+    &#34;&#34;&#34; Direction of gpio is output &#34;&#34;&#34;
+
+    EOF = &#34;\r\n&#34;
+    &#34;&#34;&#34; Character used to mark end of line transmission&#34;&#34;&#34;
+
+
+    def __init__(
+            self,
+            host=None,
+            port=23,
+            user=&#39;htp&#39;,
+            password=&#39;sokotnar&#39;,
+            login_prompt=&#34;login:&#34;,
+            password_prompt=&#34;Password:&#34;,
+            shell_prompt=&#34;$&#34;,
+            timeout=20
+    ):
+
+        &#34;&#34;&#34;
+        ## Constructor
+
+        When called with host address, the constructor creates
+        a telnet connection and performs automatic login:
+
+        ```python
+        import htpio.telnetio as telnetio
+
+        t = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+        ```
+
+        When called without host address, the constructor creates
+        an unconnected instance. In this case the object might be
+        configured by using the instance attributes:
+
+        ```python
+        import htpio.telnetio as telnetio
+
+        t = telnetio.RaspberryPi()
+
+        t.host = &#39;192.168.199.31&#39;
+        t.port = 23
+        t.user = &#39;user&#39;
+        t.password = &#39;password&#39;
+        t.login_prompt = &#39;login:&#39;
+        t.password_prompt = &#39;Password:&#39;
+        t.shell_prompt = &#39;$&#39;
+        t.timeout = 20
+        ```
+
+        After the configuration above the user is required to use the
+        following statements:
+
+        ```python
+        t.open(host, port)
+        t.login()
+        ```
+
+        &#34;&#34;&#34;
+
+        Telnet.__init__(self, host, port)
+
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+        self.timeout = timeout
+
+        self.login_prompt = login_prompt.encode(&#39;ascii&#39;)
+        self.password_prompt = password_prompt.encode(&#39;ascii&#39;)
+        self.shell_prompt = shell_prompt.encode(&#39;ascii&#39;)
+
+        self._session = None
+        self._locklist = None
+        self._iotag = &#34;gpio&#34;
+
+        self._lockdir = RaspberryPi.LOCKDIR
+        self._ramdisk = RaspberryPi.RAMDISK
+
+
+
+        if host is not None:
+            self.login()
+
+    def __del__(self):
+        &#34;&#34;&#34; # Destructor -- close telnet connection&#34;&#34;&#34;
+
+        self.close()
+
+
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  islocked : Check if pin is locked and returns the owner
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def islocked(self, pin):
+        &#34;&#34;&#34;
+        Check if pin is already locked by an object of this class and returns
+        the identification number of the locking process.
+
+        *** Shell: ***
+        ```
+        sudo cat /tmp/htp/locks/gpio14
+        ```
+
+        *** Example: ***
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.lock(14)
+        if led.islocked(14) :
+            print(&#34;LED is locked!!!&#34;)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent folder name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # GPIO lock file
+        iotag = self._iotag + str(pin)
+        lockfile = (self._lockdir + iotag)
+
+        # Command to open file
+        command = &#34;sudo cat &#34; + \
+                  lockfile + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush command echo
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command result
+        result = self.read_until(self.shell_prompt, self.timeout)
+        result = bytes(result).decode()
+        result = result.split()
+        result = result[0].replace(RaspberryPi.EOF, &#34;&#34;)
+
+        # Verify result (should be a number)
+        try:
+            int(result)
+        except ValueError:
+            result = None
+
+        return result
+
+
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  lock : Checks if pin is used by other processes and creates a lock file
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+
+
+    def lock(self, pin):
+        &#34;&#34;&#34;
+        Throws an exception &lt;b&gt;PinLockedByOtherProcess&lt;/b&gt; or opens the gpio
+        lock file and writes the session id in it.
+
+        ***Shell***:
+        ```shell
+        echo 1921681993055555 | sudo tee /tmp/htp/gpio14
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.lock(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent folder name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # GPIO lock file
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        # Create lock file
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+        else:
+            command = &#34;echo &#34; + \
+                      self._session + \
+                      &#34; | sudo tee &#34; + \
+                      lockfile + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  unlock : Deltetes the lock file
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def unlock(self, pin, ):
+        &#34;&#34;&#34;
+        Unlocks the gpio by deleting the content of the lock file.
+
+        ***Shell***:
+        ```shell
+        sudo truncate --size=0 /tmp/htp/locks/gpio14
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.unlock(14)
+        ...
+        ```
+
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        # Consistent folder name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # GPIO lock file
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        # Empty lock file
+        command = &#34;sudo truncate --size=0 &#34; + \
+                  lockfile + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # isconfigured : Checks for folders with the name gpioXX
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def isconfigured(self, pin):
+        &#34;&#34;&#34;
+        This function checks if the sysfs folder /sys/class/gpio/gpioNN exists.
+
+        ***Shell:***
+        ```shell
+        find /sys/class/gpio -name gpio14
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, telnetio.RaspberryPi.OUTPUT)
+        if led.isconfigured(14):
+            print(&#34;LED is configured!!!&#34;)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # GPIO to check
+        iotag = self._iotag + str(pin)
+
+        # Check if pin folder is exported
+        command = &#34;find &#34; + \
+                  &#34;/sys/class/gpio &#34; + \
+                  &#34;-name gpio[0-9][0-9]&#34; + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush command echo
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command response
+        result = self.read_until(self.shell_prompt, self.timeout)
+        result = bytes(result).decode()
+        result = result.split(RaspberryPi.EOF)
+
+        # Evaluate result
+        if any(iotag in folders for folders in result):
+            val = 1
+        else:
+            val =  0
+
+        return val
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  configure : Configures pin for use through the file system 
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def configure(self, pin, direction):
+        &#34;&#34;&#34;
+        Create the sysfs virtual folder for gpio manipulation.
+
+        *** Shell : ***
+        ```shell
+        echo 14 | tee /sys/class/gpio/export
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, telnetio.RaspberryPi.OUTPUT)
+        ...
+        ```
+
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        # Configure pin
+        if not self.isconfigured(pin):
+
+            # Export the desired pin (creates virtual folder)
+            command = &#34;echo &#34; + \
+                      str(pin) + \
+                      &#34; | tee /sys/class/gpio/export&#34; + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+            # Flush buffer
+            self.read_until(self.shell_prompt, self.timeout)
+
+            # Configure the type of the pin = IN
+            if direction == RaspberryPi.INPUT:
+                command = &#34;echo in | sudo tee /sys/class/gpio/gpio&#34; + \
+                          str(pin) + \
+                          &#34;/direction&#34; + \
+                          RaspberryPi.EOF
+
+                self.write(command.encode(&#39;ascii&#39;))
+
+            # Configure the type of the pin = OUT
+            if direction == RaspberryPi.OUTPUT:
+                command = &#34;echo out | sudo tee /sys/class/gpio/gpio&#34; + \
+                          str(pin) + \
+                          &#34;/direction&#34; + \
+                          RaspberryPi.EOF
+
+                self.write(command.encode(&#39;ascii&#39;))
+
+            # Flush buffer
+            self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  cleanup : Deletes the current configuration of the pin 
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def deconfigure(self, pin):
+        &#34;&#34;&#34;
+        Delete the sysfs virtual folder for pin manipulation.
+
+        *** Shell : ***
+        ```
+        echo 14 | tee /sys/class/gpio/unexport
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.deconfigure(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        # Unexport desired pin (deletes virtual folder)
+        command = &#34;echo &#34; + \
+                  str(pin) + \
+                  &#34; | tee /sys/class/gpio/unexport&#34; + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  get : Reads the value of the pin using the file system
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+    &#34;&#34;&#34;
+
+    def get(self, pin):
+        &#34;&#34;&#34;
+        Gets the current status of the given pin by reading the system file.
+
+        *** Shell : ***
+        ```shell
+        cat /sys/class/gpio/gpio14/value
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.get(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        command = &#34;cat &#34; + \
+                  &#34;/sys/class/gpio/gpio&#34; + \
+                  str(pin) + \
+                  &#34;/value&#34; + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush command echo
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command results
+        value = self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+        value = bytes(value).decode()
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return int(value.replace(RaspberryPi.EOF, &#34;&#34;))
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  set : Writes to the pin using the file system
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+    &#34;&#34;&#34;
+
+    def set(self, pin, value):
+        &#34;&#34;&#34;
+        Sets the current value of the given pin by using the system file.
+
+        *** Shell: ***
+        ```
+        echo 1 | sudo tee /sys/class/gpio/gpio14
+        ```
+
+
+        *** Example: ***
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, telnetio.RaspberryPi.OUTPUT)
+        led.set(14, 1)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        # Write to the desired pin (virtual file &#34;value&#34;)
+        command = &#34;echo &#34; + \
+                  str(value) + \
+                  &#34; | sudo tee /sys/class/gpio/gpio&#34; + \
+                  str(pin) + \
+                  &#34;/value&#34; + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  login : sends username and password to the telnet server
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def login(self):
+        &#34;&#34;&#34;
+        Performs an automatic login to the remote system using the supplied
+        user and password as instance properties.
+
+        !!! Use only when creating an unconnected instance !!!
+
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi()
+        led.host = &#39;192.168.199.31&#39;
+        led.port = 23
+        led.user = &#39;htpio&#39;
+        led.password = &#39;sokotnar&#39;
+
+        led.open(host, port)
+        led.login()
+
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Flush buffer and wait for login
+        self.read_until(self.login_prompt, self.timeout)
+        command = self.user + RaspberryPi.EOF
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer and wait for password
+        self.read_until(self.password_prompt, self.timeout)
+        command = self.password + RaspberryPi.EOF
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        result = self.read_until(self.shell_prompt, self.timeout)
+        result = bytes(result).decode()
+
+        if any(&#39;incorrect&#39; in s for s in result.split()):
+            raise InvalidLoginDetails
+        else:
+            self.__session()
+            self.__makedir()
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  logout : Closes telnet connection
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def logout(self):
+        &#34;&#34;&#34;
+        Closes the connection to the target.
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.logout()
+
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Add additional steps before closing the connection
+        self.close()
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  reset : Initializes telnetio
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def reset(self, pin):
+        &#34;&#34;&#34;
+        Deletes lock file for pin.
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.reset(14)
+
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent folder name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        # Delete lock file
+        command = &#34;sudo rm &#34; + \
+                  lockfile + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  __islockdir : Creates lock directory if not present
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __islockdir(self):
+        &#34;&#34;&#34;
+        Checks if the lock directory exists.
+
+        ```
+        [ -d /tmp/htp/locks ] &amp;&amp; echo 1 || echo 0
+        ```
+        &#34;&#34;&#34;
+
+        command = &#34;[ -d &#34; + \
+                  self._lockdir + \
+                  &#34; ] &#34; + \
+                  &#34;&amp;&amp; echo 1 || echo 0&#34; + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush command line echo
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command result
+        result = self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+        result = bytes(result).decode()
+        result = result.replace(RaspberryPi.EOF, &#34;&#34;)
+
+        return int(result)
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  __makedir : Creates lock directory if not present
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __makedir(self, folder=None):
+        &#34;&#34;&#34;
+        Create the lock directory (stores the lock files).
+
+        ```
+        sudo mkdir -p /tmp/htp/locks
+        ```
+        &#34;&#34;&#34;
+
+        # Define lock folder name
+        if folder is None:
+            folder = self._lockdir
+        else:
+            self._lockdir = folder
+
+        # Check and create lock directory
+        if not self.__islockdir():
+
+            command = &#34;sudo mkdir -p &#34; + \
+                      folder + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+            if not self.__islockdir():
+                raise CannotCreateLockDirectory
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        # Mount ram disk
+        self.__mount(folder)
+
+        return 0
+
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  __ismounted : Check if ram disk mounted to lock directory
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __ismounted(self, ramdisk=None):
+        &#34;&#34;&#34;
+        Check if ram disk is mounted on lock directory.
+
+        ```
+        mount | grep -i tmpfs
+        ```
+        &#34;&#34;&#34;
+
+        # Check if ram disk mounted
+        command = &#34;mount | grep -i &#34; + \
+                  ramdisk + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command result
+        result = self.read_until(self.shell_prompt, self.timeout)
+        result = bytes(result).decode()
+
+        if any(ramdisk in mounts for mounts in result.split()):
+            val =  True
+        else:
+            val =  False
+
+        return val
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  __mount : Mount ram disk
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __mount(self, folder=None):
+        &#34;&#34;&#34;
+        Mount ram disk to lock folder. This is required to remove the problem
+        of frequent read/write operations on the SD card.
+
+        ```
+        sudo mount -t tmpfs -o size=16m htp_ramdisk /tmp/htp/locks
+        ```
+        &#34;&#34;&#34;
+
+        if not self.__ismounted(folder):
+
+            command = &#34;sudo mount -t tmpfs -o size=16m &#34; + \
+                      self._ramdisk + \
+                      &#34; &#34; + \
+                      self._lockdir + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+            # Flush buffer
+            self.read_until(self.shell_prompt, self.timeout)
+
+            if not self.__ismounted(folder):
+                raise CannotMountRamDisk
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  dismount : Ejects RAMDISK used to store the locksfiles
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __dismount(self, folder=None):
+        &#34;&#34;&#34;
+        Dismounts htp ramdisk from lock folder directory.
+
+        ```
+        sudo umount /tmp/htp/locks
+        ```
+        &#34;&#34;&#34;
+
+        if folder is None:
+            folder = self._lockdir
+
+        # Unmount ram disk
+        command = &#34;sudo umount &#34; + \
+                  self._lockdir + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  session : Retrieves the current telnet session
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __session(self):
+        &#34;&#34;&#34;
+        Gets the socket data for this connection and converts the to one
+        unique identification number. This ID is used to lock gpios.
+        &#34;&#34;&#34;
+
+        mysocket = self.sock
+        mysocket = mysocket.getsockname()
+        result = &#39;.&#39;.join(map(str, mysocket))
+        result = result.replace(&#34;.&#34;, &#34;&#34;)
+        self._session = result
+
+        return self._session
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  locklist : retries all gpios currently locked by other processes
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __locklist(self):
+        &#34;&#34;&#34;
+        Gets a listing of all lock files in the lock directory.
+
+        ```
+        ls /tmp/htp/locks
+        ```
+        &#34;&#34;&#34;
+
+        # List the content of the lock directory
+        command = &#34;ls &#34; + \
+                  self._lockdir + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush command echo
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command results
+        self._locklist = self.read_until(self.shell_prompt, self.timeout)
+        self._locklist = self._locklist.split()
+
+        return self._locklist
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  populate : generate GPIO lock files from 0 to MAX_GPIO
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __populate(self):
+        &#34;&#34;&#34;
+        Creates all lock files in the lock directory.
+
+        ```
+        touch -a gpio14
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent directory name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # Create lock files
+        for gpio in range(RaspberryPi.MAX_GPIO):
+            iotag = self._iotag + str(gpio)
+            lockfile = self._lockdir + iotag
+
+            command = &#34;touch -a &#34; + \
+                      lockfile + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+            # Flush buffer
+            self.read_until(self.shell_prompt, self.timeout)
+
+        return 0</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="htpio.telnetio.CannotCreateLockDirectory"><code class="flex name class">
+<span>class <span class="ident">CannotCreateLockDirectory</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Raised when the lockfolder cannot be created.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class CannotCreateLockDirectory(Exception):
+    &#34;&#34;&#34;
+    Raised when the lockfolder cannot be created.
+    &#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="htpio.telnetio.CannotMountRamDisk"><code class="flex name class">
+<span>class <span class="ident">CannotMountRamDisk</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Raised when the ram disk cannot be mapped to the lock folder</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class CannotMountRamDisk(Exception):
+    &#34;&#34;&#34;
+    Raised when the ram disk cannot be mapped to the lock folder
+    &#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="htpio.telnetio.InvalidLoginDetails"><code class="flex name class">
+<span>class <span class="ident">InvalidLoginDetails</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Raised when user or password provided not valid</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class InvalidLoginDetails(Exception):
+    &#34;&#34;&#34;
+    Raised when user or password provided not valid
+    &#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="htpio.telnetio.PinLockedByOtherProcess"><code class="flex name class">
+<span>class <span class="ident">PinLockedByOtherProcess</span></span>
+<span>(</span><span>lock_owner=None, my_session=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Raised when the gpio pin is used by other process from the same class.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class PinLockedByOtherProcess(Exception):
+    &#34;&#34;&#34;
+    Raised when the gpio pin is used by other process from the same class.
+    &#34;&#34;&#34;
+
+    def __init__(self, lock_owner=None, my_session=None):
+        self.lock_owner = lock_owner
+        self.my_session = my_session
+
+    def __str__(self):
+        return repr(self.lock_owner + &#34; (my session is &#34; + self.my_session + &#34;)&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi"><code class="flex name class">
+<span>class <span class="ident">RaspberryPi</span></span>
+<span>(</span><span>host=None, port=23, user='htp', password='sokotnar', login_prompt='login:', password_prompt='Password:', shell_prompt='$', timeout=20)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>RaspberryPi telnet remote i/o access class.</p>
+<p>This class provides basic funcitonality for controlling the GPIO by
+using a remote telnet session and sending commands to the operating system.</p>
+<h2 id="configuration">Configuration</h2>
+<p>The user should be part of the sudo and gpio group and the visudo file
+should be configured for no password prompt when using the sudo. This is
+accomplished by executing the following commands :</p>
+<pre><code>sudo adduser htp
+sudo usermod -a -G gpio htp                
+sudo usermod -a -G sudo htp
+
+sudo visudo                
+    (add line) htp     ALL=(ALL) NOPASSWD: ALL            
+    (add line) %gpio   ALL=(ALL) NOPASSWD: ALL
+
+</code></pre>
+<h2 id="class-attributes">Class attributes</h2>
+<pre><code>LOCK_DIR         Location of lock files (ramdisk)
+MAX_GPIO         Maximum number of gpio locks ( from 0 .. MAX)
+INPUT            GPIO is digital input
+OUTPUT           GPIO is digital output
+EOF              End of file
+</code></pre>
+<h2 id="instance-attributes">Instance attributes</h2>
+<pre><code>host            : ip v4 address
+port            : port (from 0 to 65535)
+user            : user
+password        : user password
+login_prompt    : token to detect when login is expected
+password_prompt : token to detect when password is expected
+shell_prompt    : token to detect return after command execution
+timeout         : timeout time in case of connectivity problems
+</code></pre>
+<h2 id="public-methods">Public methods</h2>
+<pre><code>islocked(gpio)              : Check if the gpio is locked
+lock(gpio)                  : Locks the gpio
+unlock(gpio)                : Unlocks the gpio
+isconfigured(gpio)          : Checks if the gpio is configured
+configure(gpio, direction)  : Configures the gpio with direction
+deconfigure(gpio)           : Restores the default configuration
+get(gpio)                   : Reads the gpio status
+set(gpio, value)            : Writes new value to gpio
+login()                     : Registers to the remote system
+logout()                    : Unregisters from the remote system
+reset()                     : Deletes all configuration data
+</code></pre>
+<h2 id="constructor">Constructor</h2>
+<p>When called with host address, the constructor creates
+a telnet connection and performs automatic login:</p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+t = telnetio.RaspberryPi('192.168.199.31')
+</code></pre>
+<p>When called without host address, the constructor creates
+an unconnected instance. In this case the object might be
+configured by using the instance attributes:</p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+t = telnetio.RaspberryPi()
+
+t.host = '192.168.199.31'
+t.port = 23
+t.user = 'user'
+t.password = 'password'
+t.login_prompt = 'login:'
+t.password_prompt = 'Password:'
+t.shell_prompt = '$'
+t.timeout = 20
+</code></pre>
+<p>After the configuration above the user is required to use the
+following statements:</p>
+<pre><code class="python">t.open(host, port)
+t.login()
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class RaspberryPi(Telnet, Device):
+    &#34;&#34;&#34;
+    RaspberryPi telnet remote i/o access class.
+    
+    This class provides basic funcitonality for controlling the GPIO by
+    using a remote telnet session and sending commands to the operating system.
+
+    ## Configuration
+
+    The user should be part of the sudo and gpio group and the visudo file
+    should be configured for no password prompt when using the sudo. This is
+    accomplished by executing the following commands :
+
+    ```
+    sudo adduser htp
+    sudo usermod -a -G gpio htp                
+    sudo usermod -a -G sudo htp
+
+    sudo visudo                
+        (add line) htp     ALL=(ALL) NOPASSWD: ALL            
+        (add line) %gpio   ALL=(ALL) NOPASSWD: ALL
+
+    ```
+
+    ## Class attributes
+
+        LOCK_DIR         Location of lock files (ramdisk)
+        MAX_GPIO         Maximum number of gpio locks ( from 0 .. MAX)
+        INPUT            GPIO is digital input
+        OUTPUT           GPIO is digital output
+        EOF              End of file
+
+
+    ## Instance attributes
+
+        host            : ip v4 address
+        port            : port (from 0 to 65535)
+        user            : user
+        password        : user password
+        login_prompt    : token to detect when login is expected
+        password_prompt : token to detect when password is expected
+        shell_prompt    : token to detect return after command execution
+        timeout         : timeout time in case of connectivity problems
+
+    ## Public methods
+
+        islocked(gpio)              : Check if the gpio is locked
+        lock(gpio)                  : Locks the gpio
+        unlock(gpio)                : Unlocks the gpio
+        isconfigured(gpio)          : Checks if the gpio is configured
+        configure(gpio, direction)  : Configures the gpio with direction
+        deconfigure(gpio)           : Restores the default configuration
+        get(gpio)                   : Reads the gpio status
+        set(gpio, value)            : Writes new value to gpio
+        login()                     : Registers to the remote system
+        logout()                    : Unregisters from the remote system
+        reset()                     : Deletes all configuration data
+    &#34;&#34;&#34;
+
+    LOCKDIR = &#34;/tmp/htp/locks&#34;
+    &#34;&#34;&#34; Directory containing the lock files &#34;&#34;&#34;
+
+    RAMDISK = &#34;htp_lockdir&#34;
+    &#34;&#34;&#34; Label for the ramdisk mounted on the lock directory &#34;&#34;&#34;
+
+    MAX_GPIO = 128
+    &#34;&#34;&#34; Maximum number of gpio lock files &#34;&#34;&#34;
+
+    INPUT = 0
+    &#34;&#34;&#34; Direction of gpio is input &#34;&#34;&#34;
+
+    OUTPUT = 1
+    &#34;&#34;&#34; Direction of gpio is output &#34;&#34;&#34;
+
+    EOF = &#34;\r\n&#34;
+    &#34;&#34;&#34; Character used to mark end of line transmission&#34;&#34;&#34;
+
+
+    def __init__(
+            self,
+            host=None,
+            port=23,
+            user=&#39;htp&#39;,
+            password=&#39;sokotnar&#39;,
+            login_prompt=&#34;login:&#34;,
+            password_prompt=&#34;Password:&#34;,
+            shell_prompt=&#34;$&#34;,
+            timeout=20
+    ):
+
+        &#34;&#34;&#34;
+        ## Constructor
+
+        When called with host address, the constructor creates
+        a telnet connection and performs automatic login:
+
+        ```python
+        import htpio.telnetio as telnetio
+
+        t = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+        ```
+
+        When called without host address, the constructor creates
+        an unconnected instance. In this case the object might be
+        configured by using the instance attributes:
+
+        ```python
+        import htpio.telnetio as telnetio
+
+        t = telnetio.RaspberryPi()
+
+        t.host = &#39;192.168.199.31&#39;
+        t.port = 23
+        t.user = &#39;user&#39;
+        t.password = &#39;password&#39;
+        t.login_prompt = &#39;login:&#39;
+        t.password_prompt = &#39;Password:&#39;
+        t.shell_prompt = &#39;$&#39;
+        t.timeout = 20
+        ```
+
+        After the configuration above the user is required to use the
+        following statements:
+
+        ```python
+        t.open(host, port)
+        t.login()
+        ```
+
+        &#34;&#34;&#34;
+
+        Telnet.__init__(self, host, port)
+
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+        self.timeout = timeout
+
+        self.login_prompt = login_prompt.encode(&#39;ascii&#39;)
+        self.password_prompt = password_prompt.encode(&#39;ascii&#39;)
+        self.shell_prompt = shell_prompt.encode(&#39;ascii&#39;)
+
+        self._session = None
+        self._locklist = None
+        self._iotag = &#34;gpio&#34;
+
+        self._lockdir = RaspberryPi.LOCKDIR
+        self._ramdisk = RaspberryPi.RAMDISK
+
+
+
+        if host is not None:
+            self.login()
+
+    def __del__(self):
+        &#34;&#34;&#34; # Destructor -- close telnet connection&#34;&#34;&#34;
+
+        self.close()
+
+
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  islocked : Check if pin is locked and returns the owner
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def islocked(self, pin):
+        &#34;&#34;&#34;
+        Check if pin is already locked by an object of this class and returns
+        the identification number of the locking process.
+
+        *** Shell: ***
+        ```
+        sudo cat /tmp/htp/locks/gpio14
+        ```
+
+        *** Example: ***
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.lock(14)
+        if led.islocked(14) :
+            print(&#34;LED is locked!!!&#34;)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent folder name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # GPIO lock file
+        iotag = self._iotag + str(pin)
+        lockfile = (self._lockdir + iotag)
+
+        # Command to open file
+        command = &#34;sudo cat &#34; + \
+                  lockfile + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush command echo
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command result
+        result = self.read_until(self.shell_prompt, self.timeout)
+        result = bytes(result).decode()
+        result = result.split()
+        result = result[0].replace(RaspberryPi.EOF, &#34;&#34;)
+
+        # Verify result (should be a number)
+        try:
+            int(result)
+        except ValueError:
+            result = None
+
+        return result
+
+
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  lock : Checks if pin is used by other processes and creates a lock file
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+
+
+    def lock(self, pin):
+        &#34;&#34;&#34;
+        Throws an exception &lt;b&gt;PinLockedByOtherProcess&lt;/b&gt; or opens the gpio
+        lock file and writes the session id in it.
+
+        ***Shell***:
+        ```shell
+        echo 1921681993055555 | sudo tee /tmp/htp/gpio14
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.lock(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent folder name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # GPIO lock file
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        # Create lock file
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+        else:
+            command = &#34;echo &#34; + \
+                      self._session + \
+                      &#34; | sudo tee &#34; + \
+                      lockfile + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  unlock : Deltetes the lock file
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def unlock(self, pin, ):
+        &#34;&#34;&#34;
+        Unlocks the gpio by deleting the content of the lock file.
+
+        ***Shell***:
+        ```shell
+        sudo truncate --size=0 /tmp/htp/locks/gpio14
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.unlock(14)
+        ...
+        ```
+
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        # Consistent folder name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # GPIO lock file
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        # Empty lock file
+        command = &#34;sudo truncate --size=0 &#34; + \
+                  lockfile + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # isconfigured : Checks for folders with the name gpioXX
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def isconfigured(self, pin):
+        &#34;&#34;&#34;
+        This function checks if the sysfs folder /sys/class/gpio/gpioNN exists.
+
+        ***Shell:***
+        ```shell
+        find /sys/class/gpio -name gpio14
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, telnetio.RaspberryPi.OUTPUT)
+        if led.isconfigured(14):
+            print(&#34;LED is configured!!!&#34;)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # GPIO to check
+        iotag = self._iotag + str(pin)
+
+        # Check if pin folder is exported
+        command = &#34;find &#34; + \
+                  &#34;/sys/class/gpio &#34; + \
+                  &#34;-name gpio[0-9][0-9]&#34; + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush command echo
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command response
+        result = self.read_until(self.shell_prompt, self.timeout)
+        result = bytes(result).decode()
+        result = result.split(RaspberryPi.EOF)
+
+        # Evaluate result
+        if any(iotag in folders for folders in result):
+            val = 1
+        else:
+            val =  0
+
+        return val
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  configure : Configures pin for use through the file system 
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def configure(self, pin, direction):
+        &#34;&#34;&#34;
+        Create the sysfs virtual folder for gpio manipulation.
+
+        *** Shell : ***
+        ```shell
+        echo 14 | tee /sys/class/gpio/export
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, telnetio.RaspberryPi.OUTPUT)
+        ...
+        ```
+
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        # Configure pin
+        if not self.isconfigured(pin):
+
+            # Export the desired pin (creates virtual folder)
+            command = &#34;echo &#34; + \
+                      str(pin) + \
+                      &#34; | tee /sys/class/gpio/export&#34; + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+            # Flush buffer
+            self.read_until(self.shell_prompt, self.timeout)
+
+            # Configure the type of the pin = IN
+            if direction == RaspberryPi.INPUT:
+                command = &#34;echo in | sudo tee /sys/class/gpio/gpio&#34; + \
+                          str(pin) + \
+                          &#34;/direction&#34; + \
+                          RaspberryPi.EOF
+
+                self.write(command.encode(&#39;ascii&#39;))
+
+            # Configure the type of the pin = OUT
+            if direction == RaspberryPi.OUTPUT:
+                command = &#34;echo out | sudo tee /sys/class/gpio/gpio&#34; + \
+                          str(pin) + \
+                          &#34;/direction&#34; + \
+                          RaspberryPi.EOF
+
+                self.write(command.encode(&#39;ascii&#39;))
+
+            # Flush buffer
+            self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  cleanup : Deletes the current configuration of the pin 
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def deconfigure(self, pin):
+        &#34;&#34;&#34;
+        Delete the sysfs virtual folder for pin manipulation.
+
+        *** Shell : ***
+        ```
+        echo 14 | tee /sys/class/gpio/unexport
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.deconfigure(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        # Unexport desired pin (deletes virtual folder)
+        command = &#34;echo &#34; + \
+                  str(pin) + \
+                  &#34; | tee /sys/class/gpio/unexport&#34; + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  get : Reads the value of the pin using the file system
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+    &#34;&#34;&#34;
+
+    def get(self, pin):
+        &#34;&#34;&#34;
+        Gets the current status of the given pin by reading the system file.
+
+        *** Shell : ***
+        ```shell
+        cat /sys/class/gpio/gpio14/value
+        ```
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.get(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        command = &#34;cat &#34; + \
+                  &#34;/sys/class/gpio/gpio&#34; + \
+                  str(pin) + \
+                  &#34;/value&#34; + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush command echo
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command results
+        value = self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+        value = bytes(value).decode()
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return int(value.replace(RaspberryPi.EOF, &#34;&#34;))
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  set : Writes to the pin using the file system
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+    &#34;&#34;&#34;
+
+    def set(self, pin, value):
+        &#34;&#34;&#34;
+        Sets the current value of the given pin by using the system file.
+
+        *** Shell: ***
+        ```
+        echo 1 | sudo tee /sys/class/gpio/gpio14
+        ```
+
+
+        *** Example: ***
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, telnetio.RaspberryPi.OUTPUT)
+        led.set(14, 1)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        # Write to the desired pin (virtual file &#34;value&#34;)
+        command = &#34;echo &#34; + \
+                  str(value) + \
+                  &#34; | sudo tee /sys/class/gpio/gpio&#34; + \
+                  str(pin) + \
+                  &#34;/value&#34; + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  login : sends username and password to the telnet server
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def login(self):
+        &#34;&#34;&#34;
+        Performs an automatic login to the remote system using the supplied
+        user and password as instance properties.
+
+        !!! Use only when creating an unconnected instance !!!
+
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi()
+        led.host = &#39;192.168.199.31&#39;
+        led.port = 23
+        led.user = &#39;htpio&#39;
+        led.password = &#39;sokotnar&#39;
+
+        led.open(host, port)
+        led.login()
+
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Flush buffer and wait for login
+        self.read_until(self.login_prompt, self.timeout)
+        command = self.user + RaspberryPi.EOF
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer and wait for password
+        self.read_until(self.password_prompt, self.timeout)
+        command = self.password + RaspberryPi.EOF
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        result = self.read_until(self.shell_prompt, self.timeout)
+        result = bytes(result).decode()
+
+        if any(&#39;incorrect&#39; in s for s in result.split()):
+            raise InvalidLoginDetails
+        else:
+            self.__session()
+            self.__makedir()
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  logout : Closes telnet connection
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def logout(self):
+        &#34;&#34;&#34;
+        Closes the connection to the target.
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.logout()
+
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Add additional steps before closing the connection
+        self.close()
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  reset : Initializes telnetio
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def reset(self, pin):
+        &#34;&#34;&#34;
+        Deletes lock file for pin.
+
+        ***Example***:
+        ```python
+        import htpio.telnetio as telnetio
+
+        led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.reset(14)
+
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent folder name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        # Delete lock file
+        command = &#34;sudo rm &#34; + \
+                  lockfile + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  __islockdir : Creates lock directory if not present
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __islockdir(self):
+        &#34;&#34;&#34;
+        Checks if the lock directory exists.
+
+        ```
+        [ -d /tmp/htp/locks ] &amp;&amp; echo 1 || echo 0
+        ```
+        &#34;&#34;&#34;
+
+        command = &#34;[ -d &#34; + \
+                  self._lockdir + \
+                  &#34; ] &#34; + \
+                  &#34;&amp;&amp; echo 1 || echo 0&#34; + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush command line echo
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command result
+        result = self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+        result = bytes(result).decode()
+        result = result.replace(RaspberryPi.EOF, &#34;&#34;)
+
+        return int(result)
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  __makedir : Creates lock directory if not present
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __makedir(self, folder=None):
+        &#34;&#34;&#34;
+        Create the lock directory (stores the lock files).
+
+        ```
+        sudo mkdir -p /tmp/htp/locks
+        ```
+        &#34;&#34;&#34;
+
+        # Define lock folder name
+        if folder is None:
+            folder = self._lockdir
+        else:
+            self._lockdir = folder
+
+        # Check and create lock directory
+        if not self.__islockdir():
+
+            command = &#34;sudo mkdir -p &#34; + \
+                      folder + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+            if not self.__islockdir():
+                raise CannotCreateLockDirectory
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        # Mount ram disk
+        self.__mount(folder)
+
+        return 0
+
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  __ismounted : Check if ram disk mounted to lock directory
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __ismounted(self, ramdisk=None):
+        &#34;&#34;&#34;
+        Check if ram disk is mounted on lock directory.
+
+        ```
+        mount | grep -i tmpfs
+        ```
+        &#34;&#34;&#34;
+
+        # Check if ram disk mounted
+        command = &#34;mount | grep -i &#34; + \
+                  ramdisk + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command result
+        result = self.read_until(self.shell_prompt, self.timeout)
+        result = bytes(result).decode()
+
+        if any(ramdisk in mounts for mounts in result.split()):
+            val =  True
+        else:
+            val =  False
+
+        return val
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  __mount : Mount ram disk
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __mount(self, folder=None):
+        &#34;&#34;&#34;
+        Mount ram disk to lock folder. This is required to remove the problem
+        of frequent read/write operations on the SD card.
+
+        ```
+        sudo mount -t tmpfs -o size=16m htp_ramdisk /tmp/htp/locks
+        ```
+        &#34;&#34;&#34;
+
+        if not self.__ismounted(folder):
+
+            command = &#34;sudo mount -t tmpfs -o size=16m &#34; + \
+                      self._ramdisk + \
+                      &#34; &#34; + \
+                      self._lockdir + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+            # Flush buffer
+            self.read_until(self.shell_prompt, self.timeout)
+
+            if not self.__ismounted(folder):
+                raise CannotMountRamDisk
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  dismount : Ejects RAMDISK used to store the locksfiles
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __dismount(self, folder=None):
+        &#34;&#34;&#34;
+        Dismounts htp ramdisk from lock folder directory.
+
+        ```
+        sudo umount /tmp/htp/locks
+        ```
+        &#34;&#34;&#34;
+
+        if folder is None:
+            folder = self._lockdir
+
+        # Unmount ram disk
+        command = &#34;sudo umount &#34; + \
+                  self._lockdir + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  session : Retrieves the current telnet session
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __session(self):
+        &#34;&#34;&#34;
+        Gets the socket data for this connection and converts the to one
+        unique identification number. This ID is used to lock gpios.
+        &#34;&#34;&#34;
+
+        mysocket = self.sock
+        mysocket = mysocket.getsockname()
+        result = &#39;.&#39;.join(map(str, mysocket))
+        result = result.replace(&#34;.&#34;, &#34;&#34;)
+        self._session = result
+
+        return self._session
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  locklist : retries all gpios currently locked by other processes
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __locklist(self):
+        &#34;&#34;&#34;
+        Gets a listing of all lock files in the lock directory.
+
+        ```
+        ls /tmp/htp/locks
+        ```
+        &#34;&#34;&#34;
+
+        # List the content of the lock directory
+        command = &#34;ls &#34; + \
+                  self._lockdir + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush command echo
+        self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+        # Read command results
+        self._locklist = self.read_until(self.shell_prompt, self.timeout)
+        self._locklist = self._locklist.split()
+
+        return self._locklist
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  populate : generate GPIO lock files from 0 to MAX_GPIO
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __populate(self):
+        &#34;&#34;&#34;
+        Creates all lock files in the lock directory.
+
+        ```
+        touch -a gpio14
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent directory name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # Create lock files
+        for gpio in range(RaspberryPi.MAX_GPIO):
+            iotag = self._iotag + str(gpio)
+            lockfile = self._lockdir + iotag
+
+            command = &#34;touch -a &#34; + \
+                      lockfile + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+            # Flush buffer
+            self.read_until(self.shell_prompt, self.timeout)
+
+        return 0</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>telnetlib.Telnet</li>
+<li><a title="htpio.bridge.Device" href="bridge.html#htpio.bridge.Device">Device</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="htpio.telnetio.RaspberryPi.EOF"><code class="name">var <span class="ident">EOF</span></code></dt>
+<dd>
+<section class="desc"><p>Character used to mark end of line transmission</p></section>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.LOCKDIR"><code class="name">var <span class="ident">LOCKDIR</span></code></dt>
+<dd>
+<section class="desc"><p>Directory containing the lock files</p></section>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.MAX_GPIO"><code class="name">var <span class="ident">MAX_GPIO</span></code></dt>
+<dd>
+<section class="desc"><p>Maximum number of gpio lock files</p></section>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.RAMDISK"><code class="name">var <span class="ident">RAMDISK</span></code></dt>
+<dd>
+<section class="desc"><p>Label for the ramdisk mounted on the lock directory</p></section>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="htpio.telnetio.RaspberryPi.configure"><code class="name flex">
+<span>def <span class="ident">configure</span></span>(<span>self, pin, direction)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Create the sysfs virtual folder for gpio manipulation.</p>
+<p><strong><em> Shell : </em></strong></p>
+<pre><code class="shell">echo 14 | tee /sys/class/gpio/export
+</code></pre>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+led = telnetio.RaspberryPi('192.168.199.31')
+
+led.configure(14, telnetio.RaspberryPi.OUTPUT)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def configure(self, pin, direction):
+    &#34;&#34;&#34;
+    Create the sysfs virtual folder for gpio manipulation.
+
+    *** Shell : ***
+    ```shell
+    echo 14 | tee /sys/class/gpio/export
+    ```
+
+    ***Example***:
+    ```python
+    import htpio.telnetio as telnetio
+
+    led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.configure(14, telnetio.RaspberryPi.OUTPUT)
+    ...
+    ```
+
+    &#34;&#34;&#34;
+
+    # Verify is pin is locked by other process
+    lock_owner = self.islocked(pin)
+    if lock_owner is not None and lock_owner != self._session:
+        raise PinLockedByOtherProcess(lock_owner, self._session)
+
+    # Configure pin
+    if not self.isconfigured(pin):
+
+        # Export the desired pin (creates virtual folder)
+        command = &#34;echo &#34; + \
+                  str(pin) + \
+                  &#34; | tee /sys/class/gpio/export&#34; + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+        # Configure the type of the pin = IN
+        if direction == RaspberryPi.INPUT:
+            command = &#34;echo in | sudo tee /sys/class/gpio/gpio&#34; + \
+                      str(pin) + \
+                      &#34;/direction&#34; + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+        # Configure the type of the pin = OUT
+        if direction == RaspberryPi.OUTPUT:
+            command = &#34;echo out | sudo tee /sys/class/gpio/gpio&#34; + \
+                      str(pin) + \
+                      &#34;/direction&#34; + \
+                      RaspberryPi.EOF
+
+            self.write(command.encode(&#39;ascii&#39;))
+
+        # Flush buffer
+        self.read_until(self.shell_prompt, self.timeout)
+
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.deconfigure"><code class="name flex">
+<span>def <span class="ident">deconfigure</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Delete the sysfs virtual folder for pin manipulation.</p>
+<p><strong><em> Shell : </em></strong></p>
+<pre><code>echo 14 | tee /sys/class/gpio/unexport
+</code></pre>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+led = telnetio.RaspberryPi('192.168.199.31')
+
+led.deconfigure(14)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def deconfigure(self, pin):
+    &#34;&#34;&#34;
+    Delete the sysfs virtual folder for pin manipulation.
+
+    *** Shell : ***
+    ```
+    echo 14 | tee /sys/class/gpio/unexport
+    ```
+
+    ***Example***:
+    ```python
+    import htpio.telnetio as telnetio
+
+    led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.deconfigure(14)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Verify is pin is locked by other process
+    lock_owner = self.islocked(pin)
+    if lock_owner is not None and lock_owner != self._session:
+        raise PinLockedByOtherProcess(lock_owner, self._session)
+
+    # Unexport desired pin (deletes virtual folder)
+    command = &#34;echo &#34; + \
+              str(pin) + \
+              &#34; | tee /sys/class/gpio/unexport&#34; + \
+              RaspberryPi.EOF
+
+    self.write(command.encode(&#39;ascii&#39;))
+
+    # Flush buffer
+    self.read_until(self.shell_prompt, self.timeout)
+
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets the current status of the given pin by reading the system file.</p>
+<p><strong><em> Shell : </em></strong></p>
+<pre><code class="shell">cat /sys/class/gpio/gpio14/value
+</code></pre>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+led = telnetio.RaspberryPi('192.168.199.31')
+
+led.get(14)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get(self, pin):
+    &#34;&#34;&#34;
+    Gets the current status of the given pin by reading the system file.
+
+    *** Shell : ***
+    ```shell
+    cat /sys/class/gpio/gpio14/value
+    ```
+
+    ***Example***:
+    ```python
+    import htpio.telnetio as telnetio
+
+    led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.get(14)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    command = &#34;cat &#34; + \
+              &#34;/sys/class/gpio/gpio&#34; + \
+              str(pin) + \
+              &#34;/value&#34; + \
+              RaspberryPi.EOF
+
+    self.write(command.encode(&#39;ascii&#39;))
+
+    # Flush command echo
+    self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+    # Read command results
+    value = self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+    value = bytes(value).decode()
+
+    # Flush buffer
+    self.read_until(self.shell_prompt, self.timeout)
+
+    return int(value.replace(RaspberryPi.EOF, &#34;&#34;))</code></pre>
+</details>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.isconfigured"><code class="name flex">
+<span>def <span class="ident">isconfigured</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function checks if the sysfs folder /sys/class/gpio/gpioNN exists.</p>
+<p><strong><em>Shell:</em></strong></p>
+<pre><code class="shell">find /sys/class/gpio -name gpio14
+</code></pre>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+led = telnetio.RaspberryPi('192.168.199.31')
+
+led.configure(14, telnetio.RaspberryPi.OUTPUT)
+if led.isconfigured(14):
+    print(&quot;LED is configured!!!&quot;)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def isconfigured(self, pin):
+    &#34;&#34;&#34;
+    This function checks if the sysfs folder /sys/class/gpio/gpioNN exists.
+
+    ***Shell:***
+    ```shell
+    find /sys/class/gpio -name gpio14
+    ```
+
+    ***Example***:
+    ```python
+    import htpio.telnetio as telnetio
+
+    led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.configure(14, telnetio.RaspberryPi.OUTPUT)
+    if led.isconfigured(14):
+        print(&#34;LED is configured!!!&#34;)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # GPIO to check
+    iotag = self._iotag + str(pin)
+
+    # Check if pin folder is exported
+    command = &#34;find &#34; + \
+              &#34;/sys/class/gpio &#34; + \
+              &#34;-name gpio[0-9][0-9]&#34; + \
+              RaspberryPi.EOF
+
+    self.write(command.encode(&#39;ascii&#39;))
+
+    # Flush command echo
+    self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+    # Read command response
+    result = self.read_until(self.shell_prompt, self.timeout)
+    result = bytes(result).decode()
+    result = result.split(RaspberryPi.EOF)
+
+    # Evaluate result
+    if any(iotag in folders for folders in result):
+        val = 1
+    else:
+        val =  0
+
+    return val</code></pre>
+</details>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.islocked"><code class="name flex">
+<span>def <span class="ident">islocked</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Check if pin is already locked by an object of this class and returns
+the identification number of the locking process.</p>
+<p><strong><em> Shell: </em></strong></p>
+<pre><code>sudo cat /tmp/htp/locks/gpio14
+</code></pre>
+<p><strong><em> Example: </em></strong></p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+led = telnetio.RaspberryPi('192.168.199.31')
+led.lock(14)
+if led.islocked(14) :
+    print(&quot;LED is locked!!!&quot;)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def islocked(self, pin):
+    &#34;&#34;&#34;
+    Check if pin is already locked by an object of this class and returns
+    the identification number of the locking process.
+
+    *** Shell: ***
+    ```
+    sudo cat /tmp/htp/locks/gpio14
+    ```
+
+    *** Example: ***
+    ```python
+    import htpio.telnetio as telnetio
+
+    led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+    led.lock(14)
+    if led.islocked(14) :
+        print(&#34;LED is locked!!!&#34;)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Consistent folder name
+    if not self._lockdir.endswith(&#34;/&#34;):
+        self._lockdir = self._lockdir + &#34;/&#34;
+
+    # GPIO lock file
+    iotag = self._iotag + str(pin)
+    lockfile = (self._lockdir + iotag)
+
+    # Command to open file
+    command = &#34;sudo cat &#34; + \
+              lockfile + \
+              RaspberryPi.EOF
+
+    self.write(command.encode(&#39;ascii&#39;))
+
+    # Flush command echo
+    self.read_until(RaspberryPi.EOF.encode(&#39;ascii&#39;), self.timeout)
+
+    # Read command result
+    result = self.read_until(self.shell_prompt, self.timeout)
+    result = bytes(result).decode()
+    result = result.split()
+    result = result[0].replace(RaspberryPi.EOF, &#34;&#34;)
+
+    # Verify result (should be a number)
+    try:
+        int(result)
+    except ValueError:
+        result = None
+
+    return result</code></pre>
+</details>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.lock"><code class="name flex">
+<span>def <span class="ident">lock</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Throws an exception <b>PinLockedByOtherProcess</b> or opens the gpio
+lock file and writes the session id in it.</p>
+<p><strong><em>Shell</em></strong>:</p>
+<pre><code class="shell">echo 1921681993055555 | sudo tee /tmp/htp/gpio14
+</code></pre>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+led = telnetio.RaspberryPi('192.168.199.31')
+led.lock(14)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def lock(self, pin):
+    &#34;&#34;&#34;
+    Throws an exception &lt;b&gt;PinLockedByOtherProcess&lt;/b&gt; or opens the gpio
+    lock file and writes the session id in it.
+
+    ***Shell***:
+    ```shell
+    echo 1921681993055555 | sudo tee /tmp/htp/gpio14
+    ```
+
+    ***Example***:
+    ```python
+    import htpio.telnetio as telnetio
+
+    led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+    led.lock(14)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Consistent folder name
+    if not self._lockdir.endswith(&#34;/&#34;):
+        self._lockdir = self._lockdir + &#34;/&#34;
+
+    # GPIO lock file
+    iotag = self._iotag + str(pin)
+    lockfile = self._lockdir + iotag
+
+    # Create lock file
+    lock_owner = self.islocked(pin)
+    if lock_owner is not None:
+        raise PinLockedByOtherProcess(lock_owner, self._session)
+    else:
+        command = &#34;echo &#34; + \
+                  self._session + \
+                  &#34; | sudo tee &#34; + \
+                  lockfile + \
+                  RaspberryPi.EOF
+
+        self.write(command.encode(&#39;ascii&#39;))
+
+    # Flush buffer
+    self.read_until(self.shell_prompt, self.timeout)
+
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.login"><code class="name flex">
+<span>def <span class="ident">login</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Performs an automatic login to the remote system using the supplied
+user and password as instance properties.</p>
+<p>!!! Use only when creating an unconnected instance !!!</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+led = telnetio.RaspberryPi()
+led.host = '192.168.199.31'
+led.port = 23
+led.user = 'htpio'
+led.password = 'sokotnar'
+
+led.open(host, port)
+led.login()
+
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def login(self):
+    &#34;&#34;&#34;
+    Performs an automatic login to the remote system using the supplied
+    user and password as instance properties.
+
+    !!! Use only when creating an unconnected instance !!!
+
+
+    ***Example***:
+    ```python
+    import htpio.telnetio as telnetio
+
+    led = telnetio.RaspberryPi()
+    led.host = &#39;192.168.199.31&#39;
+    led.port = 23
+    led.user = &#39;htpio&#39;
+    led.password = &#39;sokotnar&#39;
+
+    led.open(host, port)
+    led.login()
+
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Flush buffer and wait for login
+    self.read_until(self.login_prompt, self.timeout)
+    command = self.user + RaspberryPi.EOF
+    self.write(command.encode(&#39;ascii&#39;))
+
+    # Flush buffer and wait for password
+    self.read_until(self.password_prompt, self.timeout)
+    command = self.password + RaspberryPi.EOF
+    self.write(command.encode(&#39;ascii&#39;))
+
+    # Flush buffer
+    result = self.read_until(self.shell_prompt, self.timeout)
+    result = bytes(result).decode()
+
+    if any(&#39;incorrect&#39; in s for s in result.split()):
+        raise InvalidLoginDetails
+    else:
+        self.__session()
+        self.__makedir()
+
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.logout"><code class="name flex">
+<span>def <span class="ident">logout</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Closes the connection to the target.</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+led = telnetio.RaspberryPi('192.168.199.31')
+
+led.logout()
+
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def logout(self):
+    &#34;&#34;&#34;
+    Closes the connection to the target.
+
+    ***Example***:
+    ```python
+    import htpio.telnetio as telnetio
+
+    led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.logout()
+
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Add additional steps before closing the connection
+    self.close()
+
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.reset"><code class="name flex">
+<span>def <span class="ident">reset</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Deletes lock file for pin.</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+led = telnetio.RaspberryPi('192.168.199.31')
+
+led.reset(14)
+
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def reset(self, pin):
+    &#34;&#34;&#34;
+    Deletes lock file for pin.
+
+    ***Example***:
+    ```python
+    import htpio.telnetio as telnetio
+
+    led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.reset(14)
+
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Consistent folder name
+    if not self._lockdir.endswith(&#34;/&#34;):
+        self._lockdir = self._lockdir + &#34;/&#34;
+
+    iotag = self._iotag + str(pin)
+    lockfile = self._lockdir + iotag
+
+    # Delete lock file
+    command = &#34;sudo rm &#34; + \
+              lockfile + \
+              RaspberryPi.EOF
+
+    self.write(command.encode(&#39;ascii&#39;))
+
+    # Flush buffer
+    self.read_until(self.shell_prompt, self.timeout)
+
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.set"><code class="name flex">
+<span>def <span class="ident">set</span></span>(<span>self, pin, value)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Sets the current value of the given pin by using the system file.</p>
+<p><strong><em> Shell: </em></strong></p>
+<pre><code>echo 1 | sudo tee /sys/class/gpio/gpio14
+</code></pre>
+<p><strong><em> Example: </em></strong></p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+led = telnetio.RaspberryPi('192.168.199.31')
+
+led.configure(14, telnetio.RaspberryPi.OUTPUT)
+led.set(14, 1)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def set(self, pin, value):
+    &#34;&#34;&#34;
+    Sets the current value of the given pin by using the system file.
+
+    *** Shell: ***
+    ```
+    echo 1 | sudo tee /sys/class/gpio/gpio14
+    ```
+
+
+    *** Example: ***
+    ```python
+    import htpio.telnetio as telnetio
+
+    led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.configure(14, telnetio.RaspberryPi.OUTPUT)
+    led.set(14, 1)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Verify is pin is locked by other process
+    lock_owner = self.islocked(pin)
+    if lock_owner is not None and lock_owner != self._session:
+        raise PinLockedByOtherProcess(lock_owner, self._session)
+
+    # Write to the desired pin (virtual file &#34;value&#34;)
+    command = &#34;echo &#34; + \
+              str(value) + \
+              &#34; | sudo tee /sys/class/gpio/gpio&#34; + \
+              str(pin) + \
+              &#34;/value&#34; + \
+              RaspberryPi.EOF
+
+    self.write(command.encode(&#39;ascii&#39;))
+
+    # Flush buffer
+    self.read_until(self.shell_prompt, self.timeout)
+
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="htpio.telnetio.RaspberryPi.unlock"><code class="name flex">
+<span>def <span class="ident">unlock</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Unlocks the gpio by deleting the content of the lock file.</p>
+<p><strong><em>Shell</em></strong>:</p>
+<pre><code class="shell">sudo truncate --size=0 /tmp/htp/locks/gpio14
+</code></pre>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.telnetio as telnetio
+
+led = telnetio.RaspberryPi('192.168.199.31')
+led.unlock(14)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def unlock(self, pin, ):
+    &#34;&#34;&#34;
+    Unlocks the gpio by deleting the content of the lock file.
+
+    ***Shell***:
+    ```shell
+    sudo truncate --size=0 /tmp/htp/locks/gpio14
+    ```
+
+    ***Example***:
+    ```python
+    import htpio.telnetio as telnetio
+
+    led = telnetio.RaspberryPi(&#39;192.168.199.31&#39;)
+    led.unlock(14)
+    ...
+    ```
+
+    &#34;&#34;&#34;
+
+    # Verify is pin is locked by other process
+    lock_owner = self.islocked(pin)
+    if lock_owner is not None and lock_owner != self._session:
+        raise PinLockedByOtherProcess(lock_owner, self._session)
+
+    # Consistent folder name
+    if not self._lockdir.endswith(&#34;/&#34;):
+        self._lockdir = self._lockdir + &#34;/&#34;
+
+    # GPIO lock file
+    iotag = self._iotag + str(pin)
+    lockfile = self._lockdir + iotag
+
+    # Empty lock file
+    command = &#34;sudo truncate --size=0 &#34; + \
+              lockfile + \
+              RaspberryPi.EOF
+
+    self.write(command.encode(&#39;ascii&#39;))
+
+    # Flush buffer
+    self.read_until(self.shell_prompt, self.timeout)
+
+    return 0</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="htpio.bridge.Device" href="bridge.html#htpio.bridge.Device">Device</a></b></code>:
+<ul class="hlist">
+<li><code><a title="htpio.bridge.Device.INPUT" href="bridge.html#htpio.bridge.Device.INPUT">INPUT</a></code></li>
+<li><code><a title="htpio.bridge.Device.OUTPUT" href="bridge.html#htpio.bridge.Device.OUTPUT">OUTPUT</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="htpio" href="index.html">htpio</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="htpio.telnetio.CannotCreateLockDirectory" href="#htpio.telnetio.CannotCreateLockDirectory">CannotCreateLockDirectory</a></code></h4>
+</li>
+<li>
+<h4><code><a title="htpio.telnetio.CannotMountRamDisk" href="#htpio.telnetio.CannotMountRamDisk">CannotMountRamDisk</a></code></h4>
+</li>
+<li>
+<h4><code><a title="htpio.telnetio.InvalidLoginDetails" href="#htpio.telnetio.InvalidLoginDetails">InvalidLoginDetails</a></code></h4>
+</li>
+<li>
+<h4><code><a title="htpio.telnetio.PinLockedByOtherProcess" href="#htpio.telnetio.PinLockedByOtherProcess">PinLockedByOtherProcess</a></code></h4>
+</li>
+<li>
+<h4><code><a title="htpio.telnetio.RaspberryPi" href="#htpio.telnetio.RaspberryPi">RaspberryPi</a></code></h4>
+<ul class="two-column">
+<li><code><a title="htpio.telnetio.RaspberryPi.EOF" href="#htpio.telnetio.RaspberryPi.EOF">EOF</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.LOCKDIR" href="#htpio.telnetio.RaspberryPi.LOCKDIR">LOCKDIR</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.MAX_GPIO" href="#htpio.telnetio.RaspberryPi.MAX_GPIO">MAX_GPIO</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.RAMDISK" href="#htpio.telnetio.RaspberryPi.RAMDISK">RAMDISK</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.configure" href="#htpio.telnetio.RaspberryPi.configure">configure</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.deconfigure" href="#htpio.telnetio.RaspberryPi.deconfigure">deconfigure</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.get" href="#htpio.telnetio.RaspberryPi.get">get</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.isconfigured" href="#htpio.telnetio.RaspberryPi.isconfigured">isconfigured</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.islocked" href="#htpio.telnetio.RaspberryPi.islocked">islocked</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.lock" href="#htpio.telnetio.RaspberryPi.lock">lock</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.login" href="#htpio.telnetio.RaspberryPi.login">login</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.logout" href="#htpio.telnetio.RaspberryPi.logout">logout</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.reset" href="#htpio.telnetio.RaspberryPi.reset">reset</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.set" href="#htpio.telnetio.RaspberryPi.set">set</a></code></li>
+<li><code><a title="htpio.telnetio.RaspberryPi.unlock" href="#htpio.telnetio.RaspberryPi.unlock">unlock</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

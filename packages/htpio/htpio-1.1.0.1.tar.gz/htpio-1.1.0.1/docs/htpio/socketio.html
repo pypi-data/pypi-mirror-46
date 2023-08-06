@@ -1,0 +1,1881 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.1" />
+<title>htpio.socketio API documentation</title>
+<meta name="description" content="This is a socket i/o control module wrapping the python pigpio client.
+PIGPIO is a client/server library using sockets for remote control of
+the …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>htpio.socketio</code></h1>
+</header>
+<section id="section-intro">
+<p>This is a socket i/o control module wrapping the python pigpio client.
+PIGPIO is a client/server library using sockets for remote control of
+the general purpose input outputs(GPIO).</p>
+<p><strong><em> Example: </em></strong></p>
+<pre><code class="python">
+import htpio.socketio as socketio
+
+r = socketio.RaspberryPi(host = '192.168.199.31',
+                         port = 8888)
+
+try:
+    r.lock(14)
+except:
+    r.logout()
+    raise
+
+r.configure(14, socketio.RaspberryPi.OUTPUT)
+r.set(14, 1)
+
+print(r.get(14))
+
+r.unlock(14)
+r.deconfigure(14)
+</code></pre>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python"># Copyright (c) Hilscher GmbH. All Rights Reserved.
+#
+# $Author: bgeorgiev $
+# $Date: 2019-05-16 11:34:02 +0300 (Thu, 16 May 2019) $
+# $Revision: 654 $
+
+
+&#34;&#34;&#34;
+This is a socket i/o control module wrapping the python pigpio client.
+PIGPIO is a client/server library using sockets for remote control of
+the general purpose input outputs(GPIO).
+
+
+*** Example: ***
+
+```python
+
+import htpio.socketio as socketio
+
+r = socketio.RaspberryPi(host = &#39;192.168.199.31&#39;,
+                         port = 8888)
+
+try:
+    r.lock(14)
+except:
+    r.logout()
+    raise
+
+r.configure(14, socketio.RaspberryPi.OUTPUT)
+r.set(14, 1)
+
+print(r.get(14))
+
+r.unlock(14)
+r.deconfigure(14)
+```
+
+&#34;&#34;&#34;
+
+# Compatibility imports
+from __future__ import unicode_literals
+from __future__ import absolute_import
+
+# Third party imports
+import pigpio
+
+# Local imports
+from htpio.bridge import Device
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+# EXCEPTIONS CLASSES
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class CannotConnectToTarget(Exception):
+    &#34;&#34;&#34;
+    Raised the object cannot connect to the specified [target:socket]
+    &#34;&#34;&#34;
+    pass
+
+
+class PinLockedByOtherProcess(Exception):
+    &#34;&#34;&#34;
+    Raised when the gpio pin is used by other process from the same class.
+    &#34;&#34;&#34;
+
+    def __init__(self, lock_owner=None, my_session=None):
+        self.lock_owner = lock_owner
+        self.my_session = my_session
+
+    def __str__(self):
+        return repr(self.lock_owner + &#34; (my session is &#34; + self.my_session + &#34;)&#34;)
+
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# DEVICE CLASSES
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+
+class RaspberryPi(pigpio.pi, Device):
+    &#34;&#34;&#34;
+    This class allows users to connect and control the GPIO
+    on a Raspberry remotely by using and extending the pigpio library.
+
+    ## Configuration
+
+    Enable Remote GPIO
+
+        sudo raspi-config
+        Menu : Interfacing Options -&gt; Remote GPIO
+
+    Enable pigpiod to start on boot
+
+        sudo systemctl enable pigpiod
+
+
+    ## Class attributes
+
+        LOCK_DIR        : Location of lock files (ramdisk)
+        MAX_GPIO        : Maximum number of gpio locks ( from 0 .. MAX)
+        INPUT           : GPIO is digital input
+        OUTPUT          : GPIO is digital output
+        EOF             : End of file
+
+
+    ## Instance attributes
+
+        host            : ip v4 address
+        port            : port (from 0 to 65535)
+
+    ## Public methods
+
+        islocked(gpio)              : Check if the gpio is locked
+        lock(gpio)                  : Locks the gpio
+        unlock(gpio)                : Unlocks the gpio
+        isconfigured(gpio)          : Checks if the gpio is configured
+        configure(gpio, direction)  : Configures the gpio with direction
+        deconfigure(gpio)           : Restores the default configuration
+        get(gpio)                   : Reads the gpio status
+        set(gpio, value)            : Writes new value to gpio
+        login()                     : Registers to the remote system
+        logout()                    : Unregisters from the remote system
+        reset()                     : Deletes all configuration data
+
+    &#34;&#34;&#34;
+
+
+    MAX_GPIO = 128
+    &#34;&#34;&#34; Maximum number of GPIOs &#34;&#34;&#34;
+
+    INPUT = pigpio.INPUT
+    &#34;&#34;&#34; Signal direction is INPUT &#34;&#34;&#34;
+
+    OUTPUT = pigpio.OUTPUT
+    &#34;&#34;&#34; Signal direction is OUTPUT &#34;&#34;&#34;
+
+    LOCKDIR = &#34;/tmp/htp/locks&#34;
+    &#34;&#34;&#34; Lock files directory &#34;&#34;&#34;
+
+    EOF = &#34;\n&#34;
+    &#34;&#34;&#34; Symbol for end of transmission &#34;&#34;&#34;
+
+    def __init__(self, host=None, port=8888):
+        &#34;&#34;&#34;
+        ## Constructor
+
+        When called with host address, the constructor creates
+        a telnet connection and performs automatic login. The default port is 8888
+
+        ```python
+        import htpio.socketio as socketio
+
+        t = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+        ```
+
+        &#34;&#34;&#34;
+
+        pigpio.pi.__init__(self, host, port)
+
+        self._host = host
+        self._port = port
+        self._session = self.__session()
+        self._iotag = &#34;gpio&#34;
+        self._lockdir = RaspberryPi.LOCKDIR
+
+        if host is not None:
+            self.login()
+
+        &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  islocked : Check if pin is locked and returns the owner
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def islocked(self, pin):
+        &#34;&#34;&#34;
+        Opens the gpio lock file and checks it size. If the size is more than
+        zero then the gpio is considered to be locked by another process.
+
+        *** Example: ***
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.lock(14)
+        if led.islocked(14) :
+            print(&#34;LED is locked!!!&#34;)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent directory name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # Generate lock file name
+        iotag = self._iotag + str(pin)
+        lockfile = (self._lockdir + iotag)
+
+        # Prepare mode
+        mode = pigpio.FILE_READ
+        h = self.file_open(lockfile.encode(&#39;ascii&#39;), mode)
+
+        # Read file
+        (size, data) = self.file_read(h, 100)
+
+        # Evaluate result
+        if size &gt; 0:
+
+            # Someone is locking the file
+            result = data.decode()
+            result = result.replace(self.EOF, &#34;&#34;)
+
+        else:
+
+            # Nobody is locking the file
+            result = None
+
+        self.file_close(h)
+
+        return result
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  lock : Open the lock file and write this instance socket parameters
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def lock(self, pin):
+        &#34;&#34;&#34;
+        Lock the given pin by creating a lock file and writing the current
+        session id into it.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.lock(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent directory name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # Generate lock file name
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        # Check ownership and lock
+        lock_owner = self.islocked(pin)
+
+        if lock_owner is not None:
+            raise PinLockedByOtherProcess(lock_owner.encode(&#39;ascii&#39;),
+                                          self._session)
+        else:
+
+            # Prepare mode
+            mode = file_mode=pigpio.FILE_WRITE | pigpio.FILE_CREATE
+            h = self.file_open(lockfile.encode(&#39;ascii&#39;), mode)
+
+            # Write content
+            content = (self._session + RaspberryPi.EOF).encode(&#39;ascii&#39;)
+            self.file_write(h, content)
+
+            # Close file
+            self.file_close(h)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  unlock : Opens the corresponding file and erases the content
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def unlock(self, pin):
+        &#34;&#34;&#34;
+        Unlock the pin by truncating the size of the lock file to zero.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.unlock(14)
+        ...
+        ```
+
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        h = self.file_open(lockfile.encode(&#39;ascii&#39;),
+                           pigpio.FILE_READ |
+                           pigpio.FILE_TRUNC)
+
+        self.file_close(h)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # isconfigured : Check if the pin is configured (mode &lt;&gt; default)
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def isconfigured(self, pin):
+        &#34;&#34;&#34;
+        Check if gpio is configured by comparing the current direction
+        configuration with the default one (INPUT).
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, socketio.RaspberryPi.OUTPUT)
+        if led.isconfigured(14):
+            print(&#34;LED is configured!!!&#34;)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        if self.get_mode(pin) == RaspberryPi.INPUT:
+            result = False
+        else:
+            result = True
+
+        return result
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  configure : Configures pin mode using pigpio 
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def configure(self, pin, direction):
+        &#34;&#34;&#34;
+        Configures the gpio for input or output operation.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, socketio.RaspberryPi.OUTPUT)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        self.set_mode(pin, direction)
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  cleanup : Resets pin configuration to the default value (INPUT)
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def deconfigure(self, pin):
+        &#34;&#34;&#34;
+        Removes the gpio configuration.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.deconfigure(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        self.set(pin, 0)
+        self.set_mode(pin, pigpio.INPUT)
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  get : Reads the value of the pin using pigpio
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+    &#34;&#34;&#34;
+
+    def get(self, pin):
+        &#34;&#34;&#34;
+        Reads the value of the gpio.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.get(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        return self.read(pin)
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  set : Writes to the pin using pigpio
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+    &#34;&#34;&#34;
+
+    def set(self, pin, value):
+        &#34;&#34;&#34;
+        Writes the value to the gpio.
+
+        *** Example: ***
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, socketio.RaspberryPi.OUTPUT)
+        led.set(14, 1)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        self.write(pin, value)
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  login : Check for connectivity and create lock files
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def login(self):
+        &#34;&#34;&#34;
+        Registers device for use with target device by checking for
+        an established connection and creating all gpio lock files.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi()
+        led.host = &#39;192.168.199.31&#39;
+        led.port = 8888
+        led.login()
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        if not self.connected:
+            raise CannotConnectToTarget
+        else:
+            self.__populate()
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  logout : Close socket
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def logout(self):
+        &#34;&#34;&#34;
+        Unregisters device from remote device.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.logout()
+
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        self.stop()
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  reset : Deletes all coockies
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def reset(self, pin):
+        &#34;&#34;&#34;
+        Deletes the content of all generated lock files.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.reset(14)
+
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent directory name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # Generate lock file name
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        h = self.file_open(file_name=lockfile.encode(&#39;ascii&#39;),
+                           file_mode=pigpio.FILE_READ | pigpio.FILE_TRUNC)
+
+        self.file_close(h)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  session : Retrieves connection data and generates a lock identification
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __session(self):
+        &#34;&#34;&#34;
+        Gets the socket data for this connection and converts the to one
+        unique identification number. This ID is used to lock gpios.
+        &#34;&#34;&#34;
+
+        mysocket = self.sl.s
+        mysocket = mysocket.getsockname()
+        result = &#39;.&#39;.join(map(str, mysocket))
+        result = result.replace(&#34;.&#34;, &#34;&#34;)
+
+        return result
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  locklist : retries all gpios currently locked by other processes
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __locklist(self):
+        &#34;&#34;&#34;
+        Gets a listing of all lock files in the lock directory.
+        &#34;&#34;&#34;
+
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        lockdir = self._lockdir + &#34;*&#34;
+
+        # Function returns number of bytes(r) and a byte array(r2)
+        size, data = self.file_list(lockdir.encode(&#39;ascii&#39;))
+
+        result = []
+        if size &gt; 0:
+            data = data.decode()
+            data = data.split(RaspberryPi.EOF)
+
+            for element in data[:-1]:
+                result.append(element)
+
+        return result
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  populate : generate GPIO lock files from 0 to MAX_GPIO
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __populate(self):
+        &#34;&#34;&#34; Creates all lock files in the lock directory. &#34;&#34;&#34;
+
+        # Consistent directory name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # Generate lock files
+        for gpio in range(RaspberryPi.MAX_GPIO):
+            iotag = self._iotag + str(gpio)
+            lockfile = self._lockdir + iotag
+
+            h = self.file_open(file_name=lockfile.encode(&#39;ascii&#39;),
+                               file_mode=pigpio.FILE_WRITE | pigpio.FILE_CREATE)
+
+            self.file_close(h)
+
+        return 0</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="htpio.socketio.CannotConnectToTarget"><code class="flex name class">
+<span>class <span class="ident">CannotConnectToTarget</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Raised the object cannot connect to the specified [target:socket]</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class CannotConnectToTarget(Exception):
+    &#34;&#34;&#34;
+    Raised the object cannot connect to the specified [target:socket]
+    &#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="htpio.socketio.PinLockedByOtherProcess"><code class="flex name class">
+<span>class <span class="ident">PinLockedByOtherProcess</span></span>
+<span>(</span><span>lock_owner=None, my_session=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Raised when the gpio pin is used by other process from the same class.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class PinLockedByOtherProcess(Exception):
+    &#34;&#34;&#34;
+    Raised when the gpio pin is used by other process from the same class.
+    &#34;&#34;&#34;
+
+    def __init__(self, lock_owner=None, my_session=None):
+        self.lock_owner = lock_owner
+        self.my_session = my_session
+
+    def __str__(self):
+        return repr(self.lock_owner + &#34; (my session is &#34; + self.my_session + &#34;)&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="htpio.socketio.RaspberryPi"><code class="flex name class">
+<span>class <span class="ident">RaspberryPi</span></span>
+<span>(</span><span>host=None, port=8888)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This class allows users to connect and control the GPIO
+on a Raspberry remotely by using and extending the pigpio library.</p>
+<h2 id="configuration">Configuration</h2>
+<p>Enable Remote GPIO</p>
+<pre><code>sudo raspi-config
+Menu : Interfacing Options -&gt; Remote GPIO
+</code></pre>
+<p>Enable pigpiod to start on boot</p>
+<pre><code>sudo systemctl enable pigpiod
+</code></pre>
+<h2 id="class-attributes">Class attributes</h2>
+<pre><code>LOCK_DIR        : Location of lock files (ramdisk)
+MAX_GPIO        : Maximum number of gpio locks ( from 0 .. MAX)
+INPUT           : GPIO is digital input
+OUTPUT          : GPIO is digital output
+EOF             : End of file
+</code></pre>
+<h2 id="instance-attributes">Instance attributes</h2>
+<pre><code>host            : ip v4 address
+port            : port (from 0 to 65535)
+</code></pre>
+<h2 id="public-methods">Public methods</h2>
+<pre><code>islocked(gpio)              : Check if the gpio is locked
+lock(gpio)                  : Locks the gpio
+unlock(gpio)                : Unlocks the gpio
+isconfigured(gpio)          : Checks if the gpio is configured
+configure(gpio, direction)  : Configures the gpio with direction
+deconfigure(gpio)           : Restores the default configuration
+get(gpio)                   : Reads the gpio status
+set(gpio, value)            : Writes new value to gpio
+login()                     : Registers to the remote system
+logout()                    : Unregisters from the remote system
+reset()                     : Deletes all configuration data
+</code></pre>
+<h2 id="constructor">Constructor</h2>
+<p>When called with host address, the constructor creates
+a telnet connection and performs automatic login. The default port is 8888</p>
+<pre><code class="python">import htpio.socketio as socketio
+
+t = socketio.RaspberryPi('192.168.199.31')
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class RaspberryPi(pigpio.pi, Device):
+    &#34;&#34;&#34;
+    This class allows users to connect and control the GPIO
+    on a Raspberry remotely by using and extending the pigpio library.
+
+    ## Configuration
+
+    Enable Remote GPIO
+
+        sudo raspi-config
+        Menu : Interfacing Options -&gt; Remote GPIO
+
+    Enable pigpiod to start on boot
+
+        sudo systemctl enable pigpiod
+
+
+    ## Class attributes
+
+        LOCK_DIR        : Location of lock files (ramdisk)
+        MAX_GPIO        : Maximum number of gpio locks ( from 0 .. MAX)
+        INPUT           : GPIO is digital input
+        OUTPUT          : GPIO is digital output
+        EOF             : End of file
+
+
+    ## Instance attributes
+
+        host            : ip v4 address
+        port            : port (from 0 to 65535)
+
+    ## Public methods
+
+        islocked(gpio)              : Check if the gpio is locked
+        lock(gpio)                  : Locks the gpio
+        unlock(gpio)                : Unlocks the gpio
+        isconfigured(gpio)          : Checks if the gpio is configured
+        configure(gpio, direction)  : Configures the gpio with direction
+        deconfigure(gpio)           : Restores the default configuration
+        get(gpio)                   : Reads the gpio status
+        set(gpio, value)            : Writes new value to gpio
+        login()                     : Registers to the remote system
+        logout()                    : Unregisters from the remote system
+        reset()                     : Deletes all configuration data
+
+    &#34;&#34;&#34;
+
+
+    MAX_GPIO = 128
+    &#34;&#34;&#34; Maximum number of GPIOs &#34;&#34;&#34;
+
+    INPUT = pigpio.INPUT
+    &#34;&#34;&#34; Signal direction is INPUT &#34;&#34;&#34;
+
+    OUTPUT = pigpio.OUTPUT
+    &#34;&#34;&#34; Signal direction is OUTPUT &#34;&#34;&#34;
+
+    LOCKDIR = &#34;/tmp/htp/locks&#34;
+    &#34;&#34;&#34; Lock files directory &#34;&#34;&#34;
+
+    EOF = &#34;\n&#34;
+    &#34;&#34;&#34; Symbol for end of transmission &#34;&#34;&#34;
+
+    def __init__(self, host=None, port=8888):
+        &#34;&#34;&#34;
+        ## Constructor
+
+        When called with host address, the constructor creates
+        a telnet connection and performs automatic login. The default port is 8888
+
+        ```python
+        import htpio.socketio as socketio
+
+        t = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+        ```
+
+        &#34;&#34;&#34;
+
+        pigpio.pi.__init__(self, host, port)
+
+        self._host = host
+        self._port = port
+        self._session = self.__session()
+        self._iotag = &#34;gpio&#34;
+        self._lockdir = RaspberryPi.LOCKDIR
+
+        if host is not None:
+            self.login()
+
+        &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  islocked : Check if pin is locked and returns the owner
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def islocked(self, pin):
+        &#34;&#34;&#34;
+        Opens the gpio lock file and checks it size. If the size is more than
+        zero then the gpio is considered to be locked by another process.
+
+        *** Example: ***
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.lock(14)
+        if led.islocked(14) :
+            print(&#34;LED is locked!!!&#34;)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent directory name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # Generate lock file name
+        iotag = self._iotag + str(pin)
+        lockfile = (self._lockdir + iotag)
+
+        # Prepare mode
+        mode = pigpio.FILE_READ
+        h = self.file_open(lockfile.encode(&#39;ascii&#39;), mode)
+
+        # Read file
+        (size, data) = self.file_read(h, 100)
+
+        # Evaluate result
+        if size &gt; 0:
+
+            # Someone is locking the file
+            result = data.decode()
+            result = result.replace(self.EOF, &#34;&#34;)
+
+        else:
+
+            # Nobody is locking the file
+            result = None
+
+        self.file_close(h)
+
+        return result
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  lock : Open the lock file and write this instance socket parameters
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def lock(self, pin):
+        &#34;&#34;&#34;
+        Lock the given pin by creating a lock file and writing the current
+        session id into it.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.lock(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent directory name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # Generate lock file name
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        # Check ownership and lock
+        lock_owner = self.islocked(pin)
+
+        if lock_owner is not None:
+            raise PinLockedByOtherProcess(lock_owner.encode(&#39;ascii&#39;),
+                                          self._session)
+        else:
+
+            # Prepare mode
+            mode = file_mode=pigpio.FILE_WRITE | pigpio.FILE_CREATE
+            h = self.file_open(lockfile.encode(&#39;ascii&#39;), mode)
+
+            # Write content
+            content = (self._session + RaspberryPi.EOF).encode(&#39;ascii&#39;)
+            self.file_write(h, content)
+
+            # Close file
+            self.file_close(h)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  unlock : Opens the corresponding file and erases the content
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def unlock(self, pin):
+        &#34;&#34;&#34;
+        Unlock the pin by truncating the size of the lock file to zero.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+        led.unlock(14)
+        ...
+        ```
+
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        h = self.file_open(lockfile.encode(&#39;ascii&#39;),
+                           pigpio.FILE_READ |
+                           pigpio.FILE_TRUNC)
+
+        self.file_close(h)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # isconfigured : Check if the pin is configured (mode &lt;&gt; default)
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def isconfigured(self, pin):
+        &#34;&#34;&#34;
+        Check if gpio is configured by comparing the current direction
+        configuration with the default one (INPUT).
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, socketio.RaspberryPi.OUTPUT)
+        if led.isconfigured(14):
+            print(&#34;LED is configured!!!&#34;)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        if self.get_mode(pin) == RaspberryPi.INPUT:
+            result = False
+        else:
+            result = True
+
+        return result
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  configure : Configures pin mode using pigpio 
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def configure(self, pin, direction):
+        &#34;&#34;&#34;
+        Configures the gpio for input or output operation.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, socketio.RaspberryPi.OUTPUT)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        self.set_mode(pin, direction)
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  cleanup : Resets pin configuration to the default value (INPUT)
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def deconfigure(self, pin):
+        &#34;&#34;&#34;
+        Removes the gpio configuration.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.deconfigure(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        self.set(pin, 0)
+        self.set_mode(pin, pigpio.INPUT)
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  get : Reads the value of the pin using pigpio
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+    &#34;&#34;&#34;
+
+    def get(self, pin):
+        &#34;&#34;&#34;
+        Reads the value of the gpio.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.get(14)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        return self.read(pin)
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  set : Writes to the pin using pigpio
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+    &#34;&#34;&#34;
+
+    def set(self, pin, value):
+        &#34;&#34;&#34;
+        Writes the value to the gpio.
+
+        *** Example: ***
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.configure(14, socketio.RaspberryPi.OUTPUT)
+        led.set(14, 1)
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Verify is pin is locked by other process
+        lock_owner = self.islocked(pin)
+        if lock_owner is not None and lock_owner != self._session:
+            raise PinLockedByOtherProcess(lock_owner, self._session)
+
+        self.write(pin, value)
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  login : Check for connectivity and create lock files
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def login(self):
+        &#34;&#34;&#34;
+        Registers device for use with target device by checking for
+        an established connection and creating all gpio lock files.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi()
+        led.host = &#39;192.168.199.31&#39;
+        led.port = 8888
+        led.login()
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        if not self.connected:
+            raise CannotConnectToTarget
+        else:
+            self.__populate()
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  logout : Close socket
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def logout(self):
+        &#34;&#34;&#34;
+        Unregisters device from remote device.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.logout()
+
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        self.stop()
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  reset : Deletes all coockies
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def reset(self, pin):
+        &#34;&#34;&#34;
+        Deletes the content of all generated lock files.
+
+        ***Example***:
+        ```python
+        import htpio.socketio as socketio
+
+        led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+        led.reset(14)
+
+        ...
+        ```
+        &#34;&#34;&#34;
+
+        # Consistent directory name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # Generate lock file name
+        iotag = self._iotag + str(pin)
+        lockfile = self._lockdir + iotag
+
+        h = self.file_open(file_name=lockfile.encode(&#39;ascii&#39;),
+                           file_mode=pigpio.FILE_READ | pigpio.FILE_TRUNC)
+
+        self.file_close(h)
+
+        return 0
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  session : Retrieves connection data and generates a lock identification
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __session(self):
+        &#34;&#34;&#34;
+        Gets the socket data for this connection and converts the to one
+        unique identification number. This ID is used to lock gpios.
+        &#34;&#34;&#34;
+
+        mysocket = self.sl.s
+        mysocket = mysocket.getsockname()
+        result = &#39;.&#39;.join(map(str, mysocket))
+        result = result.replace(&#34;.&#34;, &#34;&#34;)
+
+        return result
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  locklist : retries all gpios currently locked by other processes
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __locklist(self):
+        &#34;&#34;&#34;
+        Gets a listing of all lock files in the lock directory.
+        &#34;&#34;&#34;
+
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        lockdir = self._lockdir + &#34;*&#34;
+
+        # Function returns number of bytes(r) and a byte array(r2)
+        size, data = self.file_list(lockdir.encode(&#39;ascii&#39;))
+
+        result = []
+        if size &gt; 0:
+            data = data.decode()
+            data = data.split(RaspberryPi.EOF)
+
+            for element in data[:-1]:
+                result.append(element)
+
+        return result
+
+    &#34;&#34;&#34;
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #  populate : generate GPIO lock files from 0 to MAX_GPIO
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    &#34;&#34;&#34;
+
+    def __populate(self):
+        &#34;&#34;&#34; Creates all lock files in the lock directory. &#34;&#34;&#34;
+
+        # Consistent directory name
+        if not self._lockdir.endswith(&#34;/&#34;):
+            self._lockdir = self._lockdir + &#34;/&#34;
+
+        # Generate lock files
+        for gpio in range(RaspberryPi.MAX_GPIO):
+            iotag = self._iotag + str(gpio)
+            lockfile = self._lockdir + iotag
+
+            h = self.file_open(file_name=lockfile.encode(&#39;ascii&#39;),
+                               file_mode=pigpio.FILE_WRITE | pigpio.FILE_CREATE)
+
+            self.file_close(h)
+
+        return 0</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pigpio.pi</li>
+<li><a title="htpio.bridge.Device" href="bridge.html#htpio.bridge.Device">Device</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="htpio.socketio.RaspberryPi.EOF"><code class="name">var <span class="ident">EOF</span></code></dt>
+<dd>
+<section class="desc"><p>Symbol for end of transmission</p></section>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.LOCKDIR"><code class="name">var <span class="ident">LOCKDIR</span></code></dt>
+<dd>
+<section class="desc"><p>Lock files directory</p></section>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.MAX_GPIO"><code class="name">var <span class="ident">MAX_GPIO</span></code></dt>
+<dd>
+<section class="desc"><p>Maximum number of GPIOs</p></section>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="htpio.socketio.RaspberryPi.configure"><code class="name flex">
+<span>def <span class="ident">configure</span></span>(<span>self, pin, direction)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Configures the gpio for input or output operation.</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.socketio as socketio
+
+led = socketio.RaspberryPi('192.168.199.31')
+
+led.configure(14, socketio.RaspberryPi.OUTPUT)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def configure(self, pin, direction):
+    &#34;&#34;&#34;
+    Configures the gpio for input or output operation.
+
+    ***Example***:
+    ```python
+    import htpio.socketio as socketio
+
+    led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.configure(14, socketio.RaspberryPi.OUTPUT)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Verify is pin is locked by other process
+    lock_owner = self.islocked(pin)
+    if lock_owner is not None and lock_owner != self._session:
+        raise PinLockedByOtherProcess(lock_owner, self._session)
+
+    self.set_mode(pin, direction)</code></pre>
+</details>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.deconfigure"><code class="name flex">
+<span>def <span class="ident">deconfigure</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Removes the gpio configuration.</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.socketio as socketio
+
+led = socketio.RaspberryPi('192.168.199.31')
+
+led.deconfigure(14)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def deconfigure(self, pin):
+    &#34;&#34;&#34;
+    Removes the gpio configuration.
+
+    ***Example***:
+    ```python
+    import htpio.socketio as socketio
+
+    led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.deconfigure(14)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Verify is pin is locked by other process
+    lock_owner = self.islocked(pin)
+    if lock_owner is not None and lock_owner != self._session:
+        raise PinLockedByOtherProcess(lock_owner, self._session)
+
+    self.set(pin, 0)
+    self.set_mode(pin, pigpio.INPUT)</code></pre>
+</details>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Reads the value of the gpio.</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.socketio as socketio
+
+led = socketio.RaspberryPi('192.168.199.31')
+
+led.get(14)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get(self, pin):
+    &#34;&#34;&#34;
+    Reads the value of the gpio.
+
+    ***Example***:
+    ```python
+    import htpio.socketio as socketio
+
+    led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.get(14)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    return self.read(pin)</code></pre>
+</details>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.isconfigured"><code class="name flex">
+<span>def <span class="ident">isconfigured</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Check if gpio is configured by comparing the current direction
+configuration with the default one (INPUT).</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.socketio as socketio
+
+led = socketio.RaspberryPi('192.168.199.31')
+
+led.configure(14, socketio.RaspberryPi.OUTPUT)
+if led.isconfigured(14):
+    print(&quot;LED is configured!!!&quot;)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def isconfigured(self, pin):
+    &#34;&#34;&#34;
+    Check if gpio is configured by comparing the current direction
+    configuration with the default one (INPUT).
+
+    ***Example***:
+    ```python
+    import htpio.socketio as socketio
+
+    led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.configure(14, socketio.RaspberryPi.OUTPUT)
+    if led.isconfigured(14):
+        print(&#34;LED is configured!!!&#34;)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    if self.get_mode(pin) == RaspberryPi.INPUT:
+        result = False
+    else:
+        result = True
+
+    return result</code></pre>
+</details>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.islocked"><code class="name flex">
+<span>def <span class="ident">islocked</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Opens the gpio lock file and checks it size. If the size is more than
+zero then the gpio is considered to be locked by another process.</p>
+<p><strong><em> Example: </em></strong></p>
+<pre><code class="python">import htpio.socketio as socketio
+
+led = socketio.RaspberryPi('192.168.199.31')
+led.lock(14)
+if led.islocked(14) :
+    print(&quot;LED is locked!!!&quot;)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def islocked(self, pin):
+    &#34;&#34;&#34;
+    Opens the gpio lock file and checks it size. If the size is more than
+    zero then the gpio is considered to be locked by another process.
+
+    *** Example: ***
+    ```python
+    import htpio.socketio as socketio
+
+    led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+    led.lock(14)
+    if led.islocked(14) :
+        print(&#34;LED is locked!!!&#34;)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Consistent directory name
+    if not self._lockdir.endswith(&#34;/&#34;):
+        self._lockdir = self._lockdir + &#34;/&#34;
+
+    # Generate lock file name
+    iotag = self._iotag + str(pin)
+    lockfile = (self._lockdir + iotag)
+
+    # Prepare mode
+    mode = pigpio.FILE_READ
+    h = self.file_open(lockfile.encode(&#39;ascii&#39;), mode)
+
+    # Read file
+    (size, data) = self.file_read(h, 100)
+
+    # Evaluate result
+    if size &gt; 0:
+
+        # Someone is locking the file
+        result = data.decode()
+        result = result.replace(self.EOF, &#34;&#34;)
+
+    else:
+
+        # Nobody is locking the file
+        result = None
+
+    self.file_close(h)
+
+    return result</code></pre>
+</details>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.lock"><code class="name flex">
+<span>def <span class="ident">lock</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Lock the given pin by creating a lock file and writing the current
+session id into it.</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.socketio as socketio
+
+led = socketio.RaspberryPi('192.168.199.31')
+led.lock(14)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def lock(self, pin):
+    &#34;&#34;&#34;
+    Lock the given pin by creating a lock file and writing the current
+    session id into it.
+
+    ***Example***:
+    ```python
+    import htpio.socketio as socketio
+
+    led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+    led.lock(14)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Consistent directory name
+    if not self._lockdir.endswith(&#34;/&#34;):
+        self._lockdir = self._lockdir + &#34;/&#34;
+
+    # Generate lock file name
+    iotag = self._iotag + str(pin)
+    lockfile = self._lockdir + iotag
+
+    # Check ownership and lock
+    lock_owner = self.islocked(pin)
+
+    if lock_owner is not None:
+        raise PinLockedByOtherProcess(lock_owner.encode(&#39;ascii&#39;),
+                                      self._session)
+    else:
+
+        # Prepare mode
+        mode = file_mode=pigpio.FILE_WRITE | pigpio.FILE_CREATE
+        h = self.file_open(lockfile.encode(&#39;ascii&#39;), mode)
+
+        # Write content
+        content = (self._session + RaspberryPi.EOF).encode(&#39;ascii&#39;)
+        self.file_write(h, content)
+
+        # Close file
+        self.file_close(h)
+
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.login"><code class="name flex">
+<span>def <span class="ident">login</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Registers device for use with target device by checking for
+an established connection and creating all gpio lock files.</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.socketio as socketio
+
+led = socketio.RaspberryPi()
+led.host = '192.168.199.31'
+led.port = 8888
+led.login()
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def login(self):
+    &#34;&#34;&#34;
+    Registers device for use with target device by checking for
+    an established connection and creating all gpio lock files.
+
+    ***Example***:
+    ```python
+    import htpio.socketio as socketio
+
+    led = socketio.RaspberryPi()
+    led.host = &#39;192.168.199.31&#39;
+    led.port = 8888
+    led.login()
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    if not self.connected:
+        raise CannotConnectToTarget
+    else:
+        self.__populate()</code></pre>
+</details>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.logout"><code class="name flex">
+<span>def <span class="ident">logout</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Unregisters device from remote device.</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.socketio as socketio
+
+led = socketio.RaspberryPi('192.168.199.31')
+
+led.logout()
+
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def logout(self):
+    &#34;&#34;&#34;
+    Unregisters device from remote device.
+
+    ***Example***:
+    ```python
+    import htpio.socketio as socketio
+
+    led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.logout()
+
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    self.stop()</code></pre>
+</details>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.reset"><code class="name flex">
+<span>def <span class="ident">reset</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Deletes the content of all generated lock files.</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.socketio as socketio
+
+led = socketio.RaspberryPi('192.168.199.31')
+
+led.reset(14)
+
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def reset(self, pin):
+    &#34;&#34;&#34;
+    Deletes the content of all generated lock files.
+
+    ***Example***:
+    ```python
+    import htpio.socketio as socketio
+
+    led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.reset(14)
+
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Consistent directory name
+    if not self._lockdir.endswith(&#34;/&#34;):
+        self._lockdir = self._lockdir + &#34;/&#34;
+
+    # Generate lock file name
+    iotag = self._iotag + str(pin)
+    lockfile = self._lockdir + iotag
+
+    h = self.file_open(file_name=lockfile.encode(&#39;ascii&#39;),
+                       file_mode=pigpio.FILE_READ | pigpio.FILE_TRUNC)
+
+    self.file_close(h)
+
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.set"><code class="name flex">
+<span>def <span class="ident">set</span></span>(<span>self, pin, value)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Writes the value to the gpio.</p>
+<p><strong><em> Example: </em></strong></p>
+<pre><code class="python">import htpio.socketio as socketio
+
+led = socketio.RaspberryPi('192.168.199.31')
+
+led.configure(14, socketio.RaspberryPi.OUTPUT)
+led.set(14, 1)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def set(self, pin, value):
+    &#34;&#34;&#34;
+    Writes the value to the gpio.
+
+    *** Example: ***
+    ```python
+    import htpio.socketio as socketio
+
+    led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+
+    led.configure(14, socketio.RaspberryPi.OUTPUT)
+    led.set(14, 1)
+    ...
+    ```
+    &#34;&#34;&#34;
+
+    # Verify is pin is locked by other process
+    lock_owner = self.islocked(pin)
+    if lock_owner is not None and lock_owner != self._session:
+        raise PinLockedByOtherProcess(lock_owner, self._session)
+
+    self.write(pin, value)</code></pre>
+</details>
+</dd>
+<dt id="htpio.socketio.RaspberryPi.unlock"><code class="name flex">
+<span>def <span class="ident">unlock</span></span>(<span>self, pin)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Unlock the pin by truncating the size of the lock file to zero.</p>
+<p><strong><em>Example</em></strong>:</p>
+<pre><code class="python">import htpio.socketio as socketio
+
+led = socketio.RaspberryPi('192.168.199.31')
+led.unlock(14)
+...
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def unlock(self, pin):
+    &#34;&#34;&#34;
+    Unlock the pin by truncating the size of the lock file to zero.
+
+    ***Example***:
+    ```python
+    import htpio.socketio as socketio
+
+    led = socketio.RaspberryPi(&#39;192.168.199.31&#39;)
+    led.unlock(14)
+    ...
+    ```
+
+    &#34;&#34;&#34;
+
+    # Verify is pin is locked by other process
+    lock_owner = self.islocked(pin)
+    if lock_owner is not None and lock_owner != self._session:
+        raise PinLockedByOtherProcess(lock_owner, self._session)
+
+    if not self._lockdir.endswith(&#34;/&#34;):
+        self._lockdir = self._lockdir + &#34;/&#34;
+
+    iotag = self._iotag + str(pin)
+    lockfile = self._lockdir + iotag
+
+    h = self.file_open(lockfile.encode(&#39;ascii&#39;),
+                       pigpio.FILE_READ |
+                       pigpio.FILE_TRUNC)
+
+    self.file_close(h)
+
+    return 0</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="htpio.bridge.Device" href="bridge.html#htpio.bridge.Device">Device</a></b></code>:
+<ul class="hlist">
+<li><code><a title="htpio.bridge.Device.INPUT" href="bridge.html#htpio.bridge.Device.INPUT">INPUT</a></code></li>
+<li><code><a title="htpio.bridge.Device.OUTPUT" href="bridge.html#htpio.bridge.Device.OUTPUT">OUTPUT</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="htpio" href="index.html">htpio</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="htpio.socketio.CannotConnectToTarget" href="#htpio.socketio.CannotConnectToTarget">CannotConnectToTarget</a></code></h4>
+</li>
+<li>
+<h4><code><a title="htpio.socketio.PinLockedByOtherProcess" href="#htpio.socketio.PinLockedByOtherProcess">PinLockedByOtherProcess</a></code></h4>
+</li>
+<li>
+<h4><code><a title="htpio.socketio.RaspberryPi" href="#htpio.socketio.RaspberryPi">RaspberryPi</a></code></h4>
+<ul class="two-column">
+<li><code><a title="htpio.socketio.RaspberryPi.EOF" href="#htpio.socketio.RaspberryPi.EOF">EOF</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.LOCKDIR" href="#htpio.socketio.RaspberryPi.LOCKDIR">LOCKDIR</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.MAX_GPIO" href="#htpio.socketio.RaspberryPi.MAX_GPIO">MAX_GPIO</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.configure" href="#htpio.socketio.RaspberryPi.configure">configure</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.deconfigure" href="#htpio.socketio.RaspberryPi.deconfigure">deconfigure</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.get" href="#htpio.socketio.RaspberryPi.get">get</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.isconfigured" href="#htpio.socketio.RaspberryPi.isconfigured">isconfigured</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.islocked" href="#htpio.socketio.RaspberryPi.islocked">islocked</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.lock" href="#htpio.socketio.RaspberryPi.lock">lock</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.login" href="#htpio.socketio.RaspberryPi.login">login</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.logout" href="#htpio.socketio.RaspberryPi.logout">logout</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.reset" href="#htpio.socketio.RaspberryPi.reset">reset</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.set" href="#htpio.socketio.RaspberryPi.set">set</a></code></li>
+<li><code><a title="htpio.socketio.RaspberryPi.unlock" href="#htpio.socketio.RaspberryPi.unlock">unlock</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
