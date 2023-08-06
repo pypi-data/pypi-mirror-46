@@ -1,0 +1,1 @@
+name = 'fast_pandas'
