@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load filters_deploys %}
+
+{% block extra_css %}
+{% include "events/info/_css.html" %}
+{% endblock %}
+
+{% block bar %}
+<div class="bar">
+  <a href="/">dashboard</a> <span class="arrow">></span>
+  <a href="{% url 'event-list' %}">events</a> <span class="arrow">></span>
+  {{ event.Kind.Name }} / {{ event.Target.Value }}
+
+  {% if event.Cancelable and event.Running %}
+  <button id="cancel-button">Cancel</button>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block header %}
+<h1>Events</h1>
+{% endblock %}
+
+{% block content %}
+{% include "events/info/_content.html" %}
+{% endblock %}
+
+{% block extra_js %}
+{% include "events/info/_js.html" %}
+{% endblock %}

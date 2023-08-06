@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load filters_deploys %}
+
+{% block extra_css %}
+{% include "events/list/_css.html" %}
+{% endblock %}
+
+{% block bar %}
+<div class="bar">
+  <a href="/">dashboard</a> <span class="arrow">></span>
+  events
+
+  {% if event.Cancelable and event.Running %}
+  <button id="cancel-button">Cancel</button>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block sidebar %}
+{% if request.GET.kindName == "healer" %}
+  {% include "sidebar.html" with active="healing" %}
+{% elif request.GET.kindName == "app.deploy" %}
+  {% include "sidebar.html" with active="deploys" %}
+{% else %}
+  {% include "sidebar.html" with active="events" %}
+{% endif %}
+{% endblock %}
+
+{% block header %}
+<h1>Events</h1>
+{% endblock %}
+
+{% block content %}
+{% include "events/list/_content.html" with show_controls=True %}
+{% endblock %}
+
+{% block extra_js %}
+{% include "events/list/_js.html" %}
+{% endblock %}
