@@ -1,0 +1,108 @@
+{% load compress %}
+{% load static %}
+{% load i18n %}
+{% load safelink %}
+{% load statici18n %}
+{% load thumb %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block thetitle %}{% endblock %}</title>
+    {% compress css %}
+        <link rel="stylesheet" type="text/x-scss" href="{% static "lightbox/css/lightbox.scss" %}" />
+    {% endcompress %}
+    {% if css_file %}
+        <link rel="stylesheet" type="text/css" href="{{ css_file }}" />
+    {% else %}
+        {% compress css %}
+            <link rel="stylesheet" type="text/x-scss" href="{% static "pretixpresale/scss/main.scss" %}"/>
+        {% endcompress %}
+    {% endif %}
+
+    {% compress js %}
+        <script type="text/javascript" src="{% static "jquery/js/jquery-2.1.1.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "moment/moment-with-locales.js" %}"></script>
+        <script type="text/javascript" src="{% static "js/jquery.formset.js" %}"></script>
+        <script type="text/javascript" src="{% static "bootstrap/js/bootstrap.js" %}"></script>
+        <script type="text/javascript" src="{% static "datetimepicker/bootstrap-datetimepicker.js" %}"></script>
+        <script type="text/javascript" src="{% static "pretixcontrol/js/jquery.qrcode.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "pretixpresale/js/ui/questions.js" %}"></script>
+        <script type="text/javascript" src="{% static "pretixpresale/js/ui/main.js" %}"></script>
+        <script type="text/javascript" src="{% static "pretixbase/js/asynctask.js" %}"></script>
+        <script type="text/javascript" src="{% static "pretixbase/js/details.js" %}"></script>
+        <script type="text/javascript" src="{% static "pretixpresale/js/ui/cart.js" %}"></script>
+        <script type="text/javascript" src="{% static "lightbox/js/lightbox.min.js" %}"></script>
+    {% endcompress %}
+    <meta name="referrer" content="origin">
+    {{ html_head|safe }}
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+    {% block custom_header %}{% endblock %}
+    {% if settings.favicon %}
+        <link rel="icon" href="{{ settings.favicon|thumb:'16x16^' }}">
+        <link rel="shortcut icon" href="{{ settings.favicon|thumb:'16x16^' }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ settings.favicon|thumb:'32x32^' }}">
+        <link rel="icon" type="image/png" sizes="194x194" href="{{ settings.favicon|thumb:'194x194^' }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ settings.favicon|thumb:'16x16^' }}">
+    {% else %}
+        <link rel="icon" href="{% static "pretixbase/img/favicon.ico" %}">
+        <link rel="shortcut icon" href="{% static "pretixbase/img/favicon.ico" %}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{% static "pretixbase/img/icons/favicon-32x32.png" %}">
+        <link rel="icon" type="image/png" sizes="194x194" href="{% static "pretixbase/img/icons/favicon-194x194.png" %}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{% static "pretixbase/img/icons/favicon-16x16.png" %}">
+    {% endif %}
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static "pretixbase/img/icons/apple-touch-icon.png" %}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static "pretixbase/img/icons/android-chrome-192x192.png" %}">
+    <link rel="manifest" href="{% url "presale:site.webmanifest" %}">
+    <link rel="mask-icon" href="{% static "pretixbase/img/icons/safari-pinned-tab.svg" %}" color="{{ settings.primary_color|default:"#3b1c4a" }}">
+    <meta name="msapplication-TileColor" content="{{ settings.primary_color|default:"#3b1c4a" }}">
+    <meta name="msapplication-config" content="{% url "presale:browserconfig.xml" %}">
+    <meta name="theme-color" content="{{ settings.primary_color|default:"#3b1c4a" }}">
+</head>
+<body class="nojs" data-locale="{{ request.LANGUAGE_CODE }}" data-now="{% now "U.u" %}" data-datetimeformat="{{ js_datetime_format }}" data-timeformat="{{ js_time_format }}" data-dateformat="{{ js_date_format }}" data-datetimelocale="{{ js_locale }}">
+{{ html_page_header|safe }}
+{% block above %}
+{% endblock %}
+<div class="container">
+    {% block page %}
+    {% endblock %}
+    <footer>
+        {% block footer %}
+        {% endblock %}
+        {% if footer_text %}
+            {{ footer_text }}
+            &middot;
+        {% endif %}
+        {% for f in footer %}
+            <a href="{% safelink f.url %}" target="_blank" rel="noopener">{{ f.label }}</a>
+            &middot;
+        {% endfor %}
+        {% include "pretixpresale/base_footer.html" %}
+    </footer>
+</div>
+<div id="ajaxerr">
+</div>
+<div id="loadingmodal">
+    <div class="modal-card">
+        <div class="modal-card-icon">
+            <i class="fa fa-cog big-rotating-icon"></i>
+        </div>
+        <div class="modal-card-content">
+            <h3></h3>
+            <p class="text"></p>
+            <p class="status">{% trans "If this takes longer than a few minutes, please contact us." %}</p>
+        </div>
+    </div>
+</div>
+{% if DEBUG %}
+    <script type="text/javascript" src="{% url 'javascript-catalog' lang=request.LANGUAGE_CODE %}" async></script>
+{% else %}
+    <script src="{% statici18n LANGUAGE_CODE %}" async></script>
+{% endif %}
+{% if request.session.iframe_session %}
+    {% compress js %}
+        <script type="text/javascript" src="{% static "iframeresizer/iframeResizer.contentWindow.js" %}"></script>
+    {% endcompress %}
+{% endif %}
+{{ html_foot|safe }}
+</body>
+</html>
