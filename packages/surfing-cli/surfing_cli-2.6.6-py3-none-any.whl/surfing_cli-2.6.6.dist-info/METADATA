@@ -1,0 +1,102 @@
+Metadata-Version: 2.1
+Name: surfing-cli
+Version: 2.6.6
+Summary: 冲浪科技专用脚本库
+Home-page: https://github.com/uighurbabbage
+Author: Babbage
+Author-email: babbage@hotmail.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+Requires-Dist: Click
+Requires-Dist: xlwt
+Requires-Dist: pycrypto
+Requires-Dist: chardet
+Requires-Dist: fabric
+
+# SurfingCli
+
+#### 项目介绍
+冲浪科技内部用的所有脚本集
+> 2.5之前的版本是不依赖配置文件
+
+### 版本 v2.6.6
+> 2019-05-23
+- 数据推到线上业务服务后的解压和移动数据更加智能化，功能完善
+
+### 版本 v2.6.5
+> 2019-05-23
+- 包名不是P开头但是包内文件和包名匹配时视为正常调整为不正常
+- 上传数据到业务服务器时压缩文件带绝对路径问题修复
+
+### 版本 v2.6.4
+> 2019-02-01
+- 删除文件的导入没有删除，现在删除了
+
+
+### 版本 v2.6.3
+> 2019-02-01
+- 修复错误包名逻辑去掉只修复包名符合6位才修复的限制，现在P....a或者P....i中间可以有任何字符串
+
+
+### 版本 v2.6.2
+> 2019-01-22
+- 新增比较两个文本文件的功能
+
+
+### 版本 v2.6.1
+> 2018-11-28
+- devops之ftp服务器数据同步到线上服务信息以前写死的，现在改成使用~/.ssh/config中定义的hostname
+
+### 版本 v2.6
+> 2018-11-28
+- ftp服务器上业务处理逻辑新增：处理结束后自动吧运行结果，附件发送邮件通知
+
+
+### 版本 v2.5.9
+> 2018-11-28
+- 包分析脚本接入运行结果是否发送邮件功能，当生成运行结果文件或者生成excel时会携带附件，否则只发送文本内容
+
+### 版本 v2.5.8
+> 2018-11-28
+- 发送邮件新增了携带附件共鞥
+
+### 版本 v2.5.6
+- 支持从 ~/.surfing_cli.json|ini|yaml等配置文件中获取配置信息
+- 支持从 /etc/suring_cli.json|ini|yaml等配置文件中获取配置信息
+- 新增发送邮件功能，敏感配置信息设置成从配置文件里获取
+### 版本 v2.0
+支持功能:
+
+- 是否自动清理包中的已知问题，默认不会。
+- 是否静默运行，除了进度条以外不输出任何信息，默认会输出
+- 是否删除没有对应音频的txt文件，默认不删除
+- 是否针对加密文件进行解密，默认不会
+- 是否删除后缀 skip、sk、pk等文件，默认不会删除
+- 如果存在 xxx_1.wav|txt 文件是否进行删除，默认不删除
+- 如果存在.u文件 是否去掉文件名后缀.u，默认不会，如果去掉.u后的文件存在的话、将先删除然后重命名
+- 如果有wav目录是否吧里面的文件都放在外面并删除wav,默认不会
+- 是否删除包中的未知目录(m4a mp3 temp),默认不删除
+- 是否生成所有包详情的excel文件，默认不生成，生成文件在当前目录下,package_info.xls
+- 运行结果是否写入文件，默认不会写入文件，结果将写入当前目录下的package_analysis_new_result.txt
+运行结果是否分页显示,默认不分页"
+
+# 配置文件：
+```json
+{
+  "surfing": {
+    "email": {
+      "smtpserver": "smtp.exmail.qq.com",
+      "user": "it_devops@surfingtech.cn",
+	  "password": "密码",
+	  "sender": "it_devops@surfingtech.cn",
+      "cc": ["surfing_it@surfingtech.cn"]
+    }
+  }
+}
+```
+其中的 email 是邮件相关配置文件，更多信息查看 skeleton_configs目录下的surfing.conf.example.json文件
+
