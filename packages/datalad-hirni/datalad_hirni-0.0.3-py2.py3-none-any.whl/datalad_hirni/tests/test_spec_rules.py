@@ -1,0 +1,1 @@
+# TODO: artificial metadata to test the rules themselves? (not even calling dicom2spec)
