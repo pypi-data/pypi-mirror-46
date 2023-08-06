@@ -1,0 +1,133 @@
+{% if component.as_pdf %}{% else %}
+<!-- Full Calender -->
+<script src='/static/js/moment.min.js'></script>
+<script src='/static/js/fullcalendar.min-3.3.1.js'></script>
+<script src='/static/js/pt-br.js'></script>
+<!-- Full Calendar -->
+<link href='/static/css/fullcalendar.min-3.3.1.css' rel='stylesheet'/>
+<div class="panel panel-default">
+    {% if component.title %}
+    <div class="panel-heading">
+        {% if component.url %}
+            <a class="ajax" href="{{ component.url }}">
+                <i class="fa fa-calendar fa-lg"></i>
+                {{ component.title }}
+            </a>
+        {% else %}
+            <i class="fa fa-calendar fa-lg"></i>
+            {{ component.title }}
+        {% endif %}
+    </div>
+    {% endif %}
+    <div class="panel-body">
+        <div id="{{ component.id }}" class="fc fc-ltr"></div>
+    </div>
+</div>
+<script>
+    $(function() {
+
+        var calendar = $('#{{ component.id }}').fullCalendar({
+            header : {
+                left : '{% if component.title %}prev{% endif %}',
+                center : 'title',
+                right : '{% if component.title %}next{% endif %}'
+            },
+            defaultDate : '{{ component.initial_date|date("Y-m-d") }}',
+            lang : 'pt',
+            timeFormat: 'h:mm',
+            selectable : true,
+            selectHelper : true,
+            editable : false,
+            {% if not component.display_time %}
+            displayEventTime: false,
+            {% endif %}
+            {% if component.lazy %}
+                eventSources: [
+                    {% for item in component.items %}
+                    {
+                        url: '/calendar/populate/',
+                        type: 'POST',
+                        data: {
+                            queryset: '{{ item.queryset }}',
+                            start_field: '{{ item.start_field }}',
+                            end_field: '{{ item.end_field|default("") }}',
+                            action_names: '{{ item.action_names }}',
+                        },
+                        error: function() {
+                            console.log('there was an error while fetching events!');
+                        },
+                        success: function(items){
+                            for(var i=0; i<items.length; i++) {
+                                var item = items[0]
+                                //console.log(item.popover);
+                            }
+                        },
+                        {% if item.color %}
+                            color: '{{ item.color }}',   // a non-ajax option
+                            textColor: 'white' // a non-ajax option
+                        {% endif %}
+                    },
+                    {% endfor %}
+                ],
+
+                eventRender: function(event, element) {
+                    $(element).popover({
+                        html: true,
+                        placement: 'bottom',
+                        title: event.title,
+                        container: 'body',
+                        content: function() {
+                            $(".popover").popover("hide");
+                            return event.html;
+                        }
+                    });
+                    $(element).popover("show");
+                },
+                {% if component.links %}
+                dayClick: function(date, jsEvent, view) {
+                    $(this).popover({
+                        html: true,
+                        placement: 'top',
+                        title: 'Adicionar...',
+                        container: 'body',
+                        content: function() {
+                            var formatedDate = date.format('DD/MM/YYYY');
+                            var html = '';
+                            {% for link in component.links %}
+                            html+= '<p><a href="javascript:" onclick="popup(\'{{ link.url }}'+formatedDate+'\');">{{ link.label }}</a></p>';
+                            {% endfor %}
+                            return html;
+                        }
+                    });
+                    $(this).popover("toggle");
+                },
+                {% endif %}
+
+            {% else %}
+                events : [
+                    {% for item in component.items %}
+                         {
+                            title : '{{ item.description }}',
+                            start : new Date({{ item.start.year }}, {{ item.start.month }}-1, {{ item.start.day }}),
+
+                            {% if item.end %}
+                            end : new Date({{ item.end.year }}, {{ item.end.month }}-1, {{ item.end.day }}),
+                            {% endif %}
+
+                            {% if item.allday %}
+                            allDay : true,
+                            {% else %}
+                            allDay : false,
+                            {% endif %}
+
+                            {% if item.url %}
+                                url : '{{ item.url }}',
+                            {% endif %}
+                        },
+                    {% endfor %}
+                ],
+            {% endif %}
+        });
+    });
+</script>
+{% endif %}

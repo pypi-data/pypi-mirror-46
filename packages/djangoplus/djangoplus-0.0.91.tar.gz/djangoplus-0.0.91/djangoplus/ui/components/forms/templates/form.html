@@ -1,0 +1,234 @@
+
+{% if component.as_pdf %}{% else %}
+
+{% if not component.partial %}
+    <form id="{{ component.id }}"
+          class="{% if component.horizontal %}form-horizontal{% endif %} no-margin form-border ajax-form {% if component.request.GET.popup %}popup-form{% endif %}{% if component.inline %}inline-form{% endif %}"
+          method="{{ component.method }}" enctype="multipart/form-data" action="{{ component.request.get_full_path()}}" novalidate>
+    {% csrf_token %}
+    {{ component.str_hidden|safe }}
+    {{ component.media|safe }}
+{% endif %}
+
+{% if component.title and not component.inline and not component.partial %}
+    <h2>{% if not component.fields.icon and component.icon %}<i class="fa {{ component.icon }}"></i>{% endif %} {{ component.title }}</h2>
+{% endif %}
+
+{% if component.has_errors() %}
+    {% if component.non_field_errors() %}
+        <div class="alert alert-danger">
+            {% for non_field_error in component.non_field_errors() %}
+                {{ non_field_error }}
+            {% endfor %}
+        </div>
+    {% else %}
+        {% if not component.partial %}
+            <div class="alert alert-danger">
+                {{ _("Please correct the errors below") }}.
+            </div>
+        {% endif %}
+    {% endif %}
+{% endif %}
+
+{% if component.note %}
+    <div class="alert alert-info">
+        {{ component.note }}
+    </div>
+{% endif %}
+
+{% for fieldset in component.configured_fieldsets %}
+    {% if not fieldset.tuples|must_hide_fieldset %}
+        {% if not component.inline and not component.partial %}
+            <div class="panel panel-default">
+            {% if fieldset.title %}
+                <div class="panel-heading">
+                    {% if fieldset.title or component.title %}
+                        {% if fieldset.icon %}
+                            <i class="fa {{ fieldset.icon }}"></i>
+                        {% endif %}
+                        {{ fieldset.title|default("Dados Gerais") }}
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="panel-body">
+        {% endif %}
+    {% for fields in fieldset.tuples %}
+        {% if fields %}
+            <div class="form-group {% if component.inline and component.partial %}inline-form-group {{ component.id }}{% endif %} n{{ fields|length }} {% if component.hidden %}hidden{% endif %}">
+                {% for field in fields %}
+                    {% if component.horizontal %}
+                        <div>
+                            <label class="control-label" id="label-for-{{ field.name }}" for="id-{{ field.name }}">{{ field.label|safe }}</label>
+                            <div>
+                                {{ field.widget }}
+                                {% if field.help_text %}
+                                    <div class="help-text">{{ field.help_text|format|safe }}</div>{% endif %}
+                                {{ field.widget.errors }}
+                            </div>
+                        </div>
+                    {% else %}
+                        {% if component.partial and component.inline and loop.first %}
+                            <div class="inline-checkbox">
+                                <label class="control-label">&nbsp;</label>
+                                <div>
+                                    <input {% if component.instance.pk or component.prefix in component.data %}checked="checked"{% endif %} id="{{ component.prefix }}_id" name="{{ component.prefix }}" type="checkbox" onchange="checkWidgets(this);" data-scope=".form-group" class="one-to-many-checkbox"><span class="custom-checkbox"></span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <label class="control-label" id="label-for-{{ field.name }}" for="id-{{ field.name }}">{{ field.label|safe }}</label>
+                            {{ field.widget }}
+                            {% if field.help_text %}
+                                <div class="help-text">{{ field.help_text|format|safe }}</div>{% endif %}
+                            {{ field.widget.errors }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endfor %}
+        {% if not component.inline and not component.partial %}
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+    {% for field, form, required, save in fieldset.one_to_one %}
+        {% if loop.first %}
+            {{ form.media }}
+        {% endif %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {% if field.required %}
+                    <input type="hidden" name="{{ form.prefix }}" value="on">
+                {% else %}
+                    <input {% if save or form.instance.pk %}checked="checked"{% endif %} name="{{ form.prefix }}" type="checkbox" onchange="checkWidgets(this);" data-scope=".panel" class="one-to-one-checkbox"><span class="custom-checkbox"></span>
+                {% endif %}
+                {{ field.label }}
+            </div>
+            <div class="panel-body">
+                {{ form }}
+            </div>
+        </div>
+    {% endfor %}
+    {% for name, field, forms, one_to_many_count in fieldset.one_to_many %}
+        <div class="panel panel-default">
+            <div class="panel-heading">{{ field.label }}</div>
+            <div class="panel-body">
+                {% for form in forms %}
+                    {% if loop.first %}
+                        {{ form.media }}
+                    {% endif %}
+                    {{ form }}
+
+                    {% if form.hidden %}
+                        <a id="{{ form.id }}" class="pull-right inline-add-link hidden" href="javascript:" onclick="configureInlineAddLink('{{ form.id }}')">Mais</a>
+                    {% endif %}
+
+                {% endfor %}
+            </div>
+            {% if one_to_many_count %}
+            <script>
+                function {{ name }}DisplayForms(count){
+                    if(count) {
+                        $('.{{ name  }}-1').closest('.panel').show();
+                        for (var i = 0; i < 12; i++) {
+                            var formId = '{{ name  }}-' + i;
+                            $('.' + formId + ', #' + formId).addClass('hidden');
+                            var checkboxId = '#{{ name }}' + i + '_id';
+                            $(checkboxId).prop('checked', false);
+                            $(checkboxId).trigger('change');
+                        }
+                        for (var i = 0; i < count; i++) {
+                            var formId = '{{ name  }}-' + i;
+                            $('.' + formId + ', #' + formId).removeClass('hidden');
+                            $('#' + formId).hide();
+                            var checkboxId = '#{{ name }}' + i + '_id';
+                            $(checkboxId).prop('checked', true);
+                            $(checkboxId).trigger('change');
+                        }
+                    } else {
+                        $('.{{ name  }}-1').closest('.panel').hide();
+                    }
+                }
+                function {{ name }}ControllerChange(url, widget){
+                    if($(widget).val()) {
+                        url = url.replace('PK', $(widget).val());
+                        $.get(url, function (n) {
+                            {{ name }}DisplayForms(n);
+                        });
+                    } else {
+                        {{ name }}DisplayForms(0);
+                    }
+                }
+                jQuery(function(){
+                    if(isNaN('{{ one_to_many_count }}')){
+                        var tokens = '{{ one_to_many_count }}'.split(':');
+                        var controllerId = '#id_'+tokens[0];
+                        if(tokens.length>1) {
+                            var url = tokens[1];
+                            $(controllerId).on('change', function () {
+                                {{ name }}ControllerChange(url, this);
+                            });
+                            {{ name }}ControllerChange(url, controllerId);
+                        } else {
+                            $(controllerId).on('change', function () {
+                                {{ name }}DisplayForms($(controllerId).val());
+                            });
+                            {{ name }}DisplayForms($(controllerId).val());
+                        }
+                    } else {
+                        {{ name }}DisplayForms('{{ one_to_many_count }}');
+                    }
+                });
+            </script>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% endfor %}
+
+{% if not component.partial %}
+
+    {{ captcha(component) }}
+
+    {% if component.component %}
+        {{ component.component|safe }}
+    {% endif %}
+
+    <div class="seperator"></div>
+    {% if not component.request.GET.popup %}
+        <div class="pull-right">
+            {%  if not component.inline and component.cancel_button %}
+            <button class="btn btn-{{ component.cancel_style|default("default") }} btn-sm" type="reset" name="action"
+                    onclick="loadUrl('{{ request.REFERRER }}');">
+                {{ _("Cancel") }}
+            </button>
+            {% endif %}
+            <button class='btn btn-{{ component.submit_style|default("default") }}' name="action" type="submit">
+                <i class="fa fa-chevron-right"></i> <span>{{ component.submit_label }}</span>
+            </button>
+        </div>
+        <div style="clear: both"></div>
+    {% endif %}
+    </form>
+    {% if not component.inline %}
+    <!-- Used by popup to get the label of submit button -->
+    <input type="hidden" id="form-submit-label" value="{{ component.submit_label }}"/>
+    <input type="hidden" id="form-submit-style" value='btn btn-md btn-{{ component.submit_style|default("default") }}' />
+    {% endif %}
+
+    <script>
+        var func = window['{{ component.name }}'];
+        if (func) func();
+        function configureInlineAddLink(formId){
+            if(formId) {
+                $('.' + formId + ', #' + formId).toggleClass('hidden');
+                $('#' + formId).toggleClass('inline-add-link-clicked');
+            }
+            $('.inline-form-group').parent().find('a:not(.inline-add-link-clicked):first').removeClass('hidden');
+        }
+        configureInlineAddLink()
+    </script>
+
+{% endif %}
+{% endif %}
+

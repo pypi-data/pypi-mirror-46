@@ -1,0 +1,41 @@
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
+</head>
+
+<body>
+
+<div class="chart" data-width="200" data-series='[[2, "Banana"], [4, "Apple"], [6, "Grape"], [8, "Lemon"], [10, "Orange"]]'
+     data-colors="#C25EB7 #F666A0 #FF7F83 #FFA46A #FFCF5F #F9F871"></div>
+</body>
+
+<script>
+    function chart(container, size, colors, series) {
+        var i;
+        var l = ['<svg style="width: ' + (size + 60) + 'px; height: ' + (size + 60) + 'px; background-color:#FFF";><g transform="translate(0 30)">'];
+        var total = 0;
+        var texts = [];
+        var x = 10;
+        console.log(series);
+        for (i = 0; i < series.length; i++) total += series[i][0];
+        for (i = 0; i < series.length; i++) {
+            var value = series[i][0];
+            var label = series[i][1];
+            var percentage = series[i][0] * 100 / total;
+            var color = colors[i];
+            var serie = {value: value, label: label, percentage: percentage, color: color};
+            l.push('<rect x="'+x+'" y="'+(size/2-percentage)+'" width="20" height="'+percentage+'" fill="'+color+'"/>');
+            x += 30;
+        }
+        for (i = 0; i < texts.length; i++) l.push(texts[i]);
+        l.push('</g></svg>');
+         $(container).html(l.join(''));
+    }
+    $('.chart').each(function (index) {
+        var container = $(this);
+        chart(this, container.data('width'), container.data('colors').split(' '), container.data('series'));
+    });
+</script>
+
+</html>
+
