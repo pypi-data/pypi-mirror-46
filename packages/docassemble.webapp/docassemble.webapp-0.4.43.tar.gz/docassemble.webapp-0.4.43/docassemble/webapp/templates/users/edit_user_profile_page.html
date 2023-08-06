@@ -1,0 +1,59 @@
+{% extends 'base_templates/page_base_half.html' %}
+
+{% block content %}
+{% from "base_templates/form_macros.html" import render_field, render_submit_field, render_checkbox_field, render_multiselect_field %}
+
+<h1>{{ word('Edit User Profile') }}</h1>
+
+{%- if form.uses_mfa.data %}
+<div class="row">
+  <div class="col text-right mb-1">
+    <a class="btn btn-secondary" href="?disable_mfa=1">{{ word('Disable two-factor authentication') }}</a>
+  </div>
+</div>
+{%- endif %}
+{%- if (not is_self) and form.confirmed_at.data is not none %}
+<div class="row">
+  <div class="col text-right">
+    <a class="btn btn-secondary" href="?reset_email_confirmation=1">{{ word('Reset e-mail confirmation') }}</a>
+  </div>
+</div>
+{%- endif %}
+
+<form action="" method="POST" role="form">
+    {{ form.hidden_tag() }}
+    
+{%- if not is_self %}
+    {{ render_checkbox_field(form.active) }}
+{%- endif %}
+
+    {{ render_multiselect_field(form.role_id, undernote=privileges_note) }}
+
+    {{ render_field(form.email) }}
+
+    {{ render_field(form.first_name) }}
+
+    {{ render_field(form.last_name) }}
+
+    {{ render_field(form.country, right_message='<a target="_blank" href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2">List of Country Codes</a>') }}
+
+    {{ render_field(form.subdivisionfirst) }}
+
+    {{ render_field(form.subdivisionsecond) }}
+
+    {{ render_field(form.subdivisionthird) }}
+
+    {{ render_field(form.organization) }}
+    
+    {{ render_field(form.language) }}
+    
+    {{ render_field(form.timezone) }}
+
+    <br>
+    <div class="form-actions">
+      {{ render_submit_field(form.submit) }}
+      {{ render_submit_field(form.cancel, class="btn btn-warning " + config['BUTTON_CLASS']) }}
+    </div>
+</form>
+
+{% endblock %}
