@@ -1,0 +1,74 @@
+version: 0.1.{build}
+pull_requests:
+  do_not_increment_build_number: true
+
+services:
+- postgresql
+
+environment:
+  PGUSER: postgres
+  PGPASSWORD: Password12!
+  PGSQL_PATH: C:\Program Files\PostgreSQL\9.6
+  NOTIFICATIONS_URL: http://127.0.0.1:8080
+  PEEWEE_URL: postgres://postgres:Password12!@localhost/pacifica_metadata
+  matrix:
+  - PYTHON: C:\Python27-x64
+  - PYTHON: C:\Python36-x64
+
+install:
+- ps: >
+    & "$env:PYTHON\python.exe" -m virtualenv C:\pacifica;
+    Invoke-WebRequest -Uri "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.14.zip" -OutFile "elasticsearch.zip";
+    Expand-Archive "elasticsearch.zip" -DestinationPath "C:\elasticsearch";
+    C:\pacifica\Scripts\activate.ps1;
+    python -m pip install --upgrade pip setuptools wheel;
+    python -m pip install -r requirements-dev.txt;
+    python -m pip install 'celery[eventlet]' eventlet;
+    echo 'Done';
+
+build: off
+
+before_test:
+- ps: >
+    $env:PATH = "${env:PGSQL_PATH}\bin;${env:PYTHON}\Scripts;${env:PATH}";
+    createdb pacifica_metadata;
+    createdb pacifica_metadata_upgrade;
+    C:\pacifica\Scripts\activate.ps1;
+    Start-Process C:\pacifica\Scripts\python.exe -ArgumentList "tests\cherrypy_catch_test.py" -RedirectStandardError catch-error.log -RedirectStandardOutput catch-output.log;
+
+
+test_script:
+- ps: >
+    mkdir C:\tmp; C:\pacifica\Scripts\activate.ps1;
+    $es_proc = Start-Process C:\elasticsearch\elasticsearch-5.6.14\bin\elasticsearch -PassThru;
+    pre-commit run -a;
+    pip install pacifica-metadata==0.3.1 elasticsearch<7;
+    $env:METADATA_CPCONFIG = "$PWD/server.conf";
+    $env:PEEWEE_URL = "postgres://postgres:Password12!@localhost/pacifica_metadata_upgrade";
+    pacifica-metadata-cmd dbsync; mkdir C:\pacifica-metadata;
+    $meta_proc = Start-Process C:\pacifica\Scripts\pacifica-metadata.exe -ArgumentList "--stop-after-a-moment" -RedirectStandardError 'C:\pacifica-metadata\metadata-error.log' -RedirectStandardOutput 'C:\pacifica-metadata\metadata-output.log' -PassThru;
+    Invoke-WebRequest https://github.com/pacifica/pacifica-metadata/archive/v0.3.1.zip -OutFile data.zip;
+    Expand-Archive data.zip -DestinationPath C:\pacifica-metadata;
+    pushd C:\pacifica-metadata\pacifica-metadata-0.3.1;
+    Invoke-WebRequest http://localhost:8121/users;
+    python tests\test_files\loadit_test.py;
+    $meta_proc | Wait-Process;
+    popd; $es_proc | Stop-Process;
+    cd tests;
+    pip install ..;
+    coverage run --include='*/site-packages/pacifica/metadata/*' core/cmd_test.py dbchk --equal;
+    if ($LastExitCode -eq 0) { $host.SetShouldExit(-1); };
+    coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbchk;
+    if ($LastExitCode -eq 0) { $host.SetShouldExit(-1); };
+    coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbsync;
+    coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbchk;
+    coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbchk --equal;
+    $env:PEEWEE_URL = "sqliteext:///db.sqlite3";
+    coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbsync;
+    $env:PEEWEE_URL = "postgres://postgres:Password12!@localhost/pacifica_metadata";
+    coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbsync;
+    coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbsync;
+    coverage run --include='*/site-packages/pacifica/metadata/*' -a core/cmd_test.py dbchk;
+    coverage run --include='*/site-packages/pacifica/metadata/*' -a -m pytest -xv orm core;
+    coverage run --include='*/site-packages/pacifica/metadata/*' -a -m pytest -xv rest;
+    coverage report -m --fail-under=100;
