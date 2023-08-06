@@ -1,0 +1,192 @@
+0.6.2  (2019-05-20)
+=====
+  - Fixes:
+    - Don't generate Modules for empty namespace packages (i.e. resource directories).
+    - Generate real markdown files when `--output-dir` is set but not `--html`.
+    - Fix formatting of numpydoc type-only parameters.
+  - Auto-reload modules upon changes when in `--http` mode.
+  - New config tunable: `google_analytics`.
+  - Warn on unknown config tunables passed on the CLI.
+
+0.6.1  (2019-05-05)
+=====
+  - Minor maintenance release.
+
+0.6.0  (2019-05-03)
+=====
+  - New support for PEP 484 Python type annotations.
+  - Class `__init__` methods are no longer documented separately.
+    Instead, class docstring now contains `__init__` method's docstring,
+    and class definition line now shows `__init__` parameters.
+    This is in line with Sphinx / Python stdlib documentation.
+  - PDF docs generation via Markdown, ingestible by various
+    Markdown-to-PDF converters.
+  - New module import mechanism with improved support for
+    namespace packages.
+  - CLI changes:
+    - New `--config` switch for easier setting of config.mako tunables.
+    - Deprecated switches in favor of new/standard ones:
+      - `--overwrite`  →  `-f, --force`
+      - `--html-dir`   →  `-o, --output-dir`
+      - `--html-no-source`, `--external-links` and `--link-prefix` are
+        removed in favor of new tunables settable with `--config`.
+    - `--output-dir` without `--html` outputs a tree of raw Markdown files.
+    - The semantics of module specified as filesystem path has changed:
+      before the full relative path was used to construct the python module
+      path, now only the basename is.
+  - Bugfixes regarding raw URLs and numpydoc transformations.
+
+0.5.4  (2019-04-21)
+=====
+  - Bugfixes:
+    - Added support for metaclass subclasses.
+    - Fix pdoc.Function.params() error in case when keyword-only
+      parameters have no default values.
+    - Don't expand `os.environ` parameter default value as exposing it
+      is a security issue.
+
+0.5.3  (2019-03-05)
+=====
+  - Only close standard input if `--close-stdin` is used. This flips
+    the previous (hopefully rarely required) default.
+  - Fix backslashes in relative `Doc.url()` on Windos.
+  - New support for `.. include::` reST directive that includes
+    verbatim content from another file.
+  - Dev web server (`--http`) fixes:
+    - Unify `--http` and non-`--http` behavior by always adding
+      cwd to `sys.path`.
+    - Fix favicon.ico errors in `--http` mode.
+  - HTML template:
+    - Make TOC reference lists two- or three-column only if enough room for it.
+    - Fix: Hyperlink raw URLs.
+    - New optional sorting of variables, functions, classes.
+    - New configurable Highlight.js style.
+
+0.5.2  (2019-02-04)
+=====
+  - Add `__main__.py` so users can invoke `python -m pdoc`.
+  - Fix: List builtin class method descriptors
+  - Google docstring format fixes:
+    - Support for 2-space indents.
+    - Recognize sections even when not preceded by an empty line.
+    - Recognize additional characters (`,=[]`) in type specifications.
+  - HTML template fixes:
+    - Fixed some CSS typos.
+    - Re-styled View Source button in HTML template.
+    - Two-column TOC reference lists only when all names are short.
+    - TOC links for some class no longer lead to its ancestor class.
+
+0.5.1  (2019-01-11)
+=====
+  - Markdown >= 3.0.0 requirement.
+
+0.5.0  (2019-01-10)
+=====
+  - Relicensed as AGPL-3.0.
+  - Major refactoring, Python 3 compatibility.
+  - Support Numpydoc, Google-style docstrings, and some reST directives.
+  - CLI changes:
+    - Specifying modules/packages to document if mandatory.
+    - Identifier filtering can be turned on with an optional `--filter`
+      argument.
+    - Argument `--all-submodules` is removed.
+    - To avoid polluting the python package with scattered *.html files,
+      the default `--html-dir` now points to `./html`.
+    - Arguments `--http-host` and `--http-port` are removed in favor
+      of passing a parameter to argument `--http`.
+    - Program errors if specified template directory is invalid.
+  - All document objects have a `.obj` property, pointing to the raw
+    Python object.
+  - Major template updates:
+    - Template exceptions are propagated to stderr.
+    - Major refactoring (modern HTML5) of the HTML template.
+    - HTML template loads Normalize.css and Highlight.js from CDN.
+    - HTML template output is minified.
+    - HTML template includes sub-templates (config.mako, head.mako, logo.mako,
+      credits.mako) to more easily adapt it.
+    - In HTML template, module headings are extracted into sidebar TOC.
+  - `Function.params()` returns only public parameters.
+  - To disable documenting an identifier with `__pdoc__`, prefer `False`
+    to `None` (deprecated).
+
+0.3.1  (2014-12-02)
+=====
+  - Source code is extracted from __wrapped__ if it exists, and then
+    falls back to inspect.getsourcelines. This reverses the behavior
+    implemented in #6.
+  - Fix Python 2.6 compatibility by requiring Markdown < 2.5 (#19).
+    Markdown 2.5 dropped support for Python 2.6.
+  - Get rid of tabs that sneaked in from #17.
+  - Fix pep8 violations.
+
+0.3.0
+=====
+  - Major HTML face lift. Kudos to @knadh!
+    (PR: https://github.com/BurntSushi/pdoc/pull/17)
+
+0.2.4
+=====
+  - Fixed bug in HTTP server that was referencing a non-existent
+    variable.
+
+0.2.3
+=====
+  - Fixed #10 (the --template-dir flag now works).
+
+0.2.2
+=====
+  - Fixes #7 by ignoring module loaders that lack a 'path' attribute.
+
+0.2.1
+=====
+  - Fixes #5 by trying to find source for decorated functions.
+    (@austin1howard)
+
+0.2.0
+=====
+  - Fix issue #2 by making pdoc a package instead of a module.
+    The templates are now included as package_data, which seems
+    to be more portable (its final location is more predictable).
+
+0.1.8
+=====
+  - pdoc now interprets `__pdoc__[key] = None` as an explicit way
+    to hide `key` from the public interface of its module.
+
+0.1.7
+=====
+  - Removed __new__ from the public interface. I think __init__
+    is sufficient.
+
+0.1.6
+=====
+  - Fixed bug #1.
+
+0.1.5
+=====
+  - Fixed a bug with an improper use of getattr.
+  - Made pdoc aware of __slots__. (Every identifier in __slots__
+    is automatically interpreted as an instance variable.)
+
+0.1.4
+=====
+  - Fixed bug where getargspec wasn't being used in Python 2.x.
+
+0.1.3
+=====
+  - Avoid a FQDN lookup.
+
+0.1.2
+=====
+  - A few doco touchups.
+  - Fixed a bug in Py3K. Use getfullargspec when available.
+
+0.1.1
+=====
+  - Documentation touch ups.
+  - Removed unused command line flags.
+
+0.1.0
+=====
+First public release.
+
