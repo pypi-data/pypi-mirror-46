@@ -1,0 +1,23 @@
+# language: en
+
+Feature: Montrac
+     Montrac je dopravníkový systém s několika samostatnými vozíčky. Tyto vozíčky přepravují částečně zkompletované výrobky mezi několika stanicemi.
+Background:
+  Given lineOn
+
+Scenario: As soon as station XZX is free, then shuttle XY goes to station XZX.
+  When stationXZXFree
+  Then shuttleXYDestination == XZX
+
+Scenario: As soon as robot R1 picks up cube 1, then robot R1 puts cube 1 on shuttle XY on position 1.
+  When robotR1ProgramNumber == 2
+  Then robotR1ProgramNumber == 6
+
+Scenario: When station XXX is free and robot R1 finished unloading cube 3x2, then shuttle X goes to station XXX.
+  When (stationXXXFree) && (robotR1ProgramNumber == 3 && robotR1ProgramEnded)
+  Then shuttleXDestination == XXX
+
+Scenario: Given storage XYZ is empty, when robot R2 starts making product, then shuttle Y goes to station XXX
+  Given storageXYZCount == 0
+  When robotR2ProgramNumber == 1 && robotR2ProgramStarted
+  Then shuttleYDestination == XXX

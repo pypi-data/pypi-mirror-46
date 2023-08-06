@@ -1,0 +1,1 @@
+Container classes,  i.e. classes of objects containing Signals, Scenarios, etc.

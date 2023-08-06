@@ -1,0 +1,61 @@
+Požadavek: Montrac
+  Montrac je dopravníkový systém s několika samostatnými vozíčky. Tyto vozíčky přepravují částečně zkompletované výrobky mezi několika stanicemi.
+Kontext:
+  Pokud linkaOn == 1
+
+Scénář: Normální běh linky - Montrac Shuttle X - Příjezd vozíčku do stanice
+  Když stationXZXFree == 1
+  Pak   shuttleXDestination == XZX
+
+Scénář: Normální běh linky - Montrac Shuttle X - Přeprava dílů ze stanice
+  Pokud stationXXXFree == 1
+  Když  robotR1ProgramNumber == 26 && edge(robotR1ProgamEnd, 1)
+  Pak   shuttleXDestination == XXX && edge(shuttleXMove, 1)
+
+Scénář: Normální běh linky - Montrac Shuttle Y - Příjezd vozíčku do stanice
+  Když stationXZZFree == 1
+  Pak   shuttleYDestination == XZZ && edge(robotR1ProgamEnd, 1)
+
+Scénář: Normální běh linky - Montrac Shuttle Y - Přeprava dílů ze stanice
+  Pokud stationXXXFree == 1
+  Když  robotR2ProgramNumber == 18 && edge(robotR2ProgamEnd, 1)
+  Pak   shuttleYDestination == XXX && edge(shuttleYMove, 1)
+
+Scénář: Normální běh linky - Montrac Shuttle Z - Příjezd vozíčku do stanice
+  Když stationXZYFree == 1
+  Pak   shuttleZDestination == XZY && edge(robotR1ProgamEnd, 1)
+
+Scénář: Normální běh linky - Montrac Shuttle Z - Přeprava dílů ze stanice
+  Pokud stationXXXFree == 1
+  Když  robotR3ProgramNumber == 28 && edge(robotR3ProgamEnd, 1)
+  Pak   shuttleZDestination == XXX && edge(shuttleZMove, 1)
+
+Scénář: Doplnění skladu kostiček - Montrac Shuttle X - Doplňování zásob pro robota u stanici ZZZ
+  Pokud replenishStoreRx == 1
+  Když  stationZZZFree == 1
+  Pak   shuttleXDestination == ZZZ && edge(shuttleXMove, 1)
+
+Scénář: Doplnění skladu kostiček - Montrac Shuttle X - Odjezd od stanice RRR, kde vozíček čeká na další úkol
+  Pokud shuttleXAtStation == ZZZ
+  Když  shuttleXIsFull == 1
+  Pak   shuttleXDestination == RRR && edge(shuttleXMove, 1)
+
+Scénář: Doplnění skladu kostiček - Montrac Shuttle Y - Doplňování zásob pro robota u stanici ZZZ
+  Pokud replenishStoreRx == 1
+  Když  stationZZZFree == 1
+  Pak   shuttleYDestination == ZZZ && edge(shuttleYMove, 1)
+
+Scénář: Doplnění skladu kostiček - Montrac Shuttle Y - Odjezd od stanice RRR, kde vozíček čeká na další úkol
+  Pokud shuttleYAtStation == ZZZ
+  Když  shuttleYIsFull == 1
+  Pak   shuttleYDestination == RRR && edge(shuttleXMove, 1)
+
+Scénář: Doplnění skladu kostiček - Montrac Shuttle Z - Doplňování zásob pro robota u stanici ZZZ
+  Pokud replenishStoreRx == 1
+  Když  stationZZZFree == 1
+  Pak   shuttleZDestination == ZZZ && edge(shuttleZMove, 1)
+
+Scénář: Doplnění skladu kostiček - Montrac Shuttle Z - Odjezd od stanice RRR, kde vozíček čeká na další úkol
+  Pokud shuttleZAtStation == ZZZ
+  Když  shuttleZIsFull == 1
+  Pak   shuttleZDestination == RRR && edge(shuttleXMove, 1)
