@@ -1,0 +1,69 @@
+# Snakefile for runing the inferringscript 'inferr.py' which figures out the library-type
+import re, os
+import subprocess
+import shlex
+
+script_dir=os.path.dirname(__file__)
+configfile: "config.json"
+folder = "intermediate_data/"
+script_dir     = config["script_dir"]
+output_file = "result_"+config["name"]+"_on_"+config["reference_name"]+".txt"
+name = config["name"]
+reference_name = config["reference_name"]
+
+## ---- find is PE or SE ----
+#PE_SE="paired" if len(config["reads"])==2 else "single"
+def get_type():
+    type=""
+    bam=""
+    if config["reads"]:
+        bam = rules.samtools_sort_new_mapped.output
+    else:
+        bam = rules.subsample_map.output
+     
+    cmd = "samtools view -c -f 1 " + str(bam)
+    proc = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = proc.communicate()
+    nb_reads_paired = int(str(out.decode("utf-8")).split("\n")[0])
+    if nb_reads_paired  > 0:
+        return "paired"
+    else:
+        return "single"
+
+def fastq_input(wildcards):
+    if config["reads"]:
+        result_subsample = rules.subsample_fastq.output
+        return result_subsample[0]
+    else:
+        return rules.subsample_map.output
+
+def get_map(wildcards):
+    if config["reads"]:
+        return rules.samtools_sort_new_mapped.output
+    else:
+        return rules.samtools_sort_already_mapped.output
+
+def annotation_input(Wildcards):
+    if config["annotation"]:
+        return config["annotation"]
+    else:
+        return rules.busco_ann.output
+
+rule inferr:
+    input:
+        fastq = fastq_input,
+        annotation = annotation_input,        
+        bam = get_map
+
+    output:
+        output_file
+
+    run: 
+        type = get_type()
+        shell("if(( `python --version 2>&1 | awk '{{print $2}}' | cut -d'.' -f1` >= 3 ));then \n \
+                        echo \"call inferr_lib.py with python prefix\"; \n \
+                        python {script_dir}/inferr_lib.py {input.annotation} {input.bam} {input.fastq} "+type+" {name} {reference_name} {output_file}; \n \
+                else \n \
+                        echo \"call inferr_lib.py with python3 prefix\"; \n \
+                        python3 {script_dir}/inferr_lib.py {input.annotation} {input.bam} {input.fastq} "+type+" {name} {reference_name} {output_file}; \n \
+                fi")
