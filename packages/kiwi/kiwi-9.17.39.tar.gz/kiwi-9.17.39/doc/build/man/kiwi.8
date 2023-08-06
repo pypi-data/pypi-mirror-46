@@ -1,0 +1,274 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "KIWI" "8" "May 24, 2019" "9.17.39" "kiwi"
+.SH NAME
+kiwi \- Creating Operating System Images
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH SYNOPSIS
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+kiwi [global options] service <command> [<args>]
+
+kiwi \-h | \-\-help
+kiwi [\-\-profile=<name>...]
+     [\-\-type=<build_type>]
+     [\-\-logfile=<filename>]
+     [\-\-debug]
+     [\-\-color\-output]
+    image <command> [<args>...]
+kiwi [\-\-debug]
+     [\-\-color\-output]
+    result <command> [<args>...]
+kiwi [\-\-profile=<name>...]
+     [\-\-shared\-cache\-dir=<directory>]
+     [\-\-type=<build_type>]
+     [\-\-logfile=<filename>]
+     [\-\-debug]
+     [\-\-color\-output]
+    system <command> [<args>...]
+kiwi compat <legacy_args>...
+kiwi \-v | \-\-version
+kiwi help
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH DESCRIPTION
+.sp
+KIWI is an imaging solution that is based on an image XML description.
+Such a description is represented by a directory which includes at least
+one \fBconfig.xml\fP or \fB\&.kiwi\fP file and may as well include other files like
+scripts or configuration data.
+.sp
+A collection of example image descriptions can be found on the github
+repository here: \fI\%https://github.com/SUSE/kiwi\-descriptions\fP\&. Most of the
+descriptions provide a so called JeOS image. JeOS means Just enough
+Operating System. A JeOS is a small, text only based image including a
+predefined remote source setup to allow installation of missing
+software components at a later point in time.
+.sp
+KIWI operates in two steps. The system build command combines
+both steps into one to make it easier to start with KIWI. The first
+step is the preparation step and if that step was successful, a
+creation step follows which is able to create different image output
+types.
+.sp
+In the preparation step, you prepare a directory including the contents
+of your new filesystem based on one or more software package source(s)
+The creation step is based on the result of the preparation step and
+uses the contents of the new image root tree to create the output
+image.
+.sp
+KIWI supports the creation of the following image types:
+.INDENT 0.0
+.IP \(bu 2
+ISO Live Systems
+.IP \(bu 2
+Virtual Disk for e.g cloud frameworks
+.IP \(bu 2
+OEM Expandable Disk for system deployment from ISO or the network
+.IP \(bu 2
+File system images for deployment in a pxe boot environment
+.UNINDENT
+.sp
+Depending on the image type a variety of different disk formats and
+architectures are supported.
+.SH GLOBAL OPTIONS
+.INDENT 0.0
+.TP
+.B \-\-color\-output
+Use Escape Sequences to print different types of information
+in colored output. The underlaying terminal has to understand
+those escape characters. Error messages appear red, warning
+messages yellow and debugging information will be printed light
+grey.
+.TP
+.B \-\-debug
+Print debug information on the commandline.
+.TP
+.BI \-\-logfile\fB= <filename>
+Specify log file. the logfile contains detailed information about
+the process.
+.TP
+.BI \-\-profile\fB= <name>
+Select profile to use. The specified profile must be part of the
+XML description. The option can be specified multiple times to
+allow using a combination of profiles
+.TP
+.BI \-\-shared\-cache\-dir\fB= <directory>
+Specify an alternative shared cache directory. The directory
+is shared via bind mount between the build host and image
+root system and contains information about package repositories
+and their cache and meta data. The default location is set
+to /var/cache/kiwi
+.TP
+.BI \-\-type\fB= <build_type>
+Select image build type. The specified build type must be configured
+as part of the XML description.
+.TP
+.B \-\-version
+Show program version
+.UNINDENT
+.SH EXAMPLE
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ git clone https://github.com/SUSE/kiwi\-descriptions
+
+$ kiwi \-\-type vmx system build \e
+    \-\-description kiwi\-descriptions/suse/x86_64/suse\-leap\-42.3\-JeOS \e
+    \-\-target\-dir /tmp/myimage
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH THE RUNTIME CONFIGURATION FILE
+.sp
+KIWI supports an additional configuration file for runtime specific
+settings that do not belong into the image description but which are
+persistent and would be unsuitable for command line parameters.
+.sp
+The runtime configuration file must adhere to the \fI\%YAML\fP syntax. KIWI searches for the runtime configuration
+file in the following locations:
+.INDENT 0.0
+.IP 1. 3
+\fB~/.config/kiwi/config.yml\fP
+.IP 2. 3
+\fB/etc/kiwi.yml\fP
+.UNINDENT
+.sp
+The parameters that can be changed via the runtime configuration file are
+illustrated in the following example:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+xz:
+  # Additional command line flags for \(gaxz\(ga
+  # see \(gaman xz\(ga for details
+  \- options: \-9e
+
+obs:
+  # Override the URL to the Open Build Service (i.e. how repository
+  # paths starting with \(gaobs://\(ga will be resolved).
+  # This setting is useful for building a KIWI appliance locally, which is
+  # hosted on a custom OBS instance.
+  # defaults to: http://download.opensuse.org/repositories
+  \- download_url: https://build.my\-domain.example/repositories
+
+  # Specifies whether the Open Build Service instance is public or
+  # private
+  # defaults to true
+  \- public: true | false
+
+bundle:
+  # Configure whether the image bundle should contain a XZ compressed
+  # image result or not.
+  \- compress: true | false
+
+container:
+  # Specify the compression algorithm for compressing container
+  # images. Invalid entries are skipped.
+  # Defaults to \(gaxz\(ga.
+  \- compress: xz | none
+
+iso:
+  # Configure which tool KIWI will use to build ISO images. Invalid
+  # entries are ignored.
+  # Defaults to \(gaxorriso\(ga
+  \- tool_category: cdrtools | xorriso
+
+oci:
+  # Specify the OCI archive tool that will be used to create container
+  # archives for OCI compliant images.
+  # Defaults to \(gaumoci\(ga.
+  \- archive_tool: umoci | buildah
+
+build_constraints:
+  # Configure the maximum image size. Either provide a number in bytes
+  # or specify it with the suffix \(gam\(ga/\(gaM\(ga for megabytes or \(gag\(ga/\(gaG\(ga for
+  # gigabytes.
+  # If the resulting image exceeds the specified value, then KIWI will
+  # abort with an error.
+  # The default is no size constraint.
+  \- max_size: 700m
+
+runtime_checks:
+  # Provide a list of runtime checks that should be disabled. Checks
+  # that do not exist but are present in this list are silently
+  # ignored.
+  \- disable: check_image_include_repos_publicly_resolvable | \e
+      check_target_directory_not_in_shared_cache | \e
+      check_volume_label_used_with_lvm | \e
+      check_volume_setup_defines_multiple_fullsize_volumes | \e
+      check_volume_setup_has_no_root_definition | \e
+      check_container_tool_chain_installed | \e
+      check_boot_description_exists | \e
+      check_consistent_kernel_in_boot_and_system_image | \e
+      check_dracut_module_for_oem_install_in_package_list | \e
+      check_dracut_module_for_disk_oem_in_package_list | \e
+      check_dracut_module_for_live_iso_in_package_list | \e
+      check_dracut_module_for_disk_overlay_in_package_list | \e
+      check_efi_mode_for_disk_overlay_correctly_setup | \e
+      check_xen_uniquely_setup_as_server_or_guest | \e
+      check_mediacheck_only_for_x86_arch | \e
+      check_minimal_required_preferences
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH COMPATIBILITY
+.sp
+This version of KIWI uses a different caller syntax compared to
+former versions. However there is a compatibility mode which allows
+to use a legacy KIWI commandline as follows:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ kiwi compat \e
+    \-\-build kiwi\-descriptions/suse/x86_64/suse\-leap\-42.3\-JeOS \e
+    \-\-type vmx \-d /tmp/myimage
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH AUTHOR
+Marcus Schäfer
+.SH COPYRIGHT
+2019, Marcus Schäfer
+.\" Generated by docutils manpage writer.
+.
