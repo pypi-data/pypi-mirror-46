@@ -1,0 +1,39 @@
+#!/bin/bash
+###############################################################################
+# (c) Copyright 2014 CERN                                                     #
+#                                                                             #
+# This software is distributed under the terms of the GNU General Public      #
+# Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
+###############################################################################
+
+#
+# Script to collect the run results and push them to LHCbPR
+# The steps are to:
+# 1- Setup the environment for LHCbDirac and ROOT
+# 2- Download the LHCbPRHandler and install the copy in the local directory
+# 3- Actually run the collectRunResult command from LHCbPR
+
+
+if [ -z "$LHCBPR_HANDLERS_PATH" ]
+then
+    if [ -d LHCbPR2HD ]; then
+        echo "Pull LHCbPR2HD"
+        (cd LHCbPR2HD && git checkout master && git pull)
+    else
+        echo "Clone LHCbPR2HD"
+        git clone --quiet --depth=1 https://gitlab.cern.ch/lhcb-core/LHCbPR2HD.git
+    fi
+    export LHCBPR_HANDLERS_PATH="LHCbPR2HD"
+fi
+# Collect the run results...
+echo "Run" $LHCBPR_HANDLERS_PATH/collectRunResults.py "$@"
+
+lb-run LHCb/latest $LHCBPR_HANDLERS_PATH/collectRunResults.py "$@"
+
+# Send results to Dirac SE
+lb-run -i -s X509_CERT_DIR=/etc/grid-security/certificates -c best LHCbDirac/prod $LHCBPR_HANDLERS_PATH/sendToDB.py -s `cat unique_re\
+sults_id_zip`
