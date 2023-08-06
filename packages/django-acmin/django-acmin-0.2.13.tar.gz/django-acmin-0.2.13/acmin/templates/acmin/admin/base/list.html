@@ -1,0 +1,46 @@
+{% extends 'acmin/admin/base/template.html' %}
+{% load attr %}
+{% load truncate %}
+{% load display %}
+{% load resource %}
+{% block breadcrumb %}
+    <ul class="breadcrumb">
+        <li><a href="#!name=/{{ model_name }}">{{ model_verbose_name }}</a></li>
+        <li class="active">列表</li>
+    </ul>
+    {% if model.class_permission.creatable %}
+        <a class="ace-icon fa fa-plus" href="#!name=/{{ model_name }}/create"> 新建</a>&nbsp;&nbsp;
+    {% endif %}
+    {% if model.class_permission.exportable %}
+        <a class="ace-icon fa fa-download" href="javascript:exportExcel();">导出</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div id="csrf-container" style="display: none;"></div>
+    {% if messages %}
+        <div class="alert alert-block alert-success" id="form-save-success">
+            {% for message in messages %}
+                <b>{{ message }}</b><br/>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <div class="row">
+        {% block pre-row %}{% endblock %}
+        <div class="col-xs-12">
+            {% include "acmin/admin/base/filters.html" %}
+            <div class="table-responsive">
+                {% include "acmin/admin/base/paginator.html" %}
+                {% include "acmin/admin/base/table.html" %}
+                {% include "acmin/admin/base/paginator.html" %}
+            </div>
+        </div>
+        {% block post-row %}{% endblock %}
+    </div>
+    {% block post-content %}{% endblock %}
+{% endblock %}
+
+{% block script %}
+    <script src="{% resource 'acmin/js/list.js?bbb' %}"></script>
+{% endblock %}
+

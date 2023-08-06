@@ -1,0 +1,83 @@
+{% load attr %}
+{% load truncate %}
+{% load display %}
+{% load define %}
+{% block table %}
+    <table id="simple-table" class="table  table-bordered table-hover">
+        <thead>
+        {% block thead %}
+            <tr>
+                {% if model.class_permission.operable %}
+                    <th>操作</th>
+                {% endif %}
+                {% for field in list_fields %}
+                    <th>{{ field.verbose_name }}{% include "acmin/admin/base/sort.html" %}</th>
+                {% endfor %}
+                {% block post_th %} {% endblock %}
+            </tr>
+        {% endblock %}
+        </thead>
+        <tbody>
+        {% block tbody %}
+            {% if list %}
+                {% for instance in list %}
+                    <tr>
+                        {% if model.class_permission.operable %}
+                            <td>
+                                {% block actions %}
+                                    <div class="btn-group">
+                                        {% if instance.instance_permission.viewable %}
+                                            <a href="#!name=/{{ model_name }}/{{ instance.id }}/">查看</a>
+                                        {% endif %}
+                                        {% if instance.instance_permission.removable %}
+                                            <a href="#!action=delete&name=/{{ model_name }}/{{ instance.id }}">删除</a>
+                                        {% endif %}
+                                        {% if instance.instance_permission.cloneable %}
+                                            <a href="#!name=/{{ model_name }}/{{ instance.id }}?clone">复制</a>
+                                        {% endif %}
+                                        {% block extra-actions %}{% endblock %}
+                                    </div>
+                                {% endblock %}
+                            </td>
+                        {% endif %}
+                        {% for field in list_fields %}
+                            <td style="color:{{ instance.css_color }}">
+                                {% block field-td %}
+                                    {% if field.class_name and instance.instance_permission.viewable %}
+                                        {% with id=field.attribute|add:".id" %}
+                                            <a href="#!name=/{{ field.class_name }}/{{ instance|attr:id }}/">
+                                                {{ instance|display:field.attribute|truncate }}
+                                            </a>
+                                        {% endwith %}
+                                    {% elif field.python_type == 'django.db.models.fields.BooleanField' and field.editable and instance.instance_permission.savable %}
+                                        <input name="{{ field.attribute }}" type="checkbox" onchange="partialUpdate('{{ model_name }}',{{ instance.id }},this,true)"
+                                                {% if instance|attr:field.attribute %}
+                                               checked
+                                                {% endif %}
+                                        />
+                                    {% elif field.python_type == 'django.db.models.fields.IntegerField' and field.editable and instance.instance_permission.savable %}
+                                        <input class="ace" style="width:100px"
+                                               name="{{ field.attribute }}"
+                                               type="number"
+                                               onchange="partialUpdate('{{ model_name }}',{{ instance.id }},this)"
+                                               value="{{ instance|attr:field.attribute }}"/>
+                                    {% else %}
+                                        {{ instance|display:field.attribute|truncate }}
+                                    {% endif %}
+                                {% endblock %}
+                            </td>
+                        {% endfor %}
+                        {% block post_td %} {% endblock %}
+                    </tr>
+                    {% block post_tr %} {% endblock %}
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="200">No data found</td>
+                </tr>
+            {% endif %}
+        {% endblock %}
+        </tbody>
+    </table>
+{% endblock %}
+

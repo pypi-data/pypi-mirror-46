@@ -1,0 +1,33 @@
+{% if page_obj.has_other_pages %}
+    {% if is_paginated %}
+        <div class="message-footer clearfix">
+            <div class="pull-right"></div>
+            <div class="pull-left">
+                <ul class="pagination middle">
+                    {% if page_obj.has_previous %}
+                        <li><a href="javascript:gotoPage(1)">
+                            <i class="ace-icon fa fa-step-backward middle"></i></a></li>
+                        <li>
+                            <a href="javascript:gotoPage({{ page_obj.previous_page_number }})">
+                                <i class="ace-icon fa fa-caret-left bigger-140 middle"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li><span><input value="{{ page_obj.number }}" maxlength="3" type="text"
+                                     onchange="gotoPage(this.value)"/></span></li>
+                    {% if page_obj.has_next %}
+                        <li><a href="javascript:gotoPage({{ page_obj.next_page_number }})">
+                            <i class="ace-icon fa fa-caret-right bigger-140 middle"></i></a>
+                        </li>
+                        <li><a href="javascript:gotoPage({{ page_obj.paginator.num_pages }})">
+                            <i class="ace-icon fa fa-step-forward middle"></i></a>
+                        </li>
+                    {% endif %}
+                </ul>
+                <div class="inline middle">
+                    共{{ page_obj.paginator.count }}条记录,第{{ page_obj.number }}页,共{{ page_obj.paginator.num_pages }}页
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endif %}
