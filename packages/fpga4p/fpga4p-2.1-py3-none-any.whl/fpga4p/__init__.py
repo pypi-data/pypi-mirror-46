@@ -1,0 +1,4 @@
+import fpga4p.core
+import fpga4p.supporting_tools
+import fpga4p.training_algorithms
+import fpga4p.classification_algorithms
