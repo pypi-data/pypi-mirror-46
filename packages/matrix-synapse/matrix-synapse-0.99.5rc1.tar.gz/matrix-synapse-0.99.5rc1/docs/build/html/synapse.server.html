@@ -1,0 +1,869 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>synapse.server module &#8212; Synapse 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="synapse.state module" href="synapse.state.html" />
+    <link rel="prev" title="synapse.util.stringutils module" href="synapse.util.stringutils.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="synapse.state.html" title="synapse.state module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="synapse.util.stringutils.html" title="synapse.util.stringutils module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Synapse 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="synapse.html" accesskey="U">synapse package</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-synapse.server">
+<span id="synapse-server-module"></span><h1>synapse.server module<a class="headerlink" href="#module-synapse.server" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="synapse.server.HomeServer">
+<em class="property">class </em><code class="descclassname">synapse.server.</code><code class="descname">HomeServer</code><span class="sig-paren">(</span><em>hostname</em>, <em>reactor=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A basic homeserver object without lazy component builders.</p>
+<p>This will need all of the components it requires to either be passed as
+constructor arguments, or the relevant methods overriding to create them.
+Typically this would only be used for unit tests.</p>
+<p>For every dependency in the DEPENDENCIES list below, this class creates one
+method,</p>
+<blockquote>
+<div>def get_DEPENDENCY(self)</div></blockquote>
+<p>which returns the value of that dependency. If no value has yet been set
+nor was provided to the constructor, it will attempt to call a lazy builder
+method called</p>
+<blockquote>
+<div>def build_DEPENDENCY(self)</div></blockquote>
+<p>which must be implemented by the subclass. This code may call any of the
+required “get” methods on the instance to obtain the sub-dependencies that
+one requires.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>config</strong> (<em>synapse.config.homeserver.HomeserverConfig</em>) – </td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="synapse.server.HomeServer.DATASTORE_CLASS">
+<code class="descname">DATASTORE_CLASS</code><a class="headerlink" href="#synapse.server.HomeServer.DATASTORE_CLASS" title="Permalink to this definition">¶</a></dt>
+<dd><p>A decorator indicating abstract properties.</p>
+<p>Requires that the metaclass is ABCMeta or derived from it.  A
+class that has a metaclass derived from ABCMeta cannot be
+instantiated unless all of its abstract properties are overridden.
+The abstract properties can be called using any of the normal
+‘super’ call mechanisms.</p>
+<p>Usage:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>class C(metaclass=ABCMeta):</dt>
+<dd><p class="first">&#64;abstractproperty
+def my_abstract_property(self):</p>
+<blockquote class="last">
+<div>…</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
+<p>This defines a read-only property; you can also define a read-write
+abstract property using the ‘long’ form of property declaration:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>class C(metaclass=ABCMeta):</dt>
+<dd>def getx(self): …
+def setx(self, value): …
+x = abstractproperty(getx, setx)</dd>
+</dl>
+</div></blockquote>
+<p>‘abstractproperty’ is deprecated. Use ‘property’ with ‘abstractmethod’
+instead.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synapse.server.HomeServer.DEPENDENCIES">
+<code class="descname">DEPENDENCIES</code><em class="property"> = ['http_client', 'db_pool', 'federation_client', 'federation_server', 'handlers', 'auth', 'room_creation_handler', 'state_handler', 'state_resolution_handler', 'presence_handler', 'sync_handler', 'typing_handler', 'room_list_handler', 'acme_handler', 'auth_handler', 'device_handler', 'e2e_keys_handler', 'e2e_room_keys_handler', 'event_handler', 'event_stream_handler', 'initial_sync_handler', 'application_service_api', 'application_service_scheduler', 'application_service_handler', 'device_message_handler', 'profile_handler', 'event_creation_handler', 'deactivate_account_handler', 'set_password_handler', 'notifier', 'event_sources', 'keyring', 'pusherpool', 'event_builder_factory', 'filtering', 'http_client_context_factory', 'simple_http_client', 'media_repository', 'media_repository_resource', 'federation_transport_client', 'federation_sender', 'receipts_handler', 'macaroon_generator', 'tcp_replication', 'read_marker_handler', 'action_generator', 'user_directory_handler', 'groups_local_handler', 'groups_server_handler', 'groups_attestation_signing', 'groups_attestation_renewer', 'secrets', 'spam_checker', 'room_member_handler', 'federation_registry', 'server_notices_manager', 'server_notices_sender', 'message_handler', 'pagination_handler', 'room_context_handler', 'sendmail']</em><a class="headerlink" href="#synapse.server.HomeServer.DEPENDENCIES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_acme_handler">
+<code class="descname">build_acme_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_acme_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_action_generator">
+<code class="descname">build_action_generator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_action_generator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_application_service_api">
+<code class="descname">build_application_service_api</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_application_service_api" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_application_service_handler">
+<code class="descname">build_application_service_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_application_service_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_application_service_scheduler">
+<code class="descname">build_application_service_scheduler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_application_service_scheduler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_auth">
+<code class="descname">build_auth</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_auth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_auth_handler">
+<code class="descname">build_auth_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_auth_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_db_pool">
+<code class="descname">build_db_pool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_db_pool" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_deactivate_account_handler">
+<code class="descname">build_deactivate_account_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_deactivate_account_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_device_handler">
+<code class="descname">build_device_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_device_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_device_message_handler">
+<code class="descname">build_device_message_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_device_message_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_e2e_keys_handler">
+<code class="descname">build_e2e_keys_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_e2e_keys_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_e2e_room_keys_handler">
+<code class="descname">build_e2e_room_keys_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_e2e_room_keys_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_event_builder_factory">
+<code class="descname">build_event_builder_factory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_event_builder_factory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_event_creation_handler">
+<code class="descname">build_event_creation_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_event_creation_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_event_handler">
+<code class="descname">build_event_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_event_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_event_sources">
+<code class="descname">build_event_sources</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_event_sources" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_event_stream_handler">
+<code class="descname">build_event_stream_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_event_stream_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_federation_client">
+<code class="descname">build_federation_client</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_federation_client" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_federation_registry">
+<code class="descname">build_federation_registry</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_federation_registry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_federation_sender">
+<code class="descname">build_federation_sender</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_federation_sender" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_federation_server">
+<code class="descname">build_federation_server</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_federation_server" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_federation_transport_client">
+<code class="descname">build_federation_transport_client</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_federation_transport_client" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_filtering">
+<code class="descname">build_filtering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_filtering" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_groups_attestation_renewer">
+<code class="descname">build_groups_attestation_renewer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_groups_attestation_renewer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_groups_attestation_signing">
+<code class="descname">build_groups_attestation_signing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_groups_attestation_signing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_groups_local_handler">
+<code class="descname">build_groups_local_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_groups_local_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_groups_server_handler">
+<code class="descname">build_groups_server_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_groups_server_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_handlers">
+<code class="descname">build_handlers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_handlers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_http_client">
+<code class="descname">build_http_client</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_http_client" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_http_client_context_factory">
+<code class="descname">build_http_client_context_factory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_http_client_context_factory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_initial_sync_handler">
+<code class="descname">build_initial_sync_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_initial_sync_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_keyring">
+<code class="descname">build_keyring</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_keyring" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_macaroon_generator">
+<code class="descname">build_macaroon_generator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_macaroon_generator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_media_repository">
+<code class="descname">build_media_repository</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_media_repository" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_media_repository_resource">
+<code class="descname">build_media_repository_resource</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_media_repository_resource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_message_handler">
+<code class="descname">build_message_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_message_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_notifier">
+<code class="descname">build_notifier</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_notifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_pagination_handler">
+<code class="descname">build_pagination_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_pagination_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_presence_handler">
+<code class="descname">build_presence_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_presence_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_profile_handler">
+<code class="descname">build_profile_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_profile_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_pusherpool">
+<code class="descname">build_pusherpool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_pusherpool" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_read_marker_handler">
+<code class="descname">build_read_marker_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_read_marker_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_receipts_handler">
+<code class="descname">build_receipts_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_receipts_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_room_context_handler">
+<code class="descname">build_room_context_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_room_context_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_room_creation_handler">
+<code class="descname">build_room_creation_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_room_creation_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_room_list_handler">
+<code class="descname">build_room_list_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_room_list_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_room_member_handler">
+<code class="descname">build_room_member_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_room_member_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_secrets">
+<code class="descname">build_secrets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_sendmail">
+<code class="descname">build_sendmail</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_sendmail" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_server_notices_manager">
+<code class="descname">build_server_notices_manager</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_server_notices_manager" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_server_notices_sender">
+<code class="descname">build_server_notices_sender</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_server_notices_sender" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_set_password_handler">
+<code class="descname">build_set_password_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_set_password_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_simple_http_client">
+<code class="descname">build_simple_http_client</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_simple_http_client" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_spam_checker">
+<code class="descname">build_spam_checker</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_spam_checker" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_state_handler">
+<code class="descname">build_state_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_state_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_state_resolution_handler">
+<code class="descname">build_state_resolution_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_state_resolution_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_sync_handler">
+<code class="descname">build_sync_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_sync_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_tcp_replication">
+<code class="descname">build_tcp_replication</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_tcp_replication" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_typing_handler">
+<code class="descname">build_typing_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_typing_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.build_user_directory_handler">
+<code class="descname">build_user_directory_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.build_user_directory_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_acme_handler">
+<code class="descname">get_acme_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_acme_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_action_generator">
+<code class="descname">get_action_generator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_action_generator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_application_service_api">
+<code class="descname">get_application_service_api</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_application_service_api" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_application_service_handler">
+<code class="descname">get_application_service_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_application_service_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_application_service_scheduler">
+<code class="descname">get_application_service_scheduler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_application_service_scheduler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_auth">
+<code class="descname">get_auth</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_auth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_auth_handler">
+<code class="descname">get_auth_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_auth_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_clock">
+<code class="descname">get_clock</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_clock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_config">
+<code class="descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_datastore">
+<code class="descname">get_datastore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_datastore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_db_conn">
+<code class="descname">get_db_conn</code><span class="sig-paren">(</span><em>run_new_connection=True</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_db_conn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes a new connection to the database, skipping the db pool</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a connection object implementing the PEP-249 spec</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Connection</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_db_pool">
+<code class="descname">get_db_pool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_db_pool" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_deactivate_account_handler">
+<code class="descname">get_deactivate_account_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_deactivate_account_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_device_handler">
+<code class="descname">get_device_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_device_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_device_message_handler">
+<code class="descname">get_device_message_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_device_message_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_distributor">
+<code class="descname">get_distributor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_distributor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_e2e_keys_handler">
+<code class="descname">get_e2e_keys_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_e2e_keys_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_e2e_room_keys_handler">
+<code class="descname">get_e2e_room_keys_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_e2e_room_keys_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_event_builder_factory">
+<code class="descname">get_event_builder_factory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_event_builder_factory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_event_creation_handler">
+<code class="descname">get_event_creation_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_event_creation_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_event_handler">
+<code class="descname">get_event_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_event_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_event_sources">
+<code class="descname">get_event_sources</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_event_sources" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_event_stream_handler">
+<code class="descname">get_event_stream_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_event_stream_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_federation_client">
+<code class="descname">get_federation_client</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_federation_client" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_federation_registry">
+<code class="descname">get_federation_registry</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_federation_registry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_federation_sender">
+<code class="descname">get_federation_sender</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_federation_sender" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_federation_server">
+<code class="descname">get_federation_server</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_federation_server" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_federation_transport_client">
+<code class="descname">get_federation_transport_client</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_federation_transport_client" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_filtering">
+<code class="descname">get_filtering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_filtering" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_groups_attestation_renewer">
+<code class="descname">get_groups_attestation_renewer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_groups_attestation_renewer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_groups_attestation_signing">
+<code class="descname">get_groups_attestation_signing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_groups_attestation_signing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_groups_local_handler">
+<code class="descname">get_groups_local_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_groups_local_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_groups_server_handler">
+<code class="descname">get_groups_server_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_groups_server_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_handlers">
+<code class="descname">get_handlers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_handlers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_http_client">
+<code class="descname">get_http_client</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_http_client" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_http_client_context_factory">
+<code class="descname">get_http_client_context_factory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_http_client_context_factory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_initial_sync_handler">
+<code class="descname">get_initial_sync_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_initial_sync_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_ip_from_request">
+<code class="descname">get_ip_from_request</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_ip_from_request" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_keyring">
+<code class="descname">get_keyring</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_keyring" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_macaroon_generator">
+<code class="descname">get_macaroon_generator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_macaroon_generator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_media_repository">
+<code class="descname">get_media_repository</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_media_repository" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_media_repository_resource">
+<code class="descname">get_media_repository_resource</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_media_repository_resource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_message_handler">
+<code class="descname">get_message_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_message_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_notifier">
+<code class="descname">get_notifier</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_notifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_pagination_handler">
+<code class="descname">get_pagination_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_pagination_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_presence_handler">
+<code class="descname">get_presence_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_presence_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_profile_handler">
+<code class="descname">get_profile_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_profile_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_pusherpool">
+<code class="descname">get_pusherpool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_pusherpool" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_ratelimiter">
+<code class="descname">get_ratelimiter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_ratelimiter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_reactor">
+<code class="descname">get_reactor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_reactor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the Twisted reactor in use by this HomeServer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_read_marker_handler">
+<code class="descname">get_read_marker_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_read_marker_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_receipts_handler">
+<code class="descname">get_receipts_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_receipts_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_room_context_handler">
+<code class="descname">get_room_context_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_room_context_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_room_creation_handler">
+<code class="descname">get_room_creation_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_room_creation_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_room_list_handler">
+<code class="descname">get_room_list_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_room_list_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_room_member_handler">
+<code class="descname">get_room_member_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_room_member_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_sendmail">
+<code class="descname">get_sendmail</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_sendmail" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_server_notices_manager">
+<code class="descname">get_server_notices_manager</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_server_notices_manager" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_server_notices_sender">
+<code class="descname">get_server_notices_sender</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_server_notices_sender" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_set_password_handler">
+<code class="descname">get_set_password_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_set_password_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_simple_http_client">
+<code class="descname">get_simple_http_client</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_simple_http_client" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_spam_checker">
+<code class="descname">get_spam_checker</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_spam_checker" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_state_handler">
+<code class="descname">get_state_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_state_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_state_resolution_handler">
+<code class="descname">get_state_resolution_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_state_resolution_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_sync_handler">
+<code class="descname">get_sync_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_sync_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_tcp_replication">
+<code class="descname">get_tcp_replication</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_tcp_replication" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_typing_handler">
+<code class="descname">get_typing_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_typing_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.get_user_directory_handler">
+<code class="descname">get_user_directory_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.get_user_directory_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.is_mine">
+<code class="descname">is_mine</code><span class="sig-paren">(</span><em>domain_specific_string</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.is_mine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.is_mine_id">
+<code class="descname">is_mine_id</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.is_mine_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.remove_pusher">
+<code class="descname">remove_pusher</code><span class="sig-paren">(</span><em>app_id</em>, <em>push_key</em>, <em>user_id</em><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.remove_pusher" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.setup">
+<code class="descname">setup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="synapse.server.HomeServer.should_send_federation">
+<code class="descname">should_send_federation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synapse.server.HomeServer.should_send_federation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Should this server be sending federation traffic directly?</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="synapse.util.stringutils.html"
+                        title="previous chapter">synapse.util.stringutils module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="synapse.state.html"
+                        title="next chapter">synapse.state module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/synapse.server.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="synapse.state.html" title="synapse.state module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="synapse.util.stringutils.html" title="synapse.util.stringutils module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Synapse 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="synapse.html" >synapse package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Copyright 2014-2017 OpenMarket Ltd, 2017 Vector Creations Ltd, 2017 New Vector Ltd.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>
