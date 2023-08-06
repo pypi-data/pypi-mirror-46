@@ -1,0 +1,296 @@
+#!python
+# -*- coding: utf-8 -*-
+#
+# Note:
+#   Python profiling article: http://www.marinamele.com/7-tips-to-time-python-scripts-and-control-memory-and-cpu-usage
+
+import logging
+import os
+import sys
+import platform
+import subprocess
+import click
+from cleepcli.git import Git
+from cleepcli.module import Module
+from cleepcli.file import File
+from cleepcli.watch import CleepWatchdog
+from cleepcli.test import Test
+from cleepcli.distrib import Distrib
+from cleepcli.docs import Docs
+import cleepcli.config as config
+
+#logging.basicConfig(level=logging.DEBUG, format=u'%(asctime)s %(levelname)s [%(name)s:%(lineno)d]: %(message)s', stream=sys.stdout)
+logging.basicConfig(level=logging.INFO, format=u'%(message)s', stream=sys.stdout)
+
+@click.group()
+def core():
+    pass
+
+@core.command()
+def coreget():
+    """ 
+    Get or update core content from official repository
+    """
+    g = Git()
+    if not os.path.exists(config.CORE_SRC):
+        res = g.clone_core()
+    else:
+        res = g.pull_core()
+
+    if not res:
+        sys.exit(1)
+    sys.exit(0)
+
+@core.command()
+def coresync():
+    """
+    Synchronize core content between source and execution folders
+    """
+    f = File()
+    res = f.core_sync()
+
+    if not res:
+        sys.exit(1)
+    sys.exit(0)
+
+@core.command()
+def cpuprof():
+    """
+    Run CPU profiler on cleep
+    """
+    try:
+        import socket
+        public_ip = socket.gethostbyname(socket.gethostname())
+        port = 4000
+
+        #stop running process
+        cmd = '/bin/systemctl stop raspiot'
+        subprocess.call(cmd, shell=True)
+
+        logging.info('Follow live profiler analysis on "http://%s:%s". CTRL-C to stop.' % (public_ip, port))
+        cmd = '/usr/local/bin/cprofilev -a "%s" -p %s "/usr/bin/raspiot"' % (public_ip, port)
+        logging.debug('Cpuprof cmd: %s' % cmd)
+        subprocess.call(cmd, shell=True)
+
+    except KeyboardInterrupt:
+        pass
+
+    except:
+        if logging.getLogger().getEffectiveLevel()==logging.DEBUG:
+            logging.exception('Error occured during cpuprof:')
+
+    finally:
+        #restart process
+        cmd = '/bin/systemctl start raspiot'
+        subprocess.call(cmd, shell=True)
+
+@core.command()
+@click.option('--interval', default=10.0, help='Sampling period (in seconds). Default 10 seconds.')
+def memprof(interval):
+    """
+    Run memory profiler on cleep
+    """
+    MPROF = '/usr/local/bin/mprof'
+
+    try:
+        #memory profiling libraries are not installed because it is long to install.
+        #And this process is not the most important to perform due to raspberry pi
+        #memory amount
+        import memory_profiler
+        import psutil
+        import matplotlib
+    except:
+        logger.error(u'Missing libraries. Please run following command: "pip2 install memory-profiler>=0.55.0,psutil>=5.4.6,matplotlib>=2.2.4"')
+        sys.exit(1)
+
+    try:
+        #stop running process
+        cmd = '/bin/systemctl stop raspiot'
+        subprocess.call(cmd, shell=True)
+
+        logging.info('Memory profiling is running. CTRL-C to stop.')
+        cmd = 'cd /tmp; "%(BIN)s" clean; "%(BIN)s" run --interval %(INTERVAL)s --multiprocess "/usr/bin/raspiot"' % {'BIN': MPROF, 'INTERVAL': interval}
+        logging.debug('Memprof cmd: %s' % cmd)
+        subprocess.call(cmd, shell=True)
+
+    except KeyboardInterrupt:
+        #generate output graph
+        cmd = 'cd /tmp; "%(BIN)s" plot --output "%(OUTPUT)s"' %{'BIN': MPROF, 'OUTPUT': '/tmp/cleep_memprof.png'}
+        logging.debug('Memprof cmd: %s' % cmd)
+        subprocess.call(cmd, shell=True)
+
+    except:
+        if logging.getLogger().getEffectiveLevel()==logging.DEBUG:
+            logging.exception('Error occured during memprof:')
+
+    finally:
+        #restart process
+        cmd = '/bin/systemctl start raspiot'
+        subprocess.call(cmd, shell=True)
+
+@click.group()
+def mod():
+    pass
+
+@mod.command()
+@click.option('--module', required=True, help='Module name.')
+def modsync(module):
+    """
+    Synchronize core content between source and execution folders
+    """
+    f = File()
+    res = f.module_sync(module)
+
+    if not res:
+        sys.exit(1)
+    sys.exit(0)
+
+@mod.command()
+@click.option('--module', prompt='Module name')
+def modcreate(module):
+    """
+    Create new module skeleton
+    """
+    m = Module()
+    res = m.create(module)
+
+    if not res:
+        sys.exit(1)
+    sys.exit(0)
+
+@click.group()
+def watchdog():
+    pass
+
+@watchdog.command()
+@click.option('--quiet', is_flag=True, help='Disable logging.')
+@click.option('--loglevel', default=logging.INFO, help='Logging level (10=DEBUG, 20=INFO, 30=WARN, 40=ERROR).')
+def watch(quiet, loglevel):
+    """
+    Start watchdog that monitors filesystem changes on Cleep sources
+    """
+    if logging.getLogger().getEffectiveLevel()==logging.DEBUG:
+        #do not overwrite root logger level if configured to DEBUG (dev mode)
+        pass
+    elif quiet:
+        logging.disable(logging.CRITICAL)
+    else:
+        logging.getLogger().setLevel(loglevel)
+        
+    w = CleepWatchdog()
+    res = w.watch()
+
+    if not res:
+        sys.exit(1)
+    sys.exit(0)
+
+@click.group()
+def test():
+    pass
+
+@test.command()
+@click.option('--module', prompt='Module name')
+@click.option('--coverage', is_flag=True, help='Display coverage report.')
+def modtests(module, coverage):
+    """
+    Execute module tests
+    """
+    m = Test()
+    res = m.module_test(module, coverage)
+
+    if not res:
+        sys.exit(1)
+    sys.exit(0)
+
+@test.command()
+@click.option('--module', prompt='Module name')
+@click.option('--missing', is_flag=True, help='Display missing statements.')
+def modtestscov(module, missing):
+    """
+    Display module tests coverage summary
+    """
+    m = Test()
+    res = m.module_test_coverage(module, missing)
+
+    if not res:
+        sys.exit(1)
+    sys.exit(0)
+
+@click.group()
+def distrib():
+    pass
+
+@distrib.command()
+def build():
+    """
+    Build Cleep debian package
+    """
+    d = Distrib()
+    res = d.build_cleep()
+
+    if not res:
+        sys.exit(1)
+    sys.exit(0)
+
+@click.group()
+def docs():
+    pass
+
+@docs.command()
+@click.option('--module', prompt='Module name')
+@click.option('--preview', is_flag=True, help='Preview generated doc as text.')
+def moddocs(module, preview):
+    """
+    Generate module documentation in appropriate format
+    """
+    d = Docs()
+    res = d.generate_module_docs(module, preview)
+
+    if not res:
+        sys.exit(1)
+    sys.exit(0)
+
+@docs.command()
+@click.option('--module', prompt='Module name')
+def moddocspath(module):
+    """
+    Display generated docs archive path
+    """
+    d = Docs()
+    res = d.get_module_docs_archive_path(module)
+
+    if not res:
+        sys.exit(1)
+    sys.exit(0)
+
+@click.group()
+def general():
+    pass
+
+@general.command()
+def version():
+    """
+    Display cleep-cli version
+    """
+    click.echo(config.VERSION)
+    sys.exit(0)
+
+
+cli = click.CommandCollection(sources=[general, core, mod, watchdog, test, distrib, docs])
+if __name__ == '__main__':
+
+    def is_raspbian():
+        if platform.system()!='Linux':
+            return False
+        res = subprocess.Popen(u'cat /etc/os-release | grep -i raspbian | wc -l', stdout=subprocess.PIPE, shell=True)
+        stdout = res.communicate()[0]
+        if stdout.strip()=='0':
+            return False
+        return True
+
+    #execute only on raspbian
+    if is_raspbian():
+        cli()
+    else:
+        click.echo('Cleep-cli runs only on raspbian distribution')
+
