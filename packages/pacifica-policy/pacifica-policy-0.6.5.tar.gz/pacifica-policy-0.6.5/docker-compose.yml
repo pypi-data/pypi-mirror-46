@@ -1,0 +1,52 @@
+version: '2'
+services:
+  policyserver:
+    build:
+      context: .
+    links:
+    - metadataserver:metadata
+    - elasticdb
+    ports:
+    - 8181:8181
+    environment:
+      ELASTIC_ENDPOINT: http://elasticdb:9200
+      ADMIN_USER_ID: 10
+      METADATA_URL: http://metadata:8121
+      STATUS_URL: http://metadata:8121/groups
+
+  elasticdb:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.6.0
+    environment:
+    - bootstrap.memory_lock=true
+    - xpack.security.enabled=false
+    - xpack.monitoring.enabled=false
+    - xpack.watcher.enabled=false
+    - http.cors.enabled=true
+    - "http.cors.allow-origin=\"/.*/\""
+    - "http.cors.allow-methods=OPTIONS, HEAD, GET, POST, PUT, DELETE"
+    - "http.cors.allow-headers=\"X-Requested-With,X-Auth-Token,Content-Type, Content-Length, Authorization\""
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
+
+  metadatadb:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: metadata
+      POSTGRES_DB: pacifica_metadata
+      POSTGRES_USER: pacifica
+
+  metadataserver:
+    image: pacifica/metadata
+    links:
+    - metadatadb:postgres
+    environment:
+      PEEWEE_DATABASE: pacifica_metadata
+      PEEWEE_USER: pacifica
+      PEEWEE_ADDR: postgres
+      PEEWEE_PORT: 5432
+      PEEWEE_PROTO: postgres
+      PEEWEE_PASS: metadata
