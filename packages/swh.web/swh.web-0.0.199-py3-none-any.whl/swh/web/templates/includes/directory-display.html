@@ -1,0 +1,58 @@
+{% comment %}
+Copyright (C) 2017-2018  The Software Heritage developers
+See the AUTHORS file at the top-level directory of this distribution
+License: GNU Affero General Public License version 3, or any later version
+See top-level LICENSE file for more information
+{% endcomment %}
+
+{% if snapshot_context and snapshot_context.is_empty %}
+  {% include "includes/empty-snapshot.html" %}
+{% elif dirs|length > 0 or files|length > 0 %}
+  <div class="table-responsive">
+    <table class="table swh-table swh-directory-table">
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Mode</th>
+          <th>Size</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in dirs %}
+          <tr class="swh-directory-entry swh-tr-hover-highlight">
+            <td class="swh-directory">
+              <i class="{{ swh_object_icons.directory }} fa-fw" aria-hidden="true"></i>
+              <a href="{{ d.url | safe }}">
+                {{ d.name }}
+              </a>
+            </td>
+            <td>
+              {{ d.perms }}
+            </td>
+            <td>
+            </td>
+          </tr>
+        {% endfor %}
+        {% for f in files %}
+          <tr class="swh-directory-entry swh-tr-hover-highlight">
+            <td class="swh-content">
+              <i class="{{ swh_object_icons.content }} fa-fw" aria-hidden="true"></i>
+              <a href="{{ f.url | safe }}">
+                {{ f.name }}
+              </a>
+            </td>
+            <td>
+              {{ f.perms }}
+            </td>
+            <td>
+              {{ f.length }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <hr class="mt-0 mb-2">
+{% elif dirs|length == 0 and files|length == 0 %}
+  <i>Directory is empty</i>
+{% endif %}
