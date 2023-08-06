@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block pagecontent %}
+
+<div class="container-fluid" >
+
+  <div class="row mt-2 justify-content-center" id="alert-box">
+    <div class="col-sm-12 col-md-9" >
+      {% raw flash_messages %}
+    </div>
+  </div>
+
+  <div class="row mt-2" >
+
+    <div class="col-sm-12 col-md-3">
+      <h3>User account</h3>
+
+      <form id="prefs-update-details-form" action="/users/home" method="POST">
+
+        {% module xsrf_form_html() %}
+
+        <!-- to add later:
+           - update user's LCC-Server username (for other people to use with @
+             to refer to the user when sharing datasets)
+           - update user's visibility to other authenticated users,
+             groups, and the public
+        -->
+
+        <div class="form-group" >
+          <label for="userhome-fullname">Your name</label>
+          <input type="text" class="form-control"
+                 id="userhome-fullname"
+                 name="fullname"
+                 placeholder="Type in your full name"
+                 minlength="1" maxlength="1024"
+                 value="{{ current_user['full_name'] }}">
+        </div>
+
+        <button type="submit"
+                class="btn btn-outline-secondary" id="user-update-submit">
+          Update your details
+        </button>
+
+      </form>
+
+      <ul class="list-unstyled mt-4">
+        <!-- <li><a href="/users/email-change">Change your email address</a></li> -->
+        <li><a href="/users/password-change">Change your password</a></li>
+        <li>
+          <a href="/users/delete">
+            <span class="text-danger">Delete your account</span>
+          </a>
+        </li>
+      </ul>
+
+
+    </div>
+
+    <div class="col-sm-12 col-md-4">
+      <h3>Search preferences</h3>
+
+      <form class="form" id="user-prefs-form">
+        <div class="row">
+          <div class="col-12" >
+
+            <div class="form-check">
+              <input class="form-check-input prefs-set" type="checkbox"
+                     id="prefs-email-when-done">
+              <label class="form-check-label" for="prefs-email-when-done">
+                Always email me when my queries are complete
+              </label>
+            </div>
+
+            <fieldset>
+              <legend>Query result visibility</legend>
+
+              <div class="form-check">
+                <input class="form-check-input prefs-set" type="radio" name="prefs-dataset-visibility"
+                       id="prefs-datasets-private" value="private">
+                <label class="form-check-label" for="prefs-datasets-private">
+                  Result datasets will be private by default
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input prefs-set" type="radio" name="prefs-dataset-visibility"
+                       id="prefs-datasets-unlisted" value="unlisted">
+                <label class="form-check-label" for="prefs-datasets-unlisted">
+                  Result datasets will be unlisted by default
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input prefs-set" type="radio" name="prefs-dataset-visibility"
+                       id="prefs-datasets-public" value="public">
+                <label class="form-check-label" for="prefs-datasets-public">
+                  Result datasets will be public by default
+                </label>
+              </div>
+            </fieldset>
+
+            <button type="button"
+                    class="mt-2 btn btn-outline-secondary"
+                    id="prefs-save">Update search preferences</button>
+
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-sm-12 col-md-5">
+      <h3>Generate an API key</h3>
+
+      <form class="form mt-2" id="apikey-form">
+
+        <div class="row" >
+          <div class="col-12" >
+
+            <label for="api-key">Current API key<span id="apikey-expiry"></span></label>
+            <textarea class="form-control"
+                      id="api-key"
+                      aria-describedby="apikey-help-block"
+                      placeholder="None"
+                      rows="9" readonly>
+            </textarea>
+            <small id="apikey-help-block" class="form-text text-muted">
+              See: <a href="/docs/api#api-keys">how to use API keys</a>. If you're using the <a href="https://github.com/waqasbhatti/astrobase/blob/master/astrobase/services/lccs.py"><code>astrobase.services.lccs</code></a> LCC-Server API client Python module, the <a href="https://github.com/waqasbhatti/astrobase/blob/2ed4f2faab43f295f82b3b8afbafa7762cfe2f4b/astrobase/services/lccs.py#L303"><code>import_apikey</code></a>
+              function will make this API key available for all search functions in that module.
+            </small>
+
+          </div>
+        </div>
+
+        <div class="row mt-2">
+          <div class="col-12" >
+            <button type="button" class="btn btn-outline-secondary" id="prefs-generate-apikey">Get new API key</button>
+          </div>
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+  <div class="row mt-4" >
+    <div class="col-12">
+
+      <h3>Your datasets</h3>
+
+      <table id="lcc-datasets-table" class="table table-hover table-sm">
+
+        <thead class="bg-light">
+          <tr>
+            <th scope="col" width="100">Set ID</th>
+            <th scope="col" width="80">Objects</th>
+            <th scope="col" width="350">Query</th>
+            <th scope="col" width="150">Products</th>
+            <th scope="col" width="150">Last updated</th>
+          </tr>
+        </thead>
+
+        <tbody id="lcc-datasets-tablerows">
+
+        </tbody>
+
+      </table>
+
+    </div>
+  </div>
+
+</div>
+
+{% end %}
+
+{% block pagejs %}
+
+$(document).ready(function() {
+
+// get the most recent 1000 datasets belonging to the user
+lcc_ui.get_recent_datasets(1000, null, true);
+
+// UI action setup
+lcc_ui.action_setup();
+
+// UI cookie settings
+lcc_ui.prefs_cookie_expires_days = {{ cookie_expires_days }};
+lcc_ui.prefs_cookie_secure = {{ cookie_secure }};
+
+// load the current settings
+lcc_ui.load_cookie_prefs('prefs-page');
+
+// load the user's API keys if any
+lcc_ui.load_previous_apikey('#api-key','#apikey-expiry');
+
+});
+
+{% end %}

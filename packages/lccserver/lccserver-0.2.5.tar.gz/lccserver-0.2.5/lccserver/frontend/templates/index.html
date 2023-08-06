@@ -1,0 +1,1472 @@
+{% extends 'base.html' %}
+
+{% block pagecss %}
+
+<!-- Codemirror CSS -->
+<!-- <link rel="stylesheet" href="{{ static_url('css/codemirror.css') }}">
+-->
+{% end %}
+
+
+{% block pagecontent %}
+
+<!-- this is where all the alerts go -->
+<div class="container-fluid">
+  <div class="row mt-2">
+    <div class="col-12">
+      <div id="alert-box">
+        {% raw flash_messages %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- the main search form -->
+<div class="container-fluid">
+  <div class="row mt-2 search-controls">
+
+    <div class="col-12">
+
+      <ul class="nav nav-tabs flex-column flex-sm-row" id="myTab" role="tablist">
+
+        <li class="nav-item mr-md-auto">
+          <a class="nav-link active tab-link"
+             id="collections-tab"
+             data-toggle="tab"
+             href="#collections"
+             role="tab"
+             aria-controls="collections"
+             aria-selected="true">
+            <div class="d-none d-sm-none d-md-block">
+              <img class="icon-svg"
+                   src="{{ static_url('images/twotone-shopping_cart-24px.svg') }}">
+            </div>
+            Collections
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link tab-link"
+             id="conesearch-tab"
+             data-toggle="tab"
+             href="#conesearch"
+             role="tab"
+             aria-controls="conesearch"
+             aria-selected="false">
+            <div class="d-none d-sm-none d-md-block">
+              <img class="icon-svg"
+                   src="{{ static_url('images/twotone-language-24px.svg') }}">
+            </div>
+            Search the sky
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link tab-link"
+             id="ftsquery-tab"
+             data-toggle="tab"
+             href="#fts"
+             role="tab"
+             aria-controls="fts"
+             aria-selected="false">
+            <div class="d-none d-sm-none d-md-block">
+              <img class="icon-svg"
+                   src="{{ static_url('images/twotone-brightness_high-24px.svg') }}">
+            </div>
+            Find in text
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link tab-link"
+             id="columnsearch-tab"
+             data-toggle="tab"
+             href="#columns"
+             role="tab"
+             aria-controls="columns"
+             aria-selected="true">
+            <div class="d-none d-sm-none d-md-block">
+              <img class="icon-svg"
+                   src="{{ static_url('images/twotone-view_week-24px.svg') }}">
+            </div>
+            Build a query
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link tab-link"
+             id="xmatch-tab"
+             data-toggle="tab"
+             href="#xmatch"
+             role="tab"
+             aria-controls="xmatch"
+             aria-selected="false">
+            <div class="d-none d-sm-none d-md-block">
+              <img class="icon-svg"
+                   src="{{ static_url('images/twotone-cloud_upload-24px.svg') }}">
+            </div>
+            Find cross-matches
+          </a>
+        </li>
+
+        <li class="nav-item ml-md-auto">
+          <a class="nav-link tab-link"
+             id="datasets-tab"
+             data-toggle="tab"
+             href="#datasets"
+             role="tab"
+             aria-controls="datasets"
+             aria-selected="false">
+            <div class="d-none d-sm-none d-md-block">
+              <img class="icon-svg" id="datasets-tab-icon"
+                   src="{{ static_url('images/twotone-archive-24px.svg') }}">
+            </div>
+            Datasets
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link tab-link"
+             id="results-tab"
+             data-toggle="tab"
+             href="#results"
+             role="tab"
+             aria-controls="results"
+             aria-selected="false">
+            <span id="search-notifications">
+              <div class="d-none d-sm-none d-md-block">
+                <img id="search-notification-icon"
+                     class="icon-svg"
+                     src="{{ static_url('images/twotone-sync-24px.svg') }}">
+              </div>
+              Queries <span id="lcc-qstatus-run" data-nrun="0"></span> <span id="lcc-qstatus-back" data-nback="0"></span>
+            </span>
+          </a>
+        </li>
+
+      </ul>
+
+
+      <div class="tab-content" id="myTabContent">
+
+
+        <!-- COLLECTIONS LIST TAB -->
+        <div class="tab-pane show active"
+             id="collections" role="tabpanel" aria-labelledby="collections-tab">
+
+          {% if footprint_svg is not None %}
+
+          <div class="row mt-2 no-gutters" id="footprint-container" >
+            <div class="col-sm-12 col-md-8" >
+
+              <div id="footprint">
+                <a id="lcc-coverage"></a>
+                {% raw footprint_svg %}
+              </div>
+            </div>
+
+            <!-- all of the collections go in here -->
+            <div class="col-sm-12 col-md-4" id="collection-container" >
+            </div>
+
+          </div>
+
+          {% else %}
+
+          <div class="row mt-2">
+            <!-- all of the collections go in here -->
+            <div class="col-12" id="collection-container" >
+            </div>
+          </div>
+
+          {% end %}
+
+        </div>
+
+
+        <!-- CONE SEARCH QUERY TAB -->
+        <div class="tab-pane"
+             id="conesearch" role="tabpanel" aria-labelledby="conesearch-tab">
+
+          <!-- main search controls -->
+          <div class="row mt-2">
+
+            <div class="col-sm-12 col-md-3">
+
+              <div class="row pt-2">
+                <div class="col-12">
+                  <h4>Search in <a href="#"
+                                   class="collection-link"
+                                   title="see all available LC collections" >collections</a></h4>
+                </div>
+              </div>
+
+              <div class="row" >
+                <div class="col-12" >
+
+                  <select class="custom-select lcc-collection-select"
+                          id="conesearch-collection-select" multiple size="6">
+
+                    <option value="all" selected>All collections</option>
+
+                  </select>
+                  <small class="form-text text-muted">Select multiple collections
+                    by holding the <kbd>Ctrl/Cmd</kbd> key when clicking.</small>
+
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-12">
+
+                  <h4>Retrieve these columns</h4>
+
+                  <select class="custom-select lcc-column-select"
+                          id="conesearch-column-select" multiple size="12">
+
+                  </select>
+                  <small class="form-text text-muted">Select multiple columns by holding
+                    the <kbd>Ctrl/Cmd</kbd> key when clicking. <code>objectid</code>,
+                    <code>ra</code>, <code>decl</code>, <code>lcfname</code>, and columns with
+                    active filter/sort conditions are always retrieved.</small>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="col-sm-12 col-md-5">
+
+              <form class="form pt-2 pb-2 px-3 primary-controlbox" id="conesearch-form"
+                    action="/api/conesearch" method="post">
+                {% module xsrf_form_html() %}
+
+                <div class="row" >
+                  <div class="col-12" >
+                    <h3>Run a cone-search query</h3>
+
+                    <div class="row">
+                      <div class="col-12">
+
+                        <div class="input-group" >
+                          <input class="form-control" id="conesearch-query"
+                                 name="conesearch-query" autocomplete="on"
+                                 type="search"
+                                 placeholder="[right ascension] [declination] [radius (arcmin)]"
+                                 aria-label="search for objects near a right ascension and declination given a radius in arcminutes">
+                          <div class="input-group-append" >
+                            <button class="btn btn-primary"
+                                    type="submit" id="conesearch-submit">Search</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-row mt-2">
+                      <div class="col-12" >
+
+                        <div class="form-group visibility-form" data-target="conesearch">
+                          <label for="conesearch-visibility-select">
+                            Result dataset and products will be
+                          </label>
+                          <select class="custom-select lcc-visibility-select w-75"
+                                  id="conesearch-visibility-select">
+                            <option value="public">publicly listed and visible to all users</option>
+                            <option value="unlisted" selected>private but accessible by others via URL</option>
+                            <option value="private">private and inaccessible to others</option>
+                          </select>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    {% if current_user['user_role'] in ('authenticated', 'staff', 'superuser') %}
+                    <div class="form-row">
+                      <div class="col-12">
+
+                        <div class="form-check">
+                          <input class="form-check-input pref-emailwhendone"
+                                 type="checkbox" id="conesearch-emailwhendone-check">
+                          <label class="form-check-label" for="conesearch-emailwhendone-check">
+                            Email me when this query is complete
+                          </label>
+                        </div>
+
+                      </div>
+                    </div>
+                    {% end %}
+
+                  </div>
+                </div>
+              </form>
+
+              <div class="row mt-2 px-3" >
+                <div class="col-12" >
+
+                  <h4>Add column filters</h4>
+                  <div class="form-inline">
+
+                    <select class="custom-select lcc-filtercolumn-select w-25 flex-grow-1"
+                            id="conesearch-filtercolumn-select">
+                    </select>
+
+                    <select class="custom-select lcc-filtercondition-select flex-shrink-1 ml-2"
+                            id="conesearch-filtercondition-select">
+                      <option value="lt" selected>&lt;</option>
+                      <option value="gt">&gt;</option>
+                      <option value="le">&le;</option>
+                      <option value="ge">&ge;</option>
+                      <option value="eq">=</option>
+                      <option value="ne">&ne;</option>
+                      <option value="ct">contains</option>
+                      <option value="isnull">is null</option>
+                      <option value="notnull">not null</option>
+                    </select>
+
+                    <input type="text" class="form-control lcc-filtertarget w-25 ml-2"
+                           data-searchtype="conesearch" placeholder="value"
+                           id="conesearch-filtertarget">
+
+                    <button class="btn btn-secondary lcc-filter-add flex-shrink-1 ml-2 p-0"
+                            type="button"
+                            data-searchtype="conesearch"
+                            id="conesearch-filter-add">
+                      <img class="icon-svg"
+                           alt="add this column filter"
+                           src="{{ static_url('images/twotone-add-reverse-24px.svg') }}">
+                    </button>
+
+                  </div>
+
+                  <div class="row mt-2">
+                    <div class="col-12">
+
+                      <div class="card px-2 py-2" >
+                        <h6 class="text-muted">Active column filters</h6>
+                        <div class="lcc-filterbucket" id="conesearch-filterbucket">
+
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="row mt-2 px-3" >
+                <div class="col-12" >
+
+                  <div class="row">
+
+                    <div class="col-7">
+                      <div class="form-group">
+                        <label for="conesearch-sortcolumn-select">
+                          Sort results using column
+                        </label>
+                        <select class="custom-select lcc-sortcolumn-select"
+                                id="conesearch-sortcolumn-select"
+                                data-target="conesearch">
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="col-5">
+                      <div class="form-group">
+                        <label for="conesearch-sortorder-select">
+                          Use sort order
+                        </label>
+                        <select class="custom-select lcc-sortorder-select"
+                                id="conesearch-sortorder-select"
+                                data-target="conesearch">
+                          <option value="asc">ascending</option>
+                          <option value="desc">descending</option>
+                        </select>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="row" >
+                    <div class="col-12" >
+
+                      <div class="form-inline" >
+                        <div class="form-group" >
+                          <input class="form-check-input lcc-result-samplecheck"
+                                 type="checkbox"
+                                 id="conesearch-samplecheck"
+                                 data-searchtype="conesearch">
+                          <label class="ml-1 form-check-label" for="conesearch-samplecheck">
+                            Random sample result rows:
+                          </label>
+                        </div>
+                        <input type="text" class="ml-auto form-control lcc-result-samplerows w-25"
+                               data-searchtype="conesearch" placeholder="sample size"
+                               id="conesearch-samplerows" disabled>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <div class="row mt-2" >
+                    <div class="col-12" >
+
+                      <div class="form-inline" >
+                        <div class="form-group" >
+                          <input class="form-check-input lcc-result-limitcheck"
+                                 type="checkbox"
+                                 id="conesearch-limitcheck"
+                                 data-searchtype="conesearch">
+                          <label class="ml-1 form-check-label" for="conesearch-limitcheck">
+                            Limit result rows:
+                          </label>
+                        </div>
+                        <input type="text" class="ml-auto form-control lcc-result-limitrows w-25"
+                               data-searchtype="conesearch" placeholder="max rows"
+                               id="conesearch-limitrows" disabled>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+
+            <div class="col-sm-12 col-md-4">
+
+              <div class="row pt-2">
+                <div class="col-12">
+
+                  <h4>Search help</h4>
+
+                  <p>Use J2000 equatorial coordinates in either decimal or
+                    sexagesimal format and an optional search radius in
+                    arcminutes. The maximum search radius is 60
+                    arcmin = 1.0 deg. If a search radius isn't
+                    specified, 5.0 arcmin will be used by default.</p>
+
+                  <p>By default, results are returned in order of increasing
+                    distance (in arcsec) from the center coordinates.</p>
+
+                  <dl id="conesearch-help-box">
+                    <dt>Decimal coordinates</dt>
+
+                    <dd><code>[DD]D.ddd... [+-][D]D.ddd... DD.dd...<br>
+                              example: 289.0 45.0 10.0</code></dd>
+
+                    <dt>Sexagesimal coordinates</dt>
+
+                    <dd><code>HH:MM:SS.sss... [+-]DD:MM:SS.sss... DD.dd...<br>
+                              HH MM SS.sss... [+-]DD MM SS.sss... DD.dd...<br>
+                              example: 19 25 27.9129 +42 47 03.693 15.0</code></dd>
+                  </dl>
+
+                  <p><a href="/docs/conesearch" >See the full docs for the <code>conesearch</code> service.</a></p>
+
+                </div>
+              </div>
+
+            </div>
+
+            <!-- end of main search controls -->
+          </div>
+
+        </div>
+
+
+        <!-- FTS QUERY TAB -->
+        <div class="tab-pane"
+             id="fts" role="tabpanel" aria-labelledby="ftsquery-tab">
+
+          <!-- main search controls -->
+          <div class="row mt-2">
+
+            <div class="col-sm-12 col-md-3" >
+
+              <div class="row pt-2">
+                <div class="col-12">
+                  <h4>Search in <a href="#" class="collection-link" title="see all available LC collections" >collections</a></h4>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-12">
+                  <select class="custom-select lcc-collection-select"
+                          id="ftsquery-collection-select" multiple size="6">
+
+                    <option value="all" selected>All collections</option>
+
+                  </select>
+                  <small class="form-text text-muted">Select multiple collections
+                    by holding the <kbd>Ctrl/Cmd</kbd> key when clicking.</small>
+
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-12">
+
+                  <h4>Retrieve these columns</h4>
+
+                  <select class="custom-select lcc-column-select"
+                          id="ftsquery-column-select" multiple size="12">
+
+                  </select>
+                  <small class="form-text text-muted">Select multiple columns by holding
+                    the <kbd>Ctrl/Cmd</kbd> key when clicking. <code>objectid</code>,
+                    <code>ra</code>, <code>decl</code>, <code>lcfname</code>, and columns with
+                    active filter/sort conditions are always retrieved.</small>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="col-sm-12 col-md-5" >
+
+              <form class="form pt-2 pb-2 px-3 primary-controlbox" id="ftsquery-form"
+                    action="/api/ftsquery" method="post">
+                {% module xsrf_form_html() %}
+
+                <div class="row" >
+                  <div class="col-12" >
+                    <h3>Run a full-text search query</h3>
+
+                    <div class="row">
+                      <div class="col-12">
+
+                        <div class="input-group" >
+                          <input class="form-control" id="ftsquery-query"
+                                 name="ftsquery-query" autocomplete="on"
+                                 type="search"
+                                 placeholder="object name, 2MASS ID, description, tag, etc."
+                                 aria-label="search for object names, 2MASS ID, description, tags, etc.">
+                          <div class="input-group-append" >
+                            <button class="btn btn-primary"
+                                    type="submit" id="ftsquery-submit">Search</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-row mt-1">
+                      <div class="col-12">
+
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="ftsquery-sesame-check">
+                          <label class="form-check-label" for="ftsquery-sesame-check">
+                            Look up object names using <a href="http://cdsweb.u-strasbg.fr/doc/sesame.htx">SESAME</a>
+                          </label>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    <div class="form-row mt-2">
+                      <div class="col-12">
+
+                        <div class="form-group visibility-form" data-target="ftsquery">
+                          <label for="ftsquery-visibility-select">
+                            Result dataset and products will be
+                          </label>
+                          <select class="custom-select lcc-visibility-select w-75"
+                                  id="ftsquery-visibility-select">
+                            <option value="public">publicly listed and visible to all users</option>
+                            <option value="unlisted" selected>private but accessible by others via URL</option>
+                            <option value="private">private and inaccessible to others</option>
+                          </select>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    {% if current_user['user_role'] in ('authenticated', 'staff', 'superuser') %}
+                    <div class="form-row">
+                      <div class="col-12">
+
+                        <div class="form-check">
+                          <input class="form-check-input pref-emailwhendone"
+                                 type="checkbox" id="ftsquery-emailwhendone-check">
+                          <label class="form-check-label" for="ftsquery-emailwhendone-check">
+                            Email me when this query is complete
+                          </label>
+                        </div>
+
+                      </div>
+                    </div>
+                    {% end %}
+
+                  </div>
+                </div>
+
+              </form>
+
+              <div class="row mt-2 px-3" >
+                <div class="col-12" >
+                  <h4>Add column filters</h4>
+                  <div class="form-inline">
+
+                    <select class="custom-select lcc-filtercolumn-select w-25 flex-grow-1"
+                            id="ftsquery-filtercolumn-select">
+                    </select>
+
+                    <select class="custom-select lcc-filtercondition-select flex-shrink-1 ml-2"
+                            id="ftsquery-filtercondition-select">
+                      <option value="lt" selected>&lt;</option>
+                      <option value="gt">&gt;</option>
+                      <option value="le">&le;</option>
+                      <option value="ge">&ge;</option>
+                      <option value="eq">=</option>
+                      <option value="ne">&ne;</option>
+                      <option value="ct">contains</option>
+                      <option value="isnull">is null</option>
+                      <option value="notnull">not null</option>
+                    </select>
+
+                    <input type="text" class="form-control lcc-filtertarget w-25 ml-2"
+                           data-searchtype="ftsquery" placeholder="value"
+                           id="ftsquery-filtertarget">
+
+                    <button class="btn btn-secondary lcc-filter-add flex-shrink-1 ml-2 p-0"
+                            type="button"
+                            data-searchtype="ftsquery"
+                            id="ftsquery-filter-add">
+                      <img class="icon-svg"
+                           alt="add this column filter"
+                           src="{{ static_url('images/twotone-add-reverse-24px.svg') }}">
+                    </button>
+
+                  </div>
+
+                  <div class="row mt-2">
+                    <div class="col-12">
+
+                      <div class="card px-2 py-2" >
+                        <h6 class="text-muted">Active column filters</h6>
+                        <div class="lcc-filterbucket" id="ftsquery-filterbucket">
+
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="row mt-2 px-3" >
+                <div class="col-12" >
+
+                  <div class="row">
+
+                    <div class="col-7">
+                      <div class="form-group">
+                        <label for="ftsquery-sortcolumn-select">
+                          Sort results using column
+                        </label>
+                        <select class="custom-select lcc-sortcolumn-select"
+                                id="ftsquery-sortcolumn-select"
+                                data-target="ftsquery">
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="col-5">
+                      <div class="form-group">
+                        <label for="ftsquery-sortorder-select">
+                          Use sort order
+                        </label>
+                        <select class="custom-select lcc-sortorder-select"
+                                id="ftsquery-sortorder-select"
+                                data-target="ftsquery">
+                          <option value="asc" selected>ascending</option>
+                          <option value="desc">descending</option>
+                        </select>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="row" >
+                    <div class="col-12" >
+
+                      <div class="form-inline" >
+                        <div class="form-group" >
+                          <input class="form-check-input lcc-result-samplecheck"
+                                 type="checkbox"
+                                 id="ftsquery-samplecheck"
+                                 data-searchtype="ftsquery">
+                          <label class="ml-1 form-check-label" for="ftsquery-samplecheck">
+                            Random sample result rows:
+                          </label>
+                        </div>
+                        <input type="text" class="ml-auto form-control lcc-result-samplerows w-25"
+                               data-searchtype="ftsquery" placeholder="sample size"
+                               id="ftsquery-samplerows" disabled>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <div class="row mt-2" >
+                    <div class="col-12" >
+
+                      <div class="form-inline" >
+                        <div class="form-group" >
+                          <input class="form-check-input lcc-result-limitcheck"
+                                 type="checkbox"
+                                 id="ftsquery-limitcheck"
+                                 data-searchtype="ftsquery">
+                          <label class="ml-1 form-check-label" for="ftsquery-limitcheck">
+                            Limit result rows:
+                          </label>
+                        </div>
+                        <input type="text" class="ml-auto form-control lcc-result-limitrows w-25"
+                               data-searchtype="ftsquery" placeholder="max rows"
+                               id="ftsquery-limitrows" disabled>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+
+            </div>
+
+            <div class="col-sm-12 col-md-4">
+
+              <div class="row pt-2" >
+                <div class="col-12" >
+                  <h4>Search help</h4>
+
+                  <p>Full text search is useful for object names,
+                    variable type tags, object classification tags,
+                    and external object names (e.g. from SIMBAD if they're
+                    available). Queries use the
+                    <a href="https://www.sqlite.org/fts5.html#full_text_query_syntax">
+                      SQLite FTS5 query syntax</a>.
+
+                    <p>For an exact match to an object name, use
+                      <code>&quot;object name&quot;</code>.</p>
+                    <p>
+                      To look up object names using the SIMBAD SESAME resolver,
+                      check the <span class="text-info" >Look up object names using
+                        SESAME</span> box. In this mode, you can also look up
+                      clusters and nebulae, etc. using their common names
+                      (Messier, NGC, etc.). The LCC-Server will then try to find
+                      all matching objects within a 1.0 degree radius centered on
+                      the reported SIMBAD coordinates.</p>
+
+                    <dl>
+                      <dt>Examples:</dt>
+                      <dd>
+                        objects in ASAS and NSVS: <code>ASAS AND NSVS</code><br>
+                        all ASAS objects at RA 19h: <code>"ASAS J19"*</code><br>
+                        RR Lyr color EBs: <code>simbad_best_objtype:EB color_classes:RR*</code>
+                      </dd>
+                    </dl>
+
+                    <p><a href="/docs/ftsearch" >See the full docs for the <code>ftsearch</code> service.</a></p>
+
+                </div>
+              </div>
+
+            </div>
+
+            <!-- end of main search controls -->
+          </div>
+
+        </div>
+
+
+        <!-- COLUMN SEARCH QUERY TAB -->
+        <div class="tab-pane"
+             id="columns" role="tabpanel" aria-labelledby="columnsearch-tab">
+
+          <!-- main search controls -->
+          <div class="row mt-2">
+
+            <div class="col-sm-12 col-md-3">
+
+              <div class="row pt-2">
+                <div class="col-12">
+                  <h4>Search in <a href="#" class="collection-link" title="see all available LC collections" >collections</a></h4>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-12">
+
+                  <select class="custom-select lcc-collection-select"
+                          id="columnsearch-collection-select" multiple size="6">
+
+                    <option value="all" selected>All collections</option>
+
+                  </select>
+                  <small class="form-text text-muted">Select multiple collections
+                    by holding the <kbd>Ctrl/Cmd</kbd> key when clicking.</small>
+
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-12">
+
+                  <h4>Retrieve these columns</h4>
+
+                  <select class="custom-select lcc-column-select"
+                          id="columnsearch-column-select" multiple size="12">
+
+                  </select>
+                  <small class="form-text text-muted">Select multiple columns by holding
+                    the <kbd>Ctrl/Cmd</kbd> key when clicking. <code>objectid</code>,
+                    <code>ra</code>, <code>decl</code>, <code>lcfname</code>, and columns with
+                    active filter/sort conditions are always retrieved.</small>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="col-sm-12 col-md-5">
+
+              <form class="form pt-2 pb-3 px-3 primary-controlbox" id="columnsearch-form"
+                    action="/api/columnsearch" method="post">
+                {% module xsrf_form_html() %}
+
+                <div class="row" >
+                  <div class="col-12" >
+                    <h3>Run a database column query</h3>
+
+                    <div class="form-row align-items-baseline justify-content-end">
+                      <div class="col-sm-9">
+
+                        <div class="form-group visibility-form" data-target="columnsearch">
+                          <label for="columnsearch-visibility-select">
+                            Result dataset and products will be
+                          </label>
+                          <select class="custom-select lcc-visibility-select"
+                                  id="columnsearch-visibility-select">
+                            <option value="public">publicly listed and visible to all users</option>
+                            <option value="unlisted" selected>private but accessible by others via URL</option>
+                            <option value="private">private and inaccessible to others</option>
+                          </select>
+                        </div>
+
+                      </div>
+
+                      <div class="d-flex col-sm-3">
+                        <button class="btn btn-primary flex-grow-1"
+                                type="submit" id="columnsearch-submit">Search</button>
+                      </div>
+                    </div>
+
+                    {% if current_user['user_role'] in ('authenticated', 'staff', 'superuser') %}
+                    <div class="form-row">
+                      <div class="col-12">
+
+                        <div class="form-check">
+                          <input class="form-check-input pref-emailwhendone"
+                                 type="checkbox" id="columnsearch-emailwhendone-check">
+                          <label class="form-check-label" for="columnsearch-emailwhendone-check">
+                            Email me when this query is complete
+                          </label>
+                        </div>
+
+                      </div>
+                    </div>
+                    {% end %}
+
+                  </div>
+                </div>
+
+                <div class="row mt-2" >
+                  <div class="col-12" >
+                    <h4>Add column filters</h4>
+                    <div class="form-inline">
+
+                      <select class="custom-select lcc-filtercolumn-select w-25 flex-grow-1"
+                              id="columnsearch-filtercolumn-select">
+                      </select>
+
+                      <select class="custom-select lcc-filtercondition-select flex-shrink-1 ml-2"
+                              id="columnsearch-filtercondition-select">
+                        <option value="lt" selected>&lt;</option>
+                        <option value="gt">&gt;</option>
+                        <option value="le">&le;</option>
+                        <option value="ge">&ge;</option>
+                        <option value="eq">=</option>
+                        <option value="ne">&ne;</option>
+                        <option value="ct">contains</option>
+                        <option value="isnull">is null</option>
+                        <option value="notnull">not null</option>
+                      </select>
+
+                      <input type="text" class="form-control lcc-filtertarget w-25 ml-2"
+                             data-searchtype="columnsearch" placeholder="value"
+                             form="notpartofparentformsowedontsubmitthatwhenwehitenter-thisisdumb"
+                             id="columnsearch-filtertarget">
+
+                      <button class="btn btn-secondary lcc-filter-add flex-shrink-1 ml-2 p-0"
+                              type="button"
+                              data-searchtype="columnsearch"
+                              id="columnsearch-filter-add">
+                        <img class="icon-svg"
+                             alt="add this column filter"
+                             src="{{ static_url('images/twotone-add-reverse-24px.svg') }}">
+                      </button>
+
+                    </div>
+
+                    <div class="row mt-2">
+                      <div class="col-12">
+
+                        <div class="card px-2 py-2" >
+                          <h6 class="text-muted">Active column filters</h6>
+                          <div class="lcc-filterbucket" id="columnsearch-filterbucket">
+
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                <div class="row mt-2" >
+                  <div class="col-12" >
+
+                    <div class="row">
+
+                      <div class="col-7">
+                        <div class="form-group">
+                          <label for="columnsearch-sortcolumn-select">
+                            Sort results using column
+                          </label>
+                          <select class="custom-select lcc-sortcolumn-select"
+                                  id="columnsearch-sortcolumn-select"
+                                  data-target="columnsearch">
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="col-5">
+                        <div class="form-group">
+                          <label for="columnsearch-sortorder-select">
+                            Use sort order
+                          </label>
+                          <select class="custom-select lcc-sortorder-select"
+                                  id="columnsearch-sortorder-select"
+                                  data-target="columnsearch">
+                            <option value="asc">ascending</option>
+                            <option value="desc">descending</option>
+                          </select>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div class="row" >
+                      <div class="col-12" >
+
+                        <div class="form-inline" >
+                          <div class="form-group" >
+                            <input class="form-check-input lcc-result-samplecheck"
+                                   type="checkbox" id="columnsearch-samplecheck"
+                                   data-searchtype="columnsearch">
+                            <label class="ml-1 form-check-label" for="columnsearch-samplecheck">
+                              Random sample result rows:
+                            </label>
+                          </div>
+                          <input type="text" class="ml-auto form-control lcc-result-samplerows w-25"
+                                 data-searchtype="columnsearch" placeholder="sample size"
+                                 id="columnsearch-samplerows" disabled>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    <div class="row mt-2" >
+                      <div class="col-12" >
+
+                        <div class="form-inline" >
+                          <div class="form-group" >
+                            <input class="form-check-input lcc-result-limitcheck"
+                                   type="checkbox" id="columnsearch-limitcheck"
+                                   data-searchtype="columnsearch">
+                            <label class="ml-1 form-check-label" for="columnsearch-limitcheck">
+                              Limit result rows:
+                            </label>
+                          </div>
+                          <input type="text" class="ml-auto form-control lcc-result-limitrows w-25"
+                                 data-searchtype="columnsearch" placeholder="max rows"
+                                 id="columnsearch-limitrows" disabled>
+                        </div>
+
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+              </form>
+
+            </div>
+
+            <div class="col-sm-12 col-md-4" >
+
+              <div class="row pt-2" >
+                <div class="col-12" >
+
+                  <h4>Search help</h4>
+
+                  <p>This form lets you build a query based on the available
+                    columns in the database and the filters you choose.
+                    Filters may be chained together using AND/OR logic.
+                    You may also choose a column to sort the
+                    result-set rows in a particular order. This will be
+                    automatically added to the requested query columns.</p>
+
+                  <dl>
+                    <dt>Examples:</dt>
+                    <dd>
+                      <a href="#" id="columnsearch-example-1" >proper motion &gt; 200 mas yr<sup>-1</sup> and <em>r</em> &lt; 11.0</a><br>
+                      <a href="#" id="columnsearch-example-2" ><em>J - K</em> &gt; 2.0 and Stetson <em>J</em> variability index &gt; 1.0</a><br>
+                      <a href="#" id="columnsearch-example-3" >color class &quot;RR Lyrae&quot; and dereddened <em>g - r</em> &lt; 0.3</a>
+                    </dd>
+                  </dl>
+
+                  <p><a href="/docs/columnsearch" >See the full docs for the <code>columnsearch</code> service.</a></p>
+
+                </div>
+              </div>
+
+            </div>
+
+            <!-- end of main search controls -->
+          </div>
+
+        </div>
+
+
+        <!-- XMATCH QUERY TAB -->
+        <div class="tab-pane"
+             id="xmatch" role="tabpanel" aria-labelledby="xmatch-tab">
+
+          <!-- main search controls -->
+          <div class="row mt-2">
+
+            <div class="col-sm-12 col-md-3">
+
+              <div class="row pt-2">
+                <div class="col-12">
+                  <h4>Search in <a href="#" class="collection-link" title="see all available LC collections" >collections</a></h4>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-12">
+
+                  <select class="custom-select lcc-collection-select"
+                          id="xmatch-collection-select" multiple size="6">
+
+                    <option value="all" selected>All collections</option>
+
+                  </select>
+                  <small class="form-text text-muted">Select multiple collections by holding
+                    the <kbd>Ctrl/Cmd</kbd> key when clicking.</small>
+
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-12">
+
+                  <h4>Retrieve these columns</h4>
+
+                  <select class="custom-select lcc-column-select"
+                          id="xmatch-column-select" multiple size="12">
+
+                  </select>
+                  <small class="form-text text-muted">Select multiple columns by holding
+                    the <kbd>Ctrl/Cmd</kbd> key when clicking. <code>objectid</code>,
+                    <code>ra</code>, <code>decl</code>, <code>lcfname</code>, and columns with
+                    active filter/sort conditions are always retrieved.</small>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="col-sm-12 col-md-5" >
+
+              <form class="form pt-2 pb-0 px-3 primary-controlbox" id="xmatch-form"
+                    action="/api/xmatch" method="post">
+                {% module xsrf_form_html() %}
+
+                <div class="row">
+                  <div class="col-12">
+                    <h3>Cross-match object lists</h3>
+
+                    <div class="form-row align-items-baseline justify-content-end">
+                      <div class="col-sm-9">
+
+                        <div class="form-group visibility-form" data-target="xmatch">
+                          <label for="xmatch-visibility-select">
+                            Result dataset and products will be
+                          </label>
+                          <select class="custom-select lcc-visibility-select"
+                                  id="xmatch-visibility-select">
+                            <option value="public">publicly listed and visible to all users</option>
+                            <option value="unlisted" selected>private but accessible by others via URL</option>
+                            <option value="private">private and inaccessible by others</option>
+                          </select>
+                        </div>
+
+                      </div>
+
+                      <div class="d-flex col-sm-3">
+                        <button class="btn btn-primary flex-grow-1"
+                                type="submit" id="xmatch-submit">Search</button>
+                      </div>
+                    </div>
+
+                    {% if current_user['user_role'] in ('authenticated', 'staff', 'superuser') %}
+                    <div class="form-row">
+                      <div class="col-12">
+
+                        <div class="form-check">
+                          <input class="form-check-input pref-emailwhendone"
+                                 type="checkbox" id="xmatch-emailwhendone-check">
+                          <label class="form-check-label" for="xmatch-emailwhendone-check">
+                            Email me when this query is complete
+                          </label>
+                        </div>
+
+                      </div>
+                    </div>
+                    {% end %}
+
+                  </div>
+                </div>
+
+                <div class="row mt-2">
+                  <div class="col-12">
+
+                    <div class="form-group">
+                      <label for="xmatch-query">Type or paste in <code>[Object Name] [RA] [Dec]</code>
+                        rows separated by line breaks
+                        (<a href="#" id="xmatch-example" >see an example</a>).
+                        The maximum number of objects allowed is 5000.</label>
+                      <textarea class="form-control" id="xmatch-query"
+                                name="xmq" rows="14"></textarea>
+                    </div>
+
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-12">
+
+                    <div class="form-group form-inline">
+                      <label for="xmatch-matchradius">Match radius [arcsec]</label>
+                      <input type="text" id="xmatch-matchradius" value="3.0"
+                             class="w-25 form-control mx-sm-3">
+                      <small id="xmatch-matchradius-helpline"
+                             class="text-muted">
+                        Maximum 30 arcsec.
+                      </small>
+                    </div>
+
+                  </div>
+                </div>
+
+              </form>
+
+            </div>
+
+
+            <div class="col-sm-12 col-md-4">
+
+              <div class="row pt-2" >
+                <div class="col-12" >
+
+                  <h4>Add column filters</h4>
+
+                  <div class="form-inline">
+
+                    <select class="custom-select lcc-filtercolumn-select w-25 flex-grow-1"
+                            id="xmatch-filtercolumn-select">
+                    </select>
+
+                    <select class="custom-select lcc-filtercondition-select flex-shrink-1 ml-2"
+                            id="xmatch-filtercondition-select">
+                      <option value="lt" selected>&lt;</option>
+                      <option value="gt">&gt;</option>
+                      <option value="le">&le;</option>
+                      <option value="ge">&ge;</option>
+                      <option value="eq">=</option>
+                      <option value="ne">&ne;</option>
+                      <option value="ct">contains</option>
+                      <option value="isnull">is null</option>
+                      <option value="notnull">not null</option>
+                    </select>
+
+                    <input type="text" class="form-control lcc-filtertarget w-25 ml-2"
+                           data-searchtype="xmatch" placeholder="value"
+                           id="xmatch-filtertarget">
+
+                    <button class="btn btn-secondary lcc-filter-add flex-shrink-1 ml-2 p-0"
+                            type="button"
+                            data-searchtype="xmatch"
+                            id="xmatch-filter-add">
+                      <img class="icon-svg"
+                           alt="add this column filter"
+                           src="{{ static_url('images/twotone-add-reverse-24px.svg') }}">
+                    </button>
+
+                  </div>
+
+                  <div class="row mt-2">
+                    <div class="col-12">
+
+                      <div class="card px-2 py-2" >
+                        <h6 class="text-muted">Active column filters</h6>
+                        <div class="lcc-filterbucket" id="xmatch-filterbucket">
+
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="row mt-2" >
+                <div class="col-12" >
+
+                  <div class="row">
+
+                    <div class="col-7">
+                      <div class="form-group">
+                        <label for="xmatch-sortcolumn-select">
+                          Sort results using column
+                        </label>
+                        <select class="custom-select lcc-sortcolumn-select"
+                                id="xmatch-sortcolumn-select"
+                                data-target="xmatch">
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="col-5">
+                      <div class="form-group">
+                        <label for="xmatch-sortorder-select">
+                          Use sort order
+                        </label>
+                        <select class="custom-select lcc-sortorder-select"
+                                id="xmatch-sortorder-select"
+                                data-target="xmatch">
+                          <option value="asc">ascending</option>
+                          <option value="desc">descending</option>
+                        </select>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="row" >
+                    <div class="col-12" >
+
+                      <div class="form-inline" >
+                        <div class="form-group" >
+                          <input class="form-check-input lcc-result-samplecheck"
+                                 type="checkbox" id="xmatch-samplecheck"
+                                 data-searchtype="xmatch">
+                          <label class="ml-1 form-check-label" for="xmatch-samplecheck">
+                            Random sample result rows:
+                          </label>
+                        </div>
+                        <input type="text" class="ml-auto form-control lcc-result-samplerows w-25"
+                               data-searchtype="xmatch" placeholder="sample size"
+                               id="xmatch-samplerows" disabled>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <div class="row mt-2" >
+                    <div class="col-12" >
+
+                      <div class="form-inline" >
+                        <div class="form-group" >
+                          <input class="form-check-input lcc-result-limitcheck"
+                                 type="checkbox" id="xmatch-limitcheck"
+                                 data-searchtype="xmatch">
+                          <label class="ml-1 form-check-label" for="xmatch-limitcheck">
+                            Limit result rows:
+                          </label>
+                        </div>
+                        <input type="text" class="ml-auto form-control lcc-result-limitrows w-25"
+                               data-searchtype="xmatch" placeholder="max rows"
+                               id="xmatch-limitrows" disabled>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <div class="row mt-2" >
+                    <div class="col-12" >
+                      <p><a href="/docs/xmatch" >See the full docs for the <code>xmatch</code> service.</a></p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+
+            <!-- end of main search controls -->
+          </div>
+
+        </div>
+
+
+        <!-- RECENT DATASETS TAB -->
+        <div class="tab-pane"
+             id="datasets" role="tabpanel" aria-labelledby="datasets-tab">
+
+          <div class="row mt-2">
+            <div class="col-12">
+
+              <h3>Datasets from recent search queries</h3>
+
+              <p>The table below lists the most recently generated datasets from
+                search queries, including your datasets and those made
+                public by other users. See <a href="/datasets">all
+                available datasets</a> for a full list or search for datasets below.</p>
+
+              <div class="row mt-4" >
+
+                <div class="col-sm-12 col-md-2">
+                  <button class="btn btn-secondary w-100"
+                          type="button" id="dataset-show-all">Refresh dataset list</button>
+                </div>
+
+                <div class="col-sm-12 col-md-10" >
+                  <form class="form" action="/api/datasets" method="POST" id="dataset-search-form" >
+                    {% module xsrf_form_html() %}
+
+                    <div class="input-group" >
+                      <input class="form-control" id="dataset-searchbox"
+                             name="datasetsearch" autocomplete="on"
+                             type="search" maxlength="1024"
+                             placeholder="Search by collections used, query type or arguments, dataset name, description, citation"
+                             aria-label="Search by collections used, query type or arguments, dataset name, description, citation">
+                      <div class="input-group-append" >
+                        <button class="btn btn-primary"
+                                type="submit" id="dataset-search-submit">Find datasets</button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+
+              </div>
+
+              <table id="lcc-datasets-table" class="table table-hover table-sm mt-4">
+
+                <thead class="bg-light">
+                  <tr>
+                    <th scope="col" width="100">Set ID</th>
+                    <th scope="col" width="80">Objects</th>
+                    <th scope="col" width="350">Query</th>
+                    <th scope="col" width="150">Products</th>
+                    <th scope="col" width="150">Last updated</th>
+                  </tr>
+                </thead>
+
+                <tbody id="lcc-datasets-tablerows">
+
+                </tbody>
+
+              </table>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- QUERY STATUS TAB -->
+        <div class="tab-pane"
+             id="results" role="tabpanel" aria-labelledby="results-tab">
+
+          <div class="row mt-2">
+            <div class="col-12">
+              <h3>Status of your recent search queries</h3>
+            </div>
+          </div>
+
+          <div class="row mt-2">
+            <div class="col-12">
+
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th width="200">time</th>
+                    <th width="100">query ID</th>
+                    <th width="80">status</th>
+                    <th width="300">message</th>
+                  </tr>
+                </thead>
+
+                <tbody id="query-status-stream">
+
+                </tbody>
+              </table>
+
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% end %}
+
+
+{% block pagejs_modules %}
+<!-- code mirror js -->
+<!-- <script src="{{ static_url('js/codemirror.min.js') }}"></script>
+-->
+{% end %}
+
+
+{% block pagejs %}
+
+$(document).ready(function() {
+
+// get the light curve collections
+lcc_ui.get_lc_collections();
+
+// get the most recent 100 datasets
+lcc_ui.get_recent_datasets(100);
+
+// UI action setup
+lcc_ui.action_setup();
+
+// load the user prefs
+lcc_ui.load_cookie_prefs('main-page');
+
+
+});
+
+{% end %}
