@@ -1,0 +1,110 @@
+IoTeX API for Python
+=====
+
+
+Install it in a system-wide location via pip:
+
+.. code-block:: bash
+
+    sudo pip install iotexpai
+
+Install it locally using `virtualenv`:
+
+.. code-block:: bash
+
+    virtualenv .env
+    source .env/bin/activate
+    pip install iotexapi
+
+------------
+
+Base Example
+-------
+.. code-block:: python
+    
+    from iotexapi import Iotex
+    from google.protobuf.json_format import MessageToJson
+    import json
+    import logging
+    import time
+
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+    logger = logging.getLogger()
+
+    iotex = Iotex()
+
+    acc = iotex.create_account
+    logger.debug('Generated account: ')
+    logger.debug('- Private Key: ' + acc.private_key)
+    logger.debug('- Public Key: ' + acc.public_key)
+    logger.debug('- Address: ')
+    logger.debug('-- IO: ' + acc.address.io)
+    logger.debug('-- ETH: ' + acc.address.eth)
+    logger.debug('-----------')
+
+    address = iotex.address.from_private_key("b5a4cea271ff424d7c31dc12a3e43e401df7a40d7412a15750f3f0b6b5449a28")
+    logger.debug('Address from PrivateKey: ')
+    logger.debug('- IO: ' + address.io)
+    logger.debug('- ETH: ' + address.eth)
+    logger.debug('-----------')
+
+    iotex.private_key = "b5a4cea271ff424d7c31dc12a3e43e401df7a40d7412a15750f3f0b6b5449a28"
+    logger.debug('Default PrivateKey: ')
+    logger.debug('- Private Key: ' + iotex.private_key)
+    logger.debug('- Public Key: ' + iotex.public_key)
+    logger.debug('- Address: ')
+    logger.debug('-- IO: ' + iotex.default_address.io)
+    logger.debug('-- ETH: ' + iotex.default_address.eth)
+    logger.debug('-----------')
+
+    chainMeta = iotex.iotx.getChainMeta().chainMeta
+    logger.debug('Chain Meta: ')
+    logger.debug('- Height: ' + str(chainMeta.height))
+    logger.debug('- NumActions: ' + str(chainMeta.numActions))
+    logger.debug('- Epoch: ' + str(chainMeta.epoch.num))
+    logger.debug('-----------')
+
+    accountInfo = iotex.iotx.getAccount("io1epvezy0jns0pupsjvk62lyl2run544u2a4jpn3").accountMeta
+    logger.debug('Account Info: ')
+    logger.debug('- Address: ' + accountInfo.address)
+    logger.debug('- Balance: ' + accountInfo.balance)
+    logger.debug('- Nonce: ' + str(accountInfo.nonce))
+    logger.debug('- PendingNonce: ' + str(accountInfo.pendingNonce))
+    logger.debug('- NumActions: ' + str(accountInfo.numActions))
+    logger.debug('-----------')
+
+    actions = iotex.iotx.getActionsByAddress("io1epvezy0jns0pupsjvk62lyl2run544u2a4jpn3",0,2)
+    actions = MessageToJson(actions)
+    logger.debug('Actions by Address: ')
+    logger.debug('- List: ' + json.dumps(actions, indent=2))
+    logger.debug('-----------')
+
+    blocks = iotex.iotx.getBlockMetas(start=1, count=5)
+    blocks = MessageToJson(blocks)
+    logger.debug('Blocks by height: ')
+    logger.debug('- List: ' + json.dumps(blocks, indent=2))
+    logger.debug('-----------')
+
+
+    block = iotex.iotx.getBlockMetas(hash="fda7d0e46023628198589cc31d7eb2a085e866b8cf8329e784685a54527b2745")
+    block = MessageToJson(block)
+    logger.debug('Block by Hash: ')
+    logger.debug('- Block: ' + json.dumps(block, indent=2))
+    logger.debug('-----------')
+
+    epoch = iotex.iotx.getEpochMeta(epoch=100)
+    epoch = MessageToJson(epoch)
+    logger.debug('Epoch by Num')
+    logger.debug('- Data: ' + json.dumps(epoch, indent=2))
+    logger.debug('-----------')
+
+    logger.debug('Transfer')
+    txId = iotex.iotx.transferTo("io12aymfg8gp2kjeugwdjd50lv3v7wh23v4qgm3x4", 1, {"message": "IoTASK Test"})
+    logger.debug('Watting...')
+    time.sleep( 15 )
+    receipt = iotex.iotx.getReceiptByAction(actionHash=txId.actionHash)
+    receipt = MessageToJson(receipt)
+    logger.debug('Transaction: ')
+    logger.debug('- Hash: ' + txId.actionHash)
+    logger.debug('- Transaction: ' + json.dumps(receipt, indent=2))
+    logger.debug('-----------')
