@@ -1,0 +1,49 @@
+---
+# for instack-undercloud only, retain the existing behavior.
+# FIXME(bogdando): only check for releases once instack removed from Rocky CI fully
+- name: Override undercloud CI hostname ad-hock
+  when: release in ['newton','ocata','pike','queens'] or not containerized_undercloud|bool
+  block:
+    - name: Install hostname correcting script
+      template:
+        src: hostname.sh.j2
+        dest: "{{ working_dir }}/hostname.sh"
+        mode: 0755
+
+    - name: Run the hostname correcting script
+      shell: >
+        set -o pipefail &&
+        {{ working_dir }}/hostname.sh 2>&1 {{ timestamper_cmd }} > {{ working_dir }}/hostname.sh.log
+      become: true
+
+# for undercloud containers only, starting from Rocky.
+- name: Override containerized undercloud CI hostname for tripleo client
+  when:
+    - not release in ['newton','ocata','pike','queens']
+    - containerized_undercloud|bool
+    - undercloud_undercloud_hostname is not defined
+  block:
+    - name: set fact for undercloud_fqdn override when undercloud_cloud_domain was provided
+      set_fact:
+        undercloud_fqdn: "{{ ansible_hostname }}.{{ undercloud_cloud_domain }}"
+      when:
+        - undercloud_cloud_domain is defined
+
+    - name: set fact for undercloud_fqdn override when we have a domain
+      set_fact:
+        undercloud_fqdn: "{{ ansible_fqdn }}"
+      when:
+        - ansible_domain|default("") != ""
+        - undercloud_cloud_domain is not defined
+
+    - name: set fact for undercloud_fqdn override when we don't have a domain
+      set_fact:
+        undercloud_fqdn: "{{ ansible_hostname }}.ooo.test"
+      when:
+        - ansible_domain|default("") == ""
+        - undercloud_cloud_domain is not defined
+
+    - name: Set fact for undercloud_hostname override
+      set_fact:
+        cacheable: true
+        undercloud_undercloud_hostname: "{{ undercloud_fqdn }}"

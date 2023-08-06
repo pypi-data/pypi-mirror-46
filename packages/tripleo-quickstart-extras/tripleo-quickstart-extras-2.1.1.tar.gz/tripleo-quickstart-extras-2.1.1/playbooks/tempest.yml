@@ -1,0 +1,58 @@
+---
+- name: Fail the tempest playbook on undefined cloud name and install method
+  fail:
+    msg: |
+      The variable tempest_install_method and tempest_cloud_name is required and
+      has not been set.
+  when:
+    - tempest_install_method is not defined
+    - tempest_cloud_name is not defined
+
+- name: Initialize neutron service for network creation
+  set_fact:
+    tempest_service_available_neutron: true
+
+- name: Set network vars
+  set_fact:
+    tempest_public_net_physical_type: 'datacentre'
+    tempest_private_net_provider_type: 'geneve'
+    tempest_public_subnet_cidr: '{{ tempest_cidr }}'
+    tempest_public_subnet_gateway_ip: '{{ tempest_cidr|nthhost(1) }}'
+    tempest_public_subnet_allocation_pools: '{{ tempest_cidr|nthhost(100) ~ "-" ~ tempest_cidr|nthhost(120) }}'
+  when: tempest_cidr is defined
+
+- name: Set tempest workspace related vars
+  set_fact:
+    tempest_use_tempestconf: true
+    tempest_service_setup_host: '{{ inventory_hostname }}'
+    tempest_workspace: "{{ ansible_user_dir }}/tempest"
+    stackviz_venv_bin: "{{ ansible_user_dir }}/stackviz_venv/bin"
+
+- name: set facts while running tempest from source
+  set_fact:
+    tempest_git_repo: https://git.openstack.org/openstack/tempest
+    tempest_tempestconf_git_repo: https://git.openstack.org/openstack/python-tempestconf
+    tempest_tempestconf_venv_bin: "{{ ansible_user_dir }}/tempestconf_venv/bin"
+    tempest_venv_bin: "{{ ansible_user_dir }}/tempest_venv/bin"
+  when: tempest_install_method == 'source'
+
+- name: Load tempest skiplist file
+  include_vars: "{{ playbook_dir | dirname }}/vars/tempest_skip_{{ release | default('master') }}.yml"
+
+# TODO(arxcruz): For now this is the easiest way to fix this:
+# os_tempest uses the variable tempest_test_blacklist while we use
+# known_failures. Change now, means a lot of changes on other parts of the code
+# (tempestmail, validate-tempest, etc). Once we migrate to os_tempest we can
+# switch that.
+- name: Set tempest_test_blacklist
+  set_fact:
+    tempest_test_blacklist: "{{ known_failures | default([])}}"
+
+- name: Run os_tempest role
+  vars:
+    ansible_become: true
+    debug: true
+    tempest_run: 'yes'
+  gather_facts: true
+  include_role:
+    name: os_tempest

@@ -1,0 +1,31 @@
+parameter_defaults:
+  CertmongerCA: local
+  CloudName: {{ standalone_ip }}
+  ContainerCli: {{ standalone_container_cli }}
+  ContainerImagePrepareDebug: true
+  ControlPlaneStaticRoutes: []
+  Debug: true
+  DeploymentUser: {{ undercloud_user }}
+  DnsServers: {{ undercloud_undercloud_nameservers | to_json }}
+  DockerInsecureRegistryAddress:
+  - {{ standalone_ip }}:8787
+{% if undercloud_docker_registry_mirror is defined and undercloud_docker_registry_mirror %}
+  DockerRegistryMirror: {{undercloud_docker_registry_mirror}}
+{% endif %}
+  MasqueradeNetworks:
+    {{ standalone_network }}.0/{{ standalone_network_prefix }}:
+    - {{ standalone_network }}.0/{{ standalone_network_prefix }}
+  NeutronPublicInterface: {{ standalone_interface }}
+  StandaloneCtlplaneLocalSubnet: ctlplane-subnet
+  StandaloneCtlplaneSubnets:
+    ctlplane-subnet:
+      DhcpRangeEnd: {{ standalone_network }}.40
+      DhcpRangeStart: {{ standalone_network }}.20
+      NetworkCidr: {{ standalone_network }}.0/{{ standalone_network_prefix }}
+      NetworkGateway: {{ standalone_ip }}
+  StandaloneEnableRoutedNetworks: false
+  StandaloneHomeDir: {{ working_dir }}
+  StandaloneLocalMtu: 1500
+  NovaComputeLibvirtType: {{ standalone_libvirt_type }}
+  SELinuxMode: {{ standalone_selinux_mode }}
+  NovaHWMachineType: x86_64=pc,aarch64=virt-rhel7.6.0,ppc64=pseries-rhel7.6.0,ppc64le=pseries-rhel7.6.0

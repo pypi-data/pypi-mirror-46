@@ -1,0 +1,55 @@
+---
+- when: update_containers|bool
+  block:
+
+    - name: ensure_pip on py2 systems
+      when: ansible_python.version.major == 2
+      block:
+
+        - command: "{{ python_cmd }} -m pip --version"
+          register: have_pip
+          changed_when: false
+          failed_when: false
+
+        - when: have_pip.rc != 0
+          become: true
+          block:
+
+            - name: check if python setup tool is installed
+              shell: "{{ python_cmd }} -m easy_install --version"
+              register: easy_install_exists
+              changed_when: false
+              failed_when: false
+
+            - name: Install python setuptools (easy_install)
+              when: easy_install_exists.rc != 0
+              package:
+                state: latest
+                name:
+                  - python2-setuptools
+                  # python2-setuptools deprecates python-setuptools the former
+                  # one being too old to be usable. included in openstack distro.
+
+            - name: easy-install pip
+              command: "{{ python_cmd }} -m easy_install pip"
+
+    - name: Update pip
+      pip:
+        name: pip
+        state: latest
+        extra_args: --upgrade
+      become: true
+
+    - name: Pip install container-check
+      pip:
+        name: container-check
+        state: latest
+        extra_args: --upgrade
+      become: true
+
+- name: Prepare for the containerized deployment
+  shell: >
+    set -o pipefail &&
+    {{ working_dir }}/{{ overcloud_prep_containers_script }} 2>&1 {{ timestamper_cmd }} >
+    {{ overcloud_prep_containers_log }}
+  when: containerized_overcloud|bool

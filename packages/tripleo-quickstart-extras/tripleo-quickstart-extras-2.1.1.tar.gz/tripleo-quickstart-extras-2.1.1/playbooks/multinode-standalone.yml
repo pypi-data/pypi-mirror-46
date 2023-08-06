@@ -1,0 +1,61 @@
+---
+- name: Add the overcloud nodes to the generated inventory
+  hosts: undercloud
+  gather_facts: true
+  tags:
+    - standalone
+  vars:
+    inventory: multinode
+  roles:
+    - tripleo-inventory
+
+- name: Prepare the undercloud for installation
+  hosts: undercloud
+  roles:
+    - undercloud-setup
+  tags:
+    - standalone
+
+- name: Run DLRN gate role and install repo
+  hosts: undercloud
+  vars:
+    artg_compressed_gating_repo: "${HOME}/gating_repo.tar.gz"
+  roles:
+    - build-test-packages
+    - {role: install-built-repo, when: compressed_gating_repo is defined}
+  tags:
+    - build
+
+# NOTE(aschultz): nested virt causes problems in CI so we default to qemu
+# and do not do the dynamic virt lookup.
+- name: Deploy Standalone
+  hosts: undercloud
+  vars:
+    standalone_libvirt_type: "{{ standalone_virt_type|default('qemu') }}"
+  roles:
+    - standalone
+  tags:
+    - standalone
+
+- name: Validate the undercloud
+  hosts: undercloud
+  gather_facts: false
+  roles:
+    - {role: validate-tempest, when: run_tempest|bool}
+    - {role: validate-services, when: validate_services|default(false)|bool}
+  tags:
+    - standalone
+
+- name: Validate the deployment
+  hosts: undercloud
+  tasks:
+    - include_tasks: tempest.yml
+      vars:
+        tempest_install_method: distro
+        tempest_cloud_name: 'standalone'
+      when:
+        - not run_tempest|bool
+        - use_os_tempest is defined
+        - use_os_tempest|bool
+  tags:
+    - standalone

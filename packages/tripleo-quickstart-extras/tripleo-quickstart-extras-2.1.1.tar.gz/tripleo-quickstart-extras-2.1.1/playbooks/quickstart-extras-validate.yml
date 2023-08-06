@@ -1,0 +1,39 @@
+---
+# Validate the deployment
+- name: setup dstat performance monitoring
+  hosts: overcloud
+  tags:
+    - overcloud-validate
+  roles:
+    - {role: validate-perf,
+       when: validate_performance|bool and run_tempest|bool}
+  ignore_errors: true
+
+- name: validate the overcloud
+  hosts: undercloud
+  tags:
+    - overcloud-validate
+  gather_facts: false
+  roles:
+    - {role: validate-simple, when: test_ping|bool}
+
+# Execute tempest against the overcloud deployment
+- name: Execute tempest against the overcloud
+  hosts: undercloud
+  tags:
+    - overcloud-validate
+  gather_facts: false
+  roles:
+    - {role: validate-tempest, when: tempest_config|bool or run_tempest|bool}
+
+# Ensure services and containers are OK
+- name: Execute simple service and container validations
+  hosts:
+    - undercloud
+    - overcloud
+  tags:
+    - overcloud-validate
+    - undercloud-validate
+  gather_facts: false
+  roles:
+    - {role: validate-services, when: validate_services|default(false)|bool}

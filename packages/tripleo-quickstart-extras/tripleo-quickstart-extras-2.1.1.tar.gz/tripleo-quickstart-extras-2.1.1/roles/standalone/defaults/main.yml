@@ -1,0 +1,40 @@
+---
+standalone_config: standalone_config.yaml.j2
+standalone_network: 192.168.24
+standalone_network_prefix: 24
+standalone_ip: 192.168.24.1
+standalone_interface: br-ex
+standalone_hostname: standalone.localdomain
+
+# container prep script
+standalone_container_prep_options: ''
+standalone_container_prep_script: standalone-container-prep.sh.j2
+standalone_container_prep_log: standalone_container_prep.log
+
+# Don't do container prep if we are not at n release at upgrades
+standalone_container_prep_updates: >-
+  {{ standalone_upgrade | default(false) | bool | ternary(false, true) }}
+
+# Set the repo to update from
+gating_repo_name: gating-repo
+standalone_container_prep_update_repo: >-
+  {{ gating_repo_name }},delorean-current
+
+# deploy script
+standalone_deploy_script: standalone.sh.j2
+standalone_deploy_log: standalone_deploy.log
+standalone_ansible_lint_log: standalone_ansible_lint.log
+
+# deployment role
+standalone_role: Standalone.yaml
+
+# Extra action on the deployment
+standalone_ansible_lint: false
+
+standalone_selinux_mode: permissive
+
+standalone_libvirt_type: kvm
+
+standalone_container_cli: docker
+
+standalone_custom_env_files: []

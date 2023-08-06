@@ -1,0 +1,283 @@
+---
+
+# needed to avoid potential failure when role is used without gather
+- name: gather facts used by role
+  setup:
+    gather_subset: "!min,user_dir,python,processor,pkg_mgr,distribution"
+  when: >
+    ansible_user_dir is not defined or
+    ansible_python is not defined or
+    ansible_processor_vcpus is not defined or
+    ansible_pkg_mgr is not defined or
+    ansible_distribution is not defined
+
+- name: set python_cmd
+  set_fact:
+    python_cmd: "python{{ ansible_python.version.major }}"
+    cacheable: true
+  when: python_cmd is not defined
+
+- name: Ensure DLRN package dependencies
+  become: true
+  package:
+    state: present
+    name:
+      - createrepo
+      - gcc
+      - git
+      - libffi-devel
+      - mock
+      - openssl-devel
+      - redhat-rpm-config
+      - rsync
+      - rpm-build
+      - rpmdevtools
+      - sqlite
+      - >
+        {% if ansible_python.version.major == 3 %}
+        python3-libselinux
+        {% else %}
+        libselinux-python
+        {% endif %}
+
+- name: Check if virtualenv is in the system
+  shell: "{{ python_cmd }} -m virtualenv --version"
+  args:
+    warn: false
+  register: virtualenv_exist
+  changed_when: false
+  failed_when: false
+
+- when: virtualenv_exist.rc != 0
+  name: Install virtualenv
+  package:
+    state: present
+    name: >
+        {% if ansible_python.version.major == 3 %}
+        python3-virtualenv
+        {% else %}
+        python-virtualenv
+        {% endif %}
+
+- name: Create mock group
+  become: true
+  group:
+    name: mock
+    state: present
+
+- name: Add user to mock group
+  become: true
+  user:
+    name: '{{ ansible_user_id }}'
+    groups: mock
+    append: true
+
+- name: Ensure DLRN dir is present
+  file:
+    path: '{{ build_repo_dir }}/DLRN/'
+    state: directory
+
+- name: Remove data files from previous runs
+  shell:
+    rm -rf '{{ build_repo_dir }}/DLRN/*'
+  args:
+    warn: false
+  register: result
+  changed_when: result.stdout or result.stderr
+
+- name: drop in the templated version of projects.ini
+  template:
+    src: projects.ini.j2
+    dest: '{{ build_repo_dir }}/DLRN/projects.ini'
+
+- name: Install and update pip
+  pip:
+    name: pip
+    virtualenv: "{{ build_repo_dir }}/dlrn-venv"
+    state: latest
+    extra_args: --upgrade
+
+- name: Pip install rdopkg
+  pip:
+    name: rdopkg
+    virtualenv: "{{ build_repo_dir }}/dlrn-venv"
+    version: 0.47.3
+  when: not dlrn_pre_installed|bool
+
+- name: Pip install DLRN
+  pip:
+    name: dlrn
+    virtualenv: "{{ build_repo_dir }}/dlrn-venv"
+    state: latest
+  when: not dlrn_pre_installed|bool
+
+- name: Pip install pre-installed DLRN
+  shell: >
+    source {{ build_repo_dir }}/dlrn-venv/bin/activate;
+    pip install -r requirements.txt;
+    python setup.py install;
+  args:
+    chdir: '{{ build_repo_dir }}/DLRN'
+  when: dlrn_pre_installed|bool
+
+- name: copy the DLRN scripts in the virtualenv to the scripts dir
+  synchronize:
+    src: "{{ build_repo_dir }}/dlrn-venv/share/dlrn/scripts"
+    dest: "{{ build_repo_dir }}/DLRN"
+  delegate_to: "{{ inventory_hostname }}"
+
+- name: Fetch local rdoinfo copy
+  git:
+    repo: '{{ artg_rdoinfo_repo_url }}'
+    dest: '{{ build_repo_dir }}/DLRN/rdoinfo'
+    version: 'master'
+
+- name: Use local {{ ansible_distribution }} mirror if available
+  shell: >
+    set -o pipefail ;
+    gawk '{ print $0 }; /^# repos$/ { exit }' {{ build_repo_dir }}/DLRN/scripts/{{ ansible_distribution | lower }}.cfg
+    > {{ build_repo_dir }}/DLRN/scripts/{{ ansible_distribution | lower }}-local.cfg;
+    cat /etc/yum.repos.d/quickstart-{{ ansible_distribution | lower }}-*.repo >> {{ build_repo_dir }}/DLRN/scripts/{{ ansible_distribution | lower }}-local.cfg;
+    find /etc/yum.repos.d -name "delorean*repo" ! -name "delorean*build-deps.repo" -exec cat {} \; -exec echo ""  \;
+    >> {{ build_repo_dir }}/DLRN/scripts/{{ ansible_distribution | lower }}-local.cfg;
+    find /etc/yum.repos.d -name "delorean*build-deps.repo" -exec sed 's/enabled=.*/enabled=1/g' {} \;
+    >> {{ build_repo_dir }}/DLRN/scripts/{{ ansible_distribution | lower }}-local.cfg;
+    echo '"""' >> {{ build_repo_dir }}/DLRN/scripts/{{ ansible_distribution | lower }}-local.cfg;
+    mkdir -p /tmp/fake-dlrn-repos/current;
+    touch /tmp/fake-dlrn-repos/delorean-deps.repo;
+    touch /tmp/fake-dlrn-repos/current/delorean.repo;
+  when: dlrn_use_local_mirrors|bool
+
+- name: Use custom target for DLRN
+  lineinfile:
+    dest: '{{ build_repo_dir }}/DLRN/projects.ini'
+    regexp: 'target=.*'
+    line: 'target={{ ansible_distribution | lower }}-local'
+  when: dlrn_use_local_mirrors|bool
+
+# FIXME(jpena): once DLRN 0.8.0 is released, we can remove this
+- name: Check if DLRN/scripts/build_rpm.sh exists
+  stat:
+    path: '{{ build_repo_dir }}/DLRN/scripts/build_rpm.sh'
+  register: old_dlrn
+
+- name: Remove DLRN RPM install test
+  shell: >
+    sed -i -e 's%--postinstall%%'
+    {{ build_repo_dir }}/DLRN/scripts/build_rpm.sh
+  when: old_dlrn.stat.exists
+
+- name: get env variables for changes and default change list
+  set_fact:
+    gerrit_host: "{{ lookup('env', 'GERRIT_HOST') }}"
+    zuul_changes: "{{ lookup('env', 'ZUUL_CHANGES') }}"
+    artg_change_list: "{{ artg_change_list|default([]) }}"
+    cacheable: true
+
+- name: Parse Jenkins changes
+  jenkins_deps:
+    host: "{{ lookup('env', 'GERRIT_HOST') }}"
+    change_id: "{{ lookup('env', 'GERRIT_CHANGE_ID') }}"
+    branch: "{{ lookup('env', 'GERRIT_BRANCH') }}"
+    patchset_rev: "{{ lookup('env', 'GERRIT_PATCHSET_REVISION') }}"
+  when: gerrit_host != ""
+
+- name: Add Jenkins changes to the change list
+  set_fact:
+    artg_change_list: "{{ artg_change_list|union(jenkins_change_list|default([])) }}"
+    cacheable: true
+
+- name: Parse Zuul changes
+  zuul_deps:
+    host: "{{ lookup('env', 'ZUUL_URL')|default('https://review.openstack.org', true) }}"
+    changes: "{{ lookup('env', 'ZUUL_CHANGES') }}"
+    branch: "{{ lookup('env', 'ZUUL_BRANCH') }}"
+  when: zuul_changes != ""
+
+- name: Add Zuul changes to the change list
+  set_fact:
+    artg_change_list: "{{ artg_change_list|union(zuul_change_list|default([])) }}"
+    cacheable: true
+
+- name: Clone and build the specific DLRN projects
+  include: dlrn-build.yml artg_change={{ item }}
+  with_items: '{{ artg_change_list|default([]) }}'
+  when:
+    - '"-distgit" not in item.project'
+    - item.project not in artg_skipped_projects
+    - release in item.branch
+
+- name: Run DLRN
+  shell: >
+    set +e;
+    source {{ build_repo_dir }}/dlrn-venv/bin/activate;
+    while true; do
+        dlrn --config-file projects.ini --head-only --package-name {{ artg_rdo_packages|join(' --package-name ') }} --local --info-repo rdoinfo --dev --order;
+        if [ $? -eq 0 ]; then
+            # SUCCESS
+            break;
+        elif [ $? -eq 1 ]; then
+            # FAILED
+            exit 1;
+        elif [ $? -eq 2 ]; then
+            # RETRY
+            continue;
+        fi;
+        # Unexpected DLRN return code
+        exit $?;
+    done;
+  args:
+    chdir: '{{ build_repo_dir }}/DLRN'
+  register: repo_built_multi
+  when: not artg_build_one|bool
+
+
+- block:
+    - name: Create a directory to hold the rpms
+      file:
+        path: '{{ build_repo_dir }}/gating_repo'
+        state: directory
+
+    - name: Copy the generated rpms
+      shell: >
+        set -o pipefail &&
+        rm -rf {{ build_repo_dir }}/gating_repo/*;
+        find {{ build_repo_dir }}/DLRN/data/repos -type f -name '*.rpm' -print0 | xargs -0 cp -t {{ build_repo_dir }}/gating_repo;
+
+    - name: Run createrepo on generated rpms
+      shell: 'createrepo gating_repo'
+      args:
+        chdir: '{{ build_repo_dir }}'
+
+    - name: Compress the repo
+      shell: 'tar czf {{ artg_compressed_gating_repo }} gating_repo'
+      args:
+        chdir: '{{ build_repo_dir }}'
+  when: >
+    (repo_built is defined and repo_built.skipped is not defined) or
+    (repo_built_multi is defined and repo_built_multi.skipped is not defined)
+
+- name: Clean up
+  file:
+    path: '{{ item }}'
+    state: absent
+  with_items:
+    - '{{ build_repo_dir }}/dlrn-venv'
+    - '{{ build_repo_dir }}/gating_repo'
+  when: dlrn_cleanup|bool
+
+- name: Clean up DLRN if it was cloned by the playbook
+  file:
+    path: '{{ build_repo_dir }}/DLRN'
+    state: absent
+  when:
+    - not dlrn_pre_installed|bool
+    - dlrn_cleanup|bool
+
+- name: Trigger repo injection for quickstart
+  set_fact:
+    compressed_gating_repo: "{{ artg_compressed_gating_repo }}"
+    cacheable: true
+  when:
+    - repo_built is defined
+    - repo_built.skipped is not defined
