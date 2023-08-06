@@ -1,0 +1,127 @@
+Metadata-Version: 2.1
+Name: PolicyTools
+Version: 0.1.0
+Summary: UNKNOWN
+Home-page: https://github.com/samkeen/policy-tools
+Author: Sam Keen
+Author-email: sam.sjk@gmail.com
+License: Apache License, Version 2.0
+Platform: UNKNOWN
+Description-Content-Type: text/markdown
+
+# policy-tools
+
+[![CircleCI](https://circleci.com/gh/samkeen/policy-tools.svg?style=svg)](https://circleci.com/gh/samkeen/policy-tools)
+
+[![codecov](https://codecov.io/gh/samkeen/policy-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/samkeen/policy-tools)
+
+[![Requirements Status](https://requires.io/github/samkeen/policy-tools/requirements.svg?branch=master)](https://requires.io/github/samkeen/policy-tools/requirements/?branch=master)
+
+## Summary
+
+This is a utility of helper tools for working with AWS IAM Policies.
+
+Currently it programmatically determine the effect of an AWS Organizations 
+[Service Control Policy](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scp.html) 
+on a given user policy.
+
+```python
+result = scp.effect_on(user_policy)
+print result.denied_actions
+```
+
+## Usage
+
+Create your "All IAM actions" set
+```python 
+# policies-gen.json.js is the content of https://awspolicygen.s3.amazonaws.com/js/policies.js
+with open('policies-gen.json.js') as file_stream:
+    all_actions_source_data = file_stream.read()
+```
+Create your ActionExpander utility.  It simply expands *glob* statements (e.g. `s3:*`) into the full matched set of IAM actions.
+```python 
+policy_actions_expander = ActionExpander(PolicyGenActionsMasterList(all_actions_source_data))
+```
+Create the user policy and the service control policy
+```python
+user_policy = Policy("""{
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "AllowSts",
+                "Effect": "Allow",
+                "Resource": "*",
+                "Action": [
+                    "sqs:*"
+                ]
+            },
+            {
+                "Sid": "AllowEfs",
+                "Effect": "Allow",
+                "Resource": "*",
+                "Action": [
+                    "elastictranscoder:*"
+                ]
+            }
+        ]
+    }""", action_expander)
+
+ scp = ServiceControlPolicy("""{
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "AllowS3Read",
+                    "Effect": "Allow",
+                    "Resource": "*",
+                    "Action": [
+                        "sqs:Get*",
+                        "sqs:List*"
+                    ]
+                },
+                {
+                    "Sid": "AllowElasticTranscoderRead",
+                    "Effect": "Allow",
+                    "Resource": "*",
+                    "Action": [
+                        "elastictranscoder:Read*",
+                        "elastictranscoder:List*"
+                    ]
+                }
+            ]
+        }""", action_expander) 
+```
+Determine the effect of the SCP on the user policy
+```python
+result = scp.effect_on(user_policy)
+print result.denied_actions
+
+{  'sqs:SetQueueAttributes',
+     'sqs:PurgeQueue',
+     'sqs:DeleteMessageBatch',
+     'sqs:ReceiveMessage',
+     'sqs:RemovePermission',
+     'sqs:ChangeMessageVisibilityBatch',
+     'sqs:SendMessageBatch',
+     'sqs:CreateQueue',
+     'sqs:TagQueue',
+     'sqs:AddPermission',
+     'sqs:UntagQueue',
+     'sqs:SendMessage',
+     'sqs:DeleteMessage',
+     'sqs:ChangeMessageVisibility',
+     'sqs:DeleteQueue',
+     'elastictranscoder:TestRole',
+     'elastictranscoder:CreatePipeline',
+     'elastictranscoder:DeletePipeline',
+     'elastictranscoder:UpdatePipelineNotifications',
+     'elastictranscoder:DeletePreset',
+     'elastictranscoder:CancelJob',
+     'elastictranscoder:CreateJob',
+     'elastictranscoder:UpdatePipelineStatus',
+     'elastictranscoder:CreatePreset',
+     'elastictranscoder:UpdatePipeline'
+  }
+
+```
+
+
