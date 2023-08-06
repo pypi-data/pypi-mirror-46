@@ -1,0 +1,116 @@
+Metadata-Version: 2.1
+Name: rezip
+Version: 0.3.2
+Summary: Repack ZIP archives
+Home-page: https://gitlab.com/dfritzsche/python-rezip
+Maintainer: David Fritzsche
+Maintainer-email: david.fritzsche@mvua.de
+License: MIT
+Platform: any
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Utilities
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Typing :: Typed
+Requires-Python: >=3.6
+Description-Content-Type: text/x-rst
+
+=============================
+ Rezip - Repack ZIP Archives
+=============================
+
+Repack ZIP archives with the possibility to update metadata, e.g.,
+Unix access right bits. Rezip can be used to fix Windows generated ZIP
+archives (e.g., Python wheel packages) so that the archives members
+have suitable access rights for usage on Linux.
+
+
+GitLab page: https://gitlab.com/dfritzsche/python-rezip
+
+
+Using rezip
+===========
+
+
+Usage::
+
+   rezip [--inplace] [--normalize-access-rights] [--date-time DATETIME]
+         INPUT [OUTPUT]
+
+``--inplace``
+   Repack in place. This is done by writing to a temporary file and
+   then replace the original input file with the temporary output
+   file. On Posix systems an atomic move is used for the replacement
+   of the original input file by the temporary output file.
+
+   Note: The ``--inplace`` option is mutual exclusive with ``OUTPUT``.
+
+``--normalize-access-rights``
+   Normalize the Unix access right bits. Access rights of regular
+   non-executable files are modified to ``0o644``. Access rights of
+   executable files are modified to be ``0o755``. Rezip considers
+   files that already have any executable bit set and files that are
+   identified as ELF programs or ELF dynamic libraries as executable.
+
+   Identification as an ELF file is done by looking if the file starts
+   with the ELF magic bytes ``b"\x7fELF"`` and then reading the
+   `e_type` field of the ELF header. As this is in the end only a
+   heuristic, wrong executable-identifcations may happen.
+
+``--date-time DATETIME``
+   Set the date time of all files in the ZIP archive to
+   ``DATETIME``. The date time ``DATETIME`` must be a Unix timestamp
+   or a date time in ISO format that is understood by
+   `datetime.datetime.fromisoformat`.
+
+``INPUT``
+   The ZIP archive to read
+
+``OUTPUT``
+   The ZIP archive to create and write to.
+
+   Note: This option is mutual exclusive with ``--inplace``.
+
+Changelog history
+=================
+
+
+v0.3.2 (2019-05-19)
+-------------------
+
+* Documentation improvements
+
+
+v0.3.0 (2019-05-19)
+-------------------
+
+* New ``--date-time`` option to set file date time in the ZIP file
+
+
+v0.2.2 (2019-05-14)
+-------------------
+
+* Include LICENSE file in sdist
+
+
+v0.2.1 (2019-05-13)
+-------------------
+
+* Packaging improvements
+
+
+v0.2.0 (2019-05-13)
+-------------------
+
+* Updated documentation
+
+
+v0.1.0 (2019-05-13)
+-------------------
+
+* Initial public release
+
+
