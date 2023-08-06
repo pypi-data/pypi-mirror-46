@@ -1,0 +1,69 @@
+Metadata-Version: 2.1
+Name: async-request
+Version: 0.154
+Summary: A lightweight network request framework
+Home-page: https://github.com/financialfly/async-request
+Author: financial
+Author-email: 1012593988@qq.com
+Maintainer: financial
+Maintainer-email: 1012593988@qq.com
+License: BSD License
+Description: async-request
+        =============
+        
+        A lightweight network request framework based on requests & asyncio
+        
+        install
+        -------
+        
+        ```bash
+        pip install async_request
+        ```
+        
+        usage
+        -----
+        ```python
+        import async_request
+        
+        def parse_baidu(response):
+            print(response.url, response.status_code)
+            yield async_request.Request('https://cn.bing.com/', callback=parse_bing)
+        
+        def parse_bing(response):
+            print(response.url, response.status_code)
+            yield async_request.Request('https://github.com/financialfly/async-request', callback=parse_github)
+        
+        def parse_github(response):
+            print(response.url, response.status_code)
+            yield {'hello': 'github'}
+        
+        def process_result(result):
+            print(result)
+        
+        reqs = [async_request.Request(url='https://www.baidu.com', callback=parse_baidu)]
+        c = async_request.Crawler(reqs, result_callback=process_result)
+        c.run()
+        ```
+        And you'll see the result like this:
+        ```
+        https://www.baidu.com/ 200
+        https://cn.bing.com/ 200
+        https://github.com/financialfly/async-request 200
+        {'hello': 'github'}
+        ```
+Platform: all
+Classifier: Development Status :: 4 - Beta
+Classifier: Operating System :: OS Independent
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: Implementation
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Software Development :: Libraries
+Description-Content-Type: text/markdown
