@@ -1,0 +1,15 @@
+{% extends "Dockerfile" %}
+{% block third_party %}
+USER root
+
+## Install nano / gnome-terminal
+RUN apt-get update && apt-get install -y \
+    nano \
+    dbus-x11 \
+    gnome-terminal \
+    && rm -rf /var/lib/apt/lists/*
+
+# Removes gnome-terminal warnings
+RUN echo "export NO_AT_BRIDGE=1" >> /etc/environment
+
+{% endblock %}

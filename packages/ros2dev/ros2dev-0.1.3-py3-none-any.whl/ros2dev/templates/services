@@ -1,0 +1,38 @@
+  #############################################################################
+  # Development Image
+  #############################################################################
+  {{ data.target }}-{{ data.project_name }}:
+    build:
+      context: {{ data.build_context }}
+      dockerfile: {{ data.tmp_dir }}/{{ data.Dockerfile }}
+      target: builder
+    image: {{ data.target }}/{{ data.project_name }}:latest
+    stdin_open: true
+    tty: true
+    entrypoint: ros2-entrypoint.sh
+    command: /bin/bash
+    network_mode: "host"
+    environment:
+{% block third_party_environment %}
+      - DISPLAY=${DISPLAY}
+{% endblock %}
+{% block third_party_items %}
+    # No third party items
+{% endblock %}
+    volumes:
+      # allow for gui apps inside the container (i.e. terminator)
+      - type: bind
+        source: /tmp/.X11-unix
+        target: /tmp/.X11-unix
+        read_only: true
+      # Use volumes to mount code from host system
+      # Don't mount build directory into container
+      - /home/{{ data.user_name }}/ros2_ws/build
+      - /home/{{ data.user_name }}/ros2_ws/install
+      - /home/{{ data.user_name }}/ros2_ws/log
+{% if data.ws_copy_dir is not none %}
+      - '{{ data.build_context }}/{{ data.ws_copy_dir }}:/home/{{ data.user_name }}/ros2_ws/src'
+{% endif %}
+{% block third_party_volumes %}
+      # No third_party_volumes
+{% endblock %}
