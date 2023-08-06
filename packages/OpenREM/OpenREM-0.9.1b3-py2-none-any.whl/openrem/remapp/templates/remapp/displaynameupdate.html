@@ -1,0 +1,92 @@
+{% extends "remapp/base.html" %}
+
+{% block confnav %}<li class="dropdown active">{% endblock %}
+
+{% block navhelp %}
+        <li>
+            <a href="https://docs.openrem.org/en/{{ admin.docsversion }}/i_displaynames.html#changing-x-ray-system-display-names" target="_blank" data-toggle="tooltip" title="Display name documentation - opens in a new tab">
+                Changing display names and / or modality type
+            </a>
+        </li>
+{% endblock %}
+
+
+{% block mainblock %}
+  {% if admin.admingroup %}
+  <form action="{% url 'display_name_update' %}" method="post">{% csrf_token %}
+  {% endif %}
+  <table class="table table-bordered table-hover row-clickable">
+    <row>
+      <th>Display name</th><th>User defined modality</th><th>Institution</th><th>Department</th><th>Manufacturer</th><th>Model</th><th>Station name</th><th>Serial no.</th><th>Software version</th><th>Gantry ID</th>
+    </row>
+
+    {% for eachname in name_list %}
+      <tr>
+        <td><a style="text-decoration: none">{{ eachname.display_name }}</a></td>
+        <td><a style="text-decoration: none">{{ eachname.user_defined_modality }}</a></td>
+        <td><a style="text-decoration: none">{{ eachname.institution_name }}</a></td>
+        <td><a style="text-decoration: none">{{ eachname.institutional_department_name }}</a></td>
+        <td><a style="text-decoration: none">{{ eachname.manufacturer }}</a></td>
+        <td><a style="text-decoration: none">{{ eachname.manufacturer_model_name }}</a></td>
+        <td><a style="text-decoration: none">{{ eachname.station_name }}</a></td>
+        <td><a style="text-decoration: none">{{ eachname.device_serial_number }}</a></td>
+        <td><a style="text-decoration: none">{{ eachname.software_versions }}</a></td>
+        <td><a style="text-decoration: none">{{ eachname.gantry_id }}</a></td>
+      </tr>
+  {% endfor %}
+
+  </table>
+
+  {% if admin.admingroup %}
+  	  <table>
+  	  <tr>
+  	  	<td>Enter new display name to be used for all of the above systems:</td>
+  	  	<td><input name="new_display_name" type="text" value="" /></td>
+  	  </tr>
+  	  <tr>
+      	<td>Enter a user defined modality type for all of the above systems:</td>
+      	<td>
+          <select name="new_user_defined_modality">
+        	  <option value="">[Leave unchanged]</option>
+      		  <option value="DX">DX (planar x-ray)</option>
+      		  <option value="RF">RF (fluoroscopy)</option>
+            <option value="dual">Dual (planar x-ray and fluoroscopy)</option>
+      	  </select>
+        </td>
+      </tr>
+      </table>
+      <br>
+      <input id="pks" name="pks" type="hidden" value="" />
+
+      <script>
+          function URLToArray(url) {
+              var request = {};
+              var pairs = url.substring(url.indexOf('?') + 1).split('&');
+              for (var i = 0; i < pairs.length; i++) {
+                  if(!pairs[i])
+                      continue;
+                  var pair = pairs[i].split('=');
+                  request[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]).replace(/\+/g, ' ');
+              }
+              return request;
+          }
+
+          $(document).ready(function() {
+              var request_data = URLToArray(this.URL);
+              $('#pks').val($.map(request_data, function(value, index) {return [value]}));
+          });
+      </script>
+  {% endif %}
+
+  {% if admin.admingroup %}
+  <input class="btn btn-primary" type="submit" value="Update">
+  {% endif %}
+  <a class="btn btn-default" href="{%  url 'display_names_view' %}" role="button">Cancel</a>
+  </form>
+
+{% endblock %}
+
+
+      </div>
+    </div>
+  </form>
