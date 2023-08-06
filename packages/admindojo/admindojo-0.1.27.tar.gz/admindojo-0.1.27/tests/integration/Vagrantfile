@@ -1,0 +1,24 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+    config.vm.box = "ubuntu/bionic64"
+    config.vm.synced_folder ".", "/vagrant"
+    config.vm.synced_folder "../../.", "/admindojo"
+
+    config.vm.provision :shell, path: "bootstrap.sh"
+    config.vm.provision :shell, path: "testing.sh"
+
+
+    config.vm.provider "virtualbox" do |vb|
+        vb.memory = 2048
+        vb.cpus = 2
+        # performance tweak
+        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+        vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+        vb.customize [ "guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000 ]
+    end
+
+
+
+end
