@@ -1,0 +1,1 @@
+from marshmallow_dumped_order.dumped_order import dumped_order
