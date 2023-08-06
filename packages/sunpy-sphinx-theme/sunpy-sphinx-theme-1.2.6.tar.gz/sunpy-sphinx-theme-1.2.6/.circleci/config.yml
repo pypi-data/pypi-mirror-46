@@ -1,0 +1,66 @@
+apt-run: &apt-install
+  name: Install apt packages
+  command: |
+    sudo apt update
+    sudo apt install -y graphviz
+    sudo apt install -y pandoc
+
+pip-run: &pip-install
+  name: Install Python dependencies
+  command: |
+    python3 -m venv venv
+    echo "source /home/circleci/project/venv/bin/activate" >> $BASH_ENV
+
+version: 2
+jobs:
+  website:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run: *apt-install
+      - run: *pip-install
+      - run: pip install -U setuptools
+      - run: pip install -e .
+      - run: git clone https://github.com/sunpy/sunpy.org.git
+      - run: pip install -r sunpy.org/requirements.txt
+      - run: make -C $HOME/project/sunpy.org html
+
+      - store_artifacts:
+          path: sunpy.org/_build/html
+
+      - run:
+          name: "Built documentation is available at:"
+          command: DOCS_URL="${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}/sunpy.org/_build/html/index.html"; echo $DOCS_URL
+
+  docs:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run: *apt-install
+      - run: *pip-install
+      - run: pip install -U setuptools
+      - run: pip install -e .
+      - run: git clone --depth 1 https://github.com/sunpy/sunpy.git
+      - run: cd sunpy && pip install -e .[all,dev]
+      - run: cd sunpy && python setup.py build_docs -w
+
+      - store_artifacts:
+          path: sunpy/docs/_build/html
+
+      - run:
+          name: "Built documentation is available at:"
+          command: DOCS_URL="${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}/sunpy/docs/_build/html/index.html"; echo $DOCS_URL
+
+workflows:
+  version: 2
+
+  html-builds:
+    jobs:
+      - website
+      - docs
+
+notify:
+  webhooks:
+    - url: https://giles.cadair.com/circleci
