@@ -1,0 +1,990 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "RESOURCE-MANAGER" "1" "May 13, 2019" "2.5.10" "OCI CLI Command Reference"
+.SH NAME
+resource-manager \- 
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH DESCRIPTION
+.sp
+CLI for the Resource Manager service. Use this CLI to install, configure, and manage resources via the "infrastructure\-as\-code" model. For more information, see [Overview of Resource Manager](/iaas/Content/ResourceManager/Concepts/resourcemanager.htm).
+.SH AVAILABLE COMMANDS
+.INDENT 0.0
+.IP \(bu 2
+job
+.INDENT 2.0
+.IP \(bu 2
+cancel
+.IP \(bu 2
+create
+.IP \(bu 2
+get
+.IP \(bu 2
+get\-job\-logs
+.IP \(bu 2
+get\-job\-logs\-content
+.IP \(bu 2
+get\-job\-tf\-config
+.IP \(bu 2
+get\-job\-tf\-state
+.IP \(bu 2
+list
+.IP \(bu 2
+update
+.UNINDENT
+.IP \(bu 2
+stack
+.INDENT 2.0
+.IP \(bu 2
+create
+.IP \(bu 2
+delete
+.IP \(bu 2
+get
+.IP \(bu 2
+get\-stack\-tf\-config
+.IP \(bu 2
+list
+.IP \(bu 2
+update
+.UNINDENT
+.UNINDENT
+.SS job
+.SS Description
+.sp
+Jobs perform the actions that are defined in your configuration. There are three job types \- \fBPlan job\fP\&. A plan job takes your Terraform configuration, parses it, and creates an execution plan. \- \fBApply job\fP\&. The apply job takes your execution plan, applies it to the associated stack, then executes the configuration\(aqs instructions. \- \fBDestroy job\fP\&. To clean up the infrastructure controlled by the stack, you run a destroy job. A destroy job does not delete the stack or associated job resources, but instead releases the resources managed by the stack.
+.SS Available Commands
+.INDENT 0.0
+.IP \(bu 2
+cancel
+.IP \(bu 2
+create
+.IP \(bu 2
+get
+.IP \(bu 2
+get\-job\-logs
+.IP \(bu 2
+get\-job\-logs\-content
+.IP \(bu 2
+get\-job\-tf\-config
+.IP \(bu 2
+get\-job\-tf\-state
+.IP \(bu 2
+list
+.IP \(bu 2
+update
+.UNINDENT
+.SS cancel
+.SS Description
+.sp
+Indicates the intention to cancel the specified job. Cancellation of the job is not immediate, and may be delayed, or may not happen at all.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager job cancel [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-job\-id [text]
+.sp
+The job OCID. [required]
+.SS \-\-if\-match [text]
+.sp
+For optimistic concurrency control. In the \fIPUT\fP or \fIDELETE\fP call for a resource, set the \fIif\-match\fP parameter to the value of the etag from a previous \fIGET\fP or \fIPOST\fP response for that resource.  The resource will be updated or deleted only if the etag you provide matches the resource\(aqs current etag value.
+.SS \-\-force
+.sp
+Perform deletion without prompting for confirmation.
+.SS \-\-wait\-for\-state [ACCEPTED|IN_PROGRESS|FAILED|SUCCEEDED|CANCELING|CANCELED]
+.sp
+This operation creates, modifies or deletes a resource that has a defined lifecycle state. Specify this option to perform the action and then wait until the resource reaches a given lifecycle state. If timeout is reached, a return code of 2 is returned. For any other error, a return code of 1 is returned.
+.SS \-\-max\-wait\-seconds [integer]
+.sp
+The maximum time to wait for the resource to reach the lifecycle state defined by \-\-wait\-for\-state. Defaults to 1200 seconds.
+.SS \-\-wait\-interval\-seconds [integer]
+.sp
+Check every \-\-wait\-interval\-seconds to see whether the resource to see if it has reached the lifecycle state defined by \-\-wait\-for\-state. Defaults to 30 seconds.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS create
+.SS Description
+.sp
+Creates a job.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager job create [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stack\-id [text]
+.sp
+OCID of the stack that is associated with the current job. [required]
+.SS \-\-operation [text]
+.sp
+Terraform\-specific operation to execute. [required]
+.SS \-\-display\-name [text]
+.sp
+Description of the job.
+.SS \-\-apply\-job\-plan\-resolution [complex type]
+.sp
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-freeform\-tags [complex type]
+.sp
+Free\-form tags associated with this resource. Each tag is a key\-value pair with no predefined name, type, or namespace. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/General/Concepts/resourcetags.htm\fP>\&. Example: \fI{"Department": "Finance"}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-defined\-tags [complex type]
+.sp
+Defined tags for this resource. Each key is predefined and scoped to a namespace. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/General/Concepts/resourcetags.htm\fP>\&. Example: \fI{"Operations": {"CostCenter": "42"}}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-wait\-for\-state [ACCEPTED|IN_PROGRESS|FAILED|SUCCEEDED|CANCELING|CANCELED]
+.sp
+This operation creates, modifies or deletes a resource that has a defined lifecycle state. Specify this option to perform the action and then wait until the resource reaches a given lifecycle state. If timeout is reached, a return code of 2 is returned. For any other error, a return code of 1 is returned.
+.SS \-\-max\-wait\-seconds [integer]
+.sp
+The maximum time to wait for the resource to reach the lifecycle state defined by \-\-wait\-for\-state. Defaults to 1200 seconds.
+.SS \-\-wait\-interval\-seconds [integer]
+.sp
+Check every \-\-wait\-interval\-seconds to see whether the resource to see if it has reached the lifecycle state defined by \-\-wait\-for\-state. Defaults to 30 seconds.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS get
+.SS Description
+.sp
+Returns the specified job along with the job details.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager job get [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-job\-id [text]
+.sp
+The job OCID. [required]
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS get\-job\-logs
+.SS Description
+.sp
+Returns log entries for the specified job in JSON format.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager job get\-job\-logs [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-job\-id [text]
+.sp
+The job OCID. [required]
+.SS \-\-type [TERRAFORM_CONSOLE]
+.sp
+A filter that returns only logs of a specified type.
+.SS \-\-level\-greater\-than\-or\-equal\-to [TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+.sp
+A filter that returns only log entries that match a given severity level or greater.
+.SS \-\-sort\-order [ASC|DESC]
+.sp
+The sort order, either \fIASC\fP (ascending) or \fIDESC\fP (descending).
+.SS \-\-limit [integer]
+.sp
+The number of items returned in a paginated \fIList\fP call. For information about pagination, see \fI\%List Pagination\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/API/Concepts/usingapi.htm#nine\fP>\&.
+.SS \-\-page [text]
+.sp
+The value of the \fIopc\-next\-page\fP response header from the preceding \fIList\fP call. For information about pagination, see \fI\%List Pagination\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/API/Concepts/usingapi.htm#nine\fP>\&.
+.SS \-\-timestamp\-greater\-than\-or\-equal\-to [datetime]
+.sp
+Time stamp specifying the lower time limit for which logs are returned in a query.
+.sp
+The following datetime formats are supported:
+.SS UTC with milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ss.sssTZD
+.sp
+Example: 2017\-09\-15T20:30:00.123Z
+.SS UTC without milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example: 2017\-09\-15T20:30:00Z
+.SS UTC with minute precision
+.sp
+Format: YYYY\-MM\-DDTHH:mmTZD
+.sp
+Example: 2017\-09\-15T20:30Z
+.SS Timezone with milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example:
+2017\-09\-15T12:30:00.456\-08:00,
+2017\-09\-15T12:30:00.456\-0800
+.SS Timezone without milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example:
+2017\-09\-15T12:30:00\-08:00,
+2017\-09\-15T12:30:00\-0800
+.SS Timezone with minute precision
+.sp
+Format: YYYY\-MM\-DDTHH:mmTZD
+.sp
+Example:
+2017\-09\-15T12:30\-08:00,
+2017\-09\-15T12:30\-0800
+.SS Short date and time
+.sp
+The timezone for this date and time will be taken as UTC (Needs to be surrounded by single or double quotes)
+Format: \(aqYYYY\-MM\-DD HH:mm\(aq or "YYYY\-MM\-DD HH:mm"
+Example: \(aq2017\-09\-15 17:25\(aq
+.SS Date Only
+.sp
+This date will be taken as midnight UTC of that day
+.sp
+Format: YYYY\-MM\-DD
+.sp
+Example: 2017\-09\-15
+.SS Epoch seconds
+.sp
+Example: 1412195400
+.SS \-\-timestamp\-less\-than\-or\-equal\-to [datetime]
+.sp
+Time stamp specifying the upper time limit for which logs are returned in a query.
+.sp
+The following datetime formats are supported:
+.SS UTC with milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ss.sssTZD
+.sp
+Example: 2017\-09\-15T20:30:00.123Z
+.SS UTC without milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example: 2017\-09\-15T20:30:00Z
+.SS UTC with minute precision
+.sp
+Format: YYYY\-MM\-DDTHH:mmTZD
+.sp
+Example: 2017\-09\-15T20:30Z
+.SS Timezone with milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example:
+2017\-09\-15T12:30:00.456\-08:00,
+2017\-09\-15T12:30:00.456\-0800
+.SS Timezone without milliseconds
+.sp
+Format: YYYY\-MM\-DDTHH:mm:ssTZD
+.sp
+Example:
+2017\-09\-15T12:30:00\-08:00,
+2017\-09\-15T12:30:00\-0800
+.SS Timezone with minute precision
+.sp
+Format: YYYY\-MM\-DDTHH:mmTZD
+.sp
+Example:
+2017\-09\-15T12:30\-08:00,
+2017\-09\-15T12:30\-0800
+.SS Short date and time
+.sp
+The timezone for this date and time will be taken as UTC (Needs to be surrounded by single or double quotes)
+Format: \(aqYYYY\-MM\-DD HH:mm\(aq or "YYYY\-MM\-DD HH:mm"
+Example: \(aq2017\-09\-15 17:25\(aq
+.SS Date Only
+.sp
+This date will be taken as midnight UTC of that day
+.sp
+Format: YYYY\-MM\-DD
+.sp
+Example: 2017\-09\-15
+.SS Epoch seconds
+.sp
+Example: 1412195400
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS get\-job\-logs\-content
+.SS Description
+.sp
+Returns raw log file for the specified job in text format. Returns a maximum of 100,000 log entries.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager job get\-job\-logs\-content [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-job\-id [text]
+.sp
+The job OCID. [required]
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS get\-job\-tf\-config
+.SS Description
+.sp
+Returns the Terraform configuration file for the specified job in .zip format. Returns an error if no zip file is found.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager job get\-job\-tf\-config [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-job\-id [text]
+.sp
+The job OCID. [required]
+.SS \-\-file [filename]
+.sp
+The name of the file that will receive the response data, or \(aq\-\(aq to write to STDOUT. [required]
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS get\-job\-tf\-state
+.SS Description
+.sp
+Returns the Terraform state for the specified job.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager job get\-job\-tf\-state [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-job\-id [text]
+.sp
+The job OCID. [required]
+.SS \-\-file [filename]
+.sp
+The name of the file that will receive the response data, or \(aq\-\(aq to write to STDOUT. [required]
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS list
+.SS Description
+.sp
+Returns a list of jobs in a stack or compartment, ordered by time created.
+.INDENT 0.0
+.IP \(bu 2
+To list all jobs in a stack, provide the stack OCID. \- To list all jobs in a compartment, provide the compartment OCID. \- To return a specific job, provide the job OCID.
+.UNINDENT
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager job list [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-compartment\-id, \-c [text]
+.sp
+The compartment OCID on which to filter.
+.SS \-\-stack\-id [text]
+.sp
+The stack OCID on which to filter.
+.SS \-\-id [text]
+.sp
+The OCID on which to query for jobs.
+.SS \-\-lifecycle\-state [ACCEPTED|IN_PROGRESS|FAILED|SUCCEEDED|CANCELING|CANCELED]
+.sp
+A filter that returns all resources that match the specified lifecycle state. The state value is case\-insensitive.
+.sp
+Allowable values: \- ACCEPTED \- IN_PROGRESS \- FAILED \- SUCCEEDED \- CANCELING \- CANCELED
+.SS \-\-display\-name [text]
+.sp
+Display name on which to query.
+.SS \-\-sort\-by [TIMECREATED|DISPLAYNAME]
+.sp
+Specifies the field on which to sort. By default, \fITIMECREATED\fP is ordered descending. By default, \fIDISPLAYNAME\fP is ordered ascending. Note that you can sort only on one field.
+.SS \-\-sort\-order [ASC|DESC]
+.sp
+The sort order, either \fIASC\fP (ascending) or \fIDESC\fP (descending).
+.SS \-\-limit [integer]
+.sp
+The number of items returned in a paginated \fIList\fP call. For information about pagination, see \fI\%List Pagination\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/API/Concepts/usingapi.htm#nine\fP>\&.
+.SS \-\-page [text]
+.sp
+The value of the \fIopc\-next\-page\fP response header from the preceding \fIList\fP call. For information about pagination, see \fI\%List Pagination\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/API/Concepts/usingapi.htm#nine\fP>\&.
+.SS \-\-all
+.sp
+Fetches all pages of results. If you provide this option, then you cannot provide the \-\-limit option.
+.SS \-\-page\-size [integer]
+.sp
+When fetching results, the number of results to fetch per call. Only valid when used with \-\-all or \-\-limit, and ignored otherwise.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS update
+.SS Description
+.sp
+Updates the specified job.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager job update [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-job\-id [text]
+.sp
+The job OCID. [required]
+.SS \-\-display\-name [text]
+.sp
+The new display name to set.
+.SS \-\-freeform\-tags [complex type]
+.sp
+Free\-form tags associated with this resource. Each tag is a key\-value pair with no predefined name, type, or namespace. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/General/Concepts/resourcetags.htm\fP>\&. Example: \fI{"Department": "Finance"}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-defined\-tags [complex type]
+.sp
+Defined tags for this resource. Each key is predefined and scoped to a namespace. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/General/Concepts/resourcetags.htm\fP>\&. Example: \fI{"Operations": {"CostCenter": "42"}}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-if\-match [text]
+.sp
+For optimistic concurrency control. In the \fIPUT\fP or \fIDELETE\fP call for a resource, set the \fIif\-match\fP parameter to the value of the etag from a previous \fIGET\fP or \fIPOST\fP response for that resource.  The resource will be updated or deleted only if the etag you provide matches the resource\(aqs current etag value.
+.SS \-\-force
+.sp
+Perform update without prompting for confirmation.
+.SS \-\-wait\-for\-state [ACCEPTED|IN_PROGRESS|FAILED|SUCCEEDED|CANCELING|CANCELED]
+.sp
+This operation creates, modifies or deletes a resource that has a defined lifecycle state. Specify this option to perform the action and then wait until the resource reaches a given lifecycle state. If timeout is reached, a return code of 2 is returned. For any other error, a return code of 1 is returned.
+.SS \-\-max\-wait\-seconds [integer]
+.sp
+The maximum time to wait for the resource to reach the lifecycle state defined by \-\-wait\-for\-state. Defaults to 1200 seconds.
+.SS \-\-wait\-interval\-seconds [integer]
+.sp
+Check every \-\-wait\-interval\-seconds to see whether the resource to see if it has reached the lifecycle state defined by \-\-wait\-for\-state. Defaults to 30 seconds.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS stack
+.SS Description
+.sp
+The stack object. Stacks represent definitions of groups of Oracle Cloud Infrastructure resources that you can act upon as a group. You take action on stacks by using jobs.
+.SS Available Commands
+.INDENT 0.0
+.IP \(bu 2
+create
+.IP \(bu 2
+delete
+.IP \(bu 2
+get
+.IP \(bu 2
+get\-stack\-tf\-config
+.IP \(bu 2
+list
+.IP \(bu 2
+update
+.UNINDENT
+.SS create
+.SS Description
+.sp
+Creates a Stack
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager stack create [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-compartment\-id, \-c [text]
+.sp
+Unique identifier (OCID) of the compartment in which the stack resides. [required]
+.SS \-\-display\-name [text]
+.sp
+The stack\(aqs display name.
+.SS \-\-description [text]
+.sp
+Description of the stack.
+.SS \-\-variables [complex type]
+.sp
+Terraform variables associated with this resource. Maximum number of variables supported is 100. The maximum size of each variable, including both name and value, is 4096 bytes. Example: \fI{"CompartmentId": "compartment\-id\-value"}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-freeform\-tags [complex type]
+.sp
+Free\-form tags associated with this resource. Each tag is a simple key\-value pair with no predefined name, type, or namespace. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/General/Concepts/resourcetags.htm\fP>\&. Example: \fI{"Department": "Finance"}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-defined\-tags [complex type]
+.sp
+Defined tags associated with this resource. Each key is predefined and scoped to a namespace. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/General/Concepts/resourcetags.htm\fP>\&. Example: \fI{"Operations": {"CostCenter": "42"}}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-wait\-for\-state [CREATING|ACTIVE|DELETING|DELETED]
+.sp
+This operation creates, modifies or deletes a resource that has a defined lifecycle state. Specify this option to perform the action and then wait until the resource reaches a given lifecycle state. If timeout is reached, a return code of 2 is returned. For any other error, a return code of 1 is returned.
+.SS \-\-max\-wait\-seconds [integer]
+.sp
+The maximum time to wait for the resource to reach the lifecycle state defined by \-\-wait\-for\-state. Defaults to 1200 seconds.
+.SS \-\-wait\-interval\-seconds [integer]
+.sp
+Check every \-\-wait\-interval\-seconds to see whether the resource to see if it has reached the lifecycle state defined by \-\-wait\-for\-state. Defaults to 30 seconds.
+.SS \-\-config\-source [text]
+.sp
+A Terraform configuration .zip file. [required]
+.SS \-\-working\-directory [text]
+.sp
+The path of the directory from which to run terraform. If not specified the root will be used.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS delete
+.SS Description
+.sp
+Deletes the specified stack object.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager stack delete [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stack\-id [text]
+.sp
+The stack OCID. [required]
+.SS \-\-if\-match [text]
+.sp
+For optimistic concurrency control. In the \fIPUT\fP or \fIDELETE\fP call for a resource, set the \fIif\-match\fP parameter to the value of the etag from a previous \fIGET\fP or \fIPOST\fP response for that resource.  The resource will be updated or deleted only if the etag you provide matches the resource\(aqs current etag value.
+.SS \-\-force
+.sp
+Perform deletion without prompting for confirmation.
+.SS \-\-wait\-for\-state [CREATING|ACTIVE|DELETING|DELETED]
+.sp
+This operation creates, modifies or deletes a resource that has a defined lifecycle state. Specify this option to perform the action and then wait until the resource reaches a given lifecycle state. If timeout is reached, a return code of 2 is returned. For any other error, a return code of 1 is returned.
+.SS \-\-max\-wait\-seconds [integer]
+.sp
+The maximum time to wait for the resource to reach the lifecycle state defined by \-\-wait\-for\-state. Defaults to 1200 seconds.
+.SS \-\-wait\-interval\-seconds [integer]
+.sp
+Check every \-\-wait\-interval\-seconds to see whether the resource to see if it has reached the lifecycle state defined by \-\-wait\-for\-state. Defaults to 30 seconds.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS get
+.SS Description
+.sp
+Gets a stack using the stack ID.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager stack get [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stack\-id [text]
+.sp
+The stack OCID. [required]
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS get\-stack\-tf\-config
+.SS Description
+.sp
+Returns the Terraform configuration file in .zip format for the specified stack. Returns an error if no zip file is found.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager stack get\-stack\-tf\-config [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stack\-id [text]
+.sp
+The stack OCID. [required]
+.SS \-\-file [filename]
+.sp
+The name of the file that will receive the response data, or \(aq\-\(aq to write to STDOUT. [required]
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS list
+.SS Description
+.sp
+Returns a list of stacks. \- If called using the compartment ID, returns all stacks in the specified compartment. \- If called using the stack ID, returns the specified stack.
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager stack list [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-compartment\-id, \-c [text]
+.sp
+The compartment OCID on which to filter.
+.SS \-\-id [text]
+.sp
+The OCID on which to query for a stack.
+.SS \-\-lifecycle\-state [CREATING|ACTIVE|DELETING|DELETED]
+.sp
+A filter that returns only those resources that match the specified lifecycle state. The state value is case\-insensitive.
+.sp
+Allowable values: \- CREATING \- ACTIVE \- DELETING \- DELETED
+.SS \-\-display\-name [text]
+.sp
+Display name on which to query.
+.SS \-\-sort\-by [TIMECREATED|DISPLAYNAME]
+.sp
+Specifies the field on which to sort. By default, \fITIMECREATED\fP is ordered descending. By default, \fIDISPLAYNAME\fP is ordered ascending. Note that you can sort only on one field.
+.SS \-\-sort\-order [ASC|DESC]
+.sp
+The sort order, either \fIASC\fP (ascending) or \fIDESC\fP (descending).
+.SS \-\-limit [integer]
+.sp
+The number of items returned in a paginated \fIList\fP call. For information about pagination, see \fI\%List Pagination\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/API/Concepts/usingapi.htm#nine\fP>\&.
+.SS \-\-page [text]
+.sp
+The value of the \fIopc\-next\-page\fP response header from the preceding \fIList\fP call. For information about pagination, see \fI\%List Pagination\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/API/Concepts/usingapi.htm#nine\fP>\&.
+.SS \-\-all
+.sp
+Fetches all pages of results. If you provide this option, then you cannot provide the \-\-limit option.
+.SS \-\-page\-size [integer]
+.sp
+When fetching results, the number of results to fetch per call. Only valid when used with \-\-all or \-\-limit, and ignored otherwise.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SS update
+.SS Description
+.sp
+Update the Stack object
+.SS Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+oci resource\-manager stack update [OPTIONS]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Options
+.SS \-\-stack\-id [text]
+.sp
+The stack OCID. [required]
+.SS \-\-display\-name [text]
+.sp
+The name of the stack.
+.SS \-\-description [text]
+.sp
+Description of the stack.
+.SS \-\-variables [complex type]
+.sp
+Terraform variables associated with this resource. The maximum number of variables supported is 100. The maximum size of each variable, including both name and value, is 4096 bytes. Example: \fI{"CompartmentId": "compartment\-id\-value"}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-freeform\-tags [complex type]
+.sp
+Free\-form tags associated with this resource. Each tag is a simple key\-value pair with no predefined name, type, or namespace. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/General/Concepts/resourcetags.htm\fP>\&. Example: \fI{"Department": "Finance"}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-defined\-tags [complex type]
+.sp
+Defined tags for this resource. Each key is predefined and scoped to a namespace. For more information, see \fI\%Resource Tags\fP <\fBhttps://docs.cloud.oracle.com/iaas/Content/General/Concepts/resourcetags.htm\fP>\&. Example: \fI{"Operations": {"CostCenter": "42"}}\fP
+This is a complex type whose value must be valid JSON. The value can be provided as a string on the command line or passed in as a file using
+the \fI\%file://path/to/file\fP syntax.
+.sp
+The \-\-generate\-param\-json\-input option can be used to generate an example of the JSON which must be provided. We recommend storing this example
+in a file, modifying it as needed and then passing it back in via the \fI\%file://\fP syntax.
+.SS \-\-if\-match [text]
+.sp
+For optimistic concurrency control. In the \fIPUT\fP or \fIDELETE\fP call for a resource, set the \fIif\-match\fP parameter to the value of the etag from a previous \fIGET\fP or \fIPOST\fP response for that resource.  The resource will be updated or deleted only if the etag you provide matches the resource\(aqs current etag value.
+.SS \-\-force
+.sp
+Perform update without prompting for confirmation.
+.SS \-\-wait\-for\-state [CREATING|ACTIVE|DELETING|DELETED]
+.sp
+This operation creates, modifies or deletes a resource that has a defined lifecycle state. Specify this option to perform the action and then wait until the resource reaches a given lifecycle state. If timeout is reached, a return code of 2 is returned. For any other error, a return code of 1 is returned.
+.SS \-\-max\-wait\-seconds [integer]
+.sp
+The maximum time to wait for the resource to reach the lifecycle state defined by \-\-wait\-for\-state. Defaults to 1200 seconds.
+.SS \-\-wait\-interval\-seconds [integer]
+.sp
+Check every \-\-wait\-interval\-seconds to see whether the resource to see if it has reached the lifecycle state defined by \-\-wait\-for\-state. Defaults to 30 seconds.
+.SS \-\-config\-source [text]
+.sp
+A Terraform configuration .zip file.
+.SS \-\-working\-directory [text]
+.sp
+The path of the directory from which to run terraform. If not specified the root will be used.
+.SS \-\-from\-json [text]
+.sp
+Provide input to this command as a JSON document from a file using the \fI\%file://path\-to/file\fP syntax.
+.sp
+The \-\-generate\-full\-command\-json\-input option can be used to generate a sample json file to be used with this command option. The key names are pre\-populated and match the command option names (converted to camelCase format, e.g. compartment\-id \-\-> compartmentId), while the values of the keys need to be populated by the user before using the sample file as an input to this command. For any command option that accepts multiple values, the value of the key can be a JSON array.
+.sp
+Options can still be provided on the command line. If an option exists in both the JSON document and the command line then the command line specified value will be used.
+.sp
+For examples on usage of this option, please see our "using CLI with advanced JSON options" link: \fI\%https://docs.cloud.oracle.com/iaas/Content/API/SDKDocs/cliusing.htm#AdvancedJSONOptions\fP
+.SS \-?, \-h, \-\-help
+.sp
+For detailed help on any of these individual commands, enter <command> \-\-help.
+.SH AUTHOR
+Oracle
+.SH COPYRIGHT
+2016, 2019, Oracle
+.\" Generated by docutils manpage writer.
+.
