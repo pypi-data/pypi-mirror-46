@@ -1,0 +1,72 @@
+- model: auth.user
+  pk: 1
+  fields:
+    username: author@example.org
+    first_name: Author
+    email: author@example.org
+    password: pbkdf2_sha256$36000$ecPczOo2GtrM$nzTODWfJmSJJixZC9dByTueTEkjm89MJq0So36Wbl9U=
+    is_superuser: true
+    is_staff: true
+    is_active: true
+- model: tests.article
+  pk: too_many
+  fields:
+    author: 1
+    title: Why are there so many blog demos
+    content: There are just too many
+    created_at: 2000-1-1
+- model: tests.subscriber
+  pk: 1
+  fields:
+    name: Subscriber
+    email: subscriber@example.org
+- model: django_vox.template
+  pk: 1
+  fields:
+    notification: [tests, article, created]
+    backend: email
+    content: "{% block html_body %}<p>Hi {{ recipient.name }},</p>
+      <p>A new article, <a href='http://127.0.0.1:8000/{{ object.pk }}/?token={{
+      recipient.get_token | urlencode }}'>{{ content }}</a>, has been
+      published at the awesome blog.</p>{% endblock %}"
+    recipients: c:sub
+    enabled: true
+    bulk: false
+- model: django_vox.template
+  pk: 2
+  fields:
+    notification: [tests, comment, created]
+    backend: email
+    content: "{% block html_body %}<p>Hi {{ recipient.name }},</p>\r\n
+      <p>{{ object.poster.name }} has posted a comment on your article <a
+      href='http://127.0.0.1:8000/{{ object.article.pk }}/'>{{
+      object.article }}</a>. Go check it out!</p>{% endblock %}"
+    recipients: c:poster
+    enabled: true
+- model: django_vox.template
+  pk: 3
+  fields:
+    notification: [tests, subscriber, created]
+    backend: email
+    content: "A new subscriber {{ object }} has been added on the blog"
+    recipients: si
+    enabled: true
+    bulk: false
+- model: django_vox.templateattachment
+  pk: 1
+  fields:
+    template: 1
+    key: object.author.vcard
+- model: django_vox.sitecontact
+  pk: 1
+  fields:
+    name: admin
+    protocol: email
+    address: admin@example.org
+- model: django_vox.sitecontactsetting
+  pk: 1
+  fields:
+    site_contact: 1
+    notification: [tests, subscriber, created]
+    enabled: true
+
