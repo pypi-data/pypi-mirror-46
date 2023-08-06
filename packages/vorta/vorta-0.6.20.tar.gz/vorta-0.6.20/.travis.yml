@@ -1,0 +1,98 @@
+language: generic
+sudo: required
+dist: xenial
+
+addons:
+  apt:
+    packages:
+    - xvfb
+    - herbstluftwm
+    - libssl-dev
+    - openssl
+    - libacl1-dev
+    - libacl1
+    - build-essential
+    - libxkbcommon-x11-0
+  homebrew:
+    update: false
+    packages:
+    - openssl
+    - readline
+    - xz
+    - pyenv
+    - pyenv-virtualenv
+    casks:
+    - xquartz
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.pyenv/versions
+    - $HOME/Library/Caches/Homebrew
+
+env:
+  global:
+  - SETUP_XVFB=true
+  - PYTHON36=3.6.3
+  - PYTHON37=3.7.1
+
+matrix:
+  include:
+  - os: linux
+    dist: xenial
+    env:
+      - RUN_PYINSTALLER=true
+  - os: osx
+    env:
+      - RUN_PYINSTALLER=true
+
+install:
+- |
+  if [ $TRAVIS_OS_NAME = "linux" ]; then
+    export DISPLAY=:99.0
+    /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX +render -noreset
+    sleep 3
+  elif [ $TRAVIS_OS_NAME = "osx" ]; then
+    brew upgrade pyenv
+  fi
+  pyenv install -s $PYTHON37
+  pyenv install -s $PYTHON36
+  eval "$(pyenv init -)"
+  pyenv shell $PYTHON36 $PYTHON37
+
+- pip install -U setuptools pip==18.1
+- pip install .
+- pip install borgbackup
+- pip install -r requirements.d/dev.txt
+
+before_script:
+- if [ $TRAVIS_OS_NAME = "linux" ]; then (herbstluftwm)& fi
+- sleep 3
+
+script:
+- tox
+
+#after_script:
+#- |
+#  if [ $RUN_PYINSTALLER = "true" ]; then
+#    # Cleanup
+#    pip uninstall -y $PIP_DEPENDENCIES
+#
+#    # https://github.com/wkentaro/labelme/issues/183
+#    if [ $TRAVIS_OS_NAME = "osx" ]; then
+#      pip uninstall -y Pillow
+#      conda install -y Pillow
+#    fi
+#
+#    # Build the standalone executable
+#    pip install pyinstaller
+#    pyinstaller labelme.spec
+#    dist/labelme --version
+#  fi
+
+branches:
+  only:
+  - master
+
+notifications:
+  email: false
