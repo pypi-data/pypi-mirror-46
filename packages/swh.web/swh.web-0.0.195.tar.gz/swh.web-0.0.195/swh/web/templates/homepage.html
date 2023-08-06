@@ -1,0 +1,121 @@
+{% extends "layout.html" %}
+
+{% comment %}
+Copyright (C) 2017-2018  The Software Heritage developers
+See the AUTHORS file at the top-level directory of this distribution
+License: GNU Affero General Public License version 3, or any later version
+See top-level LICENSE file for more information
+{% endcomment %}
+
+{% load static %}
+
+{% block title %}Welcome to the Software Heritage archive{% endblock %}
+
+{% block navbar-content %}
+
+<h4>Welcome to the Software Heritage archive</h4>
+
+{% endblock %}
+
+{% block content %}
+
+<h4>Overview</h4>
+
+<p>
+  The long term goal of the Software Heritage initiative is to <strong>collect</strong>
+  all publicly available software in source code form together with its
+  development history, replicate it massively to ensure its <strong>preservation</strong>,
+  and <strong>share</strong> it with everyone who needs it.
+
+  The Software Heritage archive is growing over time as we crawl new source code from software
+  projects and development forges. We will incrementally release archive search
+  and browse functionalities — as of now you can check whether source code you care
+  about is already present in the archive or not.
+</p>
+
+<h4>Content</h4>
+
+<p>
+  A significant amount of source code has already been ingested in the Software Heritage
+  archive. It currently includes:
+</p>
+<iframe class="swh-coverage-list" src="{% url 'swh-coverage' %}"></iframe>
+
+<h4>Size</h4>
+
+<p>
+  As of today the archive already contains and keeps safe for you the following amount
+  of objects:
+
+  <div class="row">
+    <div class="col-md-2" align="center">
+      <h5>Source files</h5>
+      <span id="nb-files" class="swh-counter"></span>
+    </div>
+    <div class="col-md-2" align="center">
+      <h5>Directories</h5>
+        <span id="nb-dirs" class="swh-counter"></span>
+      </div>
+    <div class="col-md-2" align="center">
+      <h5>Commits</h5>
+      <span id="nb-commits" class="swh-counter"></span>
+    </div>
+    <div class="col-md-2" align="center">
+      <h5>Authors</h5>
+      <span id="nb-authors" class="swh-counter"></span>
+    </div>
+    <div class="col-md-2" align="center">
+      <h5>Projects</h5>
+      <span id="nb-projects" class="swh-counter"></span>
+    </div>
+    <div class="col-md-2" align="center">
+      <h5>Releases</h5>
+      <span id="nb-releases" class="swh-counter"></span>
+    </div>
+  </div>
+</p>
+
+<h4>Access</h4>
+
+<p>
+  <div class="row">
+    <div class="col-md-3" align="center"></div>
+    <div class="col-md-3 swh-web-app-link" align="center">
+      <a href="{% url 'browse-search' %}">
+        <img alt="Browse the Software Heritage archive" src="{% static 'img/swh-browse.png' %}"/>
+        <h5>Browse</h5>
+        <p>Explore the archive using a dedicated web interface.</p>
+      </a>
+    </div>
+    <div class="col-md-3 swh-web-app-link" align="center">
+      <a href="{% url 'api-homepage' %}">
+        <img id="swh-web-api-img" alt="Software Heritage Web API" src="{% static 'img/swh-api.png' %}"/>
+        <h5>Web API</h5>
+        <p>Query the archive programmatically using a RESTful API.</p>
+      </a>
+    </div>
+    <div class="col-md-3" align="center"></div>
+  </div>
+</p>
+
+<script>
+  $(document).ready(function() {
+    $.ajax({
+      url: Urls.api_stat_counters(),
+      dataType: 'json',
+      success: function (data) {
+        if (data.content) {
+          $('#nb-files').html(data.content.toLocaleString());
+          $('#nb-commits').html(data.revision.toLocaleString());
+          $('#nb-projects').html(data.origin.toLocaleString());
+          $('#nb-dirs').html(data.directory.toLocaleString());
+          $('#nb-authors').html(data.person.toLocaleString());
+          $('#nb-releases').html(data.release.toLocaleString());
+        }
+      }
+    });
+    $('.swh-coverage-list').iFrameResize({heightCalculationMethod: 'taggedElement'});
+  });
+  swh.webapp.initPage('home');
+</script>
+{% endblock %}
