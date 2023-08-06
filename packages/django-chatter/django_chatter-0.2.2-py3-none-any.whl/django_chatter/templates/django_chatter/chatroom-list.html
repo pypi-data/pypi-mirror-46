@@ -1,0 +1,46 @@
+<!--AI==========================================================
+	This template displays the chat room list in every page
+	that inherits in. The rooms_list variable is universal
+	as it is created by chat/context_processors.py file.
+===========================================================AI-->
+
+
+{% load static %}
+<link rel = "stylesheet" href = "{% static 'css/chatroom-list.css' %}">
+
+<!--AI==========================================================
+	The following div describes the Search bar to search
+	for users as well as the name of the chatroom.
+	===========================================================AI-->
+
+	<div class="search">
+		{% csrf_token %}
+		<input id = "searchbar" placeholder = "Username"></input>
+		<button id = "user-selected">Go</button><br />
+	</div>
+
+<!--AI==========================================================
+	The following block represents the list of chatrooms at the left
+===========================================================AI-->
+<div class = "chatroom-list">
+	{% for room in rooms_list %}
+		<a class="chat-link list-room" id='{{room.id}}'
+			href="{% url 'django_chatter:chatroom' uuid=room.id %}">
+			{% if room.id in rooms_with_unread %}
+			<div style='font-weight: bold;' class = 'chat-list-item'>
+			{% else %}
+			<div class='chat-list-item'>
+			{% endif %}
+				{{room}}
+			</div>
+		</a>
+
+	{% endfor %}
+</div>
+
+<script>
+	var get_user_url = '{% url "django_chatter:users_list" %}';
+	var get_chat_url = '{% url "django_chatter:get_chat_url" %}';
+	var chatter_index = '{% url "django_chatter:index" %}';
+</script>
+<script src = "{% static 'js/searchuser.js' %}"></script>
