@@ -1,0 +1,30 @@
+<!-- wp:heading  -->
+<h2 id="packages">Packages</h2>
+<!-- /wp:heading -->
+
+<!-- wp:list -->
+
+<ul>{% for pkg_type, pkg_url in distributions.items() -%}
+{% if pkg_type != 'fs' %}<li> <strong>{{pkg_type}}</strong>
+        <a href="{{pkg_url}}">{{pkg_url}}</a></li>{% endif %}
+{%- endfor %}</ul>
+
+<!-- /wp:list -->
+
+{% if distributions.zip  or distributions.csv %}
+<!-- wp:heading  {"level":3} -->
+<h3 id="metapack">Accessing Packages in Metapack</h3>
+<!-- /wp:heading -->
+<!-- wp:code -->
+<pre class="wp-block-code"><code>import metapack as mp
+{% if distributions.zip %}# ZIP Package
+pkg = mp.open_package('{{distributions.zip}}'){% endif %}
+{% if distributions.csv %}# CSV Package
+pkg = mp.open_package('{{distributions.csv}}') {% endif %}
+
+resource = pkg.resource('resource_name') # Get a resource
+df = resource.dataframe() # Create a pandas Dataframe
+gdf = resource.geoframe() # Create a GeoPandas GeoDataFrame
+</code></pre>
+<!-- /wp:code -->
+{%- endif %}
