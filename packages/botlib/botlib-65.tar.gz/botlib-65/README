@@ -1,0 +1,153 @@
+R E A D M E
+###########
+
+
+
+BOTLIB is a pure python3 framework to program bots (a botlib), provides an IRC bot to use and is extendible by programming your own commands. 
+Basic functionality is a RSS feed fetcher you can use to display feeds into your channel. 
+BOTLIB uses a timestamped, type in filename, JSON stringified, files on filesystem backend and has timed based logging capabilities.
+BOTLIB has been placed in the Public Domain and contains no copyright or LICENSE.
+
+
+
+I N S T A L L
+=============
+
+
+you can fetch BOTLIB from the following:
+
+ https://pypi.org/project/botlib | http://bitbucket.org/bthate/botlib 
+
+
+if you need BOTLIB to have access to your local directory use this: 
+
+ > export PYTHONPATH="."
+
+this will add your current directory to the pythonpath so the packages in it 
+can be found by BOTLIB.
+
+installation is through pypi:
+
+ > sudo pip3 install botlib
+
+you can also run the bot from the tarball at pypi and run it directly or 
+install with setup.py:
+
+ > python3 setup.py install --user
+
+
+
+C O N F I G U R A T I O N
+=========================
+
+
+BOTLIB includes one program, the bot shell:
+
+ > bot [-m mod1,mod2] command
+ 
+to connect to irc use the -m bot.irc option.
+
+ > bot -m bot.irc -s irc.freenode.net -c \#dunkbots -n botzi -z
+
+to use the bot as a rss feed reader, add a feed url with the rss command:
+
+ > bot rss https://www.reddit.com/r/Python/new/.rss
+
+and start the bot with the rss module loaded
+
+ > bot -m bot.rss -z
+
+this will start a fetcher that will display the feed you have entered on your channel.
+
+
+
+E D I T
+=======
+
+
+use the ed command to edit BOTLIB objects:
+
+ > bot ed obj.base.Cfg shell=False
+
+
+
+P R O G R A M M I N G
+=====================
+
+
+
+programming your own commands is easy, your can load modules with the -m option.
+if you create a mods directory and put your hello.py module in it, you would use:
+
+ > bot -m mods
+
+any command you have coded in hello.py would be available, see the `show cmds` command.
+
+ > bot show cmds
+
+a command is a function with one argument, the event that was generated on the bot.
+
+example:
+
+ def mycmd(event): 
+     <your code here>
+
+you can use event.reply() to send response back to the user:
+
+ def hello(event): 
+    event.reply("hello %s" % event.nick)
+
+after starting bot with -m mods, you see the hello command added to the bot:
+
+ > bot s cmds
+
+ ed,find,hello,ps,rm,show,stop,undel
+
+
+
+O B J
+=====
+
+
+
+.. autosummary::
+    :toctree: code
+    :template: module.rst
+
+    obj.base
+    obj.clock
+    obj.cmds
+    obj.command
+    obj.handler
+    obj.loader
+    obj.shell
+    obj.store
+    obj.tasks
+    obj.utils
+
+
+B O T
+=====
+
+
+.. autosummary::
+    :toctree: code
+    :template: module.rst
+
+    bot                          - bot class.
+    bot.entry			 - basic entry commands.
+    bot.event			 - basic bot event.
+    bot.fleet                    - list of bots.
+    bot.irc                      - IRC bot.
+    bot.kernel                   - main select loop.
+    bot.users                    - manage users.
+
+
+
+
+H A V E   F U N
+===============
+
+enjoy the coding ! ;]
+
+bthate@dds.nl | botfather on #dunkbots at irc.freenode.net | xmpp: bart@xmpp.fi
