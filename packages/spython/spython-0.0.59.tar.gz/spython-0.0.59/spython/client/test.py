@@ -1,0 +1,18 @@
+
+# Copyright (C) 2017-2018 Vanessa Sochat.
+
+# This Source Code Form is subject to the terms of the
+# Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed
+# with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+
+from spython.logger import bot
+from spython.utils import check_install
+import sys
+import os
+
+
+def main(args, options, parser):
+    print('TBA, additional tests for Singularity containers.')
+    print('What would you like to see? Let us know!')
+    print('https://www.github.com/singularityhub/singularity-cli/issues')
