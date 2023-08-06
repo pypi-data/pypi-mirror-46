@@ -1,0 +1,12 @@
+BR = {"name": "BR", "service_platfrom": "BR1", "url": "br1.api.riotgames.com"}
+EUNE = {"name": "EUNE", "service_platfrom": "EUN1", "url": "eun1.api.riotgames.com"}
+EUW = {"name": "EUW", "service_platfrom": "EUW1", "url": "euw1.api.riotgames.com"}
+JP = {"name": "JP", "service_platfrom": "JP1", "url": "jp1.api.riotgames.com"}
+KR = {"name": "KR", "service_platfrom": "KR", "url": "kr.api.riotgames.com"}
+LAN = {"name": "LAN", "service_platfrom": "LA1", "url": "la1.api.riotgames.com"}
+LAS = {"name": "LAS", "service_platfrom": "LA2", "url": "la2.api.riotgames.com"}
+NA = {"name": "NA", "service_platfrom": "NA1, NA *", "url": "na1.api.riotgames.com"}
+OCE = {"name": "OCE", "service_platfrom": "OC1", "url": "oc1.api.riotgames.com"}
+TR = {"name": "TR", "service_platfrom": "TR1", "url": "tr1.api.riotgames.com"}
+RU = {"name": "RU", "service_platfrom": "RU", "url": "ru.api.riotgames.com"}
+PBE = {"name": "PBE", "service_platfrom": "PBE1", "url": "pbe1.api.riotgames.com"}

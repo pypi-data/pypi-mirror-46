@@ -1,0 +1,1 @@
+CLASSIC = "Classic Summoner's Rift and Twisted Treeline games"
