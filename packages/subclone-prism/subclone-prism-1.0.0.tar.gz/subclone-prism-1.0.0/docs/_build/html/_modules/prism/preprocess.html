@@ -1,0 +1,200 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>prism.preprocess &#8212; prism  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for prism.preprocess</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">cleanlog</span>
+<span class="kn">import</span> <span class="nn">prism.util</span> <span class="k">as</span> <span class="nn">util</span>
+<span class="kn">import</span> <span class="nn">prism.proofreading</span> <span class="k">as</span> <span class="nn">proofreading</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">StringIO</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">cleanlog</span><span class="o">.</span><span class="n">ColoredLogger</span><span class="p">(</span><span class="s1">&#39;preprocess&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="prefiltered"><a class="viewcode-back" href="../../source/prism.preprocess.html#prism.preprocess.prefiltered">[docs]</a><span class="k">def</span> <span class="nf">prefiltered</span><span class="p">(</span><span class="n">pattern_counter_generator</span><span class="p">,</span> <span class="n">full_pattern_proportion</span><span class="p">,</span> <span class="n">no_prefilter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generator filter for pattern counter. Used for pre-filtering patterns for the efficient execution of </span>
+<span class="sd">    in silico proofreading.</span>
+
+<span class="sd">    :param generator pattern_counter_generator: Generator for epiloci headers and their pattern counters.</span>
+<span class="sd">    :param float full_pattern_proportion: Cutoff for the proportion of fully methylated and unmethylated patterns to be retained.</span>
+<span class="sd">    :param bool no_prefilter: Whether to apply prefilter or not.</span>
+
+<span class="sd">    :returns: Yields retained epiloci headers and their pattern counts, one by one.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">no_prefilter</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">header</span><span class="p">,</span> <span class="n">pattern_counter</span> <span class="ow">in</span> <span class="n">pattern_counter_generator</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">header</span><span class="p">,</span> <span class="n">pattern_counter</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">header</span><span class="p">,</span> <span class="n">pattern_counter</span> <span class="ow">in</span> <span class="n">pattern_counter_generator</span><span class="p">:</span>
+            <span class="n">counts</span> <span class="o">=</span> <span class="n">pattern_counter</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="n">pattern1</span><span class="p">,</span> <span class="n">pattern2</span> <span class="o">=</span> <span class="n">pattern_counter</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">pattern_counter</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">2</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">util</span><span class="o">.</span><span class="n">is_fully_methylated_or_unmethylated</span><span class="p">(</span><span class="n">pattern1</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">util</span><span class="o">.</span><span class="n">is_fully_methylated_or_unmethylated</span><span class="p">(</span><span class="n">pattern2</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">pattern_counter</span><span class="p">[</span><span class="n">pattern1</span><span class="p">]</span> <span class="o">+</span> <span class="n">pattern_counter</span><span class="p">[</span><span class="n">pattern2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">total</span> <span class="o">*</span> <span class="n">full_pattern_proportion</span>
+            <span class="p">):</span>
+                <span class="k">yield</span> <span class="n">header</span><span class="p">,</span> <span class="n">pattern_counter</span></div>
+
+<div class="viewcode-block" id="param_generator"><a class="viewcode-back" href="../../source/prism.preprocess.html#prism.preprocess.param_generator">[docs]</a><span class="k">def</span> <span class="nf">param_generator</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">no_prefilter</span><span class="p">,</span> <span class="n">full_pattern_proportion</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">bisulfite_conversion_rate</span><span class="p">,</span> <span class="n">processivity</span><span class="p">,</span> <span class="n">recruitment_efficiency</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper generator that reads in the met file and generates parameters for multiprocessed execution of in silico proofreading.</span>
+
+<span class="sd">    :param string fp: File path to MET file containing extracted epiloci.</span>
+<span class="sd">    :param bool no_prefilter: Whether to apply pre-filtering.</span>
+<span class="sd">    :param float error: Expected sequencing error rate.</span>
+<span class="sd">    :param float bisulfite_conversion_rate: Expected bisulfite conversion rate of the sequencing data.</span>
+<span class="sd">    :param float processivity: Expected processivity of DNMT1.</span>
+<span class="sd">    :param float recruitment_efficiency: Expected recruitment efficieny of DNMT1.</span>
+
+<span class="sd">    :returns: Yields headers, pattern counters, and parameters for HMM.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hmm_params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;e_m&#39;</span><span class="p">:</span> <span class="n">error</span><span class="p">,</span>
+        <span class="s1">&#39;e_b&#39;</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">bisulfite_conversion_rate</span><span class="p">,</span>
+        <span class="s1">&#39;p&#39;</span><span class="p">:</span> <span class="n">processivity</span><span class="p">,</span>
+        <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">recruitment_efficiency</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">header</span><span class="p">,</span> <span class="n">pattern_counter</span> <span class="ow">in</span> <span class="n">prefiltered</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">pattern_counters_from_met</span><span class="p">(</span><span class="n">fp</span><span class="p">),</span> <span class="n">full_pattern_proportion</span><span class="p">,</span> <span class="n">no_prefilter</span><span class="p">):</span>
+        <span class="n">binary_patterns</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">pattern_counter</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">binary_patterns</span> <span class="o">+=</span> <span class="p">[</span><span class="n">pattern</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">count</span><span class="p">)]</span>
+        <span class="n">binary_patterns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">binary_patterns</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">binary_patterns</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="k">yield</span> <span class="n">header</span><span class="p">,</span> <span class="n">binary_patterns</span><span class="p">,</span> <span class="n">hmm_params</span></div>
+
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../source/prism.preprocess.html#prism.preprocess.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="n">input_fp</span><span class="p">,</span>
+    <span class="n">output_fp</span><span class="p">,</span>
+    <span class="n">no_prefilter</span><span class="p">,</span>
+    <span class="n">full_pattern_proportion</span><span class="p">,</span>
+    <span class="n">error</span><span class="p">,</span>
+    <span class="n">bisulfite_conversion_rate</span><span class="p">,</span>
+    <span class="n">processivity</span><span class="p">,</span>
+    <span class="n">recruitment_efficiency</span><span class="p">,</span>
+    <span class="n">threads</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">cleanlog</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span>  
+            <span class="n">proofreading</span><span class="o">.</span><span class="n">proofread</span><span class="p">,</span>
+            <span class="n">param_generator</span><span class="p">(</span><span class="n">input_fp</span><span class="p">,</span> <span class="n">no_prefilter</span><span class="p">,</span> <span class="n">full_pattern_proportion</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">bisulfite_conversion_rate</span><span class="p">,</span> <span class="n">processivity</span><span class="p">,</span> <span class="n">recruitment_efficiency</span><span class="p">),</span>
+            <span class="n">chunksize</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="p">))</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_fp</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outFile</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">header</span><span class="p">,</span> <span class="n">proofread_patterns</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="n">stringified_patterns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">proofread_patterns</span><span class="p">]</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span> <span class="o">+</span> <span class="n">header</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">outFile</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">stringified_patterns</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">outFile</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">prism</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/prism.html">PRISM package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Dohoon Lee.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
