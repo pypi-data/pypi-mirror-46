@@ -1,0 +1,167 @@
+#!/mnt/nfs/experiments/env/bin/python
+import json
+import os
+import sys
+import subprocess
+import socket
+import time
+import tempfile
+from gnomehat import sysinfo
+from gnomehat import server_config
+from gnomehat.file_input import read_directory_name, read_option
+
+from gnomehat.console import run
+from gnomehat.console.args import print_usage, parse_gnomehat_args
+from gnomehat.console.wizard import prompt_create_experiments_dir, load_cli_config
+
+
+# The system consists of one server process (the GUI) and many workers
+# One worker should be alive per GPU of any connected machine
+def gnomehat_start(experiments_dir):
+    # Check the webapi server, restart it if needed
+    if server_config.server_ok(experiments_dir):
+        print('Host: Nothing to do, server is already running')
+    else:
+        run_web_server(experiments_dir)
+
+    # Restart the websocket server
+    print('Starting websocket service...')
+    run_websocket_server(experiments_dir)
+
+    # HACK: kill and restart all the workers
+    # TODO: proper daemonization, maybe supervisord, maybe upstart?
+    print('Killing all workers...')
+    os.system('pkill -f gnomehat_worker')
+    print('All workers killed, ready to relaunch.')
+
+    # For each GPU, generate a worker with CUDA_VISIBLE_DEVICES set
+    gpus = sysinfo.get_gpu_info()
+    for gpu_idx, gpu in enumerate(gpus):
+        print('Starting worker for GPU {} ({})...'.format(gpu_idx, gpu['name']))
+        run_worker(experiments_dir, gpu_idx)
+        print('Started worker for GPU {}'.format(gpu_idx))
+    print('All workers started')
+    self_check(experiments_dir)
+
+
+def self_check(experiments_dir):
+    print('GnomeHat running self-check...')
+    time.sleep(2)  # Ensure Flask app has plenty of time to initialize
+    config = server_config.get_config(experiments_dir)
+    print('GnomeHat UI is now running at:')
+    print('\thttp://{}:{}'.format(config['GNOMEHAT_SERVER_HOSTNAME'], config['GNOMEHAT_PORT']))
+
+
+def run_worker(experiments_dir, gpu_idx):
+    # HACK: nohup with output redirected instead of a proper daemon
+    # Redirect stdout and stderr to a worker log file
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_idx)
+    log_filename = '{}/worker_{}_{}.txt'.format(experiments_dir, socket.gethostname(), gpu_idx)
+    cmd = 'nohup gnomehat_worker {} >> {} 2>&1 &'.format(experiments_dir, log_filename)
+    os.system(cmd)
+
+
+def run_web_server(experiments_dir):
+    print('Starting server at {}...'.format(experiments_dir))
+    cmd = 'nohup gnomehat_server {0} > {0}/server.txt 2>&1 &'.format(experiments_dir)
+    os.system(cmd)
+    print('Server started at {}'.format(experiments_dir))
+
+
+def run_websocket_server(experiments_dir, port=8765):
+    os.system('pkill -f gnomehat_websocket')
+    cmd = 'nohup gnomehat_websocket --experiments_dir={0} --port={1} >> {0}/websocket_server.txt 2>&1 &'.format(experiments_dir, port)
+    os.system(cmd)
+    print('Spawned gnomehat_websocket on port {}'.format(port))
+
+
+def gnomehat_stop():
+    # TODO: Send a special signal maybe?
+    os.system('pkill -f gnomehat_server')
+    os.system('pkill -f gnomehat_websocket')
+    os.system('pkill -f gnomehat_worker')
+    # TODO: Mark jobs as cancelled so they don't stay eternally 'still running'
+
+
+def check_gpus():
+    gpus = sysinfo.get_gpu_info()
+    print('GnomeHat initializing...')
+    print('Found {} GPUs:'.format(len(gpus)))
+    for gpu in gpus:
+        print('\t{}'.format(gpu['name']))
+
+
+def gnomehat_restart_server(experiments_dir):
+    os.system('pkill -f gnomehat_server')
+    run_server(experiments_dir)
+
+
+def get_experiments_dir():
+    if len(sys.argv) == 3:
+        experiments_dir = sys.argv[2]
+    elif os.environ.get('EXPERIMENTS_DIR'):
+        experiments_dir = os.environ['EXPERIMENTS_DIR']
+    elif 'EXPERIMENTS_DIR' in load_cli_config():
+        experiments_dir = load_cli_config()['EXPERIMENTS_DIR']
+    else:
+        experiments_dir = prompt_create_experiments_dir()
+    print('Using experiments_dir: {}'.format(experiments_dir))
+    os.makedirs(experiments_dir, exist_ok=True)
+    return experiments_dir
+
+
+def gnomehat_demo(experiments_dir, demo_name):
+    TMP_DIR = tempfile.mkdtemp()
+    os.chdir(TMP_DIR)
+
+    DEMOS_GIT_URL = 'https://github.com/gnomehat'
+    clone_cmd = ['git', 'clone', '{}/{}'.format(DEMOS_GIT_URL, demo_name)]
+    subprocess.run(clone_cmd)
+    os.chdir(demo_name)
+
+    run_cmd = ['gnomehat', 'python', 'main.py']
+    subprocess.run(run_cmd)
+
+
+def gnomehat_logs(experiments_dir):
+    # todo: security lol
+    os.system('tail -f {}/*.txt'.format(experiments_dir))
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2 or '--help' in sys.argv:
+        print_usage()
+        exit(1)
+    command, argv = parse_gnomehat_args(sys.argv)
+    if command == 'start':
+        check_gpus()
+        experiments_dir = get_experiments_dir()
+        gnomehat_start(experiments_dir)
+    elif command == 'stop':
+        print('Terminating all gnomehat processes...')
+        gnomehat_stop()
+    elif command == 'restart':
+        print('Restarting...')
+        experiments_dir = get_experiments_dir()
+        gnomehat_stop()
+        gnomehat_start(experiments_dir)
+    elif command == 'status':
+        print('The following gnomehat processes are running:')
+        os.system('pgrep -a gnomehat')
+    elif command == 'restart-server':
+        experiments_dir = get_experiments_dir()
+        gnomehat_restart_server(experiments_dir)
+    elif command == 'demo':
+        experiments_dir = get_experiments_dir()
+        demo_name = sys.argv[2]
+        gnomehat_demo(experiments_dir, demo_name)
+    elif command == 'logs':
+        experiments_dir = get_experiments_dir()
+        gnomehat_logs(experiments_dir)
+    elif command == 'run':
+        options = run.parse_args(argv)
+        run.gnomehat_run(options)
+    elif command == 'python':
+        # The command 'gnomehat python train.py' is an alias for gnomehat_run
+        options = run.parse_args(['python'] + argv)
+        run.gnomehat_run(options)
