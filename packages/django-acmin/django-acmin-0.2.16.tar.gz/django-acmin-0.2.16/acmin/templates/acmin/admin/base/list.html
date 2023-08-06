@@ -1,0 +1,157 @@
+{% extends 'acmin/admin/base/template.html' %}
+{% load attr %}
+{% load truncate %}
+{% load display %}
+{% load resource %}
+{% load concat %}
+{% load define %}
+{% block breadcrumb %}
+    <ul class="breadcrumb">
+        <li><a href="#!name=/{{ model_name }}">{{ model_verbose_name }}</a></li>
+        <li class="active">列表</li>
+    </ul>
+    {% if model.class_permission.creatable %}
+        <a class="ace-icon fa fa-plus" href="#!name=/{{ model_name }}/create"> 新建</a>&nbsp;&nbsp;
+    {% endif %}
+    {% if model.class_permission.exportable %}
+        <a class="ace-icon fa fa-download" href="javascript:exportExcel();">导出</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div id="csrf-container" style="display: none;"></div>
+    {% if messages %}
+        <div class="alert alert-block alert-success" id="form-save-success">
+            {% for message in messages %}
+                <b>{{ message }}</b><br/>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <div class="row">
+        {% block pre-row %}{% endblock %}
+        <div class="col-xs-12">
+            {% if toolbar_search_form %}
+                <form class="form-inline">
+                    <span class="label label-xlg label-primary arrowed-right">层级过滤</span>
+                    {% for field in toolbar_search_form %}
+                        {{ field }}
+                    {% endfor %}
+                </form>
+                <script>
+                    {% for field in toolbar_search_form %}
+                        $('select[name="{{field.name}}"]').change(function () {
+                            updateHashParam({'{{field.name}}': $(this).val(), 'page': 1})
+                        });
+                    {% endfor %}
+                </script>
+
+            {% endif %}
+            <div class="table-responsive">
+                {% include "acmin/admin/base/paginator.html" %}
+                {% block table %}
+                    <table id="simple-table" class="table  table-bordered table-hover">
+                        <thead>
+                        {% block thead %}
+                            <tr>
+                                {% if model.class_permission.operable %}
+                                    <th>操作</th>
+                                {% endif %}
+                                {% for field in list_fields %}
+                                    <th>{{ field.verbose_name }}
+                                        {% if field.sortable %}
+                                            {% define "alert-danger" as clazz %}
+                                            {% if request.GET|attr:"sort" == "-"|concat:field.attribute %}
+                                                {% define clazz as descClass %}
+                                            {% endif %}
+                                            {% if request.GET|attr:"sort" == field.attribute %}
+                                                {% define clazz as ascClass %}
+                                            {% endif %}
+
+                                            <a href="javascript:sort('-{{ field.attribute }}')">
+                                                <small><span class='fa fa-arrow-down {{ descClass }}'></span></small>
+                                            </a>
+                                            <a href="javascript:sort('{{ field.attribute }}')">
+                                                <small><span class='fa fa-arrow-up {{ ascClass }}'></span></small>
+                                            </a>
+                                        {% endif %}
+                                    </th>
+                                {% endfor %}
+                                {% block post_th %} {% endblock %}
+                            </tr>
+                        {% endblock %}
+                        </thead>
+                        <tbody>
+                        {% block tbody %}
+                            {% if list %}
+                                {% for instance in list %}
+                                    <tr>
+                                        {% if model.class_permission.operable %}
+                                            <td>
+                                                {% block actions %}
+                                                    <div class="btn-group">
+                                                        {% if instance.instance_permission.viewable %}
+                                                            <a href="#!name=/{{ model_name }}/{{ instance.id }}/">查看</a>
+                                                        {% endif %}
+                                                        {% if instance.instance_permission.removable %}
+                                                            <a href="#!action=delete&name=/{{ model_name }}/{{ instance.id }}">删除</a>
+                                                        {% endif %}
+                                                        {% if instance.instance_permission.cloneable %}
+                                                            <a href="#!name=/{{ model_name }}/{{ instance.id }}?clone">复制</a>
+                                                        {% endif %}
+                                                        {% block extra-actions %}{% endblock %}
+                                                    </div>
+                                                {% endblock %}
+                                            </td>
+                                        {% endif %}
+                                        {% for field in list_fields %}
+                                            <td style="color:{{ instance.css_color }}">
+                                                {% block field-td %}
+                                                    {% if field.class_name and instance.instance_permission.viewable %}
+                                                        {% with id=field.attribute|add:".id" %}
+                                                            <a href="#!name=/{{ field.class_name }}/{{ instance|attr:id }}/">
+                                                                {{ instance|display:field.attribute|truncate }}
+                                                            </a>
+                                                        {% endwith %}
+                                                    {% elif field.python_type == 'django.db.models.fields.BooleanField' and field.editable and instance.instance_permission.savable %}
+                                                        <input name="{{ field.attribute }}" type="checkbox" onchange="partialUpdate('{{ model_name }}',{{ instance.id }},this,true)"
+                                                                {% if instance|attr:field.attribute %}
+                                                               checked
+                                                                {% endif %}
+                                                        />
+                                                    {% elif field.python_type == 'django.db.models.fields.IntegerField' and field.editable and instance.instance_permission.savable %}
+                                                        <input class="ace" style="width:100px"
+                                                               name="{{ field.attribute }}"
+                                                               type="number"
+                                                               onchange="partialUpdate('{{ model_name }}',{{ instance.id }},this)"
+                                                               value="{{ instance|attr:field.attribute }}"/>
+                                                    {% else %}
+                                                        {{ instance|display:field.attribute|truncate }}
+                                                    {% endif %}
+                                                {% endblock %}
+                                            </td>
+                                        {% endfor %}
+                                        {% block post_td %} {% endblock %}
+                                    </tr>
+                                    {% block post_tr %} {% endblock %}
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="200">No data found</td>
+                                </tr>
+                            {% endif %}
+                        {% endblock %}
+                        </tbody>
+                    </table>
+                {% endblock %}
+                {% include "acmin/admin/base/paginator.html" %}
+            </div>
+        </div>
+        {% block post-row %}{% endblock %}
+    </div>
+    {% block post-content %}{% endblock %}
+{% endblock %}
+
+{% block script %}
+    <script src="{% resource 'acmin/js/list.js?bbb' %}"></script>
+{% endblock %}
+
