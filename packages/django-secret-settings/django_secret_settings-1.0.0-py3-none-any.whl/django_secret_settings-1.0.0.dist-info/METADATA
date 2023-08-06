@@ -1,0 +1,159 @@
+Metadata-Version: 2.1
+Name: django-secret-settings
+Version: 1.0.0
+Summary: A Python package facilitating the inclusion of encrypted secrets in the Django settings.
+Home-page: https://gitlab.com/cmahr/django-secret-settings
+Author: Carsten E. Mahr
+Author-email: impressum@carsten-mahr.de
+License: http://www.apache.org/licenses/LICENSE-2.0
+Platform: UNKNOWN
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Framework :: Django :: 2.1
+Classifier: Framework :: Django :: 2.2
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Internet :: WWW/HTTP :: WSGI :: Application
+Classifier: Topic :: Security :: Cryptography
+Description-Content-Type: text/markdown
+
+# django-secret-settings
+Secure and convenient secret management for your Django settings!
+
+[![build status](https://gitlab.com/cmahr/django-secret-settings/badges/master/pipeline.svg)](https://gitlab.com/cmahr/django-secret-settings/commits/master)
+[![code coverage](https://gitlab.com/cmahr/django-secret-settings/badges/master/coverage.svg)](https://cmahr.gitlab.io/django-secret-settings)
+
+## Purpose and rationale
+*django-secret-settings* is a Python 3 package designed to augment a 'typical' Django settings package of the structure
+
+    settings/
+    ├── __init__.py
+    ├── development.py
+    ├── production.py
+    ├── ...
+    └── staging.py
+
+where the `__init__.py` is used to include an environment-specific settings module (e.g., `from .development import *`).
+Switching the Django settings based on the server nature (development, testing, production, ...) is particularly easy in
+such a setup. Additionally, settings that are equal may be extracted into a `base` module that is imported into any
+specialized settings module if appropriate. This helps maintaining the settings package by following established design
+choices (the DRY principle, in particular).
+
+However, in order to avoid any secrets to be part of the settings files in plain text, some custom additional deployment
+hook must be used to add those secrets at the latest possible time. Depending on the implemented solution, this step
+might be rather intricate and thus render the deployment process error-prone. More simple solutions, on the other hand
+(e.g., separately deploying the settings module or even the whole package), tend to make it very hard for a developer
+having access to the source repository to gain an overview of the available settings, let alone to add new values.
+
+This is where *django-secret-settings* comes in: Instead of forcibly keeping all secrets out of version control or in a
+separate submodule (both remains possible), it allows for secrets to be stored as RSA-encrypted JSON files in the
+repository itself, one 'secret store' per environment: For each kind of server nature, e.g., staging, a directory is
+placed in a `secrets` folder. This folder contains multiple JSON-encoded secret files, e.g., `django` for all Django
+configuration values and `email` for username, password and other secret settings of the mail server. In the example
+given above, the directory structure would resemble
+
+    settings/
+    ├── __init__.py
+    ├── development.py
+    ├── production.py
+    ├── secrets
+    │   ├── staging.pem
+    │   ├── production
+    │   │   ├── django
+    │   │   ├── email
+    │   │   └── public-key.pem
+    │   ├── ...
+    │   └── staging
+    │       ├── django
+    │       ├── email
+    │       └── public-key.pem
+    ├── ...
+    └── staging.py
+
+This way, only one secret per environment remains: The private key file (e.g., `staging.pem`) necessary to decrypt the
+various RSA-encrypted files, which is the only quantity that is *not* kept in version control. Consequently, this
+remaining secret is still to be deployed otherwise – but separately deploying one single file seems feasible. Further,
+changing the settings based on the environment remains simple, as *django-secret-settings* decides based on the name of
+the private key file (e.g. `staging.pem`) which settings to load (i.e., `staging.py` in this case). Finally, adding new
+secrets in a safe manner is possible for every developer having access to the source repository: Simply wrap your
+secrets in a valid JSON string and encrypt it with the corresponding public key available in the directory of each
+secret store!
+
+
+## Requirements
+### Production
+*django-secret-settings* intends to be minimalistic but opinionated when it comes to production dependencies:
+* **Python >= 3.5**: Currently, the CI pipeline runs on Python 3.5 and 3.6, testing additional Python versions
+  is the goal of [issue #20](https://gitlab.com/cmahr/django-secret-settings/issues/20). Python 2.x will not be
+  supported.
+* **OpenSSL >= 3.0.0-dev**: OpenSSL is the basis of `mod_ssl` (Apache HTTP Server) and `ngx_http_ssl_module` (Nginx) and
+is probably present if you use SSL (you should). We discourage using older versions due to possible licensing issues.
+
+### Development
+Besides the requirements listed above, additional dependencies necessary for development are listed in the
+[requirements file](https://gitlab.com/cmahr/django-secret-settings/blob/master/requirements-dev.txt). They may, of
+course, be installed using `pip`:
+```bash
+pip install -r requirements-dev.txt
+```
+
+
+## Installation
+It is as simple as running
+```bash
+pip install django-secret-settings
+```
+
+
+## Quick start
+Although *security* is one of the major design criteria for *django-secret-settings*, the setup and usage of encrypted
+configuration values remains simple:
+
+1. Rewrite your `settings/__init__.py` as follows:
+
+    ```python
+    from django_secret_settings.autoload import *
+    ```
+
+2. Add environment folders with public keys and secret files according to the schema described above. The secret files
+    contain RSA-encrypted JSON data, e.g. the **de**crypted `django` file would look like:
+
+    ```json
+    {
+        "SECRET_KEY": "l#!6p7)-4xhy25@pu5$y$%k&7#8a(#1^89=^m*=e69xl**&!11"
+    }
+    ```
+
+    Encryption is to be done using the corresponding public key.
+
+3. Adapt your specialized settings to use the `secret_store`:
+
+    ```python
+    from django_secret_settings.autoload import secret_store
+
+    # SECURITY WARNING: keep the secret key used in production secret!
+    SECRET_KEY = secret_store.get('django', 'SECRET_KEY')
+
+    # Other settings omitted for brevity...
+    ```
+
+4. Also adapt your deployment to add the private key file designating the settings to use. Optionally, you'll want to add a
+    `.gitignore` file to your settings package to make sure these secret files are *never* stored in version control.
+
+
+## Tutorial
+A more detailed introduction to the ideas behind *django-secret-settings* and its usage can be found in the
+[tutorial](https://gitlab.com/cmahr/django-secret-settings/blob/master/docs/tutorial.md).
+
+
+## Things to come
+The best is yet to come, I'm sure! Why don't you take a look at our
+[board](https://gitlab.com/cmahr/django-secret-settings/boards) to browse all open and closed issues? Or if you are
+interested in the things that are projected to be part of the next release, why not browse our
+[milestones](https://gitlab.com/cmahr/django-secret-settings/milestones)?
+
+
