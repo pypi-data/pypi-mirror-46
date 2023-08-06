@@ -1,0 +1,24 @@
+{% extends 'wafer/base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-3">
+      <h4>Current filter</h4>
+      <form action="{% url "wafer_tasks" %}" method="get">
+        {% crispy filter_form %}
+      </form>
+    </div>
+    <div class="col-md-9">
+      <h2>Tasks</h2>
+      {% if tasks %}
+        {% regroup tasks by start|date as task_list %}
+        {% include "wafer.volunteers/includes/task_list.html" with task_list=task_list accordion_id='all' %}
+      {% else %}
+        <p>{% trans "No tasks returned" %}</p>
+      {% endif %}
+    </div>
+  </div>
+  </div>
+{% endblock %}
