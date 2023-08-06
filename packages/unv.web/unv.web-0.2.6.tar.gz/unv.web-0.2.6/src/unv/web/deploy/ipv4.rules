@@ -1,0 +1,7 @@
+{%- if deploy.settings.NAME in components %}
+{%- for _, host in get_hosts('nginx') %}
+{%- for server in deploy.get_upstream_servers() %}
+-A INPUT -p tcp -s {{ host['private'] }} --dport {{ server.split(':')[1] }} -j ACCEPT
+{%- endfor %}
+{%- endfor %}
+{%- endif %}
