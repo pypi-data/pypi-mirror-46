@@ -1,0 +1,53 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:autofeature="http://namespaces.zope.org/autofeature"
+    xmlns:upgrade-step="http://namespaces.zope.org/ftw.upgrade"
+    i18n_domain="ftw.addressblock">
+
+    <include package="ftw.autofeature" file="meta.zcml" />
+    <autofeature:extras />
+
+    <include package=".behaviors" />
+    <include package=".browser" />
+
+    <configure zcml:condition="have ftw.addressblock:contact">
+        <include package=".contact" />
+    </configure>
+    <configure zcml:condition="have ftw.addressblock:geo">
+        <include package=".geo" />
+    </configure>
+    <include file="lawgiver.zcml" zcml:condition="installed ftw.lawgiver" />
+    <include file="permissions.zcml" />
+    <include file="resources.zcml" zcml:condition="installed ftw.theming" />
+
+    <i18n:registerTranslations directory="locales" />
+
+    <genericsetup:registerProfile
+        zcml:condition="not-have plone-5"
+        name="default"
+        title="ftw.addressblock.default"
+        directory="profiles/default"
+        description="Address block (add-on for ftw.simplelayout)"
+        provides="Products.GenericSetup.interfaces.EXTENSION"
+        />
+
+    <genericsetup:registerProfile
+        zcml:condition="have plone-5"
+        name="default"
+        title="ftw.addressblock.default"
+        directory="profiles/default_plone5"
+        description="Address block (add-on for ftw.simplelayout)"
+        provides="Products.GenericSetup.interfaces.EXTENSION"
+        />
+
+    <include package="ftw.upgrade" file="meta.zcml" />
+
+    <upgrade-step:directory
+        profile="ftw.addressblock:default"
+        directory="./upgrades"
+        />
+
+</configure>

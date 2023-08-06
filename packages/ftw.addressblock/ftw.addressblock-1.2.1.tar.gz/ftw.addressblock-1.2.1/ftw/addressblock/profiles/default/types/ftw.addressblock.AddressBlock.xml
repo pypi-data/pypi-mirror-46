@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<object name="ftw.addressblock.AddressBlock"
+        meta_type="Dexterity FTI"
+        xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+        i18n:domain="ftw.addressblock">
+
+    <!-- Basic metadata -->
+    <property name="title" i18n:translate="">Address block</property>
+    <property name="description" i18n:translate="">The address block displays address data and is usually put in the right column.</property>
+    <property name="icon_expr"></property>
+    <property name="allow_discussion">False</property>
+    <property name="global_allow">False</property>
+    <property name="filter_content_types">True</property>
+    <property name="allowed_content_types"></property>
+
+    <!-- schema interface -->
+    <property name="schema">ftw.addressblock.content.addressblock.IAddressBlockSchema</property>
+
+    <!-- class used for content items -->
+    <property name="klass">ftw.addressblock.content.addressblock.AddressBlock</property>
+
+    <!-- add permission -->
+    <property name="add_permission">ftw.addressblock.AddAddressBlock</property>
+
+    <!-- enabled behaviors -->
+    <property name="behaviors">
+        <element value="plone.app.content.interfaces.INameFromTitle" />
+        <element value="ftw.simplelayout.interfaces.ISimplelayoutBlock" />
+        <element value="plone.app.referenceablebehavior.referenceable.IReferenceable"/>
+        <element value="ftw.addressblock.behaviors.department.IAddressblockDepartment"/>
+        <element value="ftw.addressblock.behaviors.default.IAddressblockDefault"/>
+        <element value="ftw.addressblock.behaviors.communication.IAddressblockCommunication"/>
+        <element value="ftw.addressblock.behaviors.misc.IAddressblockMisc"/>
+    </property>
+
+    <!-- View information -->
+    <property name="default_view">redirect_view</property>
+    <property name="default_view_fallback">False</property>
+    <property name="view_methods">
+        <element value="redirect_view"/>
+    </property>
+
+    <!-- Method aliases -->
+    <alias from="(Default)" to="(dynamic view)"/>
+    <alias from="edit" to="@@edit"/>
+    <alias from="sharing" to="@@sharing"/>
+    <alias from="view" to="(selected layout)"/>
+
+    <action title="Edit" action_id="edit" category="object" condition_expr=""
+            description="" icon_expr="" link_target=""
+            url_expr="string:${object_url}/edit" visible="True">
+            <permission value="Modify portal content"/>
+    </action>
+
+</object>

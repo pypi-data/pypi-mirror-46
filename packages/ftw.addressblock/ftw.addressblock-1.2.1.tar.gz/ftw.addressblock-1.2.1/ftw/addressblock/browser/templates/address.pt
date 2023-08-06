@@ -1,0 +1,78 @@
+<html xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      tal:omit-tag="python: 1"
+      i18n:domain="ftw.addressblock">
+
+    <tal:block>
+        <p tal:define="address_title context/address_title;
+                       department context/department;
+                       address view/get_address_as_html;
+                       zip_code context/zip_code;
+                       city context/city;
+                       phone context/phone|nothing;
+                       fax context/fax|nothing;
+                       email context/email|nothing;
+                       show_email context/show_email;
+                       www context/www|nothing;
+                       ">
+            <tal:address_title tal:condition="address_title">
+                <span tal:replace="address_title"/><br/>
+            </tal:address_title>
+            <tal:department condition="department">
+                <span tal:replace="department"/><br/>
+            </tal:department>
+            <tal:address tal:condition="address">
+                <span tal:replace="structure address"/><br/>
+            </tal:address>
+            <tal:zip_code tal:condition="zip_code">
+                <span tal:replace="zip_code"/>
+            </tal:zip_code>
+            <tal:city tal:condition="city">
+                <span tal:replace="city"/><br/>
+            </tal:city>
+            <tal:phone tal:condition="phone">
+                <tal:translate i18n:translate="text_phone">
+                    Phone <tal:num i18n:name="phone_number_address" tal:content="phone"/>
+                </tal:translate>
+                <br/>
+            </tal:phone>
+            <tal:fax tal:condition="fax">
+                <tal:translate i18n:translate="text_fax">
+                    Fax <tal:num i18n:name="fax_number_address" tal:content="fax"/>
+                </tal:translate>
+                <br/>
+            </tal:fax>
+
+            <tal:email tal:condition="show_email">
+                <a tal:condition="email"
+                   tal:content="email"
+                   tal:attributes="href string:mailto:${email}"/>
+                <br/>
+            </tal:email>
+
+            <tal:www condition="www">
+                <a tal:content="www"
+                   tal:attributes="href www"/>
+                <br/>
+            </tal:www>
+        </p>
+
+        <tal:opening_hours tal:condition="view/get_opening_hours">
+            <a name="opening_hours"></a>
+            <h2 i18n:translate="label_opening_hours">Opening hours</h2>
+            <p tal:content="structure view/get_opening_hours"></p>
+        </tal:opening_hours>
+
+        <tal:directions tal:condition="view/get_directions">
+            <a name="directions"></a>
+            <h2 i18n:translate="label_directions">Directions</h2>
+            <p tal:content="structure view/get_directions"></p>
+        </tal:directions>
+
+        <tal:accessibility tal:condition="view/get_accessibility">
+            <a name="accessibility"></a>
+            <h2 i18n:translate="label_accessibility">Accessibility</h2>
+            <p tal:content="structure view/get_accessibility"></p>
+        </tal:accessibility>
+    </tal:block>
+</html>

@@ -1,0 +1,52 @@
+<html xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      tal:omit-tag="python: 1"
+      i18n:domain="ftw.addressblock"
+      tal:define="data view/get_data">
+
+    <div tal:omit-tag="not: data/wrapper_class"
+         tal:attributes="class data/wrapper_class">
+
+        <h2 tal:content="data/title" tal:condition="data/title"/>
+
+        <p tal:condition="python: data['address']['title'] or data['address']['phone']">
+            <span class="address-title" tal:condition="data/address/title" tal:content="data/address/title"/>
+            <span class="phone" tal:condition="data/address/phone" i18n:translate="addressblock_phone_label">
+                Phone <span i18n:name="phone_number_block" tal:replace="data/address/phone"></span>
+            </span>
+        </p>
+
+        <ul>
+            <li>
+                <a tal:attributes="href data/address/detail_view_url"
+                   i18n:translate="addressblock_address_map_link">
+                    Address / Map
+                </a>
+            </li>
+            <li tal:condition="data/address/opening_hours">
+                <a tal:attributes="href string:${data/address/detail_view_url}#opening_hours"
+                   i18n:translate="addressblock_opening_hours_link">
+                    Opening Hours
+                </a>
+            </li>
+            <li tal:condition="data/address/accessibility">
+                <a tal:attributes="href string:${data/address/detail_view_url}#accessibility"
+                   i18n:translate="addressblock_accessibility_link">
+                    Buildings Accessibility
+                </a>
+            </li>
+            <li tal:condition="data/address/email">
+                <a tal:attributes="href data/address/contact_url"
+                   i18n:translate="addressblock_contact_form_link">
+                    Contact Form
+                </a>
+            </li>
+            <li tal:condition="data/address/has_team">
+                <a tal:attributes="href data/address/team_url"
+                   i18n:translate="label_team_link">
+                    Team
+                </a>
+            </li>
+        </ul>
+    </div>
+</html>
