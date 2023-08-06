@@ -1,0 +1,41 @@
+<div class="dialog-shadow"></div>
+<dialog id="member">
+    <header>
+        <h1>{{strings.dialogTitleMemberDetails}}</h1>
+        <a data-role="close" href="#">Close</a>
+    </header>
+    <div class="inner">
+    {% for member in members %}
+        <div data-member-id="{{member.tag}}">
+            <section class="identity">
+                <h2>
+                    {{member.name}}
+                    <small>{{member.tag}}</small>
+                </h2>
+                <div>
+                    <h3 class="xp-level">{{member.expLevel}}</h3>
+                    <h3 class="trophies">{{member.trophies}}</h3>
+                </div>
+                {% if 'arena-' not in member.arenaLeague %}
+                <img class="arena-league" title="{{member.arena.name}}" src="static/images/arena-league-{{member.arenaLeague}}.svg" />
+                {% endif %}
+
+            </section>
+            <h3>{{strings.dialogLabelPlayerStats}}</h3>
+            <section class="flex normal">
+                <table width="100%">
+                    <tr><th>{{strings.labelClanRole}}</th><td>{{member.role}}</td></tr>
+                    <tr><th>{{strings.labelArena}}</th><td>{{member.arena.name}}</td></tr>
+                    <tr><th>{{strings.labelMemberJoinDate}}</th><td>{{member.join_date_label}}</td></tr>
+                    <tr><th>{{strings.labelMemberLastActivity}}</th><td>{{member.activity_date_label}}</td></tr>
+                    <tr><th>{{strings.labelDaysInactive}}</th><td>{{member.days_inactive}}</td></tr>
+                </table>
+                <div>
+                    <a href="https://royaleapi.com/player/{{member.tag | replace('#', '')}}" rel="external" target="_blank" class="button royaleapi"><span>See on RoyaleAPI</span></a>
+                    <a href="https://statsroyale.com/profile/{{member.tag | replace('#', '')}}" rel="external" target="_blank" class="button statsroyale"><span>See on StatsRoyale</span></a>
+                </div>
+            </section>
+        </div>
+    {% endfor %}
+    </div>
+</dialog>
