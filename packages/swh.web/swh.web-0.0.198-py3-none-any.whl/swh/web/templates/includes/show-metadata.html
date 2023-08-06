@@ -1,0 +1,36 @@
+{% comment %}
+Copyright (C) 2017-2018  The Software Heritage developers
+See the AUTHORS file at the top-level directory of this distribution
+License: GNU Affero General Public License version 3, or any later version
+See top-level LICENSE file for more information
+{% endcomment %}
+
+{% load swh_templatetags %}
+
+<div class="dropdown-submenu">
+  <a id="metadata-toggler" class="dropdown-item dropdown-left swh-popover-toggler" tabindex="-1" href="#" data-toggle="popover" data-popover-content="#metadata-popover"><i class="fa fa-table fa-fw" aria-hidden="true"></i>Show metadata</a>
+</div>
+
+<div id="metadata-popover" style="display:none;">
+  <div class="popover-heading">{{ swh_object_name }} metadata</div>
+  <div class="popover-body">
+    <table class="table">
+      <tbody>
+        {% for key, val in swh_object_metadata.items|dictsort:"0.lower" %}
+          {% if val is not None and val != '' %}
+            <tr>
+              <th class="swh-metadata-table-row swh-metadata-table-key">{{ key }}</th>
+              <td class="swh-metadata-table-row swh-metadata-table-value">
+                <pre>{{ val | escape }}</pre>
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  swh.webapp.setBrowsedSwhObjectMetadata({{ swh_object_metadata|jsonify }})
+</script>
