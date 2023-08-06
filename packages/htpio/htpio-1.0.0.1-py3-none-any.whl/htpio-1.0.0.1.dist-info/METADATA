@@ -1,0 +1,108 @@
+Metadata-Version: 2.1
+Name: htpio
+Version: 1.0.0.1
+Summary: Remote GPIO access library
+Home-page: https://www.hilscher.com
+Author: Branimir Georgiev
+Author-email: bgeorgiev@hilscher.com
+License: Copyright (c) Hilscher GmbH
+Project-URL: Ticket, https://ticket.hilscher.com/browse/PSTSKVARNA-765
+Project-URL: Documentation, https://kb.hilscher.com/display/EBG/Power+Reset+Automated+Tests
+Keywords: raspberry gpio telnet pigpio
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: Other/Proprietary License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Description-Content-Type: text/markdown
+Requires-Dist: pigpio
+
+HTPIO : Remote I/O Access Library
+=================================
+
+![PyPI](https://img.shields.io/pypi/v/htpio.svg)
+![PyPI - License](https://img.shields.io/pypi/l/htpio.svg)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/htpio.svg)
+![PyPI - Status](https://img.shields.io/pypi/status/htpio.svg)
+
+HTPIO allows users to use Raspberry Pi's GPIOs or similiar hardware remotely using various telecommunication protocols. The library also 
+offers a simple locking mechanism in order to implement advanced testing scenarios using shared hardware. 
+
+![image](https://www.hilscher.com/fileadmin/user_upload/Typo3_pages/netX/netX_Roadmap_2016-01-1000px.png)
+
+HTPIO is a subset of the Hilscher Test Framework for products of the netX family. A brief overview of some netX
+products is given in the links below:
+
+* [Network Controllers](https://www.hilscher.com/products/product-groups/network-controller/)
+* [PC Cards](https://www.hilscher.com/products/product-groups/pc-cards/)
+* [Embedded Modules](https://www.hilscher.com/products/product-groups/embedded-modules/)
+* [Gateways](https://www.hilscher.com/products/product-groups/gateways/)
+* [Industrial Internet / IoT](https://www.hilscher.com/products/product-groups/industrial-internet-industry-40/)
+* [Analysis and Data Acquisition](https://www.hilscher.com/products/product-groups/analysis-and-data-acquisition/)
+* [Automation and Visualization](https://www.hilscher.com/products/product-groups/automation-and-visualization/)
+* [Software](https://www.hilscher.com/products/product-groups/software/)
+
+
+
+Requirements
+-------------
+
+* Python >=2.7
+* Python >=3.4
+
+Features
+---------------
+
+- Remote GPIO access using various protocols  
+- Pin locking to ensure shared use of hardware resources
+- Command line interface for shell scripting
+
+
+Installation
+------------
+To install latest stable release from PyPi use [pipenv](http://pipenv.org/) (or pip):
+
+```
+pipenv install htpio
+```
+
+or install the latest stable version from BitBucket:
+
+```
+pipenv install https://bitbucket.org/hilscherdtc/htpio/get/stable.tar.gz
+```
+
+Library interface
+-----------------
+
+```
+>>> from htpio import bridge, socketio, telnetio
+>>> device = telnetio.RaspberryPi('192.168.199.31')
+>>> gpio = bridge.RemoteAccess(device)
+>>> gpio.lock(14)
+>>> gpio.unlock(14)
+>>> gpio.islocked(14)
+>>> gpio.configure(14, led.OUTPUT)
+>>> gpio.set(14, 1)
+>>> gpio.get(14)
+>>> gpio.deconfigure(14)
+>>> gpio.logout()
+```
+
+Command line interface
+----------------------
+```
+$ netxio -p telnet set --host 192.168.199.31 --pin 14 --val 1
+$ netxio -p socket get --host 192.168.199.31 --pin 14
+$ netxio lock --host 192.168.199.31 --pin 14
+$ netxio unlock --host 192.168.199.31 --pin 14
+```
+
+
