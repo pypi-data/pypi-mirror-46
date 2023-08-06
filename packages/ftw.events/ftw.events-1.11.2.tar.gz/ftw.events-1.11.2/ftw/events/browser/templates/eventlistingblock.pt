@@ -1,0 +1,54 @@
+<html xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      tal:omit-tag="python: 1"
+      i18n:domain="ftw.events"
+      tal:define="block_info view/get_block_info">
+
+    <h2 tal:content="block_info/title"
+        tal:condition="block_info/show_title">
+    </h2>
+
+    <tal:events tal:define="items view/get_items;">
+
+        <tal:no-items tal:condition="not: items">
+           <p i18n:translate="eventlisting_no_content_text">No content available.</p>
+           <p i18n:translate="eventlisting_hide_empty_block_text"
+              tal:condition="block_info/hide_empty_block">The block is only visible to editors so it can still be edited.</p>
+        </tal:no-items>
+
+        <ul class="event-row">
+            <li tal:repeat="item items">
+                <a class="event-item" tal:attributes="href item/url">
+                    <div class="body">
+                        <span class="byline">
+                            <span tal:condition="item/date_snippet"
+                                  tal:replace="structure item/date_snippet"/>
+                            <tal:block tal:condition="item/location">
+                                <br /><span class="location" tal:content="item/location"></span>
+                            </tal:block>
+                        </span>
+                        <h3 class="title" tal:content="item/title" />
+                        <span class="description" tal:condition="item/description" tal:content="item/description">Description</span>
+                    </div>
+                </a>
+            </li>
+        </ul>
+
+        <tal:footer tal:define="more_items_link_url block_info/more_items_link_url;
+                                more_items_link_label block_info/more_items_link_label;
+                                rss_url block_info/rss_link_url">
+            <a class="event-listingblock-moreitemslink"
+               tal:condition="more_items_link_url"
+               title="More Items"
+               i18n:attributes="title more_items_link_label"
+               tal:attributes="href more_items_link_url"
+               tal:content="more_items_link_label"/>
+            <a class="events-rss"
+               tal:condition="rss_url"
+               tal:attributes="href rss_url"
+               i18n:translate="">Subscribe to the RSS feed</a>
+        </tal:footer>
+
+    </tal:events>
+
+</html>
