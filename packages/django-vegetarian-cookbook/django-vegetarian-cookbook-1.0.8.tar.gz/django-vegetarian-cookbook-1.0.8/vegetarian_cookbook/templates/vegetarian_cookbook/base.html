@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+{% load bootstrap4 %}
+{% load static %}
+{% load i18n %}
+{% load vegetarian_cookbook_tags %}
+<html{% if LANGUAGE_CODE %} lang="{{ LANGUAGE_CODE }}"{% endif %}>
+
+<head>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Bootstrap CSS -->
+    {% bootstrap_css %}
+    <link href='{% static "vegetarian_cookbook/css/style.css" %}' rel="stylesheet">
+
+    {% if 'javascript_in_head'|bootstrap_setting %}
+        <!-- Bootstrap JavaScript if it is in head -->
+        <script type="text/javascript" src='{% static "vegetarian_cookbook/js/jquery-3.3.1.min.js" %}' ></script>
+        <script type="text/javascript" src='{% static "vegetarian_cookbook/js/brython/brython.js" %}' ></script>
+        {% bootstrap_javascript %}
+        <script type="text/javascript">
+          window.onload = function() {
+            brython(1);
+          };
+        </script>
+    {% endif %}
+    {% block bootstrap4_extra_head %}{% endblock %}
+
+</head>
+
+<body>
+{% block bootstrap4_before_content %}
+    <nav class="navbar navbar-dark bg-primary navbar-expand-lg box-shadow navbar-fixed-top">
+        <div class="container">
+            <div class="collapse navbar-collapse">
+                <a href="/" class="navbar-brand d-flex align-items-center">
+                    <strong>{% trans "Vegetarian cookbook" %}</strong>
+                </a>
+                <ul class="navbar-nav mr-auto">
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarCategories" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      {% trans "Categories" %}
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarCategories">
+                      {% categories_list 'dropdown-item' %}
+                    </div>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="{% url 'recipe_tags_ingredients' %}">{% trans "Tags &amp; Ingredients" %}</a>
+                  </li>
+                </ul>
+                <form class="form-inline my-2 my-lg-0" method="POST" action="{% url 'recipes_search' %}">
+                    {% csrf_token %}
+                    <input name="query" class="form-control mr-sm-2" type="search" placeholder="{% trans 'Search' %}" aria-label="Search">
+                    <button class="btn btn-secondary my-2 my-sm-0" type="submit">{% trans "Search" %}</button>
+                </form>
+            </div>
+            <div class="pos-f-t">
+                <nav class="navbar navbar-dark bg-primary ">
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <form class="form-inline hidden-sm-up mobile-search" method="POST" action="{% url 'recipes_search' %}" >
+                        {% csrf_token %}
+                        <div class="input-group">
+                          <input name="query" class="form-control" type="search" placeholder="{% trans 'Search' %}" aria-label="Search">
+                            <div class="input-group-append">
+                                <button class="btn btn-secondary" type="button" style="padding:0 8px">
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 26 26" version="1.1" width="22px" height="22px">
+                                        <g id="surface1">
+                                            <path style="stroke:#ffffff;fill:#ffffff" d="M 10 0.1875 C 4.578125 0.1875 0.1875 4.578125 0.1875 10 C 0.1875 15.421875 4.578125 19.8125 10 19.8125 C 12.289063 19.8125 14.394531 19.003906 16.0625 17.6875 L 16.9375 18.5625 C 16.570313 19.253906 16.699219 20.136719 17.28125 20.71875 L 21.875 25.34375 C 22.589844 26.058594 23.753906 26.058594 24.46875 25.34375 L 25.34375 24.46875 C 26.058594 23.753906 26.058594 22.589844 25.34375 21.875 L 20.71875 17.28125 C 20.132813 16.695313 19.253906 16.59375 18.5625 16.96875 L 17.6875 16.09375 C 19.011719 14.421875 19.8125 12.300781 19.8125 10 C 19.8125 4.578125 15.421875 0.1875 10 0.1875 Z M 10 2 C 14.417969 2 18 5.582031 18 10 C 18 14.417969 14.417969 18 10 18 C 5.582031 18 2 14.417969 2 10 C 2 5.582031 5.582031 2 10 2 Z M 4.9375 7.46875 C 4.421875 8.304688 4.125 9.289063 4.125 10.34375 C 4.125 13.371094 6.566406 15.8125 9.59375 15.8125 C 10.761719 15.8125 11.859375 15.433594 12.75 14.8125 C 12.511719 14.839844 12.246094 14.84375 12 14.84375 C 8.085938 14.84375 4.9375 11.695313 4.9375 7.78125 C 4.9375 7.675781 4.933594 7.574219 4.9375 7.46875 Z "/>
+                                        </g>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                </nav>
+              <div class="collapse" id="navbarToggleExternalContent">
+                <div class="bg-primary p-4">
+                    <a href="/" class="navbar-brand d-flex align-items-center">
+                        <strong>{% trans "Vegetarian cookbook" %}</strong>
+                    </a>
+                    <a href="/" class="dropdown-item">{% trans "Home" %}</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="nav-link disabled" href="#">{% trans "Categories" %}</a>
+                    {% categories_list 'dropdown-item' %}
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url 'recipe_tags_ingredients' %}">{% trans "Tags &amp; Ingredients" %}</a>
+                </div>
+              </div>
+            </div>
+        </div>
+    </nav>
+    <div style="height:54px;"></div>
+{% endblock %}
+{% block bootstrap4_content %} CONTENT {% endblock %}
+{% block bootstrap4_after_content %}
+    <nav class="navbar navbar-dark bg-primary ">
+        <div class="container">
+            <div class="row">
+                <div class="col col-12">
+                    <span class="navbar-text">
+                        Vegetarian Cookbook &copy; 2017
+                        <small>
+                            {% with url='https://creativecommons.org/licenses/by-sa/2.0/' %}
+                                {% blocktrans %}All materials of the site are distributed under the terms of the license <a href="{{ url }}">CC-BY-SA</a>
+                                {% endblocktrans %}
+                            {% endwith %}
+                        </small>
+                        {% with url='https://github.com/sergey-panasenko/django-vegetarian-cookbook' %}
+                        {% blocktrans %}based on <a href="{{ url }}">Django Vegetarian Cookbook</a>{% endblocktrans %}
+                        {% endwith %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+{% endblock %}
+
+{% if not 'javascript_in_head'|bootstrap_setting %}
+    <!-- Bootstrap JavaScript if it is in body -->
+    {% bootstrap_javascript %}
+    <script type="text/javascript" src='{% static "vegetarian_cookbook/js/jquery-3.3.1.min.js" %}' ></script>
+    <script type="text/javascript" src='{% static "vegetarian_cookbook/js/brython/brython.js" %}' ></script>
+    <script type="text/javascript">
+      window.onload = function() {
+        brython(1);
+      };
+    </script>
+{% endif %}
+
+{% block bootstrap4_extra_script %}{% endblock %}
+
+</body>
+
+</html>

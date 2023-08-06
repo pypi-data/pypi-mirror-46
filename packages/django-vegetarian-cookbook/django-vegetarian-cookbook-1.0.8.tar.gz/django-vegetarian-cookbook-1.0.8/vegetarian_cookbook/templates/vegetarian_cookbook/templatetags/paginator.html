@@ -1,0 +1,48 @@
+{% load i18n %}
+{% if data.has_other_pages %}
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-end">
+            {% if data.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ data.base_url }}/{{ data.previous_page_number }}/" aria-label="{% trans 'Previous' %}">
+                        <span aria-hidden="true">&laquo;</span>
+                        <span class="sr-only">{% trans 'Previous' %}</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item page-item_disabled">
+                    <a class="page-link">
+                        <span aria-hidden="true">&laquo;</span>
+                        <span class="sr-only">{% trans 'Previous' %}</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% for i in data.paginator.page_range %}
+                {% if data.number == i %}
+                    <li class="page-item page-item_active">
+                        <a class="page-link">{{ i }} <span class="sr-only">(current)</span></a>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ data.base_url }}/{{ i }}/">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            {% if data.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ data.base_url }}/{{ data.next_page_number }}/" aria-label="{% trans 'Next' %}">
+                        <span aria-hidden="true">&raquo;</span>
+                        <span class="sr-only">{% trans 'Next' %}</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item page-item_disabled">
+                    <a class="page-link">
+                        <span aria-hidden="true">&raquo;</span>
+                        <span class="sr-only">{% trans 'Next' %}</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}

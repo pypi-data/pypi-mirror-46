@@ -1,0 +1,25 @@
+<p>
+  <span class="range-slider__title">{{ title }}:</span>
+  <span id="range-slider__value_{{ name }}" class="range-slide__value"></span>
+  <input type="hidden" id="slider-input_{{ name }}_min" name="{{ name }}_min" value="{{ cmin }}">
+  <input type="hidden" id="slider-input_{{ name }}_max" name="{{ name }}_max" value="{{ cmax }}">
+</p>
+<div id="slider-range_{{ name }}"></div>
+<script>
+    $( function() {
+    $( "#slider-range_{{ name }}" ).slider({
+      range: true,
+      min: {{ min }},
+      max: {{ max }},
+      values: [ {{ cmin }}, {{ cmax }} ],
+      slide: function( event, ui ) {
+        $( "#range-slider__value_{{ name }}" ).html( ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+        $( "#slider-input_{{ name }}_min" ).val(ui.values[ 0 ]);
+        $( "#slider-input_{{ name }}_max" ).val(ui.values[ 1 ]);
+      }
+    });
+    $( "#range-slider__value_{{ name }}" ).html( $( "#slider-range_{{ name }}" ).slider( "values", 0 ) +
+      " - " + $( "#slider-range_{{ name }}" ).slider( "values", 1 ) );
+    } );
+</script>
+
