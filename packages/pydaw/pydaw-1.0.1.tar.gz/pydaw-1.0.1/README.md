@@ -1,0 +1,135 @@
+# pythoncli
+A Python Command Line Interface (CLI) that performs Digital Audio Workstations (DAW) actions using Digital Signal Processing (DSP)
+Techinques and algorithms .
+The template used for creating this Readme file is stated below.
+## shablona
+[![Build Status](https://travis-ci.org/uwescience/shablona.svg?branch=master)](https://travis-ci.org/uwescience/shablona)
+
+Shablona is a template project for small scientific python projects. The
+recommendations we make here follow the standards and conventions of much of
+the scientific Python eco-system. Following these standards and recommendations
+will make it easier for others to use your code, and can make it easier for you
+to port your code into other projects and collaborate with other users of this
+eco-system.
+
+
+### Organization of the  project
+
+The project has the following structure:
+
+    pythoncli/
+      |- README.md
+      |- pythoncli/
+         |- __init__.py
+         |- __main__.py
+         |- classmodule.py
+         |- effectsmodule.py
+         |- funcmodule.py
+         |- loadingmodule.py
+         |- resamplemodule.py
+         |- supereffectmodule.py
+      |- pythoncli.egg-info/
+         |- dependency_links.txt
+         |- entry_points.txt
+         |- PKG-INFO
+         |- SOURCES.txt
+         |- top_level.txt
+      |- setup.py
+      |- install.sh
+      |- LICENSE
+      |- .gitignore
+
+In the following sections we will examine these elements one by one. First,
+let's consider the core of the project. This is the code inside of
+`pythoncli/__main__.py`. The code provided in this file is intentionally rather
+simple. It implements some simple command routing each to its specific file from the input string taken thought the terminal.
+
+### Module code
+
+We place the module code in a file called `__main__.py` in directory called
+`pythoncli`. This structure  is a simple way to create a structure for the project ,
+we also need to also create a file in `__init__.py` which contains code that imports
+everything in that file into the namespace of the project:
+
+    from .effectsmodule import *
+
+In the module code, we follow the convention that all functions are either
+imported from other places, or are defined in lines that precede the lines that
+use that function. This helps readability of the code, because you know that if
+you see some name, the definition of that name will appear earlier in the file,
+either as a function/variable definition, or as an import from some other module
+or package.
+
+
+### Installation
+
+For installation and distribution we will use the python standard
+library `distutils` module. This module uses a `setup.py` file to
+figure out how to install your software on a particular system. For a
+small project such as this one, managing installation of the software
+modules and the data is rather simple.
+
+This also makes it possible to install your software with using `pip` and
+`easy_install`, which are package managers for Python software. The
+`setup.py` file reads this information from there and passes it to the
+`setup` function which takes care of the rest.
+
+
+
+### Continuous integration
+
+Still have not chosen a Continous Intregration / Deployment methods.
+
+### Distribution
+
+The main venue for distribution of Python software is the [Python
+Package Index](https://pypi.python.org/), or PyPI, also lovingly known
+as "the cheese-shop".
+
+To distribute your software on PyPI, you will need to create a user account on
+[PyPI](http://python-packaging-user-guide.readthedocs.org/en/latest/distributing/#register-your-project).
+It is recommended that you upload your software using
+[twine](http://python-packaging-user-guide.readthedocs.org/en/latest/distributing/#upload-your-distributions).
+
+Using Travis, you can automatically upload your software to PyPI,
+every time you push a tag of your software to github. The instructions
+on setting this up can be found
+[here](http://docs.travis-ci.com/user/deployment/pypi/). You will need
+to install the travis command-line interface
+
+### Licensing
+
+MIT License .
+Copyright © 2019 Peter Hassaballah
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+### Scripts
+
+A scripts directory can be used as a place to experiment with your
+module code, and as a place to produce scripts that contain a
+narrative structure, demonstrating the use of the code, or producing
+scientific results from your code and your data and telling a story
+with these elements.
+
+For example, this repository contains an [IPython notebook] that reads
+in some data, and creates a figure. Maybe this is *Figure 1* from some
+future article? You can see this notebook fully rendered
+[here](https://github.com/uwescience/shablona/blob/master/scripts/Figure1.ipynb).
+
+Example of a sript :
+`pip install -e .`
+Which allows the project to be updated inside the pip directory as it is registered as under development or development mode .
+
+### Git Configuration
+
+Currently there is 1 file  in the repository which help working
+with this repository, and which you could extend further:
+
+- `.gitignore` -- specifies intentionally untracked files (such as
+  compiled `*.pyc` files), which should not typically be committed to
+  git (see `man gitignore`)
+  
