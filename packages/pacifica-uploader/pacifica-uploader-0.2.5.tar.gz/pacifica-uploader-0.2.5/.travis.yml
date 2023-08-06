@@ -1,0 +1,83 @@
+dist: xenial
+services:
+- postgresql
+- rabbitmq
+addons:
+  apt:
+    packages:
+    - rabbitmq-server
+stages:
+- lint
+- test
+- deploy
+env:
+  POSTGRES_ENV_POSTGRES_USER: postgres
+  POSTGRES_ENV_POSTGRES_PASSWORD:
+cache: pip
+".before_install": &3
+- pip install --upgrade pip setuptools wheel
+- bash -xe travis/before-install.sh
+".install": &1
+- pip install -r requirements-dev.txt
+".script": &4
+- pip install .
+- cd tests
+- coverage run --include='*/site-packages/pacifica/uploader/*' -m pytest -xv
+- coverage report --show-missing --fail-under 100
+".lint_script": &2
+- pre-commit run -a
+- radon cc pacifica
+jobs:
+  include:
+  - language: python
+    stage: lint
+    install: *1
+    script: *2
+    python: 3.6
+  - language: python
+    stage: lint
+    install: *1
+    script: *2
+    python: 2.7
+  - language: python
+    stage: test
+    install: *1
+    before_install: *3
+    script: *4
+    python: 3.6
+  - language: python
+    stage: test
+    install: *1
+    before_install: *3
+    script: *4
+    python: 2.7
+  - stage: deploy
+    services: []
+    language: python
+    before_install: skip
+    script: skip
+    python: 3.6
+    deploy:
+      skip_cleanup: true
+      provider: pypi
+      user: dmlb2000
+      distributions: sdist bdist_wheel
+      password:
+        secure: iXzIvgJaMdmFT8IJPWNs0XkUi1l2My6kRXmxnT129hrQAiCIHCfJeB898IfFFQM86kwe4p3dA/1t2+IMa4bNqpUZb6Z615MDgWxcpHzn0JMiHMjYHlj9eae/+8IBjSbjoTZPIXRJGZ2NMy5rY8/wkcsXN87J0flhwdUMX8uO5aNDLad8nVYZsU1NeWHKchx07WriFeJaRYo0aCPXRK+kzc2u8eSrOumzKSTaIPnZlknrMJ25BRA8pEhJVlRPMg0Jp+L9ugdwGNtC7o61W5e50XPYC485P0+GwWqgUz2F6NLTzAY0JYNdLgz4XdqdHrpc/lK+TKN2FE9yJq24IFxyyzO7xDPAmhAUiFYnN7URIJyaNcNYGguc668P6Ogs66MVMCLdCQsUMMVb0ok9QqVycYMoZ0h09b2A8tviOnaUVWZbE8Ur0FL3YVADq51L0FWq/Xe1+EnWOlsySyLymh/uNMbL6sHa2dJCkzzwkyFxPTyELWaUC01VQRjyjFJknkX5S0Z+SNiYSQnuFPb4HQKj7hKK4KQ31Yk3hJ2+NDWjvPzviduFHVrxHGRGzd/X1uIPyfubc85YdJn1e7XxjmhMOfxXmzHanlGGKczwatKZe50UqWXQTat2bKnKGeI24jt+ubfznfDqwnF71Lr60+UdD9Xqrqz/KGr9ldE8QbPRcHM=
+      on:
+        tags: true
+  - stage: deploy
+    services: []
+    language: python
+    before_install: skip
+    script: skip
+    python: 2.7
+    deploy:
+      skip_cleanup: true
+      provider: pypi
+      user: dmlb2000
+      distributions: bdist_wheel
+      password:
+        secure: iXzIvgJaMdmFT8IJPWNs0XkUi1l2My6kRXmxnT129hrQAiCIHCfJeB898IfFFQM86kwe4p3dA/1t2+IMa4bNqpUZb6Z615MDgWxcpHzn0JMiHMjYHlj9eae/+8IBjSbjoTZPIXRJGZ2NMy5rY8/wkcsXN87J0flhwdUMX8uO5aNDLad8nVYZsU1NeWHKchx07WriFeJaRYo0aCPXRK+kzc2u8eSrOumzKSTaIPnZlknrMJ25BRA8pEhJVlRPMg0Jp+L9ugdwGNtC7o61W5e50XPYC485P0+GwWqgUz2F6NLTzAY0JYNdLgz4XdqdHrpc/lK+TKN2FE9yJq24IFxyyzO7xDPAmhAUiFYnN7URIJyaNcNYGguc668P6Ogs66MVMCLdCQsUMMVb0ok9QqVycYMoZ0h09b2A8tviOnaUVWZbE8Ur0FL3YVADq51L0FWq/Xe1+EnWOlsySyLymh/uNMbL6sHa2dJCkzzwkyFxPTyELWaUC01VQRjyjFJknkX5S0Z+SNiYSQnuFPb4HQKj7hKK4KQ31Yk3hJ2+NDWjvPzviduFHVrxHGRGzd/X1uIPyfubc85YdJn1e7XxjmhMOfxXmzHanlGGKczwatKZe50UqWXQTat2bKnKGeI24jt+ubfznfDqwnF71Lr60+UdD9Xqrqz/KGr9ldE8QbPRcHM=
+      on:
+        tags: true
