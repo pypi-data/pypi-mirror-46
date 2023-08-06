@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Available Settings &mdash; django-campaign 0.3.0-pre documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0-pre',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="django-campaign 0.3.0-pre documentation" href="index.html" />
+    <link rel="next" title="Backends" href="backends.html" />
+    <link rel="prev" title="Installation" href="install.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="backends.html" title="Backends"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">django-campaign 0.3.0-pre documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="available-settings">
+<span id="ref-settings"></span><h1>Available Settings<a class="headerlink" href="#available-settings" title="Permalink to this headline">¶</a></h1>
+<p>Here is a list of all available settings of django-campaign and their
+default values. All settings are prefixed with <tt class="docutils literal"><span class="pre">CAMPAIGN_</span></tt>, although this
+is a bit verbose it helps to make it easy to identify these settings.</p>
+<div class="section" id="campaign-backend">
+<h2>CAMPAIGN_BACKEND<a class="headerlink" href="#campaign-backend" title="Permalink to this headline">¶</a></h2>
+<p>Default: <tt class="docutils literal"><span class="pre">'campaign.backends.send_mail'</span></tt></p>
+<p>The backend used for the actual sending of the emails. The default backend
+<tt class="docutils literal"><span class="pre">campaign.backends.send_mail</span></tt> uses Django&#8217;s built-in e-mail sending
+capabilities.</p>
+<p>Please see the <a class="reference internal" href="backends.html#ref-backends"><em>backend docs</em></a> about implementing your
+own backend.</p>
+</div>
+<div class="section" id="campaign-context-processors">
+<h2>CAMPAIGN_CONTEXT_PROCESSORS<a class="headerlink" href="#campaign-context-processors" title="Permalink to this headline">¶</a></h2>
+<p>Default: <tt class="docutils literal"><span class="pre">()</span></tt> (empty tuple)</p>
+<p>Similar to Django&#8217;s Template Context Processors these are callables which take
+a Subscriber object as their argument and return a dictionary with items to
+add to the Template Context which is used to render the Mail.</p>
+</div>
+<div class="section" id="campaign-subscribe-callback">
+<h2>CAMPAIGN_SUBSCRIBE_CALLBACK<a class="headerlink" href="#campaign-subscribe-callback" title="Permalink to this headline">¶</a></h2>
+<p>Default: <tt class="docutils literal"><span class="pre">None</span></tt></p>
+<p>If CAMPAIGN_SUBSCRIBE_CALLBACK is configured the handling of newsletter
+subscriptions via django-campaign will be enabled.</p>
+<p>You have to supply either a callable or an import-path to a callable, which
+accepts an email address as argument and returns either True or False to indicate
+if the action was performed successfully.</p>
+<p>Example settings.py:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">CAMPAIGN_SUBSCRIBE_CALLBACK</span> <span class="o">=</span> <span class="s">&quot;myproject.newsletter.utils.subscribe&quot;</span>
+</pre></div>
+</div>
+<p>Example implementation of the callback in your app:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">subscribe</span><span class="p">(</span><span class="n">email</span><span class="p">):</span>
+    <span class="n">s</span><span class="p">,</span><span class="n">c</span> <span class="o">=</span> <span class="n">Subscriber</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">,</span>
+                                         <span class="n">defaults</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;newsletter&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span>
+    <span class="k">return</span> <span class="bp">True</span>
+</pre></div>
+</div>
+<p>It&#8217;s up to you to decide where to store the Subscribers, as django-campaign is
+completely agnostic in this point. One or more Subscriber models can be
+defined via the admin interface for the <a class="reference internal" href="concepts.html#ref-concepts"><em>SubscriberList</em></a> model.</p>
+</div>
+<div class="section" id="campaign-unsubscribe-callback">
+<h2>CAMPAIGN_UNSUBSCRIBE_CALLBACK<a class="headerlink" href="#campaign-unsubscribe-callback" title="Permalink to this headline">¶</a></h2>
+<p>Default: <tt class="docutils literal"><span class="pre">None</span></tt></p>
+<p>Please see <a class="reference internal" href="#campaign-subscribe-callback">CAMPAIGN_SUBSCRIBE_CALLBACK</a> above and replace subscribe with
+unsubscribe.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Available Settings</a><ul>
+<li><a class="reference internal" href="#campaign-backend">CAMPAIGN_BACKEND</a></li>
+<li><a class="reference internal" href="#campaign-context-processors">CAMPAIGN_CONTEXT_PROCESSORS</a></li>
+<li><a class="reference internal" href="#campaign-subscribe-callback">CAMPAIGN_SUBSCRIBE_CALLBACK</a></li>
+<li><a class="reference internal" href="#campaign-unsubscribe-callback">CAMPAIGN_UNSUBSCRIBE_CALLBACK</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="install.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="backends.html"
+                        title="next chapter">Backends</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/settings.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="backends.html" title="Backends"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Installation"
+             >previous</a> |</li>
+        <li><a href="index.html">django-campaign 0.3.0-pre documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Arne Brodowski.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
