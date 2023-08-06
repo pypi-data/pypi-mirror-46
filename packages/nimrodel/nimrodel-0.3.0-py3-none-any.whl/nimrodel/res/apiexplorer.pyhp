@@ -1,0 +1,187 @@
+<html>
+	<head>
+		<title>API Explorer</title>
+		<style>
+
+			@import url('https://fonts.googleapis.com/css?family=Ubuntu');
+
+			body {
+				font-family:"Ubuntu";
+				padding:35px;
+			}
+			.collapsed > .body {
+				display:none;
+			}
+
+			.body {
+				padding-left:35px;
+			}
+
+			.api_module > .header {
+				padding:10px;
+				font-weight:bold;
+				/*font-size:140%;*/
+				cursor:pointer;
+				color:black;
+			}
+			.api_module.collapsed > .header {
+				color:grey;
+			}
+			.api_module.collapsed > .header:hover {
+				color:black;
+			}
+
+			.api_module > .body {
+
+			}
+
+
+			.class_module > .header {
+				cursor:pointer;
+			}
+			.class_module.collapsed > .header {
+				color:grey;
+			}
+			.class_module.collapsed > .header:hover {
+				color:black;
+			}
+
+			.method_module {
+				padding-bottom:15px;
+			}
+			.method_module > .body {
+				cursor:pointer;
+				border: 1px solid #cccccc;
+				padding:15px;
+			}
+			.method_module > .header {
+				cursor:pointer;
+				border: 1px solid #cccccc;
+				background-color: #e0e0e0;
+			}
+
+			.method_GET, .method_POST {
+				padding:5px;
+				color:white;
+				border-radius:3px;
+				width: 60px;
+				font-size:80%;
+    				display: inline-block;
+    				text-align: center;
+			}
+			.method_GET {
+				background-color:blue;
+			}
+			.method_POST {
+				background-color:green;
+			}
+			.instancename {
+				color:grey;
+			}
+			.instancename_selector {
+				color:grey;
+				cursor:pointer;
+			}
+
+			table.paramlist td {
+				padding-right:15px;
+			}
+		</style>
+		<script>
+			function toggleCollapse(e) {
+				e.parentElement.classList.toggle("collapsed");
+			}
+
+			function insertInstance(name,element) {
+				// reset all selectors
+				sels = element.parentElement.getElementsByClassName("instancename_selector");
+				for (let e of sels) {
+					e.style = "";
+				}
+				// emph this one
+				element.style = "color:black;";
+
+				// fill in name
+				els = element.parentElement.getElementsByClassName("instancename");
+				for (let e of els) {
+					e.innerHTML = name;
+					e.style = "color:black;";
+				}
+
+			}
+		</script>
+	</head>
+
+	<body>
+
+		<h1>API Explorer</h1>
+		generated with <a href="https://github.com/krateng/nimrodel">nimrodel</a>
+
+		<pyhp for="api" in="apis">
+		<div class="api_module collapsed">
+			<h1 class="header" onclick="toggleCollapse(this)">
+				<pyhp echo="api['url']"></pyhp>
+			</h1>
+			<div class="body">
+				<pyhp for="cls" in="api['classes']">
+				<div class="class_module collapsed">
+					<h2 class="header" onclick="toggleCollapse(this)">
+						<pyhp echo="api['url'] + '/' + cls['name'] + ''"></pyhp>
+					</h2>
+					<div class="body" a="test">
+						<b>Instances:</b>
+						<pyhp for="instance" in="cls['instances']" separator=" | ">
+							<span class="instancename_selector" onclick="insertInstance('{instance}',this)"><pyhp echo="instance" /></span>
+						</pyhp>
+						<!--<pyhp echo="' | '.join(cls['instances'])" />-->
+						<br/><br/>
+						<pyhp for="method" in="cls['methods']">
+						<div class="method_module collapsed">
+							<div class="header" onclick="toggleCollapse(this)">
+								<span class="method_{method['method']}"><pyhp echo="method['method']"></pyhp></span>
+								<pyhp echo="api['url']" />/<pyhp echo="cls['name']" />/<span class="instancename"><pyhp echo="'{' + cls['name'] + '}'" /></span>/<pyhp echo="method['name']" />
+							</div>
+
+							<div class="body">
+								<b>Description</b><br/>
+								<pyhp echo="method['description']"></pyhp>
+								<br/><br/>
+								<b>Parameters</b><br/>
+								<table class="paramlist">
+									<pyhp for="parameter" in="method['parameters']">
+									<tr>
+										<td><b><pyhp echo="parameter"></pyhp></b></td>
+										<td><i><pyhp echo="method['parameters'][parameter]['type']"></pyhp></i></td>
+										<td><pyhp echo="method['parameters'][parameter]['desc']"></pyhp></td>
+									</tr>
+									</pyhp>
+								</table>
+								<br/>
+								<b>Return value</b><br/>
+								<pyhp if="'type' in method['returns']">
+								<!--<b>Type:</b> <pyhp echo="method['returns']['type']"></pyhp><br/>-->
+								<i>(<pyhp echo="method['returns']['type']"></pyhp>)</i>
+								</pyhp>
+								<pyhp if="'desc' in method['returns']">
+								<!--<b>Description:</b> <pyhp echo="method['returns']['desc']"></pyhp>-->
+								<pyhp echo="method['returns']['desc']"></pyhp>
+								</pyhp>
+							</div>
+						</div>
+
+
+						</pyhp>
+					</div>
+				</div>
+
+
+				</pyhp>
+
+			</div>
+		</div>
+
+		</pyhp>
+
+	</body>
+
+</html>
