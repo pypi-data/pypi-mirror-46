@@ -1,0 +1,28 @@
+{% if building_version %}
+<div class="version-select-container">
+    <div data-delay="0" class="w-dropdown">
+        <div class="w-dropdown-toggle toggle">
+            <div class="toggle-text">{{ building_version }}</div>
+            <div class="w-icon-dropdown-toggle toggle-icon"></div>
+        </div>
+        <nav class="w-dropdown-list dropdown-list">
+            {% set prefix = pagename | list | select("equalto", "/") | map("replace", "/", "../") | join("") %}
+            {% if building_version == "latest" %}
+                <div class="w-dropdown-link">latest</div>
+            {% else %}
+                <a href="{{ prefix }}../{{ pagename }}.html" class="w-dropdown-link">latest</a>
+            {% endif %}
+
+            {% for release in releases.split(",") | sort(True) %}
+                {% if building_version == release %}
+                <div class="w-dropdown-link">{{ release }}</div>
+                {% elif building_version == "latest" %}
+                    <a href="{{ prefix }}{{ release }}/{{ pagename }}.html" class="w-dropdown-link">{{ release }}</a>
+                {% else %}
+                    <a href="{{ prefix }}../{{ release }}/{{ pagename }}.html" class="w-dropdown-link">{{ release }}</a>
+                {% endif %}
+            {% endfor %}
+        </nav>
+    </div>
+</div>
+{% endif %}
