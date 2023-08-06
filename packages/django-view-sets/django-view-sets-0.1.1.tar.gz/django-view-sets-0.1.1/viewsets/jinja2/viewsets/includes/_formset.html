@@ -1,0 +1,23 @@
+<div class="formset" data-formset-prefix="{{ formset.prefix }}">
+  {{ formset.management_form }}
+
+  {% with errors=formset.non_form_errors() %}
+    {% include 'viewsets/includes/_form_errors.html' %}
+  {% endwith %}
+
+  <div class="container" data-formset-body>
+    {% for form in formset|order_formset_forms %}
+      {% include 'viewsets/includes/_formset_form.html' %}
+    {% endfor %}
+  </div>
+
+  <script type="form-template" data-formset-empty-form>
+    {% with form=formset.empty_form %}
+      {% include 'viewsets/includes/_formset_form.html' %}
+    {% endwith %}
+  </script>
+
+  <button type="button" class="btn btn-secondary" data-formset-add>
+    <i class="fa fa-plus-square"></i> {{ _('Add another') }}
+  </button>
+</div>
