@@ -1,0 +1,78 @@
+{% load crispy_forms_tags %}
+{% load crispy_forms_utils %}
+{% load crispy_forms_field %}
+
+{% specialspaceless %}
+{% if formset_tag %}
+<form {{ flat_attrs|safe }} method="{{ form_method }}" {% if formset.is_multipart %} enctype="multipart/form-data"{% endif %}>
+{% endif %}
+    {% if formset_method|lower == 'post' and not disable_csrf %}
+        {% csrf_token %}
+    {% endif %}
+
+    <div>
+        {{ formset.management_form|crispy }}
+    </div>
+    <div style="display: none;">
+        <table>
+            <tbody id="{{ formset.get_default_prefix }}_empty_form">
+                <tr>
+                    {% for field in formset.empty_form %}
+                        {% include 'bootstrap3/field.html' with tag="td" form_show_labels=False %}
+                    {% endfor %}
+                    <td class="remove-row-icon-td"><i class="fa fa-remove remove-row-icon" onclick="removeRow(this, '{{ formset.get_default_prefix }}');"></i></td>
+                </tr>
+                {% if formset.empty_form.media %}{{ formset.empty_form.media }}{% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "bootstrap3/errors_formset.html" %}
+
+    <div class="table-responsive {{ formset.get_default_prefix }}_table_container">
+        <table{% if form_id %} id="{{ form_id }}_table"{% endif%} class="table table-striped table-condensed {{ formset.get_default_prefix }}_table">
+            <thead>
+                {% if formset.readonly and not formset.queryset.exists %}
+                {% else %}
+                    <tr>
+                        {% for field in formset.empty_form %}
+                            {% if field.label and not field.is_hidden %}
+                                <th for="{{ field.auto_id }}" class="control-label {% if field.field.required %}requiredField{% endif %}">
+                                    {{ field.label|safe }}{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}
+                                </th>
+                            {% endif %}
+                        {% endfor %}
+                        <th class="remove-row-icon-th"></th>
+                    </tr>
+                {% endif %}
+            </thead>
+
+            <tbody>
+                {% for form in formset %}
+                    {% if form_show_errors and not form.is_extra %}
+                        {% include "bootstrap3/errors.html" %}
+                    {% endif %}
+
+                    <tr>
+                        {% for field in form %}
+                            {% include 'bootstrap3/field.html' with tag="td" form_show_labels=False %}
+                        {% endfor %}
+                        <td class="remove-row-icon-td">{% if form.instance.pk == None %}<i class="fa fa-remove remove-row-icon" onclick="removeRow(this, '{{ formset.get_default_prefix }}');"></i>{% endif %}</td>
+                    </tr>
+
+                    {% if form.media %}{{ form.media }}{% endif %}
+
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="box add-another-box">
+            <a class="add-another" onclick="addAnother('{{ formset.get_default_prefix }}');">Add another <i class="fa fa-plus-square"></i></a>
+        </div>
+
+    </div>
+
+    {% include "bootstrap3/inputs.html" %}
+
+{% if formset_tag %}</form>{% endif %}
+{% endspecialspaceless %}
