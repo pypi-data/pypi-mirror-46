@@ -1,0 +1,104 @@
+Metadata-Version: 2.1
+Name: flake8-pie
+Version: 0.2.2
+Summary: A flake8 extension that implements misc. lints
+Home-page: https://github.com/sbdchd/flake8-pie
+Author: Steve Dignam
+Author-email: steve@dignam.xyz
+Maintainer: Steve Dignam
+Maintainer-email: steve@dignam.xyz
+License: BSD2 License
+Description: # flake8-pie [![CircleCI](https://circleci.com/gh/sbdchd/flake8-pie.svg?style=svg)](https://circleci.com/gh/sbdchd/flake8-pie) [![pypi](https://img.shields.io/pypi/v/flake8-pie.svg)](https://pypi.org/project/flake8-pie/)
+        
+        > A flake8 extension that implements misc. lints
+        
+        Note: flake8-pie requires Python 3.6 or greater
+        
+        ## lints
+        
+        - PIE781: You are assigning to a variable and then returning. Instead remove the assignment and return.
+        - PIE782: Unnecessary f-string. You can safely remove the `f` prefix.
+        
+        ### PIE781: Assign and Return
+        
+        Based on Clippy's
+        [`let_and_return`](https://rust-lang.github.io/rust-clippy/master/index.html#let_and_return)
+        and Microsoft's TSLint rule
+        [`no-unnecessary-local-variable`](https://github.com/Microsoft/tslint-microsoft-contrib).
+        
+        For more info on the structure of this lint, see the [accompanying blog
+        post](https://steve.dignam.xyz/2018/12/16/creating-a-flake8-lint/).
+        
+        #### examples
+        
+        ```python
+        # error
+        def foo():
+           x = bar()
+           return x
+        
+        # allowed
+        def foo():
+           x, _ = bar()
+           return x
+        ```
+        
+        ### PIE782: No Pointless F Strings
+        
+        Warn about usage of f-string without templated values.
+        
+        #### examples
+        
+        ```python
+        x = (
+            f"foo {y}", # ok
+            f"bar" # error
+        )
+        ```
+        
+        ## dev
+        
+        ```shell
+        # install dependencies
+        poetry install
+        
+        # install plugin to work with flake8
+        poetry run python setup.py install
+        
+        # test
+        poetry run pytest
+        # or with watch
+        poetry run ptw
+        
+        # typecheck
+        poetry run mypy *.py
+        
+        # format
+        poetry run black .
+        
+        # lint
+        poetry run flake8 .
+        ```
+        
+        ## uploading a new version to [PyPi](https://pypi.org)
+        
+        ```shell
+        # increment `__version__` and pyproject.toml `version`
+        
+        # build new distribution files
+        rm -rf dist && poetry run python setup.py sdist bdist_wheel
+        
+        # upload to pypi (Note: this will ask for login credentials)
+        poetry run twine upload dist/*
+        ```
+        
+Keywords: flake8,lint
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Environment :: Console
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Operating System :: OS Independent
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Topic :: Software Development :: Quality Assurance
+Provides: flake8_pie
+Description-Content-Type: text/markdown
