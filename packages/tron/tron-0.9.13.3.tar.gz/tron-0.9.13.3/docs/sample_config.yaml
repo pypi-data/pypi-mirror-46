@@ -1,0 +1,53 @@
+# optional and settable from the command line
+working_dir: './working'
+
+# optional
+ssh_options:
+  agent: true # default False
+  identities: # default []
+    - "/home/batch/.ssh/id_dsa-nopasswd"
+
+command_context:
+  PYTHON: /usr/bin/python
+  TMPDIR: /tmp
+
+# required
+nodes:
+  - name: node1
+    hostname: 'batch1'
+    username: 'tronuser'
+  - name: node2
+    hostname: 'batch2'
+    username: 'tronuser'
+
+node_pools:
+  - name: pool
+    nodes: [node1, node2]
+
+jobs:
+  "job0":
+    node: pool
+    all_nodes: True
+    schedule:
+        start_time: 04:00:00
+    queueing: False
+    actions:
+      "verify_logs_present":
+        command: >
+            ls /var/log/app/log_{shortdate-1}.txt
+      "convert_logs":
+        command: >
+            convert_logs /var/log/app/log_{shortdate-1}.txt \
+                /var/log/app_converted/log_{shortdate-1}.txt
+        requires: [verify_logs_present]
+    # this will run when the job succeeds or fails
+    cleanup_action:
+        command: "rm /{TMPDIR}/random_temp_file"
+
+  "job1":
+    node: node
+    schedule: "every monday at 09:00"
+    queueing: False
+    actions:
+      "actionAlone":
+        command: "cat big.txt; sleep 10"
