@@ -1,0 +1,9 @@
+class App{constructor(api_config){this.api=new ApiConnector(api_config);this.files_cache=window.guiFilesCache;this.error_handler=new ErrorHandler();}
+start(){return this.api.getSchema().then(openapi_schema=>{fieldsRegistrator.registerAllFieldsComponents();this.initModels();this.initViews();this.mountApplication();}).catch(error=>{debugger;throw new Error(error);});}
+initModels(){this.models=this.generateModels();}
+generateModels(){let models_constructor=new ModelConstructor(openapi_dictionary,guiModels);return models_constructor.generateModels(this.api.openapi);}
+initViews(){this.views=this.generateViews();this.prepareViewsModelsFields();}
+generateViews(){let views_constructor=new ViewConstructor(openapi_dictionary,this.models);return views_constructor.generateViews(View,this.api.openapi);}
+prepareViewsModelsFields(){for(let path in this.views){let view=this.views[path];for(let key in view.objects.model.fields){let field=view.objects.model.fields[key];if(field.constructor.prepareField){let prepared=field.constructor.prepareField(field,path);view.objects.model.fields[key]=prepared;}}}}
+mountApplication(){tabSignal.emit('app.beforeInit',{app:this});let store_constructor=new StoreConstructor(this.views);let routerConstructor=new RouterConstructor(this.views,routesComponentsTemplates,customRoutesComponentsTemplates,);this.application=new Vue({data:{info:app.api.openapi.info,x_menu:app.api.openapi.info['x-menu'],x_docs:app.api.openapi.info['x-docs'],a_links:false,},computed:{realBodyClasses(){let cls="";['is_superuser','is_staff'].forEach(item=>{cls+=window[item]?(item+" "):"";});return cls;}},router:routerConstructor.getRouter(),store:store_constructor.getStore(),}).$mount('#RealBody');window.removeEventListener('error',onLoadingErrorHandler);window.guiFilesLoader.hideLoadingProgress();tabSignal.emit('app.afterInit',{app:this});}}
+var app=new App(api_connector_config);tabSignal.connect("resource.loaded",()=>{app.start();});

@@ -1,0 +1,98 @@
+{% load request_static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+{% block head %}
+<head>
+    {% block meta %}
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta name="robots" content="NONE,NOARCHIVE" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    {% endblock %}
+
+
+    {% block title %}<title>{% if name %}{{ name }} – {% endif %}{{ project_gui_name }}</title>{% endblock %}
+
+    {% block gui_init_scripts %}{% endblock %}
+
+    {% block style %}
+        <!-- Bootstrap -->
+        <link rel="stylesheet" href="{% static_path 'AdminLTE-3.0.0/plugins/bootstrap/css/bootstrap.min.css' %}?v={{gui_version}}">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="{% static_path 'AdminLTE-3.0.0/plugins/font-awesome/css/font-awesome.min.css' %}?v={{gui_version}}">
+        <!-- Theme style -->
+        <link rel="stylesheet" href="{% static_path 'AdminLTE-3.0.0/min/css/adminlte.min.css' %}?v={{gui_version}}">
+
+            {% block gui_init_inline_styles %}
+            {% endblock %}
+
+            {% block bootstrap_theme %}
+            {% endblock %}
+
+            {% block flavicon %}
+                <link rel="shortcut icon" href="{% static_path '/img/logo/favicon.ico' %}">
+            {% endblock %}
+
+            {% block custom_style %}
+            {% endblock %}
+
+    {% endblock %}
+    {% block resource_list %}
+        <script>
+            window.resourceList = [
+            ]
+        </script>
+    {% endblock %}
+
+    {% block common_sciprt %}
+    {% endblock %}
+</head>
+{% endblock %}
+
+{% block body %}
+    <body class="{% block bodyclass %}hold-transition login-page{% endblock %}">
+        <div class="login-box">
+            {% block login_logo %}
+                <div class="login-logo">
+                    <a>{{ project_gui_name }}</a>
+                </div>
+            {% endblock %}
+
+            <!-- /.login-logo -->
+            {% block login_body %}
+                <div class="login-box-body">
+                    <p class="login-box-msg">Sign in to start your session</p>
+
+                    <form action="{% url 'login' %}" method="post">
+                        {% csrf_token %}
+                        <div class="form-group has-feedback">
+                            <input type="text" class="form-control" placeholder="Username" name="username">
+                        </div>
+                        <div class="form-group has-feedback">
+                            <input type="password" class="form-control" placeholder="Password" name="password">
+                        </div>
+                        {% block button %}
+                            <div class="row">
+                                <div class="col-xs-4">
+                                    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                                </div>
+                            </div>
+                        {% endblock %}
+                    </form>
+                    {% block alter_auth %}
+                    {% endblock %}
+                </div>
+            {% endblock %}
+          <!-- /.login-box-body -->
+        </div>
+        <!-- /.login-box -->
+
+        {% block script %}
+            <!-- jQuery -->
+            <script src="{% static_path 'admin/js/vendor/jquery/jquery.min.js' %}?v={{gui_version}}"></script>
+            <script defer src="{% static_path 'AdminLTE-3.0.0/plugins/bootstrap/js/bootstrap.bundle.min.js' %}?v={{gui_version}}"></script>
+        {% endblock %}
+    </body>
+{% endblock %}
+</html>
