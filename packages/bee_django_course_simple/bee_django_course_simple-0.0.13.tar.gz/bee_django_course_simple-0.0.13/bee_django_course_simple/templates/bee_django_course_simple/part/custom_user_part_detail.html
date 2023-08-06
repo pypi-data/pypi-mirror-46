@@ -1,0 +1,143 @@
+{% extends "bee_django_course_simple/user_base.html" %}
+{% load bootstrap3 %}
+{% load bee_django_course_simple_filter %}
+{% block styles %}
+    <style>
+        .part_info img {
+            max-width: 100%;
+        }
+
+        .nav {
+            margin: 5px auto;
+        }
+
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="part_detail">
+        <div class="nav">
+            <a href="/">首页</a> -> <a
+                href="{% url 'bee_django_course_simple:custom_user_section_detail' section_type=user_part.user_section.section.type pk=user_part.user_section.id %}">
+            {{ user_part.user_section.section.title }}
+        </a> -> 详情
+        </div>
+        <div class="text-center">
+            <h4>{{ user_part.part.title }}
+                {% if user_part.is_pass %}
+                    {{ user_part.part.extra_title|default:"" }}
+                {% endif %}
+            </h4>
+        </div>
+
+        <div style="margin: 5px auto;">
+            <a href="{% url 'bee_django_course_simple:custom_user_section_detail' section_type=1 pk=user_part.user_section.id %}"
+               class="btn btn-default">
+                返回
+            </a>
+    <span id="next_user_part_button" style="float: right;">
+        {% if next_user_part %}
+            {% if next_user_part.part.is_video_type %}
+                <a href="{% url 'bee_django_course_simple:custom_user_part_detail_video' pk=next_user_part.user_section.id %}"
+                   class="btn btn-default disabled">
+                    下一节
+                </a>
+            {% elif next_user_part.part.is_question_type %}
+                <a href="{% url 'bee_django_course_simple:custom_user_part_detail_question' pk=next_user_part.id %}"
+                   class="btn btn-default disabled">
+                    下一节
+                </a>
+            {% endif %}
+
+        {% endif %}
+    </span>
+        </div>
+
+        {% if user_part.part.is_video_type %}
+            {% include 'bee_django_course_simple/part/_custom_user_part_detail_video.html' %}
+            {% include 'bee_django_course_simple/part/_custom_user_notebook.html' %}
+        {% elif user_part.part.is_question_type %}
+            {% include 'bee_django_course_simple/part/_custom_user_part_detail_question.html' %}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% include 'bee_django_course_simple/section/_custom_alert.html' %}
+    <script type="text/javascript">
+
+
+        $(document).ready(function () {
+            window.user_part_status = "{{ user_part.status }}";
+            var next_user_part_btn = "{{ next_user_part_btn }}";
+            update_next_button(next_user_part_btn);
+
+        });
+
+        {#更新按钮状态#}
+        function update_next_button(next_user_part_btn) {
+            if (next_user_part_btn == true || next_user_part_btn == "True") {
+                $("#next_user_part_button>a").removeClass("disabled");
+
+            }
+
+        }
+        function update_part(data) {
+            if (data["error"] == 0) {
+                alert(window.part_pass_alert);
+            }
+            update_next_button(data["next_user_part_btn"]);
+            if (data['user_part_status'] == 2) {
+                window.user_part_status = '2'
+
+            }
+        }
+
+        function video_done(video_id, t) {
+            if (window.user_part_status === "1") {
+                var url = t.attr('data-url');
+                $.post(url, {'video_id': video_id}).done(function (data) {
+                    update_part(data);
+                });
+            }
+        }
+
+        function submit_user_answer(t) {
+            if (window.user_part_status === "1") {
+                var question_list = $('.user_question');
+                var data = [];
+                for (var i = 0; i < question_list.length; i++) {
+                    var question = $(question_list[i]);
+                    var question_id = question.data('question-id');
+                    var selected_option = question.children(".user_options").children()
+                            .children('input[name=question_' + question_id + ']:checked');
+                    var selected_option_value = selected_option.val();
+                    if (!selected_option_value) {
+                        alert('请回答问题后再提交');
+                        return;
+                    }
+
+                    data.push({'question_id': question_id, 'option_id': selected_option_value});
+                }
+
+                if (data.length !== question_list.length) {
+                    alert('请回答全部问题后再提交');
+                } else {
+                    var url = t.data('url');
+                    $.post(url, {'question_data': JSON.stringify(data)}).done(function (data) {
+                        if (data["error"] == 0) {
+                            var question_correct_count = data["question_correct_count"];
+                            var question_count = data["question_count"];
+                            var message = window.part_pass_alert;
+                            alert(message);
+                            window.location.reload();
+                        }
+                        else {
+                            alert(data["message"])
+                        }
+                    });
+                }
+            }
+        }
+
+    </script>
+{% endblock %}

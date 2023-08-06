@@ -1,0 +1,19 @@
+{% for video in user_part.part.video_set.all %}
+    <div class="user_videos">
+        <div align="center" class="embed-responsive embed-responsive-16by9">
+            <video controls poster="http://{{ qiniu_domain }}/{{ video.file_name }}?vframe/png/offset/3"
+                   class="embed-responsive-item"
+                   data-url="{% url 'bee_django_course_simple:user_part_update' user_part_id=user_part.id %}"
+                   data-status = "{{ user_part.status }}"
+                   onended="video_done({{ video.id }},$(this))">
+                <source src="http://{{ qiniu_domain }}/{{ video.file_name }}" type="video/mp4">
+                你的浏览器不支持video标签.
+            </video>
+        </div>
+        <div class="unselectable">
+            <p>
+                {{ video.content | safe }}
+            </p>
+        </div>
+    </div>
+{% endfor %}
