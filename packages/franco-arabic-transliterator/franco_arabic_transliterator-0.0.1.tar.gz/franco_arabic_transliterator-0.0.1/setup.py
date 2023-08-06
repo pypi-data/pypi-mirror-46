@@ -1,0 +1,13 @@
+import setuptools
+
+setuptools.setup(
+	name='franco_arabic_transliterator',
+	version='0.0.1',
+	description='Convert franco-arabic text into arabic',
+	url='https://github.com/AMR-KELEG/Franco-Arabic-Transliterator',
+	author='Amr Keleg',
+	author_email='amr_mohamed@live.com',
+	license='GPLv3',
+	packages=setuptools.find_packages(),
+	zip_safe=False)
+
