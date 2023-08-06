@@ -1,0 +1,40 @@
+#!/bin/bash
+
+if [ ${DIB_DEBUG_TRACE:-0} -gt 0 ]; then
+    set -x
+fi
+set -eu
+set -o pipefail
+
+if [[ ${GENTOO_OVERLAYS} != '' ]]; then
+    if mountpoint -q /dev/shm; then
+    echo "/dev/shm found in /proc/self/mountinfo"
+    elif [[ -k /dev/shm ]]; then
+        echo "/dev/shm exists and is stickied"
+    else
+        fix_shm
+    fi
+
+    if [[ ! -f /usr/portage/profiles ]]; then
+        emerge-webrsync -q
+    fi
+
+    # upstream has problems with supporting other libcs still
+    if [[ "${GENTOO_PROFILE}" == *"musl"* ]]; then
+        echo '>=sys-block/open-iscsi-2.0.875' >> /etc/portage/package.mask/open-iscsi
+        echo '=sys-block/open-iscsi-2.0.874-r2' >> /etc/portage/package.keywords/open-iscsi
+    fi
+    emerge ${GENTOO_EMERGE_DEFAULT_OPTS} --oneshot openssl openssh
+    # install layman
+    emerge ${GENTOO_EMERGE_DEFAULT_OPTS} --oneshot --deep --ignore-built-slot-operator-deps=y layman
+    # sync the initial overlay list
+    layman -S
+    # enable the various overlays, ignore failures (overlay my already be enabled)
+    set +e
+    for OVERLAY in ${GENTOO_OVERLAYS}; do
+        layman -a "${OVERLAY}"
+    done
+    set -e
+
+    unfix_shm
+fi
