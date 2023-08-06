@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+{% block import %}
+    {% for file in import_files %}
+import "{{ file_path }}/{{ file }}.proto";
+    {% endfor %}
+{% endblock %}
+
+{% block service %}
+    {% for service in services %}
+service {{ service.name }} {
+        {% for rpc in service.rpcs %}
+    rpc {{ rpc.name }} ({{ rpc.request_type.__name__ }}) returns ({{ rpc.response_type.__name__ }}) {
+    }
+        {% endfor %}
+}
+    {% endfor %}
+{% endblock %}
+
+{% block message %}
+    {% for message in messages %}
+message {{ message.name }} {
+            {% for field in message.fields %}
+    {{ field }} = {{ loop.index }};
+            {% endfor %}
+}
+    {% endfor %}
+{% endblock %}
