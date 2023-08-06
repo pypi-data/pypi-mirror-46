@@ -1,0 +1,129 @@
+Metadata-Version: 2.1
+Name: process-tracker
+Version: 0.1.2
+Summary: Track child processes.
+Home-page: https://github.com/chrahunt/process-tracker
+Author: Chris Hunt
+Author-email: chrahunt@gmail.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: C
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Requires-Dist: cmake ; extra == 'dev'
+Requires-Dist: Cython ; extra == 'dev'
+Requires-Dist: ninja ; extra == 'dev'
+Requires-Dist: pytest ; extra == 'dev'
+Requires-Dist: pytest-forked ; extra == 'dev'
+Requires-Dist: scikit-build ; extra == 'dev'
+Requires-Dist: setuptools ; extra == 'dev'
+Requires-Dist: tox ; extra == 'dev'
+
+# process-tracker
+
+Process tracker enables tracking creation of child processes.
+
+Usage:
+
+```python
+import process_tracker; process_tracker.install()
+
+import os
+
+pid1 = os.fork()
+pid2 = os.fork()
+pid3 = os.fork()
+
+if pid1 and pid2 and pid3:
+    print(process_tracker.children())
+```
+
+Prints a list of tuples with `(pid, create_time)` for each process.
+
+`create_time` can be used to confirm that the current process (if any) with
+the given pid is the same as the original. For example:
+
+```python
+import process_tracker
+import psutil
+
+
+def get_create_time(ctime):
+    boot_time = psutil.boot_time()
+    clock_ticks = os.sysconf("SC_CLK_TCK")
+    return boot_time + (ctime / clock_ticks)
+
+
+processes = []
+for pid, create_time in process_tracker.children():
+    try:
+        p = psutil.Process(pid=pid)
+    except psutil.NoSuchProcess:
+        continue
+    if p.create_time() == get_create_time(create_time):
+        processes.append(p)
+
+# processes now has the list of active child processes
+# psutil itself does a check before sensitive operations that the
+# active process create time is the same as when the Process object
+# was initialized.
+for p in processes:
+    p.terminate()
+```
+
+# Limitations
+
+1. Only tracks children spawned from dynamically-linked executables.
+1. Relies on `LD_PRELOAD` so will not work for setuid/setgid executables.
+
+# Development
+
+## Basic
+
+1. `python -m venv .venv`
+1. `.venv/bin/python -m pip install tox`
+1. Make changes
+1. `.venv/bin/python -m tox`
+
+## Debugging C build
+
+Avoids overhead of making sdist
+
+1. As above
+1. `make c-build`
+
+## Debugging issues from sub-process
+
+gdb debugging of sub-processes.
+
+1. As above
+1. `make debug`
+
+## Debugging tests without rebuild
+
+1. As above
+1. `.venv/bin/python -m pip install . .[dev]`
+
+Then
+
+* `pip install . && pytest` when rebuild is needed
+* `pytest` when only tests changed
+
+
+## Release
+
+```
+docker run \
+    -e REAL_UID=$(id -u) \
+    -e REAL_GID=$(id -g) \
+    -v "$PWD/scripts/build.sh:/build.sh" \
+    -v "$PWD:/src" \
+    dockcross/manylinux1-x64 \
+    sh -c 'cd /src && env "PATH=/opt/python/cp37-cp37m/bin:$PATH" /build.sh'
+```
+
+
