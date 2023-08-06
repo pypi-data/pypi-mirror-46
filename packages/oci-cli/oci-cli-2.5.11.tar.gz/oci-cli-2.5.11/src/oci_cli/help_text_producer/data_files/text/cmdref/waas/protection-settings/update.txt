@@ -1,0 +1,237 @@
+update
+******
+
+
+Description
+===========
+
+Updates the protection settings in the Web Application Firewall
+configuration for a WAAS policy. Protection settings allow you define
+what action is taken when a request is blocked by the Web Application
+Firewall, such as returning a response code or block page. Only the
+fields specified in the request body will be updated; all other fields
+will remain unchanged.
+
+
+Usage
+=====
+
+   oci waas protection-settings update [OPTIONS]
+
+
+Options
+=======
+
+
+--waas-policy-id [text]
+-----------------------
+
+The OCID of the WAAS policy. [required]
+
+
+--block-action [SHOW_ERROR_PAGE|SET_RESPONSE_CODE]
+--------------------------------------------------
+
+If *action* is set to *BLOCK*, this specifies how the traffic is
+blocked when detected as malicious by a protection rule. If
+unspecified, defaults to *SET_RESPONSE_CODE*.
+
+
+--block-response-code [integer]
+-------------------------------
+
+The response code returned when *action* is set to *BLOCK*,
+*blockAction* is set to *SET_RESPONSE_CODE*, and the traffic is
+detected as malicious by a protection rule. If unspecified, defaults
+to *403*.
+
+
+--block-error-page-message [text]
+---------------------------------
+
+The message to show on the error page when *action* is set to *BLOCK*,
+*blockAction* is set to *SHOW_ERROR_PAGE*, and the traffic is detected
+as malicious by a protection rule. If unspecified, defaults to 'Access
+to the website is blocked.'
+
+
+--block-error-page-code [text]
+------------------------------
+
+The error code to show on the error page when *action* is set to
+*BLOCK*, *blockAction* is set to *SHOW_ERROR_PAGE*, and the traffic is
+detected as malicious by a protection rule. If unspecified, defaults
+to *403*.
+
+
+--block-error-page-description [text]
+-------------------------------------
+
+The description text to show on the error page when *action* is set to
+*BLOCK*, *blockAction* is set to *SHOW_ERROR_PAGE*, and the traffic is
+detected as malicious by a protection rule. If unspecified, defaults
+to *Access blocked by website owner. Please contact support.*
+
+
+--max-argument-count [integer]
+------------------------------
+
+The maximum number of arguments allowed to be passed to your
+application before an action is taken. If unspecified, defaults to
+*255*.
+
+
+--max-name-length-per-argument [integer]
+----------------------------------------
+
+The maximum length allowed for each argument name, in characters. If
+unspecified, defaults to *400*.
+
+
+--max-total-name-length-of-arguments [integer]
+----------------------------------------------
+
+The maximum length allowed for the sum of all argument names, in
+characters. If unspecified, defaults to *64000*.
+
+
+--recommendations-period-in-days [integer]
+------------------------------------------
+
+The length of time to analyze traffic traffic, in days. After the
+analysis period, *WafRecommendations* will be populated. If
+unspecified, defaults to *10*.
+
+Use *GET /waasPolicies/{waasPolicyId}/wafRecommendations* to view WAF
+recommendations.
+
+
+--is-response-inspected [boolean]
+---------------------------------
+
+Inspects the response body of origin responses. Can be used to detect
+leakage of sensitive data. If unspecified, defaults to *false*.
+
+**Note:** Only origin responses with a Content-Type matching a value
+in *mediaTypes* will be inspected.
+
+
+--max-response-size-in-ki-b [integer]
+-------------------------------------
+
+The maximum response size to be fully inspected, in binary kilobytes
+(KiB). Anything over this limit will be partially inspected. If
+unspecified, defaults to *1024*.
+
+
+--allowed-http-methods [OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT|PATCH|PROPFIND]
+--------------------------------------------------------------------------------------
+
+The list of allowed HTTP methods. If unspecified, default to
+*[OPTIONS, GET, HEAD, POST]*. This is a complex type whose value must
+be valid JSON. The value can be provided as a string on the command
+line or passed in as a file using the file://path/to/file syntax.
+
+The --generate-param-json-input option can be used to generate an
+example of the JSON which must be provided. We recommend storing this
+example in a file, modifying it as needed and then passing it back in
+via the file:// syntax.
+
+
+--media-types [complex type]
+----------------------------
+
+The list of media types to allow for inspection, if
+*isResponseInspected* is enabled. Only responses with MIME types in
+this list will be inspected. If unspecified, defaults to
+*[`text/html*, *text/plain*, *text/xml*]`.
+
+   Supported MIME types include:
+
+   * text/html     - text/plain     - text/asp     - text/css     -
+     text/x-script     - application/json     - text/webviewhtml     -
+     text/x-java-source     - application/x-javascript     -
+     application/javascript     - application/ecmascript     -
+     text/javascript     - text/ecmascript     - text/x-script.perl -
+     text/x-script.phyton     - application/plain     -
+     application/xml     - text/xml
+
+This is a complex type whose value must be valid JSON. The value can
+be provided as a string on the command line or passed in as a file
+using the file://path/to/file syntax.
+
+The --generate-param-json-input option can be used to generate an
+example of the JSON which must be provided. We recommend storing this
+example in a file, modifying it as needed and then passing it back in
+via the file:// syntax.
+
+
+--if-match [text]
+-----------------
+
+For optimistic concurrency control. In the *PUT* or *DELETE* call for
+a resource, set the *if-match* parameter to the value of the etag from
+a previous *GET* or *POST* response for that resource. The resource
+will be updated or deleted only if the etag provided matches the
+resource's current etag value.
+
+
+--force
+-------
+
+Perform update without prompting for confirmation.
+
+
+--wait-for-state [ACCEPTED|IN_PROGRESS|FAILED|SUCCEEDED|CANCELING|CANCELED]
+---------------------------------------------------------------------------
+
+This operation asynchronously creates, modifies or deletes a resource
+and uses a work request to track the progress of the operation.
+Specify this option to perform the action and then wait until the work
+request reaches a certain state. If timeout is reached, a return code
+of 2 is returned. For any other error, a return code of 1 is returned.
+
+
+--max-wait-seconds [integer]
+----------------------------
+
+The maximum time to wait for the work request to reach the state
+defined by --wait-for-state. Defaults to 1200 seconds.
+
+
+--wait-interval-seconds [integer]
+---------------------------------
+
+Check every --wait-interval-seconds to see whether the work request to
+see if it has reached the state defined by --wait-for-state. Defaults
+to 30 seconds.
+
+
+--from-json [text]
+------------------
+
+Provide input to this command as a JSON document from a file using the
+file://path-to/file syntax.
+
+The --generate-full-command-json-input option can be used to generate
+a sample json file to be used with this command option. The key names
+are pre-populated and match the command option names (converted to
+camelCase format, e.g. compartment-id --> compartmentId), while the
+values of the keys need to be populated by the user before using the
+sample file as an input to this command. For any command option that
+accepts multiple values, the value of the key can be a JSON array.
+
+Options can still be provided on the command line. If an option exists
+in both the JSON document and the command line then the command line
+specified value will be used.
+
+For examples on usage of this option, please see our "using CLI with
+advanced JSON options" link: https://docs.cloud.oracle.com/iaas/Conte
+nt/API/SDKDocs/cliusing.htm#AdvancedJSONOptions
+
+
+-?, -h, --help
+--------------
+
+For detailed help on any of these individual commands, enter <command>
+--help.
