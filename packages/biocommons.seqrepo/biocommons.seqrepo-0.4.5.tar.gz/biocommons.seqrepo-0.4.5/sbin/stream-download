@@ -1,0 +1,36 @@
+#!/bin/bash
+# stream-download -- download, decompress, concatenate urls
+# urls may be http, https, ftp, file
+# intended to stream fasta sequence files from NCBI, Ensembl, and LRG
+
+stream_decompress () {
+    url="$1"
+    case "$url" in
+	*.gz)
+	    curl -s "$url" | gzip -cdq
+	    echo		# add newline between files
+	    ;;
+	*.zip)
+	    fn=$(mktemp)
+	    curl -s -o "$fn" "$url"
+	    # LRG fasta files don't have newline after last sequence in file
+	    # When extracting to pipe, there are lines like
+	    #   ACGT>defline of next file
+	    # Since newlines are innocuous, insert newline before every >
+	    unzip -p "$fn" | sed -e 's/>/\n>/'
+	    /bin/rm "$fn"
+	    ;;
+	*)
+	    curl -s "$url"
+	    ;;
+    esac
+}
+
+
+############################################################################
+
+set -euo pipefail
+
+for url in "$@"; do
+    stream_decompress "$url"
+done
