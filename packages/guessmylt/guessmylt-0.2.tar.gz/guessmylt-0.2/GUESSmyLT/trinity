@@ -1,0 +1,37 @@
+# Execute with "snakemake -s trinity ../intermediate_data/trinity"
+# Currently trinity is not linked to the subsample rule. Trinity run on the full data
+
+configfile: "config.json"
+
+def PE_SE_trinity_command():
+    if len(config["reads"])==2:
+        return " --left "+config["reads"][0]+" --right "+config["reads"][1]+" "
+    elif len(config["reads"])==1:
+        return " --single "+config["reads"][0]+" "
+    else:
+        raise(Exception("Reads should be paired or single ended."))
+
+name=config["name"]
+
+rule trinity:
+    input:
+        rules.subsample_fastq.output
+    output:
+#        trinitydir=directory("intermediate_data/trinity"),
+        renamed="intermediate_data/"+name+".fasta"
+    params:
+        memory=config["memory"]
+    threads:
+        config["threads"]
+    log:
+        "logs/trinity_assembly.log"
+    run:
+        shell("Trinity \
+        --seqType fq \
+        --max_memory {params.memory}\
+        "+PE_SE_trinity_command()+"\
+        --CPU {threads} \
+        --output intermediate_data/trinity \
+        | tee {log}")
+        shell("mv intermediate_data/trinity/Trinity.fasta {output.renamed}")
+        shell("echo Renamed $(dirname $PWD)/intermediate_data/trinity/Trinity.fasta to $(dirname $PWD)/intermediate_data/"+name+".fasta | tee --append {log}")

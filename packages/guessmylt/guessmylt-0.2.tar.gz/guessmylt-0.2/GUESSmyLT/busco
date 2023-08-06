@@ -1,0 +1,58 @@
+# Smakemake file for running BUSCO3.
+# Run command '$ snakemake -s busco run_4' to run analysis on example data 4.fa
+# Change to transcriptome by adding --config mode=transcriptome
+# Parameters can be changed by changing config.json
+
+# make sure augustus config is in path by:
+# export AUGUSTUS_CONFIG_PATH=/path/to/augustus/config
+# e.g. export AUGUSTUS_CONFIG_PATH=~/miniconda3/pkgs/augustus-3.2.3-boost1.60_0/config
+import re, os
+
+configfile: "config.json"
+folder = "intermediate_data/"
+name=config["name"]
+mode = config["mode"]
+lineage = config["lineage"]
+ref_name=config["reference_name"]
+
+def get_reference(wildcards):
+    if config["reference_path"]:
+        return config["reference_path"]
+    else:
+        return rules.trinity.output
+
+rule busco_ann:
+    input:
+        get_reference
+    output:
+        directory(folder+"run_"+ref_name)
+    log:
+        "logs/BUSCO_annotation_run_"+name+".log"
+    threads:
+        config["threads"]
+    run:
+        #Find the good way to call busco
+
+        # Do analysis
+        try:
+            shell("""
+            run_busco -c {threads} -i {input} -l {lineage} -o {ref_name} --tmp {folder}tmp -m {mode} -f | tee {log}
+            mv run_{ref_name} {output}
+            """)
+        except:
+            shell("""
+            run_BUSCO.py -c {threads} -i {input} -l {lineage} -o {ref_name} --tmp {folder}tmp -m {mode} -f | tee {log}
+            mv run_{ref_name} {output}
+            """)
+
+        # Check if BUSCOs were found. If not kill the pipeline.
+        shell("""
+        if grep --quiet -P 'WARNING\tBUSCO did not find any match.' {log}; then
+            echo KILLING snakemake because no BUSCOs were found. Retry with a better reference. | tee -a {log}
+            killall snakemake
+        else
+            :
+        fi
+        """)
+
+# Have to move since since otherwise the busco config.ini file has to be changed for other output dir
