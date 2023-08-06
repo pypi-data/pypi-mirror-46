@@ -1,0 +1,68 @@
+<!-- input type text -->
+{% macro input_string(name, label='', value='', placeholder='', info='' ) -%}
+<div class="form-group col-sm">
+    <label>{{ label }}</label>
+    <input type="text" class="form-control" name="{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}">
+    <small class="form-text text-muted">{{ info }}</small>
+</div>
+{%- endmacro %}
+
+<!-- select with chosen -->
+{% macro input_dropdown(name, label='', value='', placeholder='Selecione...', info='', options={}) -%}
+<div class="form-group col-sm">
+    <label>{{ label }}</label>
+    <select class="form-control chosen-select" name="{{ name }}"  data-placeholder="{{ placeholder }}">
+        <option value=""></option>
+        {% for opt in options.items() %}
+            <option {{ 'selected' if opt[1] == value else '' }}  value="{{ opt[0] }}">{{ opt[1] }}</option>
+        {% endfor %}
+    </select>
+    <small class="form-text text-muted">{{ info }}</small>
+</div>
+{%- endmacro %}
+
+<!-- multiselect -->
+{% macro input_multiselect(name, label='', value='', placeholder='Selecione...', info='', options={}) -%}
+<div class="form-group col-sm">
+    <label>{{ label }}</label>
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+    <select multiple data-name="{{ name }}" class="form-control chosen-select d-none"  data-placeholder="{{ placeholder }}">
+        <option value=""></option>
+        {% set values = value.split(',') %}
+        {% for opt in options.items() %}
+            <option {{ 'selected' if opt[1] in values else '' }} value="{{ opt[0] }}">{{ opt[1] }}</option>
+        {% endfor %}
+    </select>
+    <small class="form-text text-muted">{{ info }}</small>
+</div>
+{%- endmacro %}
+
+
+<!-- textarea -->
+{% macro input_text(name, label='', value='', placeholder='', info='' ) -%}
+<div class="form-group col-sm">
+    <label>{{ label }}</label>
+    <textarea class="form-control" name="{{ name }}" placeholder="{{ placeholder }}">{{ value }}</textarea>
+    <small class="form-text text-muted">{{ info }}</small>
+</div>
+{%- endmacro %}
+
+<!-- numeraljs -->
+{% macro input_number(name, label='', value='', placeholder='', info='', format='0' ) -%}
+<div class="form-group col-sm">
+    <label>{{ label }}</label>
+    <input type="hidden" name="{{ name }}">
+    <input type="text" data-name="{{ name }}" data-format="{{ format|default('') }}" class="form-control number-format" value="{{ value }}" placeholder="{{ placeholder }}">
+    <small class="form-text text-muted">{{ info }}</small>
+</div>
+{%- endmacro %}
+
+<!-- momentjs -->
+{% macro input_date(name, label='', value='', placeholder='', info='', format='', format_out='' ) -%}
+<div class="form-group col-sm">
+    <label>{{ label }}</label>
+    <input type="hidden" name="{{ name }}">
+    <input type="text" data-name="{{ name }}"  data-format="{{ format }}" data-format_out="{{ format_out }}" class="form-control date-format" value="{{ value }}" placeholder="{{ placeholder }}">
+    <small class="form-text text-muted">{{ info }}</small>
+</div>
+{%- endmacro %}
