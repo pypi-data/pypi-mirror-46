@@ -1,0 +1,30 @@
+#!python
+from __future__ import absolute_import
+import click
+import pkg_resources
+
+import crawl as cr
+
+VERSION = pkg_resources.require("msnhoabt2")[0].version
+
+@click.group()
+@click.version_option(version=VERSION, prog_name='msnhoabt2')
+def msnhoabt2():  # pragma: no cover
+    pass
+
+@click.command()
+@click.option('--parent_path', help='parent_path')
+@click.option('--sound_path', help='sound_path')
+@click.option('--start_url', help='start_url')
+@click.option('--output', help='output')
+def crawl(parent_path, sound_path, start_url,output):
+    if start_url != None :
+        if(parent_path == None):
+            output="/var/msn"
+        cr.run(parent_path,sound_path,[start_url],output)
+    else:
+        print("Error , input start_url")
+
+msnhoabt2.add_command(crawl)
+if __name__ == '__main__':  # pragma: no cover
+    msnhoabt2()
