@@ -1,0 +1,129 @@
+Metadata-Version: 1.1
+Name: kinto-redis
+Version: 2.0.1
+Summary: Kinto Redis
+Home-page: https://github.com/Kinto/kinto-redis
+Author: Mozilla Services
+Author-email: services-dev@mozilla.com
+License: Apache License (2.0)
+Description-Content-Type: UNKNOWN
+Description: Kinto Redis
+        ############
+        
+        |travis| |coveralls|
+        
+        .. |travis| image:: https://travis-ci.org/Kinto/kinto-redis.svg?branch=master
+            :target: https://travis-ci.org/Kinto/kinto-redis
+        
+        .. |coveralls| image:: https://coveralls.io/repos/github/Kinto/kinto-redis/badge.svg?branch=master
+            :target: https://coveralls.io/github/Kinto/kinto-redis?branch=master
+        
+        **Kinto Redis** is a redis driver for `Kinto <https://kinto.readthedocs.io>`_
+        storage, permissions and cache backends.
+        
+        .. note::
+        
+           The backend currently doesn't support transaction and will not work
+           with plugins that are using the ResourceChanged event to stop the
+           user action. i.e To validate the request or to handle quota management.
+        
+        Installing ``kinto-redis``
+        ==========================
+        
+        You can use PyPI either installing kinto redis dependencies::
+        
+            pip install kinto[redis]
+        
+        Or installing kinto-redis directly::
+        
+            pip install kinto-redis
+        
+        
+        Using Kinto Redis backends
+        ==========================
+        
+        After installing the ``kinto-redis`` package using PyPI, you can
+        configure your server like that::
+        
+            #
+            # Backends.
+            #
+            # https://kinto.readthedocs.io/en/latest/configuration/settings.html#storage
+            #
+            kinto.storage_backend = kinto_redis.storage
+            kinto.storage_url = redis://localhost:6379/1
+            kinto.cache_backend = kinto_redis.cache
+            kinto.cache_url = redis://localhost:6379/2
+            kinto.permission_backend = kinto_redis.permission
+            kinto.permission_url = redis://localhost:6379/3
+        
+        
+        Running the tests
+        =================
+        
+        To run the unit tests::
+        
+          $ make tests
+        
+        Changelog
+        =========
+        
+        
+        2.0.1 (2019-05-24)
+        ------------------
+        
+        **Bug fixes**
+        
+        - ``pool_size`` setting should remain optional
+        
+        
+        2.0.0 (2019-02-08)
+        ------------------
+        
+        **Breaking changes**
+        
+        - Upgrade to Kinto >= 13 storage API.
+        
+        
+        1.3.0 (2018-04-26)
+        ------------------
+        
+        - Update storage tests with new Kinto 9.x features. (#13)
+        
+        
+        1.2.0 (2017-08-17)
+        ------------------
+        
+        - Cache set now requires a ttl value
+        - Cache delete() method now returns the deleted value
+        - Cache never accept to store bytes.
+        
+        
+        1.1.0 (2017-02-23)
+        ------------------
+        
+        - Upgrade to last storage, permissions and cache backends features. (#7)
+        
+        
+        1.0.1 (2016-08-18)
+        ------------------
+        
+        **Bug fixes**
+        
+        - Fix compability with Kinto 4.0 about unique fields (Kinto/kinto#763)
+        
+        
+        1.0.0 (2016-08-11)
+        ------------------
+        
+        - Move the kinto redis backends to an external repository.
+        
+Keywords: web services
+Platform: UNKNOWN
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Internet :: WWW/HTTP :: WSGI :: Application
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
