@@ -1,0 +1,48 @@
+# See https://github.com/LiliC/travis-minikube for Travis+Minikube.
+# This affects the env & before_script sections, and some functional tests.
+language: python
+sudo: required
+dist: xenial
+services:
+  - docker
+
+env:
+  global:
+    - CHANGE_MINIKUBE_NONE_USER=true
+    - KUBECONFIG=$HOME/.kube/config
+    - MINIKUBE_WANTUPDATENOTIFICATION=false
+    - MINIKUBE_WANTREPORTERRORPROMPT=false
+    - MINIKUBE_IN_STYLE=true
+    - MINIKUBE_HOME=$HOME
+    - MINIKUBE_VERSION=1.0.1
+    - E2E=true  # to not skip the e2e tests in pytest
+  matrix:
+    - KUBERNETES_VERSION=1.14.0
+    - KUBERNETES_VERSION=1.13.0
+    - KUBERNETES_VERSION=1.12.0
+#    - KUBERNETES_VERSION=1.11.10  # Minikube fails on CRI preflight checks
+#    - KUBERNETES_VERSION=1.10.13  # CRDs require spec.version, which fails on 1.14
+
+python:
+  - "3.7"
+matrix:
+  include:
+    - python: "3.8-dev"
+  allow_failures:
+    - python: "3.8-dev"
+
+before_script:
+  - scripts/minikube-for-travis.sh
+
+script:
+  - pytest -v
+
+deploy:
+  provider: pypi
+  user: nolar
+  password:
+    secure: "hvXIiqAAzsB5p++rv12XJM6WtuUHa9YnvoY12HfdZeLcim+/TQpMM0qThF0Y7tLcgAq/CqIOVoawOxDU+yKtzEbDqOd7wVIu8Z9tlnaIXIobV7BmLqeeqHAWNRB95fbkPWVUp0Ff0pdV4lvNwzw9qI4sB4J+x3k5sgiLKGh/JIxJpMxZTpQzsaxPsbIh4nbTebysdKfRsBbtUGx6Z1JK9vlK+a+fTho3hpmbv5Ku6z8JZePx2Ox0hugTCak556lDy4Psa6Hhnf69Rm05wfr7n4zIkU1/0zt1q+ggPs6L+Hc5PbBxWw1zUWn8YvNiSpEqiwuRZ9rgJl396g2ge2eUNwTjnc7qmbxgO8Ue3GuqRzokXzeAlS6MNSFfjzENrL+FjMUiHEWiP8HOpWfd2vVSK7Sp2HLE0NKWIhn38w3VhMz++rOPn8OdL4+K48BUSYod051+CJnjczcCWYyfoK4pvajOtsTgswnJvVG1it2iEdS/j7U1KslKfR3A38ojzwyrFb3F4XQ4D4yZxYIz0E0xl3X0q63vGibvGsFLgnD4okUq6r3k4TvoWn5rbN4039CcQbhVZrAaDzdvrTGiSTXMEMklr0G8rQEq6SQOsclMB6Db4ttnLOj5rk14gs0FvhvR/R4wF1SMAK2IzhgEx1S78xIvralrk+anHIWydhm+P8A="
+  distributions: sdist bdist_wheel
+  skip_existing: true
+  on:
+    tags: true  # prohibit local versions not on the releases
