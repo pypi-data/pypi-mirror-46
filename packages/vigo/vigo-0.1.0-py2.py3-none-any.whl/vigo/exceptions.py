@@ -1,0 +1,2 @@
+class OpenstackerException(Exception):
+    pass
