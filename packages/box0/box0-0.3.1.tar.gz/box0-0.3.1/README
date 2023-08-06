@@ -1,0 +1,125 @@
+pyBox0
+======
+
+Python binding for libbox0
+
+Dependencies
+============
+
+* cffi
+* numpy
+
+In C:
+
+* libbox0
+
+Installation
+============
+
+$ python setup.py build
+$ python setup.py install
+
+Configuration
+=============
+in local.properties
+	_binding.py, build_path variable to tell where to look for header and library
+
+Usage
+=====
+
+lots of demo code in test/ and example/
+a generic approch to opening device and module and do something with them
+
+```
+import box0
+
+# open any supported usb device
+dev = box0.usb.open_supported()
+
+# open the dio0 module (assuming the device support it)
+# if you need to iterate over the supported modules using dev
+dio0 = dev.dio(0)
+
+# Prepare for basic mode (basic functionality)
+dio0.basic_prepare()
+
+# set to output mode
+dio0.dir(0, dio0.OUTPUT)
+
+# set value of pin 0
+dio0.value(0, dio0.LOW)
+
+#disable hiz mode of pin 0,
+# note: all pins are in hiz mode right after opening (for protection)
+dio0.hiz(0, dio0.DISABLE)
+
+# start the basic mode
+dio0.basic_start()
+
+# wait
+try:
+	while True:
+		time.sleep(.5)
+except:
+	pass
+
+# Stop basic mode
+dio0.basic_stop()
+
+# close resources
+dio0.close()
+dev.close()
+```
+
+Note
+====
+pyBox0 uses same style as libbox0 and
+ much of the documentation of libbox0 is applicable to pyBox0
+
+`int b0_<section>_<func>(<section-object>, params....)`
+
+in pyBox0:
+	instead of int, an exception (ResultException is raised) when int-val < 0
+	so, now the return value is used for other tasks
+
+	"b0" tag is now replace with "box0." as python have concept of modules
+
+	<section> is replace with files.
+		for example: <section> = "device" , theirs device.py
+			and it contain Device.py
+
+
+	<func> these are under-scored style name in libbox0
+		in pyBox0, camelcasing is used
+		for example b0_usb_open_supported() is box0.usb.open_supported()
+
+	most of the library assumes numpy array.
+		numpy is good and you should always use numpy with pyBox0 as
+		it much better in long run
+
+Getting help
+============
+
+get on to #box0 on IRC freenode
+and report bug on https://gitlab.com/madresistor/pyBox0
+
+Getting involved
+================
+
+get on to #box0 on IRC freenode
+and report bug on https://gitlab.com/madresistor/pyBox0
+
+Licence
+=======
+
+GNU/GPLv3 or later (see COPYING)
+
+Credits and references
+======================
+
+https://www.madresistor.com/
+
+Maintainer
+==========
+
+Kuldeep Singh Dhaka <kuldeep@madresistor.com>
