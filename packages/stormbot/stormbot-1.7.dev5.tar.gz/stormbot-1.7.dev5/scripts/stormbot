@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""Stormbot main script"""
+
+import logging
+import argparse
+import getpass
+import platform
+import pkg_resources
+
+from stormbot.bot import StormBot, Plugin
+
+def main():
+    """Main function"""
+    jid = "{}@{}/stormbot".format(getpass.getuser(), platform.node())
+
+    default_plugins = []
+    for entry_point in pkg_resources.iter_entry_points("stormbot.plugins"):
+        for attr in entry_point.attrs:
+            default_plugins.append("{}.{}".format(entry_point.module_name, attr))
+
+    parser = argparse.ArgumentParser(description="stormbot executing your orders")
+    parser.add_argument('--plugins', default=",".join(default_plugins),
+                        type=str, help="Comma separated list of plugin to load (default: %(default)s)")
+    parser.add_argument('-v', '--verbose', action='store_true', help="Enable verbose logging")
+    parser.add_argument('--jid', type=str, default=jid,
+                        help="JID to connect with (default: %(default)s)")
+    parser.add_argument('--password', type=str, default=None,
+                        help="Password to connect with (default: promt)")
+    parser.add_argument('room', type=str, help="Room to join (roomname@hostname[/nick])")
+
+    args, _ = parser.parse_known_args()
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.WARNING)
+
+    # resolve plugins
+    plugins = []
+    if len(args.plugins) > 0:
+        for plugin in args.plugins.split(','):
+            module, name = plugin.rsplit('.', maxsplit=1)
+            plugins.append(pkg_resources.load_entry_point(module, "stormbot.plugins", name))
+
+    for plugin in plugins:
+        plugin.argparser(parser)
+
+    args = parser.parse_args()
+
+    # Start bot
+    password = args.password or getpass.getpass()
+    bot = StormBot(args, password, plugins)
+    bot.connect()
+    bot.process()
+
+def list_plugins():
+    """Print list of available stormbot plugin to stdout"""
+    for entry_point in pkg_resources.iter_entry_points('stormbot.plugins'):
+        print("{}.{}".format(entry_point.module_name, entry_point.name))
+
+if __name__ == '__main__':
+    main()
