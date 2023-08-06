@@ -1,0 +1,4 @@
+## Package to simulate manual data entry or test against other data
+
+### How to install the package locally using `pip`
+The package is written to be installed just like any other pip package locally.  You may need to install some of the dependent packages necessary, since it doesn't currently have the ability to look for and install dependent packages.  One simply downloads the `.zip` file and saves it (ideally where your other python packages are saved).  Then unzip, and use your command line tool to navigate into the `data_entry_demo/` folder.  Install by typing `pip install .` and wait for the package to be built.  You can confirm by typing `pip freeze` in your command prompt and verify that `data-entry-demo-0.0.1` is in the list of packages installed.  You can also open python and confirm that `from data_entry_demo import CHRDataEntryDemo` runs without an error.
