@@ -1,0 +1,104 @@
+#!/bin/bash
+. _gotoutils # load common utility functions
+
+STATEDIR=${HOME}/.goto
+
+
+_usage() {
+    echo "Usage: project [add <projectname>] | [list]"
+    echo "   other commands:"
+    echo "     add <projectname> - adds a new project and makes it the active project."
+    echo "     rm  <projectname> - removes the project"
+    echo "     list              - lists all projects"
+    echo "     deactivate        - deactivates goto project"
+    echo "     help              - if you want to read this one more time."
+}
+
+_addproject() {
+    touch "$STATEDIR/projects/$1"
+}
+
+_rmproject() {
+    if prompt "Are you sure you want to delete project $1? [y|n]: "; then
+        rm "$STATEDIR/projects/$1"
+        rm "$STATEDIR/projects/$1.json"
+        echo "Removed project $2"
+    else
+        echo 
+        echo "Aborting delete of project $1"
+    fi
+}
+
+_listprojects() {
+    ls "$STATEDIR/projects" | grep -v .json
+}
+
+_deactivate_project() {
+    echo "" > "$STATEDIR/active-project"
+}
+
+_changeproject() {
+    if [ -f "$STATEDIR/projects/$1" ]; then
+        echo "$1" > "$STATEDIR/active-project"
+        echo "active project is now: $1"
+    else
+        echo "Warning - tried to change to a non existing project."
+        echo "If you want to create it use the command:"
+        echo
+        echo "  project add $1"
+    fi
+}
+
+_showactiveproject() {
+    cat "$STATEDIR/active-project" 
+}
+
+# ---------------------------
+#  args parsing below
+# ---------------------------
+if [ $# -eq 0 ]
+	then _showactiveproject && exit
+fi
+
+
+if [ "$1" = "list" ] 
+    then _listprojects && exit 
+fi
+
+
+if [ "$1" = "help" ] 
+    then _usage 
+    exit 1
+fi
+
+
+if [ "$1" = "add" ] 
+    then 
+    if [ "$2" = "" ] ; then
+        _usage
+    else
+	   _addproject "$2"
+       _changeproject "$2"
+        exit 0
+    fi
+fi
+
+if [ "$1" = "rm" ] 
+    then 
+    if [ "$2" = "" ] ; then
+        _usage
+    else
+       _rmproject "$2" "$3"
+       # TODO if active project == removed what to do? _changeproject "$2"
+       _deactivate_project
+        exit 0
+    fi
+fi
+
+if [ "$1" = "deactivate" ]; then
+    _deactivate_project
+    exit 1
+fi
+
+# otherwise, activate project given
+_changeproject "$1"
