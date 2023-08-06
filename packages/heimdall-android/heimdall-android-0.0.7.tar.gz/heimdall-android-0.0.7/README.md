@@ -1,0 +1,103 @@
+
+[TOC]
+
+##简介
+
+利用工具，即可对android移动端APP进行快速的性能测试(CPU、内存)、开发日志的查看、Crash日志查看统计等
+测试任务就是保证功能的正常，并且不会有遗留的内存对象，造成内存泄漏问题
+
+
+##环境要求
++ macOS
++ Python3.6及以上
++ android adb 
+
+
+##使用
+##测试流程
+###0. 前提
+	使用时，通过USB线连接手机和电脑即可。
+    
+
+###1. 命令测试
+
+    '''
+    usage: heimdall3 [-h] [-d DEVICE_ID] [-s SAVE_PATH] [-p PACKAGE_PROCESS]
+                 [-t1 PEFORMANCE_INTERAL] [-t2 HROF_INTERAL]
+    optional arguments:
+          -h, --help            show this help message and exit
+          -d DEVICE_ID, --device_id DEVICE_ID
+                                Set device id to memory
+          -s SAVE_PATH, --save_path SAVE_PATH
+                                Set path to save results
+          -p PACKAGE_PROCESS, --package_process PACKAGE_PROCESS
+                                The given <PROCESS> argument may be either a process
+                                name or pid, default is "com.sankuai.meituan"
+          -t1 PEFORMANCE_INTERAL, --peformance_interal PEFORMANCE_INTERAL
+                                the interal of memory to get
+          -t2 HROF_INTERAL, --hrof_interal HROF_INTERAL
+                                the interal of hrof to ge
+    '''
+
+###字段说明
+	device_id: 是手机的device id, 通过adb 查询
+	save_path：保存的目录，默认是当前目录
+	package_process： 运行的程序
+	peformance_interal: 是读取的memory 间隔时间， 默认是5s
+	hrof_interal：是拉取内存快照的间隔时间，默认是10分钟
+
+
+###2. 代码测试
+开始监听
+
+	p = PerformanceManger()
+ 	p.begin(device_id='HT7131700092', save_path='',package_process='', peformance_interal=5, hrof_interal=300)
+	
+结束监听
+
+	p.end()
+
+	
+###3. 测试场景
+1. 新开发或者改进的某项功能，随着测试功能的反复使用
+2. 长时间运行的稳定性测试
+3. 反馈切换页面，有数据缓存的
+	
+	
+###4. 测试重点
+1. 多张图片的界面，大图片
+2. 网络传输大量的数据
+3. 后台异步给前端
+	
+
+###5. 查看结果
+1. 默认保存在”results/device_id/日期_时间“文件下
+或者保存路径“save_path/device_id/日期_时间“下。
+	
+2. 查看Dalvik和 Native 内存值的内存值曲线,内存变化的波动情况
+
+
+###6. 确定问题
+1. 一直在增长
+2. 大幅度波动
+使用 Memory Analyzer Tool (MAT)分析问题
+
+***
+##附录
+####代码流程
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
