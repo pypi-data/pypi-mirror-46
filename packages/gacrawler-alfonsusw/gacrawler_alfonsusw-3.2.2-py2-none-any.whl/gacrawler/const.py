@@ -1,0 +1,3 @@
+SETTING_FILE = 'settings.ini'
+DEBUG_MODE = False
+COMMAND_LINE_MODE = True
