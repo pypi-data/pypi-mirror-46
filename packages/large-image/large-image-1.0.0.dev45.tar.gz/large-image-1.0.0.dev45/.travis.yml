@@ -1,0 +1,22 @@
+sudo: false
+language: python
+python:
+  - "2.7"
+  # - "3.4"
+  - "3.5"
+  - "3.6"
+  # - "3.7"
+services:
+  - mongodb
+  - rabbitmq
+install: 
+  - pip install --upgrade pip
+  - pip install tox-travis
+  # If the last tag is more than 50 commits away, we need to fetch more for
+  # the scm_version module to determine the version.
+  - git fetch --depth=1000 
+script: 
+  - tox | cat
+after_success:
+  - pip install codecov
+  - codecov --disable search pycov gcov --file build/test/coverage/py_coverage.xml build/test/coverage/cobertura-coverage.xml
