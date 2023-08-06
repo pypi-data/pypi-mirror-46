@@ -1,0 +1,4 @@
+
+
+class MissingArgument(AttributeError):
+    pass
