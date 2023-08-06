@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Backends &mdash; django-campaign 0.3.0-pre documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0-pre',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="django-campaign 0.3.0-pre documentation" href="index.html" />
+    <link rel="next" title="Templates" href="templates.html" />
+    <link rel="prev" title="Available Settings" href="settings.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="templates.html" title="Templates"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="settings.html" title="Available Settings"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">django-campaign 0.3.0-pre documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="backends">
+<span id="ref-backends"></span><h1>Backends<a class="headerlink" href="#backends" title="Permalink to this headline">¶</a></h1>
+<p>To decouple the actual sending of the e-mails from the application logic
+and therefore make django-campaign more scaleable version 0.2 introduces a
+concept of backends which encapsulate the whole process of sending the e-mails.</p>
+<div class="section" id="writing-your-own-backend">
+<h2>Writing your own Backend<a class="headerlink" href="#writing-your-own-backend" title="Permalink to this headline">¶</a></h2>
+<p>Backends for django-campaign must adhere to the following API. Some of the
+methods are mandatory and some are optional, especially if you inherit from
+the <tt class="docutils literal"><span class="pre">base</span></tt> backend.</p>
+<p>The basic structure of a backend is as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>from campaign.backends.base import BaseBackend
+
+class ExampleBackend(BaseBackend):
+    def __init__(self):
+        # do some setup here, e.g. processing your own settings
+
+    ...
+
+backend = ExampleBackend()
+</pre></div>
+</div>
+<p>If this code is stored in a file <tt class="docutils literal"><span class="pre">myproject/myapp/example.py</span></tt> then the
+setting to use this backend would be:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">CAMPAIGN_BACKEND</span> <span class="o">=</span> <span class="s">&#39;myproject.myapp.example&#39;</span>
+</pre></div>
+</div>
+<p>Each backend must define a <tt class="docutils literal"><span class="pre">backend</span></tt> variable, which should be an instance
+of the backend.</p>
+</div>
+<div class="section" id="backend-methods">
+<h2>Backend Methods<a class="headerlink" href="#backend-methods" title="Permalink to this headline">¶</a></h2>
+<p>The following methods must be implemented by every backend:</p>
+<div class="section" id="send-mail-self-email-fail-silently-false">
+<h3><tt class="docutils literal"><span class="pre">send_mail(self,</span> <span class="pre">email,</span> <span class="pre">fail_silently=False)</span></tt><a class="headerlink" href="#send-mail-self-email-fail-silently-false" title="Permalink to this headline">¶</a></h3>
+<p>This method takes an instance of <tt class="docutils literal"><span class="pre">django.core.mail.EmailMessage</span></tt> as argument
+and is responsible for whatever is needed to send this email to the recipient.</p>
+<p>The <tt class="docutils literal"><span class="pre">fail_silently</span></tt> argument specifies whether exceptions should bubble up or
+should be hidden from upper layers.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Backends</a><ul>
+<li><a class="reference internal" href="#writing-your-own-backend">Writing your own Backend</a></li>
+<li><a class="reference internal" href="#backend-methods">Backend Methods</a><ul>
+<li><a class="reference internal" href="#send-mail-self-email-fail-silently-false"><tt class="docutils literal"><span class="pre">send_mail(self,</span> <span class="pre">email,</span> <span class="pre">fail_silently=False)</span></tt></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="settings.html"
+                        title="previous chapter">Available Settings</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="templates.html"
+                        title="next chapter">Templates</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/backends.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="templates.html" title="Templates"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="settings.html" title="Available Settings"
+             >previous</a> |</li>
+        <li><a href="index.html">django-campaign 0.3.0-pre documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Arne Brodowski.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
