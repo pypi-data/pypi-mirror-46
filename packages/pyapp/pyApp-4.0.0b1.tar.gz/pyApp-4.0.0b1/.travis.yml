@@ -1,0 +1,20 @@
+language: python
+sudo: false
+python:
+  - "3.6"
+  - "3.7"
+
+branches:
+  only:
+    - master
+    - development
+
+install:
+  - travis_retry pip install bandit coverage
+
+script:
+  - bandit -ll -r pyapp
+  - coverage run setup.py test
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
