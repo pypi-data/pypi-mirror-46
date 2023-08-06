@@ -1,0 +1,112 @@
+Metadata-Version: 2.1
+Name: wijisqs
+Version: 0.4.3
+Summary: AWS SQS broker for wiji. Wiji<https://github.com/komuw/wiji> is an asyncio distributed task processor/queue.
+Home-page: https://github.com/komuw/wijisqs
+Author: komuW
+Author-email: komuw05@gmail.com
+License: MIT
+Keywords: wijisqs,wiji
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Security
+Classifier: Topic :: System :: Installation/Setup
+Classifier: Topic :: System :: Networking
+Classifier: Topic :: System :: Systems Administration
+Classifier: Topic :: Utilities
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.6
+Requires-Dist: wiji (<1.0.0,>=0.1.0)
+Requires-Dist: botocore (<1.13.0,>=1.12.0)
+Provides-Extra: dev
+Requires-Dist: pypandoc ; extra == 'dev'
+Requires-Dist: twine ; extra == 'dev'
+Requires-Dist: wheel ; extra == 'dev'
+Requires-Dist: Sphinx (==1.8.3) ; extra == 'dev'
+Requires-Dist: sphinx-autodoc-typehints (==1.6.0) ; extra == 'dev'
+Provides-Extra: test
+Requires-Dist: coverage ; extra == 'test'
+Requires-Dist: flake8 ; extra == 'test'
+Requires-Dist: pylint ; extra == 'test'
+Requires-Dist: black ; extra == 'test'
+Requires-Dist: bandit ; extra == 'test'
+Requires-Dist: mypy ; extra == 'test'
+Requires-Dist: codecov ; extra == 'test'
+
+wijisqs
+-------
+
+|Codacy Badge| |CircleCI| |codecov| |Code style: black|
+
+`wiji <https://github.com/komuw/wiji>`__ is an asyncio distributed task
+processor/queue.
+
+``wijisqs`` on the other hand, is an AWS SQS broker for
+`wiji <https://github.com/komuw/wiji>`__
+
+| **Contents:**
+| `Installation <#installation>`__
+| `Usage <#usage>`__
+| + `As a library <#1-as-a-library>`__
+| + `As cli app <#2-as-a-cli-app>`__
+
+Installation
+------------
+
+.. code:: shell
+
+    pip install wijisqs
+
+Usage
+-----
+
+1. As a library
+^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    import os
+    import wiji
+    import wijisqs
+    import asyncio
+
+    broker = wijisqs.SqsBroker(
+                    aws_region_name="aws_region_name",
+                    aws_access_key_id=os.environ.get("aws_access_key_id"),
+                    aws_secret_access_key=os.environ.get("aws_secret_access_key"),
+                )
+
+    class AdderTask(wiji.task.Task):
+        the_broker = broker
+        queue_name = "AdderTaskQueue1"
+
+        async def run(self, a, b):
+            result = a + b
+            print("\nresult: {0}\n".format(result))
+            return result
+
+    # queue some tasks
+    myAdderTask = AdderTask()
+    myAdderTask.synchronous_delay(a=4, b=37)
+    myAdderTask.synchronous_delay(a=67, b=847)
+
+    # run the workers
+    worker = wiji.Worker(the_task=myAdderTask)
+    asyncio.run(worker.consume_tasks())
+
+For extended documentation, see the `wiji
+documentation <https://github.com/komuw/wiji>`__
+
+.. |Codacy Badge| image:: https://api.codacy.com/project/badge/Grade/bc260950808a481db69c310fc0f05eb2
+   :target: https://www.codacy.com/app/komuw/wijisqs
+.. |CircleCI| image:: https://circleci.com/gh/komuw/wijisqs.svg?style=svg
+   :target: https://circleci.com/gh/komuw/wijisqs
+.. |codecov| image:: https://codecov.io/gh/komuw/wijisqs/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/komuw/wijisqs
+.. |Code style: black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/komuw/wijisqs
+
+
