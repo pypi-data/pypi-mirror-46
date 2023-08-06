@@ -1,0 +1,105 @@
+stages:
+  - test
+  - deploy
+
+centos7:
+  except:
+    - tags
+  image: gitlab-registry.cern.ch/lhcb-docker/python-deployment:centos7
+  script:
+    - python --version
+    - pip install --upgrade setuptools
+    - pip install pycodestyle importlib nose coverage
+    - pip install -e .
+    - ./lb-load-neo4j-env $HOME/neo4j
+    - pip list
+    - sleep 5
+    - nosetests --with-coverage --cover-package=LbSoftConfDb2Server  --cover-html --with-xunit --with-doctest
+    - pycodestyle lbinstall/ > pep8_report.txt || true
+    - mkdir -p cover_report && mv -f cover cover_report/$CI_JOB_NAME
+    - mkdir -p pep8_report && mv -f pep8_report.txt pep8_report/$CI_JOB_NAME.txt
+  artifacts:
+    paths:
+      - cover_report
+      - pep8_report
+    when: always
+    expire_in: 1 week
+  tags:
+    - cvmfs
+
+python2.7:
+  image: gitlab-registry.cern.ch/lhcb-docker/python-deployment:python-2.7
+  script:
+    - python setup.py bdist_wheel --dist-dir public/LbSoftConfDb2Server
+    - python setup.py sdist --dist-dir public/LbSoftConfDb2Server
+  artifacts:
+    paths:
+      - cover_report
+      - pep8_report
+      - public
+    when: always
+    expire_in: 1 week
+  tags:
+    - cvmfs
+
+python3.5:
+  except:
+    - tags
+  image: gitlab-registry.cern.ch/lhcb-docker/python-deployment:python-3.5
+  script:
+    - python --version
+    - pip install pycodestyle nose coverage
+    - pip install -e .
+    - ./lb-load-neo4j-env $HOME/neo4j
+    - sleep 5
+    - nosetests --with-coverage --cover-package=LbSoftConfDb2Server  --cover-html --with-xunit --with-doctest
+    - pycodestyle lbinstall/ > pep8_report.txt || true
+    - mkdir -p cover_report && mv -f cover cover_report/$CI_JOB_NAME
+    - mkdir -p pep8_report && mv -f pep8_report.txt pep8_report/$CI_JOB_NAME.txt
+  artifacts:
+    paths:
+      - cover_report
+      - pep8_report
+    when: always
+    expire_in: 1 week
+  tags:
+    - cvmfs
+
+python3.6:
+  except:
+    - tags
+  image: gitlab-registry.cern.ch/lhcb-docker/python-deployment:python-3.6
+  script:
+    - python --version
+    - pip install pycodestyle nose coverage
+    - pip install -e .
+    - ./lb-load-neo4j-env $HOME/neo4j
+    - sleep 5
+    - nosetests --with-coverage --cover-package=LbSoftConfDb2Server  --cover-html --with-xunit --with-doctest
+    - pycodestyle lbinstall/ > pep8_report.txt || true
+    - mkdir -p cover_report && mv -f cover cover_report/$CI_JOB_NAME
+    - mkdir -p pep8_report && mv -f pep8_report.txt pep8_report/$CI_JOB_NAME.txt
+  artifacts:
+    paths:
+      - cover_report
+      - pep8_report
+    when: always
+    expire_in: 1 week
+  tags:
+    - cvmfs
+
+# see https://gitlab.cern.ch/gitlabci-examples/deploy_eos for the details
+# of the configuration
+deploy-packages:
+  stage: deploy
+  only:
+    - tags
+  image: gitlab-registry.cern.ch/ci-tools/ci-web-deployer:latest
+  script:
+    - test -z "$EOS_ACCOUNT_USERNAME" -o -z "$EOS_ACCOUNT_PASSWORD" -o -z "$EOS_PATH" && exit 0 || true
+    # Script that performs the deploy to EOS. Makes use of the variables defined in the project
+    # It will copy the generated content to the folder in EOS
+    - deploy-eos
+  # do not run any globally defined before_script or after_script for this step
+  before_script: []
+  after_script: []
