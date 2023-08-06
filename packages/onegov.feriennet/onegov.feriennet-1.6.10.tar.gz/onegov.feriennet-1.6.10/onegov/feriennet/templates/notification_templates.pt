@@ -1,0 +1,30 @@
+<div metal:use-macro="layout.base" i18n:domain="onegov.feriennet">
+    <tal:b metal:fill-slot="title">
+        ${title}
+    </tal:b>
+    <tal:b metal:fill-slot="content">
+        <p i18n:translate tal:condition="not:notifications">
+            No notification templates yet.
+        </p>
+
+        <ul class="dense notifications" tal:condition="notifications">
+            <li tal:repeat="notification notifications" id="${notification.id.hex}">
+                <h2>${notification.subject}</h2>
+
+                <div class="last-sent">
+                    <tal:b condition="notification.last_sent" i18n:translate>
+                        sent <tal:b i18n:name="time_ago">${layout.format_date(notification.last_sent, 'relative')}</tal:b>
+                    </tal:b>
+
+                    <tal:b condition="not:notification.last_sent" i18n:translate>
+                        Not sent yet
+                    </tal:b>
+                </div>
+
+                <div class="text-links">
+                    <tal:b repeat="link get_links(notification)" replace="structure link(layout)" />
+                </div>
+            </li>
+        </ul>
+    </tal:b>
+</div>
