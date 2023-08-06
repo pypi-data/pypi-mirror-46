@@ -1,0 +1,49 @@
+<div class="pagination ">
+    <ul class="pagination">
+        {% if page_obj.number == 1 %}
+            <li class="disabled"><a>首页</a></li>
+            <li class="disabled"><a>上页</a></li>
+        {% else %}
+            <li><a href="?{{ query_str }}&page=1">首页</a></li>
+            <li>
+                <a href="?{{ query_str }}&page={{ page_obj.number|add:-1 }}">上页</a>
+            </li>
+        {% endif %}
+        {% if first %}
+            <li><a href="?{{ query_str }}&page=1">1</a></li>
+        {% endif %}
+        {% if left %}
+            {% if left_has_more %}
+                <li class="disabled"><a>...</a></li>
+            {% endif %}
+            {% for i in left %}
+                <li><a href="?{{ query_str }}&page={{ i }}">{{ i }}</a></li>
+            {% endfor %}
+        {% endif %}
+        <li><a href="?{{ query_str }}&page={{ page_obj.number }}"
+               style="color: red">{{ page_obj.number }}</a></li>
+        {% if right %}
+            {% for i in right %}
+                <li><a href="?{{ query_str }}&page={{ i }}">{{ i }}</a></li>
+            {% endfor %}
+            {% if right_has_more %}
+                <li><span>...</span></li>
+            {% endif %}
+        {% endif %}
+        {% if last %}
+            <li>
+                <a href="?{{ query_str }}&page={{ paginator.num_pages }}">{{ paginator.num_pages }}</a>
+            </li>
+        {% endif %}
+        {% if page_obj.number == paginator.num_pages %}
+            <li class="disabled"><a>下页</a></li>
+            <li class="disabled"><a>尾页</a></li>
+        {% else %}
+            <li><a href="?{{ query_str }}&page={{ page_obj.number|add:1 }}">下页</a>
+            </li>
+            <li>
+                <a href="?{{ query_str }}&page={{ paginator.num_pages }}">尾页</a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
