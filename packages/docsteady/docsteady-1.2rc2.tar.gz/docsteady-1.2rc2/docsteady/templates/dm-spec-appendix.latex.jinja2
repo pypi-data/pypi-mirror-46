@@ -1,0 +1,35 @@
+{%- macro curlies(item) -%}
+{{ "{" }}{{ item }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
+{%- endmacro -%}
+
+% generated from JIRA project {{ metadata.project }}
+% using template at {{ metadata.template }}.
+% Collecting ATM data from folder: "{{ metadata.folder }}"
+% using dosteady version {{ metadata.docsteady_version }}
+% Please do not edit -- update information in Jira instead
+
+\section{Traceability}
+\scriptsize{
+\begin{longtable}[]{p{13cm}p{3cm}}
+\toprule
+Verification Elements & Test Cases\tabularnewline
+\midrule
+\endhead
+
+{% for requirement in requirements_map.values() -%}
+    {{ href(requirement.jira_url, requirement.key + " - " + requirement.summary) }}
+    {% set testcases_list = requirements_to_testcases[requirement.key] -%}
+    & {
+    {% for tc in testcases_list -%}
+        \hyperref[{{ tc.lower() }}]{{ curlies(tc) }}
+    {% endfor -%}
+    } \\
+{% endfor %}
+\tabularnewline
+\bottomrule
+\end{longtable}
+} % end scriptsize
