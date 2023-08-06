@@ -1,0 +1,47 @@
+Metadata-Version: 2.1
+Name: django-auto-prefetching
+Version: 0.1.5
+Summary: Tools for automatically prefetching related objects in Django and Django-rest-framework
+Home-page: https://github.com/GeeWee/django-auto-prefetching
+Author: Gustav Wengel
+Author-email: gustavwengel@gmail.com
+License: MIT
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Python: >=3.7.0
+Description-Content-Type: text/markdown
+Requires-Dist: django (~=2.2)
+Provides-Extra: rest_framework_integration
+Requires-Dist: djangorestframework (~=3.9) ; extra == 'rest_framework_integration'
+
+
+
+# Django auto-prefetching
+
+**NOTICE: THIS PROJECT IS A WORK IN PROGRESS, AND IS NOT PUBLISHED TO PYPI YET**
+
+Automatic prefetching of related objects for Django Rest Framework.
+
+Inside your ViewSets `get_queryset` add the following code:
+```python3.7
+    def get_queryset():
+        qs = YOUR_MODEL.objects.all() # Or whatever queryset you want to use
+        qs = prefetch(self.get_serializer_class(), queryset) # This line prefetches the related model depending on the serializer.
+        return qs
+```
+
+# Unresolved issues
+
+- If you forget to add `many=True` to a serializer that has the reverse side of the ForeignKey we calculate the wrong prefetch_related
+fields and we get an error. We can't catch this error early because it's only thrown when the queryset is evaluated
+- We can't prefetch anything that's accessed in serializer method fields.
+
+
+# LICENSE:
+MIT
+
