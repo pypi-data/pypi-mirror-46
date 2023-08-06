@@ -1,0 +1,48 @@
+---
+- name: adjust role-data for P->Q upgrade
+  include_tasks: ../common/adjust-roles-data.yaml
+  when: custom_roles_used|bool
+
+- name: add upgrade init script to upgrade prepare params
+  set_fact:
+    upgrade_prepare_extra_params: "{{ upgrade_prepare_extra_params + [upgrade_init_command_dest] }}"
+  when:
+    - upgrade_init_command is string
+    - not ffu_overcloud_upgrade|bool
+
+# Render it now so it takes all additions in upgrade_prepare_extra_params
+- name: create overcloud upgrade prepare script
+  vars:
+    old_img: "{{ working_dir }}/{{ container_registry_file }}"
+  template:
+    src: "{{ overcloud_upgrade_prepare_template }}"
+    dest: "{{ overcloud_upgrade_prepare_script }}"
+    mode: 0775
+    force: true
+
+- name: setup HEAT outputs via upgrade prepare
+  shell: |
+    set -o pipefail
+    bash {{ overcloud_upgrade_prepare_script }} 2>&1 {{ timestamper_cmd }} > \
+        {{ working_dir }}/overcloud_upgrade_prepare.log
+  register: overcloud_upgrade_prepare
+  ignore_errors: true
+
+- block:
+    - name: print stack failures
+      shell: |
+        set -o pipefail
+        source {{ undercloud_rc }}
+        openstack stack failures list --long {{ overcloud_stack_name }} 2>&1 {{ timestamper_cmd }} | \
+        tee {{ working_dir }}/overcloud_failed_upgrade_prepare.log
+
+    - name: print resource list
+      shell: |
+        set -o pipefail
+        source {{ undercloud_rc }}
+        openstack stack resource list --filter status=FAILED --nested-depth 5 {{ overcloud_stack_name }} \
+        2>&1 {{ timestamper_cmd }} | tee {{ working_dir }}/overcloud_failed_prepare_resources.log
+
+    - name: was the overcloud upgrade preparation successful.
+      fail: msg="Overcloud upgrade preparation step failed... :("
+  when: overcloud_upgrade_prepare.rc != 0

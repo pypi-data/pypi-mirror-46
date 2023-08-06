@@ -1,0 +1,39 @@
+---
+- name: generate inventory file
+  shell: |
+    source {{ undercloud_rc }}
+    /usr/bin/tripleo-ansible-inventory --plan {{ overcloud_stack_name }} \
+        {% if overcloud_ssh_user %} --ansible_ssh_user {{ overcloud_ssh_user }} {% endif %} \
+        --static-yaml-inventory {{ working_dir }}//tripleo-ansible-inventory.yaml
+
+- name: load inventory file
+  command: cat {{ working_dir }}//tripleo-ansible-inventory.yaml
+  register: upgrade_tripleo_inventory
+
+- name: store roles
+  set_fact:
+    oc_roles: "{{ oc_roles + [item.key] }}"
+  with_dict: "{{ (upgrade_tripleo_inventory.stdout | from_yaml).overcloud.children }}"
+
+- name: register controller role name
+  set_fact:
+    controller_role_name: "{{ item|regex_search('[A-Za-z0-9]*[Cc]ontroller[A-Za-z0-9]*') }}"
+  when: item|regex_search('[A-Za-z0-9]*[Cc]ontroller[A-Za-z0-9]*')
+  with_items: "{{ oc_roles }}"
+
+- name: store sorted roles with controller first(default)
+  set_fact:
+    oc_roles: "{{ oc_roles|intersect([controller_role_name]) + oc_roles|difference([controller_role_name]) }}"
+  when: roles_upgrade_order == '__undefined__'
+
+- name: store sorted roles with controller first(user-defined)
+  set_fact:
+    oc_roles: "{{ roles_upgrade_order.split(';') }}"
+  when: roles_upgrade_order != '__undefined__'
+
+- name: create hosts per role fact
+  vars:
+    inventory_yaml: "{{ upgrade_tripleo_inventory.stdout | from_yaml }}"
+  set_fact:
+    oc_roles_hosts: "{{ oc_roles_hosts | combine({ item.key : inventory_yaml[item.key]['hosts'].keys() }) }}"
+  with_dict: "{{ inventory_yaml.overcloud.children }}"

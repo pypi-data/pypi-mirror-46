@@ -1,0 +1,96 @@
+---
+- name: create a comptatible deployment scripts from oooq
+  include_tasks: ../upgrade/use_oooq.yaml
+  args:
+    apply:
+      tags:
+        - use_oooq
+  tags: use_oooq
+  when: use_oooq|bool
+
+- name: Convert CLI options to parameters
+  import_tasks: ../common/convert_cli_opts_params.yaml
+
+- name: get auxiliary facts for major upgrades
+  import_tasks: ../common/auxilary-facts.yaml
+
+- name: create scripts with workarounds
+  template:
+    src: "{{ update_workarounds_template }}"
+    dest: "{{ working_dir }}/{{ item.script }}"
+    mode: 0755
+    force: true
+  with_items:
+    - '{{ pre_overcloud_update_prepare_workarounds|default([]) }}'
+    - '{{ post_overcloud_update_prepare_workarounds|default([]) }}'
+    - '{{ pre_overcloud_update_run_workarounds|default([]) }}'
+    - '{{ post_overcloud_update_run_workarounds|default([]) }}'
+    - '{{ pre_overcloud_update_converge_workarounds|default([]) }}'
+    - '{{ post_overcloud_update_converge_workarounds|default([]) }}'
+  when: updates_workarounds|bool
+
+- name: include l3 agent tasks
+  import_tasks: ../common/create_l3_agent_connectivity_check_script.yml
+
+- name: generate roles list from inventory file
+  import_tasks: ../common/load_roles_from_inventory.yaml
+
+- name: create overcloud update prepare script
+  template:
+    src: "{{ overcloud_update_prepare_template }}"
+    dest: "{{ overcloud_update_prepare_script }}"
+    mode: 0775
+    force: true
+
+- name: create overcloud_prepare_containers.sh script
+  template:
+    src: overcloud_prepare_containers.sh.j2
+    dest: "{{ working_dir }}/overcloud_prepare_containers.sh"
+    mode: 0755
+    force: true
+
+- name: create overcloud update script
+  template:
+    src: "{{ overcloud_update_run_template }}"
+    dest: "{{ overcloud_update_run_script_base }}-{{ item }}.sh"
+    mode: 0775
+    force: true
+  with_items:
+    - "{{ oc_roles|default('all') }}"
+
+- name: create online data migration script
+  template:
+    src: "overcloud_online_data_migration.sh.j2"
+    dest: "{{ working_dir }}/overcloud_online_data_migration.sh"
+    mode: 0755
+    force: true
+
+- name: create overcloud update converge script
+  template:
+    src: "{{ overcloud_update_converge_template }}"
+    dest: "{{ overcloud_update_converge_script }}"
+    mode: 0775
+    force: true
+
+- name: create docker container/images validate scripts
+  template:
+    src: "{{ overcloud_validate_images_template }}"
+    dest: "{{ overcloud_validate_images_script }}"
+    mode: 0755
+    force: true
+
+- name: create ceph update script
+  template:
+    src: "ceph-update-run.sh.j2"
+    dest: "{{ working_dir }}/ceph-update-run.sh"
+    mode: 0755
+    force: true
+
+- name: Create L3-agent failover scripts
+  import_tasks: ../common/create_l3_agent_failover_check_script.yml
+
+- name: create nova actions check script
+  import_tasks: ../common/create_nova_actions_check_script.yml
+
+- name: import create HTTP test scripts
+  import_tasks: ../common/create_http_test_scripts.yml

@@ -1,0 +1,254 @@
+---
+# defaults file for tripleo-upgrade
+# main vars:
+working_dir: "{{ (ansible_env|default({})).HOME|default('/home/stack') }}"
+
+# undercloud.conf
+undercloud_conf: "{{ working_dir }}/undercloud.conf"
+
+# overcloud stack name
+overcloud_stack_name: "overcloud"
+
+# TODO: those variable can be changed for the explicit keyword in tag
+# when https://github.com/ansible/ansible/issues/11045 is merged.
+
+# enable update/upgrade
+upgrade_noop: false
+update_noop: false
+undercloud_upgrade: false
+containerized_undercloud_upgrade: true
+overcloud_upgrade: false
+undercloud_update: false
+overcloud_update: false
+
+# enable ffu upgrade
+ffu_undercloud_upgrade: false
+ffu_overcloud_upgrade: false
+ffu_noop: false
+ffu_bulk: true
+ffu_computes_rolling: false
+
+# enable upgrade workarounds
+upgrade_workarounds: false
+
+# enable update workarounds
+updates_workarounds: false
+
+# enable ffu workarounds
+ffu_upgrade_workarounds: false
+
+# use oooq
+use_oooq: false
+
+# Running in tripleo ci
+tripleo_ci: false
+
+# rc files:
+undercloud_rc: "{{ working_dir }}/stackrc"
+overcloud_rc: "{{ working_dir }}/{{ overcloud_stack_name }}rc"
+
+# required for logstash indexing
+timestamper_cmd: >-
+    | awk '{ print strftime("%Y-%m-%d %H:%M:%S |"), $0; fflush(); }'
+
+launch_sanity_workload: true
+
+# launch workload before update/upgrade
+workload_launch: false
+external_network_name: "public"
+workload_image_url: "http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img"
+workload_memory: "512"
+workload_user: "cirros"
+workload_disk: 5
+workload_vcpu: 1
+workload_swap: 512
+
+# note that both UC upgrade and update use the same template
+undercloud_upgrade_template: undercloud_upgrade.sh.j2
+undercloud_update_template: undercloud_upgrade.sh.j2
+overcloud_upgrade_prepare_template: overcloud_upgrade_prepare.sh.j2
+overcloud_upgrade_run_template: overcloud_upgrade_run.sh.j2
+overcloud_upgrade_converge_template: overcloud_upgrade_converge.sh.j2
+workload_launch_template: workload_launch.sh.j2
+
+# upgrade scripts name:
+undercloud_upgrade_script: "{{ working_dir }}/undercloud_upgrade.sh"
+undercloud_update_script: "{{ working_dir }}/undercloud_update.sh"
+overcloud_deploy_script: "{{ working_dir }}/overcloud_deploy.sh"
+overcloud_upgrade_prepare_script: "{{ working_dir }}/overcloud_upgrade_prepare.sh"
+overcloud_upgrade_run_script_base: "{{ working_dir }}/overcloud_upgrade_run"
+overcloud_upgrade_converge_script: "{{ working_dir }}/overcloud_upgrade_converge.sh"
+workload_launch_script: "{{ working_dir }}/workload_launch.sh"
+
+# overcloud jinja template name
+overcloud_pre_update_workarounds_template: overcloud_pre_update_workarounds.sh.j2
+update_workarounds_template: update_workarounds.sh.j2
+overcloud_update_prepare_template: overcloud_update_prepare.sh.j2
+overcloud_update_run_template: overcloud_update_run.sh.j2
+overcloud_update_converge_template: overcloud_update_converge.sh.j2
+
+# overcloud update scripts
+pre_undercloud_update_workarounds_script: "{{ working_dir }}/pre_undercloud_update_workarounds.sh"
+post_undercloud_update_workarounds_script: "{{ working_dir }}/post_undercloud_update_workarounds.sh"
+pre_overcloud_update_prepare_workarounds_script: "{{ working_dir }}/pre_overcloud_update_prepare_workarounds.sh"
+post_overcloud_update_prepare_workarounds_script: "{{ working_dir }}/post_overcloud_update_prepare_workarounds.sh"
+pre_overcloud_update_run_workarounds_script: "{{ working_dir }}/pre_overcloud_update_run_workarounds.sh"
+post_overcloud_update_run_workarounds_script: "{{ working_dir }}/post_overcloud_update_run_workarounds.sh"
+pre_overcloud_update_converge_workarounds_script: "{{ working_dir }}/pre_overcloud_update_converge_workarounds.sh"
+post_overcloud_update_converge_workarounds_script: "{{ working_dir }}/post_overcloud_update_converge_workarounds.sh"
+
+overcloud_update_prepare_script: "{{ working_dir }}/overcloud_update_prepare.sh"
+overcloud_update_run_script_base: "{{ working_dir }}/overcloud_update_run"
+overcloud_update_converge_script: "{{ working_dir }}/overcloud_update_converge.sh"
+
+overcloud_validate_images_template: validate_docker_images_versions.sh.j2
+overcloud_validate_images_script: "{{ working_dir }}/validate_docker_images_versions.sh"
+overcloud_validate_ap_services: openstack-cinder-volume openstack-cinder-backup openstack-manila-share
+
+
+# container registry file for overcloud
+container_registry_file: "docker-images.yaml"
+
+# container prepare params env file
+uc_containers_prepare_file: "containers-prepare-parameter.yaml"
+
+# url of the remote docker registry to be used
+docker_registry_url: 'registry.example.local'
+
+# use upstream or downstream container images
+upstream_container_images: true
+
+# tripleo-heat-templates directory
+tht_directory: "/usr/share/openstack-tripleo-heat-templates"
+
+# default roles_data.yaml
+default_roles_data: "{{ tht_directory }}/roles_data.yaml"
+
+# local registry environment file location
+containers_default_parameters: "{{ working_dir }}/docker-osp12.yaml"
+
+# container_images.yaml file location
+container_images_location: "{{ working_dir }}/container_images.yaml"
+
+# reboot nodes post upgrade
+undercloud_reboot: false
+controller_reboot: false
+force_reboot: false
+
+# time to wait for nodes to reboot in seconds
+node_reboot_timeout: 300
+
+# enable l3 agent connectivity check during upgrade
+l3_agent_connectivity_check: false
+l3_agent_connectivity_check_start_script: "{{ working_dir }}/l3_agent_start_ping.sh"
+l3_agent_connectivity_check_stop_script: "{{ working_dir }}/l3_agent_stop_ping.sh"
+l3_agent_connectivity_check_start_template: l3_agent_start_ping.sh.j2
+l3_agent_connectivity_check_stop_template: l3_agent_stop_ping.sh.j2
+l3_agent_failover_check: false
+
+# enable web load test
+fip_http_check: false
+
+# migrate instances between compute nodes during upgrade
+compute_evacuate: false
+
+# enable post upgrade checks
+controller_upgrade_post: false
+
+# Provide a custom ssh-config file
+need_ssh_config: true
+
+# Extra environment files to pass into upgrade prepare command appending them
+# in a list.
+# Format: ['env_file1', 'env_file2', 'env_file3']
+# It will be rendered joining each file with ' -e ' when running the command
+# 'openstack overcloud upgrade prepare', so it will be possible to add
+# extra parameters in a flexible way
+upgrade_prepare_extra_params: []
+
+# No upgrade_init_command by default
+upgrade_init_command_template: upgrade_init_command.yaml.j2
+upgrade_init_command_dest: "{{working_dir}}/UpgradeInitCommand.yaml"
+upgrade_init_command: false
+
+# ffu undercloud upgrade
+ffu_undercloud_releases: ['ocata', 'pike', 'queens']
+ffu_undercloud_repo_type: tripleo-repos
+ffu_undercloud_repo_args:
+  tripleo_repos:
+    ocata: "-b ocata current"
+    pike: "-b pike current"
+    queens: "-b queens current"
+
+# Tripleo OOOQ variables.
+composable_scenario: ""
+upgrade_composable_scenario: ""
+
+## ffu overcloud upgrade
+ffu_overcloud_releases: ['ocata', 'pike', 'queens']
+
+## ffu overcloud to use custom scripts instead of tripleo-repos
+ffu_overcloud_repo_type: tripleo-repos
+
+## overcloud ssh user
+overcloud_ssh_user: ''
+
+# when set to True it allows running most of the
+# openstack overcloud commands with the --debug flag
+tripleo_upgrade_debug: false
+
+# when set to True it will append the flag --validation-errors-nonfatal
+# into the "overcloud <action> prepare" and "overcloud <action> converge"
+# commands. This means that the execution of the command will continue
+# independently in spite of validation errors.
+tripleo_upgrade_validations_non_fatal: false
+
+# When set to true, the converge operations (update, upgrade, ffwd)
+# will run with --update-plan-only. This does not provide full
+# verification of the process, but might be necessary to fit within a
+# reasonable job run time for gating.
+tripleo_upgrade_converge_plan_only: false
+
+## If set to true, overcloud upgrade will be run for each of the
+# playbooks defined in 'overcloud_upgrade_playbooks', otherwise
+# 'all' will be passed into --playbooks option.
+overcloud_upgrade_multibooks: false
+
+## If set to true, overcloud update will be run for each of the
+# playbooks defined in 'overcloud_update_playbooks', otherwise
+# 'all' will be passed into --playbooks option.
+overcloud_update_multibooks: false
+
+# Ansible playbooks executed during "overcloud upgrade run"
+overcloud_upgrade_playbooks: ['upgrade_steps_playbook.yaml', 'deploy_steps_playbook.yaml', 'post_upgrade_steps_playbook.yaml']
+
+# Ansible playbooks executed during "overcloud update run"
+overcloud_update_playbooks: ['update_steps_playbook.yaml', 'deploy_steps_playbook.yaml']
+
+# Post upgrade/update nova actions tests
+nova_actions_check: false
+
+# Ceph OSD service present in overcloud
+ceph_osd_enabled: false
+
+# Remove unused RPMs
+upgrade_remove_rpm: false
+
+# List of roles deployed in overcloud
+oc_roles: []
+
+# Dictionary with roles and hosts per role
+# oc_roles_hosts: {
+# 'Controller' : ["controller-0", "controller-1", "controller-2"],
+# 'Compute' : ["compute-0"]
+# }
+oc_roles_hosts: {}
+
+# Roles upgrade order
+roles_upgrade_order: '__undefined__'
+
+# Packet loss threshold for a ping test
+loss_threshold: 1
+
+# Python version used
+py_ver: 2
