@@ -1,0 +1,123 @@
+configuration:
+  type: dict
+  required: True
+  empty: False
+  schema:
+    configurationVersion:
+      type: ['string', 'integer']
+      coerce: to_string
+      required: True
+      empty: False
+      allowed:
+        - '1'
+
+    logFile:
+      type: string
+      default: null
+      nullable: True
+    blockSize:
+      type: integer
+      min: 512
+      max: 33554432
+      default: 4194304
+    hashFunction:
+      type: string
+      empty: False
+      default: 'BLAKE2b,digest_bits=256'
+    processName:
+      type: string
+      empty: False
+      default: 'benji'
+    disallowRemoveWhenYounger:
+      type: integer
+      empty: False
+      min: 0
+      default: 6
+    databaseEngine:
+      type: string
+      required: True
+      empty: False
+    defaultStorage:
+      type: string
+      required: True
+      empty: False
+
+    nbd:
+      type: dict
+      default: {}
+      schema:
+        cacheDirectory:
+          type: string
+          required: True
+          empty: False
+          default: '/tmp'
+
+    storages:
+      type: list
+      empty: False
+      required: True
+      schema:
+        type: dict
+        schema:
+          name:
+            type: string
+            required: True
+            empty: False
+            # Same as InputValidation.VALUE_REGEXP in utils.py
+            regex: '^(?!-)[-a-zA-Z0-9_.:/@]+(?<!-)$'
+          storageId:
+            type: integer
+            required: True
+            empty: False
+            min: 1
+          module:
+            type: string
+            required: True
+            empty: False
+          configuration:
+            # This is checked against another schema
+            type: dict
+            allow_unknown: True
+
+    transforms:
+      type: list
+      empty: False
+      schema:
+        type: dict
+        schema:
+          name:
+            type: string
+            required: True
+            empty: False
+            # Same as InputValidation.VALUE_REGEXP in utils.py
+            regex: '^(?!-)[-a-zA-Z0-9_.:/@]+(?<!-)$'
+          module:
+            type: string
+            required: True
+            empty: False
+          configuration:
+            # This is checked against another schema
+            type: dict
+            allow_unknown: True
+
+    ios:
+      type: list
+      empty: False
+      required: True
+      schema:
+        type: dict
+        schema:
+          name:
+            type: string
+            required: True
+            empty: False
+            # Same as InputValidation.VALUE_REGEXP in utils.py
+            regex: '^(?!-)[-a-zA-Z0-9_.:/@]+(?<!-)$'
+          module:
+            type: string
+            required: True
+            empty: False
+          configuration:
+            # This is checked against another schema
+            type: dict
+            allow_unknown: True
