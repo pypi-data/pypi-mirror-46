@@ -1,0 +1,63 @@
+# coding: utf-8
+"""
+Implement a calculator for beampy objects length,
+that can parse a string and make operation on length.
+"""
+
+# Use lark-parser to implement the grammar
+from lark import Lark, Transformer 
+
+
+beampy_grammar = r"""
+?value: sum 
+
+?sum: product
+    | sum "+" product   -> add
+    | sum "-" product   -> sub
+
+?product: atom
+    | product "*" atom  -> mul
+    | product "/" atom  -> div
+
+?atom: NUMBER           -> number
+     | "-" atom         -> neg
+     | NAME             -> var
+     | LENGTH           -> length
+     | INSTANCE         -> instance
+     | "(" sum ")"
+
+LENGTH: NUMBER "px"
+      | NUMBER "em"
+      | NUMBER "pt"
+      | NUMBER "cm"
+      | NUMBER "mm"
+
+INSTANCE: NAME "." NAME
+
+%import common.CNAME -> NAME
+%import common.NUMBER
+%import common.WS_INLINE
+%ignore WS_INLINE
+"""
+
+
+# @v_args(inline=True)    # Affects the signatures of the methods
+class CalculateLengthTree(Transformer):
+    # from operator import add, sub, mul, truediv as div, neg
+    # number = float
+
+    def __init__(self):
+        self.vars = {}
+
+    def instance(self, name):
+        print(inst)
+        
+    def var(self, name):
+        return name
+
+    
+parser = Lark(beampy_grammar, start='value', parser='lalr',
+              transformer=CalculateLengthTree)
+
+
+print(parser.parse('document._curwidth + 4px * 5 + e1.width/e1.height').pretty())
