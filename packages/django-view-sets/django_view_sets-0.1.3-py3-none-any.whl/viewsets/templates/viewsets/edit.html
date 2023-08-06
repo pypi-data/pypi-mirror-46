@@ -1,0 +1,68 @@
+{% extends 'viewsets/base.html' %}
+
+{% load staticfiles i18n viewset_tags %}
+
+{% block extrahead %}
+  <script src="{% static 'viewsets/js/vendor/jquery.formset.js' %}"></script>
+  <script src="{% static 'viewsets/js/related.js' %}"></script>
+  {{ form_and_formsets_media }}
+{% endblock %}
+
+{% block breadcrumbs_items %}
+  {% if viewset.view_index %}
+    <li class="breadcrumb-item"><a href="{{ viewset.get_index_url }}">{% trans 'Home' %}</a></li>
+  {% endif %}
+  <li class="breadcrumb-item"><a
+      href="{% viewset_url model_viewset 'list' %}">{{ opts.verbose_name_plural|capfirst }}</a></li>
+  {% if object %}
+    <li class="breadcrumb-item text-muted">
+      {% if has_detail_permission %}
+        <a href="{% viewset_url model_viewset 'detail' pk=object.pk %}">
+      {% endif %}
+      <span>{{ object|capfirst }}</span>
+      {% if has_detail_permission %}
+        </a>
+      {% endif %}
+    </li>
+    <li class="breadcrumb-item active">{% trans 'Edit' %}</li>
+  {% else %}
+    <li class="breadcrumb-item active">{% trans 'Add' %}</li>
+  {% endif %}
+{% endblock %}
+
+{% block body_title %}{% if object %}{{ object|capfirst }}: {% trans 'Edit' %}{% else %}{% trans 'Add' %}{% endif %}{% endblock %}
+
+{% block body %}
+  <form method="post" enctype="multipart/form-data" class="form-horizontal" novalidate>{% csrf_token %}
+    {% if is_popup %}
+      <input type="hidden" name="_popup" value="1">
+    {% endif %}
+    {{ block.super }}
+  </form>
+{% endblock %}
+
+{% block content %}
+  {% include 'viewsets/includes/_form.html' %}
+  {% for formset in formsets.values %}
+    <hr>
+    <h2>{{ formset.opts.verbose_name_plural|capfirst }}</h2>
+    {% include 'viewsets/includes/_formset.html' %}
+  {% endfor %}
+{% endblock %}
+
+{% block content_footer %}
+  <input type="submit" class="btn btn-primary my-1 mr-1" value="{% trans 'Save' %}">
+  {% if not is_popup %}
+    {% if has_update_permission %}
+      <input type="submit" class="btn btn-primary my-1 mr-1" name="_continue" value="{% trans 'Save and continue' %}">
+    {% endif %}
+    {% if has_create_permission %}
+      <input type="submit" class="btn btn-primary my-1 mr-1" name="_addanother"
+             value="{% trans 'Save and add another' %}">
+    {% endif %}
+  {% endif %}
+  {% if object and has_delete_permission %}
+    <a href="{% viewset_url model_viewset 'delete' pk=object.pk %}"
+       class="btn btn-danger my-1 float-right">{% trans 'Delete' %}</a>
+  {% endif %}
+{% endblock %}

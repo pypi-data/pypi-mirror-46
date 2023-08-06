@@ -1,0 +1,48 @@
+<form method="get" id="filterForm" novalidate>
+  {% if filter.search_field %}
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <button class="btn btn-outline-secondary input-group-text" type="submit"><i class="fa fa-search"></i></button>
+      </div>
+      {{ filter.search_field|add_css_class('form-control') }}
+    </div>
+  {% endif %}
+
+  {% if filter.has_filters or filter.is_bound %}
+    <div class="mb-3">
+      {% if filter.has_filters %}
+        <a class="dropdown-toggle mr-3" data-toggle="collapse" href="#collapseFilters" role="button"
+           aria-expanded="{{ request.COOKIES.show_filters|yesno('true,false') }}">
+          <i class="fa fa-filter"></i> {{ _('Filters') }}
+        </a>
+      {% endif %}
+      {% if filter.form.has_changed() %}
+        <a href="?{{ preserve_params(True) }}">
+          <i class="fa fa-times"></i> {{ _('Reset filters') }}
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if filter.has_filters %}
+    <div class="collapse bg-light {% if request.COOKIES.show_filters %}show{% endif %}" id="collapseFilters">
+      <div class="p-3 clearfix">
+        {% for field in filter.filter_fields %}
+          {% include 'viewsets/includes/_form_field.html' %}
+        {% endfor %}
+        <button type="submit" class="btn btn-primary float-right">
+          <i class="fa fa-search"></i> {{ _('Search') }}
+        </button>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if filter.form.o %}
+    {{ filter.form.o }}
+  {% endif %}
+
+  {# Preserve get parameters #}
+  {% for param, value in preserve_params().items() %}
+    <input type="hidden" name="{{ param }}" value="{{ value }}">
+  {% endfor %}
+</form>
