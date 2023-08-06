@@ -1,0 +1,110 @@
+{% extends 'acmin/admin/base/template.html' %}
+{% load resource %}
+{% block breadcrumb %}
+    <ul class="breadcrumb">
+        <li><a href="#!name=/{{ model_name }}">{{ model_verbose_name }}</a></li>
+        <li class="active">{{ object }}  {% if is_clone %} (复制){% endif %}</li>
+    </ul><!-- /.breadcrumb -->
+{% endblock %}
+
+{% block content %}
+    <form class="form-horizontal" role="form" method="POST" name="{{ model_name }}Form" id="{{ model_name }}Form">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ object.id }}"/>
+        {% block additon-fields-pre %}{% endblock %}
+        {% for field in form %}
+            {% if channel and field.name == 'channel' %}
+                <input type="hidden" name="channel" value="{{ channel.id }}"/>
+            {% else %}
+                {% if field.help_text %}
+                    <div class="form-group" id="form-group-{{ field.name }}-help-text">
+                        <label class="col-sm-3 control-label no-padding-right"></label>
+                        <div class="col-sm-9 ">
+                            <label class="alert-block alert-success">{{ field.help_text }}</label>
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="form-group" id="form-group-{{ field.name }}">
+                    <label class="col-sm-3 control-label no-padding-right" for="id_{{ field.name }}">
+                        {% if field.field.required %}
+                            <label style="color:red">*</label>
+                        {% endif %}
+                        {{ field.label_tag }}
+                    </label>
+                    <div class="col-sm-9">
+                        {{ field }}
+                        {% if field.errors %}
+                            <span class="help-inline col-xs-12 col-sm-7"><span
+                                    class="label label-danger">{{ field.errors }}</span></span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="space-4"></div>
+            {% endif %}
+        {% endfor %}
+        {% block additon-fields-post %}{% endblock %}
+        {% block form-actions %}
+
+
+        {% endblock %}
+    </form>
+    {% block form-script %}
+        <script language="JavaScript">
+            $("[id^='id_']").each(function () {
+                $(this).addClass("col-xs-10 col-sm-5");
+            });
+        </script>
+    {% endblock %}
+    {% block post-form-script %}{% endblock %}
+{% endblock %}
+
+{% block script %}
+    <script src="{% resource 'acmin/js/form.js?bbb' %}"></script>
+    <script language="JavaScript">
+        window.formAction = "{{ form_action }}";
+
+        function addChangeEvent(field_group) {
+            for (let i in field_group) {
+                let fields = field_group[i];
+                for (let j = 0; j < fields.length; j++) {
+                    let attribute = fields[j].attribute;
+                    $("select[name='" + attribute + "']").change(function () {
+                        let value = $(this).val();
+                        for (let k = j + 1; k < fields.length; k++) {
+                            let sub_attribute = fields[k].attribute;
+                            let selector = "select[name='" + sub_attribute + "']"
+                            let select = $(selector);
+                            select.html("");
+                            if (k == j + 1) {
+                                $.getJSON(window.urlPrefix + '/' + fields[k].class + '/', {choices: true, attribute: attribute.substr(sub_attribute.length + 1), value: value}, function (data) {
+                                    $(selector).append("<option value=''>------</option>");
+                                    $(data).each(function (i, obj) {
+                                        let text = obj["title"];
+                                        $(selector).append("<option value='" + obj.id + "'>" + text + "</option>");
+                                    });
+                                });
+                            }
+                        }
+
+                    });
+                }
+            }
+        }
+
+        showDateTimePicker($(".datepicker"), 'YYYY-MM-DD');
+        //$('textarea').attr("rows", 3);
+        $(function () {
+            $("textarea").each(function () {//自适应高度
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+            }).on('input', function () {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        });
+        {% autoescape off %}
+            $().ready(function () {
+                addChangeEvent({{ group_fields_json }});
+            });
+        {% endautoescape %}
+    </script>
+{% endblock %}
