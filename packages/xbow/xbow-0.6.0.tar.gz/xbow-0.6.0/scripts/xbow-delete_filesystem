@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+from __future__ import print_function
+
+import boto3
+import yaml
+import os
+import sys
+import time
+import xbow
+from xbow import filesystems
+
+cfg_file = os.path.join(xbow.XBOW_CONFIGDIR, "settings.yml")
+
+with open(cfg_file, 'r') as ymlfile:
+    cfg = yaml.safe_load(ymlfile)
+
+name = cfg['shared_file_system']
+region = cfg['region']
+
+get_input = input
+if sys.version_info[:2] <= (2, 7):
+    get_input = raw_input
+
+while True:
+    print("This will irrevisbly delete your filesystem")
+    a = get_input("Enter yes/no to continue: ")
+    if a=="yes":
+        print("Deleting mount targets")
+        filesystems.delete_mount_targets(name, region)
+        print("Deleting filesystem")
+        time.sleep(15)
+        filesystems.delete_fs(name, region)
+        break
+    elif a=="no":
+        print("Your filesystem has not been deleted")
+        break
+    else:
+        print("Enter either yes/no")
+
