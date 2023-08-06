@@ -1,0 +1,24 @@
+from distutils.core import setup
+import setuptools
+
+setup(
+  name='stackd',
+  version='0.1',
+  description='STACKD - A docker swarm deploy helper according to environment',
+  url='https://gitlab.com/youtopia.earth/bin/stackd',
+  download_url='https://gitlab.com/youtopia.earth/bin/stackd/-/archive/master/stackd-master.tar.gz',
+  keywords = ['docker', 'docker-stack', 'env'],
+  author='Idetoile',
+  author_email='idetoile@protonmail.com',
+  license='MIT',
+  install_requires=[
+    'PyYAML',
+    'deepmerge',
+  ],
+  classifiers=[
+    'Development Status :: 3 - Alpha',      # "3 - Alpha", "4 - Beta" or "5 - Production/Stable"
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: Python :: 3',
+  ],
+)
