@@ -1,0 +1,45 @@
+{% load i18n leprikon_tags qr_code %}
+
+<p>
+{% blocktrans asvar text %}Hello,
+thank You for submitting registration.{% endblocktrans %}{{ text|linebreaks }}
+</p>
+
+<p>
+    {{ object.subject.subject_type.name | first_upper }}: {{ object.subject.name }}<br/>
+    {% trans 'Participant' %}: {{ object.participant }}<br/>
+    {% trans 'Price' %}: {{ object.current_receivable | currency }}<br/>
+</p>
+
+{% if site.payment_gateway %}
+<p>
+    {% trans 'Please, use following link to perform online payment' %}:<br/>
+    <a href="{{ object.payment_url }}">{{ object.payment_url }}</a>
+</p>
+{% endif %}
+
+{% if site.bank_account %}
+<p>
+    {% trans 'Please, use following information for bank transfer' %}:<br/>
+    {% trans 'Bank account' %}: {{ site.bank_account }}<br/>
+    {% trans 'Variable symbol' %}: {{ object.variable_symbol }}<br/>
+</p>
+<p>
+    {% trans 'Or You may use following QR code to scan the payment details to your mobile banking application' %}:<br/>
+    <img src="cid:qr_code"/>
+</p>
+{% endif %}
+
+{% if not site.payment_gateway and not site.bank_account %}
+<p>{% trans 'Currently we only accept payments in cash.' %}</p>
+{% endif %}
+
+<p>
+    {% trans 'If You have already made the payment recently, please ignore this message.' %}
+    {% trans 'You may check the current status of your registrations and payments using following link:' %}<br/>
+    <a href="https://{{ site.domain }}{% url 'leprikon:registration_list' %}">
+        https://{{ site.domain }}{% url 'leprikon:registration_list' %}
+    </a>
+</p>
+
+<p>{{ site.name }}</p>
