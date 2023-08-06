@@ -1,0 +1,24 @@
+{% extends 'viewsets/base.html' %}
+
+{% load viewset_tags i18n %}
+
+{% block breadcrumbs_items %}
+  <li class="breadcrumb-item active">{% trans 'Home' %}</li>
+{% endblock %}
+
+{% block body_title %}{% trans 'Home' %}{% endblock %}
+
+{% block content %}
+  <ul>
+    {% for model, set in view.viewset.registered %}
+      {% has_perm set 'list' as has_view_perm %}
+      {% if has_view_perm %}
+        <li>
+          <a href="{% viewset_url set 'list' %}">
+            {{ set.opts.verbose_name_plural|capfirst }}
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+{% endblock %}
