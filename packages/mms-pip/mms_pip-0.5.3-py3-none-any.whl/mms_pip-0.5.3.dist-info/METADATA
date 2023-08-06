@@ -1,0 +1,112 @@
+Metadata-Version: 2.1
+Name: mms-pip
+Version: 0.5.3
+Summary: A custom MMS/GDWH module for python
+Home-page: https://source.cloud.google.com/v135-5683-alice-ksk-explore/mms-pip
+Author: Josef Goppold
+Author-email: goppold@mediamarktsaturn.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+Requires-Dist: google-cloud-logging (>=1.10.0)
+Requires-Dist: redis (>=3.0.1)
+
+# mms-pip
+Public Python module from the GDWH-Team of MediaMarktSaturn-Technology.
+```
+pip install mms-pip
+```
+Topics:
+1. gcp_logger
+2. redis_handler
+3. bq_handler
+4. gcs_handler
+
+
+
+## 1. gcp_logger
+
+Log Module for standardized log purposes.
+
+### How to use:
+
+#### 1.1 Import module:
+
+```python
+from mms.gcp_logger import Logger
+```
+
+#### 1.2 Initalize the logger:
+
+```python
+# Cloud Function Logging:
+
+logger = Logger(run_id, project_id, function_name, resource_type)
+logger = Logger(run_id='lksjdf2', project_id='my-project-id', function_name='ppx-price-updates-de-gcs-bq', resource_type='cloud_function')
+
+# App Engine Logging:
+
+logger = Logger(run_id, project_id, module_id, version_id, resource_type)
+logger = Logger(run_id='lksjdfl98', project_id='v135-5683-alice-ksk-explore', module_id='app-flex-sample-service', version_id='v0.0.1', resource_type='gae_app')
+
+# Compute Engine:
+
+logger = Logger(run_id, project_id, resource_type)
+logger = Logger(run_id='lksjdfl98', project_id='v135-5683-alice-ksk-explore', resource_type='gce_instance')
+
+# Kubernetes Engine: 
+logger = Logger(run_id, project_id, cluster_name, container_name, location, namespace_name, resource_type)
+logger = Logger(run_id='id12345', project_id='v135-5683-alice-ksk-explore', cluster_name='jg-k8-testcluster', container_name=CONTAINER_NAME, location=ZONE, namespace_name='default', resource_type='k8s_container')
+```
+
+
+The following resource_types are supported:
+
+Cloud Function: 'cloud_function'
+App Engine: 'gae_app'
+Compute Engine: 'gce_instance'
+Kubernetes: 'k8s_container'
+
+When resource type is unrecoginzable logs will be processed to 'Global'
+
+
+#### 1.3 Use the logger:
+
+```python
+logger.info('your message')
+logger.warning('your message')
+logger.error('your message')
+logger.critical('your message')
+logger.debug('your message')
+```
+
+The logs are visible in Stackdriver Logging via GAE Application -> Module_id -> Version_id for App Engine.
+Or under Cloudfunctions -> Function_id
+Or under GCE VM Instance -> Instance_id
+Or under Kubernetes Container -> cluster_name -> namespace_name -> container_name 
+
+### Important
+
+This log tool only works in App Engine Standard/Flexible, Cloud Function, Compute Engine and Kubernetes environment.
+
+For local testing do not initialize the logger as it would ran into errors because of the missing GCP context. (TODO)
+
+### How we log
+
+We initialize the logger only in the "app.py" file. From there every log entry will be written - Modules used within app.py need to return the exceptions to the caller so
+error etc. get logged at one central point within app.py.
+
+
+## TODO
+Adding description of redis_handler
+
+
+
+
+***
+Tobias Hoke - Josef Goppold - 20.05.2019
+
+
