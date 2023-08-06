@@ -1,0 +1,28 @@
+[![Build status](https://robertoprevato.visualstudio.com/rocore/_apis/build/status/rocore-CI)](https://robertoprevato.visualstudio.com/rocore/_build/latest?definitionId=13) [![pypi](https://robertoprevato.vsrm.visualstudio.com/_apis/public/Release/badge/43593051-4566-4ca8-82dc-acc870638985/1/2)](https://pypi.org/project/rocore/) [![Test coverage](https://img.shields.io/azure-devops/coverage/robertoprevato/rocore/13.svg)](https://robertoprevato.visualstudio.com/rocore/_build?definitionId=13)
+
+# Core classes and functions, reusable in any kind of Python application
+
+**Features:**
+* [exception classes to express common scenarios](https://github.com/RobertoPrevato/rocore/wiki/Common-exceptions)
+* [implementation of models annotations, useful to implement validation of business objects](https://github.com/RobertoPrevato/rocore/wiki/Models-annotations)
+* [friendly JSON encoder](https://github.com/RobertoPrevato/rocore/wiki/User-friendly-JSON-dumps), handling `datetime`, `date`, `time`, `UUID`, `bytes`
+* [implementation of simple in-memory cache, supporting expiration of items and capped lists](https://github.com/RobertoPrevato/rocore/wiki/Caching)
+* utilities to work with `folders` and paths
+* [`StopWatch` implementation](https://github.com/RobertoPrevato/rocore/wiki/StopWatch-implementation)
+
+## Installation
+
+```bash
+pip install rocore
+```
+
+## Documentation
+Please refer to documentation in the project wiki: [https://github.com/RobertoPrevato/rocore/wiki](https://github.com/RobertoPrevato/rocore/wiki).
+
+## Develop and run tests locally
+```bash
+pip install -r dev_requirements.txt
+
+# run tests using automatic discovery:
+pytest
+```
