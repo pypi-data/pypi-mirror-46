@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+    <style>
+        i {
+            margin: 10px;
+            cursor: pointer
+        }
+    </style>
+    <script>
+        function copyToClipboard(str) {
+            var el = document.createElement('textarea');
+            el.value = str;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        }
+
+        $(document).ready(function () {
+            $('i').click(function () {
+                var cls = this.getAttribute('data-original-title');
+                copyToClipboard(cls);
+                $.toast({
+                    text: 'Class "' + cls + '" was coppied to clipboard!',
+                    loader: false,
+                    position: {top: 60, right: 30},
+                    hideAfter: 10000
+                })
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block body %}
+    <body id="admin-body">
+    <div class="padding-md">
+        <h1>Icons</h1>
+        {% for icon_name in icon_names %}
+            <i data-toggle="tooltip" data-original-title="fa-{{ icon_name }}" class="fa fa-{{ icon_name }} fa-lg"></i>
+        {% endfor %}
+    </div>
+    </body>
+{% endblock %}
+

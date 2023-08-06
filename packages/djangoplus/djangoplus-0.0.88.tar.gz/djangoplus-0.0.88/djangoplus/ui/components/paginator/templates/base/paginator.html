@@ -1,0 +1,226 @@
+
+{% if component.as_pdf %}
+    {% set queryset=component.get_queryset() %}
+    {% if not component.is_list_view %}
+        <h3>{{ component.title }} ({{ component.count }})</h3>
+    {% endif %}
+    {% if queryset.exists() %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th width="30px">#</th>
+                {% for column_name, lookup, sortable, to in component.column_names %}
+                    <th style="vertical-align: middle">{{ column_name }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for obj in queryset %}
+                <tr>
+                    <td align="center">{{ loop.index }}</td>
+                    {% for column_name, lookup, sortable, to in component.column_names %}
+                        {% set value=objcomponent(lookup) %}
+                        <td align="{{ value|align }}">{{ value|print_format|safe }}</td>
+
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <div align="center">{{ _("No records found") }}</div>
+    {% endif %}
+
+{% else %}
+<div id="table{{ component.id }}" class="paginator paginator-{% if component.is_list_view %}admin{% endif %}">
+    {% set content=component|paginate %}
+        <div {% if not component.is_list_view %}class="panel panel-default"{% endif %} id="painel-{{ component.id }}">
+            {% if not component.is_list_view %}
+            <div class="panel-heading">
+                {% if component.url %}
+                    {% if component.icon %}<i class="fa {{ component.icon }} fa-lg"></i> {% endif %}
+                    <a class="ajax" href="{{ component.url }}">{{ component.title }}</a>
+                {% else %}
+                    {% if component.icon %}<i class="fa {{ component.icon }} fa-lg"></i> {% endif %}
+                    {{ component.title }}
+                {% endif %}
+                {% if component.mobile %}
+                    <div class="pull-right" style="margin-top:-10px;">
+                    {{ component.queryset_dropdown|safe }}
+                    {{ component.class_dropdown|safe }}
+                    </div>
+                {% else %}
+                 <a href="javascript:" role="button" class="pull-right fullscreen-action"><i class="fa fa-expand"></i></a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="panel-body">
+
+                {% if not component.mobile or component.is_list_view %}
+                {% if component.is_list_view or component.queryset_dropdown.has_items() or component.class_dropdown.has_items()  %}
+                <div class="action-bar">
+                    {% if component.is_list_view %}
+                    <div class="pull-left">
+                        <h2>{% if component.icon %}<i class="fa {{ component.icon }} fa-lg"></i> {% endif %}{{ component.title }} ({{ component.count }})</h2>
+                    </div>
+                    {% endif %}
+                    <div class="pull-right">
+                        {% if not component.request.GET.popup %}
+                            {{ component.queryset_dropdown|safe }}
+                            {{ component.class_dropdown|safe }}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                {% if component.tabs|length > 1 %}
+                    <ul class="paginator-tabs">
+                        {% for tab in component.tabs %}
+                            <li class="{% if tab.3 %}active{% endif %}">
+                            <a href="javascript:" onclick="$('#tab{{ component.id }}').val('{{ tab.0 }}');$('#{{ component.id }}').submit();">
+                                {{ tab.1 }} <span class="badge {% if tab.3 %}badge-primary{% endif %}">{{ tab.2.count() }}</span>
+                            </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                {% if component.form %}
+                    {{ component.form }}
+                {% endif %}
+
+                {% if component.list_total %}
+                    {% set total=component.get_total() %}
+                    {% if total %}
+                    <div class="paginator-total">
+                        {{ total|format }}
+                    </div>
+                    {% else %}
+                        <br/>
+                    {% endif %}
+
+                {% endif %}
+
+                <form method="get" class="table-form form-horizontal no-margin form-border" id="{{ component.id }}" action="{{ component.request.get_full_path() }}">
+                <input name="tid" type="hidden" value="{{ component.id }}"/>
+                <input name="q{{ component.id }}" id="q{{ component.id }}" type="hidden" value="{{ component.get_q() }}"/>
+                <input name="order_by{{ component.id }}" id="order_by{{ component.id }}" type="hidden" value="{{ component._get_order_by() }}"/>
+                <input name="page{{ component.id }}" id="page{{ component.id }}" type="hidden" value="{{ component._get_page() }}"/>
+                <input name="tab{{ component.id }}" id="tab{{ component.id }}" type="hidden" value="{{ component.get_tab() }}"/>
+                <input name="{{ component.id }}" type="hidden" value="1"/>
+                {% set list_filter=component.get_list_filter() %}
+                {% set search_fields=component.get_search_fields() %}
+                {% if list_filter or search_fields %}
+                <div>
+                {% set filter_form=component.get_filter_form() %}
+                    {{ filter_form.media }}
+                    {% if search_fields or list_filter %}
+                        <div class="filter-container">
+                        {% if search_fields %}
+                        <label>
+                            <div class="input-group">
+                                <input id="search{{ component.id }}" style="height: 34px;" type="text" class="form-control input-sm" placeholder='{{ _("Keywords") }}...' aria-controls="dataTable" value="{{ component.get_q() }}" onkeyup="$('#q{{ component.id }}').val(this.value)">
+                                <span class="input-group-btn">
+                                    <button style="height: 34px;margin-left: -2px" class="btn btn-default btn-sm" type="button" onclick="$('#page{{ component.id }}').val(1);$('#{{ component.id }}').submit();">
+                                        <i class="fa fa-search"></i>
+                                    </button>
+                                </span>
+                                <script>
+                                $('#search{{ component.id }}').keypress(function (e) {
+                                  if (e.which == 13) {
+                                    $('#{{ component.id }}').submit();
+                                    return false;
+                                  }
+                                });
+                                </script>
+                            </div>
+                        </label>
+                        {% endif %}
+
+                        {% for field in filter_form  %}
+                            {{ field }}
+                        {% endfor %}
+
+                        <script>$('#table{{ component.id }}').find('select, input[data-type=\'hidden_daterange\']').on('change', function(e) {$('#{{ component.id }}').submit();});</script>
+
+                        </div>
+                    {% endif %}
+
+                    {% if list_filter1 %}
+                        <div class="pull-right">
+                            <a data-modal-id="#filter_modal{{ component.id }}" href="#" role="button" data-toggle="modal" class="btn btn-default" style="height: 30px;"><i class="fa fa-filter"></i><span class="link-text"> {{ _("Filter") }}...</span></a>
+                        </div>
+                    {% endif %}
+
+                </div>
+                {% endif %}
+
+                </form>
+                <div style="clear:both"></div>
+                {% if component.count %}
+
+                    {% if component.help_text %}
+                        <div class="alert alert-info">
+                            {{ component.help_text }}
+                        </div>
+                    {% endif %}
+
+                    {{ content|safe }}
+
+                {% else %}
+                    <div class="alert alert-warning">{{ _("No records found") }}.</div>
+                {% endif %}
+
+                {% if component.queryset_dropdown.actions and not component.request.GET.popup %}
+                    <div class="col s12 disabled" id="queryset-actions-btn{{ component.id }}">
+
+                        <div class="pull-left">
+                            {{ component.queryset_dropdown|safe }}
+                        </div>
+
+                    </div>
+                {% endif %}
+                <div class="col s12" id="paginator{{ component.id }}">
+                    {{ component.pagination|safe }}
+                </div>
+            </div>
+            {% if not component.is_list_view %}
+
+            {% endif %}
+        </div>
+
+    <script>
+        if($('#table{{ component.id }} .paginator-actions .btn').length == 0) $('#table{{ component.id }} .paginator-actions').hide();
+        function check{{ component.id }}(){
+            if($('input[name=\'pk\']:checked').length>0){
+                $('.paginator-actions .btn, .class-action').addClass('disabled');
+                $('.queryset-action').removeClass('disabled');
+                $('#queryset-actions-btn{{ component.id }}').removeClass('disabled');
+                $('#paginator{{ component.id }}').addClass('disabled');
+            } else {
+                $('#paginator{{ component.id }}').removeClass('disabled');
+                $('#queryset-actions-btn{{ component.id }}').addClass('disabled');
+                $('.paginator-actions .btn, .class-action').removeClass('disabled');
+                $('.class-action').removeClass('disabled');
+                $('.queryset-action').addClass('disabled');
+            }
+        }
+        $('#table{{ component.id }}').find('a.queryset-action').click(function (e) {
+            var url = this.href.split('&ids=')[0];
+            url+='&ids='+$('input:checked[name=\'pk\']').map(function(){return $(this).attr('value');}).get().join(',');
+            if(window['executing_tests']){
+                document.location.href = url;
+            }
+            else{
+                if($(this).hasClass('popup')) popup(url);
+                else loadUrl(url);
+            }
+            e.preventDefault();
+            return false;
+        });
+    </script>
+
+</div>
+{% endif %}

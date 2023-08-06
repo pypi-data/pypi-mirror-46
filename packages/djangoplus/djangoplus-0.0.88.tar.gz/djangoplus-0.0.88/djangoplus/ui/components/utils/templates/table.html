@@ -1,0 +1,90 @@
+
+{% if component.as_pdf %}
+    <h3>{{ component.title }}</h3>
+    <table class="table" repeat="1">
+        <thead>
+            <tr>
+                {% if component.enumerable %}
+                    <th width="30px">#</th>
+                {% endif %}
+                {% for value in component.header %}
+                    <th style="vertical-align: middle">{{ value }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in component.rows %}
+                <tr>
+                    {% if component.enumerable %}
+                        <td align="center">{{ loop.index }}</td>
+                    {% endif %}
+                    {% for value in row %}
+                        <td align="{{ value|align }}">{{ value|print_format }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+        {% if component.footer %}
+        <tfoot>
+            <tr>
+                {% for value in component.footer %}
+                    <th align="{{ value|align }}">{{ value }}</th>
+                {% endfor %}
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+{% else %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <i class="fa fa-table fa-fw"></i>
+            {{ component.title }}
+        </div>
+
+        {% if component.note %}
+            <div style="padding: 15px">
+                <div class="alert alert-info">
+                    {{ component.note }}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="panel-body">
+            {% if component.rows %}
+            <div class="table-responsive2">
+                <table class="table table-bordered">
+                    {% if component.header %}
+                    <thead>
+                        <tr>
+                        {% for value in component.header %}
+                            <th style="text-align:center;vertical-align: middle">{{ value }}</th>
+                        {% endfor %}
+                        </tr>
+                    </thead>
+                    {% endif %}
+                    <tbody>
+                        {% for row in component.rows %}
+                            <tr>
+                                {% for value in row %}
+                                    <td style="text-align:{{ value|align }}">{{ value|format }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if component.footer %}
+                    <tfoot>
+                        <tr>
+                            {% for value in component.footer %}
+                                <th style="text-align:{{ value|align }}">{{ value }}</th>
+                            {% endfor %}
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+            {% else %}
+                <div class="alert alert-warning">{{ _("No records found") }}.</div>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

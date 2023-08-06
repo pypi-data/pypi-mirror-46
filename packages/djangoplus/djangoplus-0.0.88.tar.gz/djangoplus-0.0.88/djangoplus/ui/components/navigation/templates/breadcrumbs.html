@@ -1,0 +1,26 @@
+{% if component.as_pdf %}{% else %}
+
+<div id="breadcrumb">
+    {% if component.request.session.stack|length > 1 %}
+    <ul class="breadcrumb">
+        <li><a href="/admin/" class="ajax"> Principal</a></li>
+        {% if component.request.session.stack %}
+            {% for title, url in component.request.session.stack %}
+                {% if not loop.first %}
+                    {% if not loop.last %}
+                        <li><a href="{{ url }}" class="ajax"> {{ title }}</a></li>
+                    {% else %}
+                        <li class="active">{{ title }}</li>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </ul>
+    {% endif %}
+</div><!-- /breadcrumb-->
+{% if component.referrer %}
+<script>
+    $(".referrer-link").prop("href", "{{ component.referrer }}");
+</script>
+{% endif %}
+{% endif %}
