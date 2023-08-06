@@ -1,0 +1,151 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Understanding the Magic &#8212; Flask Dance 1.3.0 documentation</title>
+    <link rel="stylesheet" href="../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+     
+    
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head><body>
+    
+    
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Flask Dance 1.3.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="understanding-the-magic">
+<h1>Understanding the Magic<a class="headerlink" href="#understanding-the-magic" title="Permalink to this headline">¶</a></h1>
+<p>Flask-Dance might initially seem like magic (“it just works!”),
+but it’s just code. It’s complicated, but understandable. This page
+will teach you how Flask-Dance works.</p>
+<div class="section" id="making-the-blueprint">
+<h2>Making the Blueprint<a class="headerlink" href="#making-the-blueprint" title="Permalink to this headline">¶</a></h2>
+<p>The first thing you do with Flask-Dance is make a blueprint. This is
+an instance of
+<code class="xref py py-class docutils literal notranslate"><span class="pre">OAuth1ConsumerBlueprint</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">OAuth2ConsumerBlueprint</span></code>,
+depending on if you’re using OAuth 1 or OAuth 2. (Most providers use
+OAuth 2.)</p>
+<p>When you make your blueprint, you can either pass your client ID
+and client secret to the blueprint directly, or teach your blueprint
+where to find those values on its own using the
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">from_config</span></code> dictionary. Using this
+dictionary is usually a good idea, since it allows you to specify
+these values in your application configuration instead of in
+your code.</p>
+<p>After you’ve made the blueprint, you need to register it on your
+Flask application, just like you would with any other blueprint.</p>
+</div>
+<div class="section" id="using-the-requests-session">
+<h2>Using the Requests Session<a class="headerlink" href="#using-the-requests-session" title="Permalink to this headline">¶</a></h2>
+<p>The Flask-Dance blueprints have a <code class="xref py py-attr docutils literal notranslate"><span class="pre">session</span></code>
+attribute. When you access this attribute, the blueprint
+will create and return a <a class="reference external" href="http://docs.python-requests.org/en/latest/api/#requests.Session" title="(in Requests v2.21.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">requests.Session</span></code></a> object,
+properly configured for OAuth authentication. You can use this object
+in exactly the same way as you would normally use the Requests
+library for making HTTP requests.</p>
+<p>The pre-set configurations also allow you to import special objects
+that refer to these Requests session objects. For example,
+if you run this code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">code</span><span class="o">-</span><span class="n">block</span><span class="p">::</span> <span class="n">python</span>
+</pre></div>
+</div>
+<blockquote>
+<div>from flask_dance.contrib.github import github</div></blockquote>
+<p>You can then call <code class="docutils literal notranslate"><span class="pre">github.get()</span></code> just like you do with Requests.
+However, this <cite>github</cite> object is not actually a Requests session –
+it’s something called a <a class="reference external" href="http://werkzeug.pocoo.org/docs/local/#werkzeug.local.LocalProxy" title="(in Werkzeug v0.14-dev)"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalProxy</span></code></a>.
+This allows you to access the session within the context of an incoming
+HTTP request, but it will <em>not</em> allow you access it outside that
+context.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Understanding the Magic</a><ul>
+<li><a class="reference internal" href="#making-the-blueprint">Making the Blueprint</a></li>
+<li><a class="reference internal" href="#using-the-requests-session">Using the Requests Session</a></li>
+</ul>
+</li>
+</ul>
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/quickstarts/understanding-the-magic.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+<div class="github">
+    <a href="https://github.com/singingwolfboy/flask-dance">
+        <span>Fork me on GitHub</span>
+        <img src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub">
+    </a>
+</div>
+
+
+    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-2019, David Baumgold.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.3.
+    </div>
+    
+
+  </body>
+</html>
