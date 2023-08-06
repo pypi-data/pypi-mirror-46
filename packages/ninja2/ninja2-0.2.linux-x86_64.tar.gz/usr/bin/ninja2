@@ -1,0 +1,95 @@
+#!/usr/lib/python-exec/python3.5/python3
+
+'''
+The MIT License (MIT)
+
+Copyright (c) 2015 Sascha Spreitzer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+'''
+
+import sys
+import os
+import getopt
+import json
+import argparse
+
+try:
+	import yaml
+	YAML=True
+except:
+	YAML=False
+
+
+from jinja2 import Template,Environment
+
+
+def renderenv(t):
+	global base_env
+	return base_env.from_string(t).render(os.environ)
+
+def renderjson(t, j):
+	global base_env
+	return base_env.from_string(t).render(json.loads(j))
+
+def renderyaml(t, y):
+	global base_env
+	return base_env.get_template(t).render(yaml.load(y))
+
+
+
+def main():
+	global base_env
+
+	# parsing command line
+	# parser = argparse.ArgumentParser(description='ninja2 <-e | -j | -y> template.j2')
+	parser = argparse.ArgumentParser( formatter_class=argparse.RawDescriptionHelpFormatter, 
+                               description='read a jinja2 template from file and values from stdin either environment or json or yaml',
+                               epilog='(c) 2015 Sascha Spreitzer, MIT License' )
+	parser.add_argument('-V','--version', action='version', version='%(prog)s 0.2')
+	agr_group = parser.add_mutually_exclusive_group(required=True)
+	agr_group.add_argument('-e','--env',help = "render from environment",action='store_true')
+	agr_group.add_argument('-j','--json',help = "render from json file",action='store_true')
+	agr_group.add_argument('-y','--yaml',help = "render from yaml file",action='store_true')
+	parser.add_argument('-l','--load',help = "load Jinja2 extentions, can be repeated",choices=['i18n','do','loopcontrols'],action='append')
+	parser.add_argument('input_file',metavar='template.j2',help = "File with Jinja2 template",type=argparse.FileType('r'))
+
+	args = parser.parse_args()
+
+	if args.load:
+		base_env = Environment(extensions=[ 'jinja2.ext.'+ element for element in args.load ])
+	else:
+		base_env = Environment()
+
+	try:
+		if args.env:
+			print(renderenv(args.input_file.read()))
+		elif args.json:
+			print(renderjson(args.input_file.read(), sys.stdin.read()))
+		elif args.yaml:
+			if YAML:
+				print(renderyaml(args.input_file.read(), sys.stdin.read()))
+			else:
+				print("yaml not supported - install pyyaml")
+				sys.exit(3)
+	except getopt.GetoptError:
+		sys.exit(2)
+
+if __name__=="__main__":
+	main()
