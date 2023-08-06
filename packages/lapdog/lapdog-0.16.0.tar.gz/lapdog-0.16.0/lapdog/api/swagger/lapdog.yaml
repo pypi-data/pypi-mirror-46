@@ -1,0 +1,1386 @@
+swagger: '2.0'
+info:
+  title: Lapdog
+  version: 1.0.0
+produces:
+  - application/json
+paths:
+  /api/v1/version:
+    get:
+      operationId: lapdog.api.controllers.version
+      summary: Returns lapdog version
+      responses:
+        default:
+          description: Error
+        200:
+          description: Lapdog version
+          schema:
+            type: string
+  /api/v1/status:
+    get:
+      operationId: lapdog.api.controllers.status
+      summary: Returns firecloud status
+      responses:
+        default:
+          description: Error
+        200:
+          description: A Status Object representing the current Firecloud status
+          schema:
+            $ref: "#/definitions/Status"
+  /api/v1/quotas/{namespace}:
+    get:
+      operationId: lapdog.api.controllers.quotas
+      summary: Returns quota usage in a particular gateway
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+      responses:
+        default:
+          description: Error
+        200:
+          description: A list of quotas and usage
+          schema:
+            $ref: "#/definitions/QuotaReport"
+  /api/v1/cache:
+    get:
+      operationId: lapdog.api.controllers.cache_size
+      summary: Returns the size of the cache
+      responses:
+        default:
+          description: Error
+        200:
+          description: Size of lapdog cache
+          schema:
+            type: string
+  /api/v1/workspaces:
+    get:
+      operationId: lapdog.api.controllers.list_workspaces
+      summary: Returns a list of workspaces
+      responses:
+        default:
+          description: Error
+        200:
+          description: A list of workspace summaries
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/WorkspaceSummary"
+  /api/v1/operations:
+    get:
+      operationId: lapdog.api.controllers.operation_status
+      summary: Gets the status of a gcloud operation
+      parameters:
+        -
+          in: query
+          name: operation_id
+          required: true
+          type: string
+          description: Google operation id
+      responses:
+        default:
+          description: Error
+        200:
+          description: Operation status
+          schema:
+            type: string
+            description: A raw (unparsed) YAML string representing the operation
+  /api/v1/blob/{path}:
+    get:
+      operationId: lapdog.api.controllers.preview_blob
+      summary: Gets metadata associated with a blob for preview
+      parameters:
+        -
+          in: path
+          name: path
+          required: true
+          type: string
+          description: URL-encoded gs:// path including bucket id
+        -
+          in: query
+          name: project
+          required: false
+          type: string
+          description: User-project for requester pays operations
+      responses:
+        default:
+          description: Error
+        200:
+          description: Object Metadata
+          schema:
+            type: object
+            properties:
+              requesterPays:
+                type: boolean
+                description: If the blob's bucket is requester pays
+              exists:
+                type: boolean
+                description: If the blob exists
+              size:
+                type: string
+                description: Size of blob, if it exists
+              url:
+                type: string
+                description: Download URL for previews and download
+              preview:
+                type: string
+                description: Last kilobyte of preview content
+              visitUrl:
+                type: string
+                description: URL when user visits object
+              children:
+                type: array
+                description: list of direct children, if any. Indicates directory
+                items:
+                  type: string
+              bucket:
+                type: string
+                description: Bucket id
+  /api/v1/workspaces/{namespace}/{name}:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+      operationId: lapdog.api.controllers.workspace
+      summary: returns a workspace
+      responses:
+        default:
+          description: Error
+        200:
+          description: A detailed summary of the workspace
+          schema:
+            $ref: "#/definitions/WorkspaceDetail"
+    post:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+        -
+          in: query
+          name: parent
+          required: false
+          type: string
+          description: The parent workspace (in url encoded namespace/name format)
+          default: ''
+      operationId: lapdog.api.controllers.create_workspace
+      summary: Creates a new workspace and returns success or failure
+      responses:
+        default:
+          description: Error
+        200:
+          description: A success of failure object
+          schema:
+            type: object
+  /api/v1/service-account:
+    get:
+      operationId: lapdog.api.controllers.service_account
+      summary: Returns the active service account
+      responses:
+        default:
+          description: Error
+        200:
+          description: The active service account
+          schema:
+            type: string
+  /api/v1/workspaces/{namespace}/{name}/autocomplete/{entity}:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+        -
+          in: path
+          name: entity
+          required: true
+          type: string
+      operationId: lapdog.api.controllers.autocomplete
+      summary: returns a workspace
+      responses:
+        default:
+          description: Error
+        200:
+          description: List of matching entities
+          schema:
+            type: array
+            items:
+              type: string
+  /api/v1/workspaces/{namespace}/{name}/gateway:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+      operationId: lapdog.api.controllers.get_namespace_registered
+      summary: Checks the Lapdog Gateway to see if the Engine is initialized for this Namespace
+      responses:
+        default:
+          description: Error
+        200:
+          description: Returns the status of the current gateway
+          schema:
+            type: object
+    post:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+      operationId: lapdog.api.controllers.register
+      summary: Registers with the current namespace
+      responses:
+        default:
+          description: Error
+        200:
+          description: Returns the status of the current gateway
+          schema:
+            type: object
+  /api/v1/workspaces/{namespace}/{name}/entities/{etype}:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+        -
+          in: path
+          name: etype
+          required: true
+          type: string
+          description: Entity type
+        -
+          in: query
+          name: start
+          required: false
+          type: integer
+          description: DF start
+        -
+          in: query
+          name: end
+          required: false
+          type: integer
+          description: DF end
+      operationId: lapdog.api.controllers.get_entities
+      summary: Returns a list of entity types
+      responses:
+        default:
+          description: Error
+        200:
+          description: A list of entities in the workspace
+          schema:
+            type: array
+            items:
+              type: object
+  /api/v1/workspaces/{namespace}/{name}/cache:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+      summary: Gets the cache state of a given workspace
+      operationId: lapdog.api.controllers.get_cache
+      responses:
+        default:
+          description: Error
+        200:
+          description: Cache state
+          schema:
+            type: string
+    put:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+      summary: Synchronizes the workspace cache
+      operationId: lapdog.api.controllers.sync_cache
+      responses:
+        default:
+          description: Error
+        200:
+          description: Cache state
+          schema:
+            type: string
+  /api/v1/workspaces/{namespace}/{name}/cache/seed:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+      summary: Returns a dictionary of pickled data to seed a workspace manager from the active API
+      operationId: lapdog.api.controllers.seed_cache
+      responses:
+        default:
+          description: Error
+        200:
+          description: Complete dump of the workspace cache in key->pickle form
+          schema:
+            type: object
+  /api/v1/workspaces/{namespace}/{name}/submissions:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+        -
+          in: query
+          name: cache
+          required: false
+          type: boolean
+          description: Return live or cached results
+          default: false
+      summary: Lists the submissions in order
+      operationId: lapdog.api.controllers.list_submissions
+      responses:
+        default:
+          description: Error
+        200:
+          description: Submissions
+          schema:
+            type: array
+            items:
+              type: object
+  /api/v1/workspaces/{namespace}/{name}/configs:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+      summary: Lists the method configs available in the workspace
+      operationId: lapdog.api.controllers.get_configs
+      responses:
+        default:
+          description: Error
+        200:
+          description: Configs
+          schema:
+            type: array
+            items:
+              type: object
+    put:
+      consumes:
+        - application/json
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+        -
+          in: body
+          name: config
+          required: true
+          description: JSON config object
+          schema:
+            type: object
+
+      summary: Gets config and wdl details
+      operationId: lapdog.api.controllers.update_config
+      responses:
+        default:
+          description: Error
+        200:
+          description: Config
+          schema:
+            type: object
+    post:
+      consumes:
+        - multipart/form-data
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+        -
+          in: formData
+          name: config_filepath
+          type: file
+          required: true
+          description: Config JSON file
+        -
+          in: formData
+          name: method_filepath
+          type: file
+          required: false
+          description: Optional method WDL
+          # default: null
+      summary: Uploads a new method configuration
+      operationId: lapdog.api.controllers.upload_config
+      responses:
+        default:
+          description: Error
+        200:
+          description: Ok
+          schema:
+            type: string
+  /api/v1/workspaces/{namespace}/{name}/configs/{config_namespace}/{config_name}:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+        -
+          in: path
+          name: config_namespace
+          required: true
+          type: string
+          description: Config namespace
+        -
+          in: path
+          name: config_name
+          required: true
+          type: string
+          description: Config name
+      summary: Gets config and wdl details
+      operationId: lapdog.api.controllers.get_config
+      responses:
+        default:
+          description: Error
+        200:
+          description: Config
+          schema:
+            type: object
+    delete:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+        -
+          in: path
+          name: config_namespace
+          required: true
+          type: string
+          description: Config namespace
+        -
+          in: path
+          name: config_name
+          required: true
+          type: string
+          description: Config name
+      summary: Deletes a config
+      operationId: lapdog.api.controllers.delete_config
+      responses:
+        default:
+          description: Error
+        200:
+          description: Config
+          schema:
+            type: object
+  /api/v1/workspaces/{namespace}/{name}/configs/{config_namespace}/{config_name}/autocomplete:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+        -
+          in: path
+          name: config_namespace
+          required: true
+          type: string
+          description: Config namespace
+        -
+          in: path
+          name: config_name
+          required: true
+          type: string
+          description: Config name
+      summary: Gets a list of autocomplete possibilities for editing wdl inputs
+      operationId: lapdog.api.controllers.config_autocomplete
+      responses:
+        default:
+          description: Error
+        200:
+          description: Config
+          schema:
+            type: array
+            items:
+              type: string
+  /api/v1/submissions/decode:
+    get:
+      parameters:
+        -
+          in: query
+          name: submission_id
+          required: true
+          type: string
+          description: A global lapdog submission id
+      summary: Decodes a global id into namespace, workspace, and local_id components
+      operationId: lapdog.api.controllers.decode_submission
+      responses:
+        default:
+          description: Error
+        200:
+          description: Submission id components
+          schema:
+            type: object
+            properties:
+              namespace:
+                type: string
+                description: Namespace of the submission
+              workspace:
+                type: string
+                description: Workspace of the submission
+              id:
+                type: string
+                description: Local submission id
+  /api/v1/submissions/expanded/{namespace}/{name}/{id}:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The submission namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The submission workspace
+        -
+          in: path
+          name: id
+          required: true
+          type: string
+          description: The submission local id
+      summary: Gets submission metadata
+      operationId: lapdog.api.controllers.get_submission
+      responses:
+        default:
+          description: Error
+        200:
+          description: Submission id components
+          schema:
+            type: object
+    delete:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The submission namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The submission workspace
+        -
+          in: path
+          name: id
+          required: true
+          type: string
+          description: The submission local id
+      summary: Aborts a submission
+      operationId: lapdog.api.controllers.abort_submission
+      responses:
+        default:
+          description: Error
+        200:
+          description: Abort response
+          schema:
+            type: array
+            items:
+              type: string
+    put:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The submission namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The submission workspace
+        -
+          in: path
+          name: id
+          required: true
+          type: string
+          description: The submission local id
+      summary: Uploads submission results
+      operationId: lapdog.api.controllers.upload_submission
+      responses:
+        default:
+          description: Error
+        200:
+          description: Upload response and submission stats
+          schema:
+            type: object
+  /api/v1/submissions/expanded/{namespace}/{name}/{id}/rerun:
+    put:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The submission namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The submission workspace
+        -
+          in: path
+          name: id
+          required: true
+          type: string
+          description: The submission local id
+      summary: Generates a rerun entity set
+      operationId: lapdog.api.controllers.rerun_submission
+      responses:
+        default:
+          description: Error
+        200:
+          description: Upload response and submission stats
+          schema:
+            type: object
+  /api/v1/submissions/expanded/{namespace}/{name}/{id}/cromwell:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The submission namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The submission workspace
+        -
+          in: path
+          name: id
+          required: true
+          type: string
+          description: The submission local id
+        - in: query
+          name: offset
+          required: false
+          type: integer
+          description: Line offset in cromwell text. Defaults to 0 for all text
+          default: 0
+      summary: Gets raw cromwell logs
+      operationId: lapdog.api.controllers.read_cromwell
+      responses:
+        default:
+          description: Error
+        200:
+          description: Gets lines of cromwell log text
+          schema:
+            type: array
+            items:
+              type: string
+  /api/v1/submissions/expanded/{namespace}/{name}/{id}/workflows:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The submission namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The submission workspace
+        -
+          in: path
+          name: id
+          required: true
+          type: string
+          description: The submission local id
+      summary: Gets basic info of active workflows
+      operationId: lapdog.api.controllers.get_workflows
+      responses:
+        default:
+          description: Error
+        200:
+          description: Gets individual workflow basics
+          schema:
+            type: array
+            items:
+              type: object
+  /api/v1/submissions/expanded/{namespace}/{name}/{id}/cost:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The submission namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The submission workspace
+        -
+          in: path
+          name: id
+          required: true
+          type: string
+          description: The submission local id
+      summary: Gets cost of the submission
+      operationId: lapdog.api.controllers.get_cost
+      responses:
+        default:
+          description: Error
+        200:
+          description: Gets cost estimate
+          schema:
+            type: object
+  /api/v1/submissions/expanded/{namespace}/{name}/{id}/workflows/{workflow_id}:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The submission namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The submission workspace
+        -
+          in: path
+          name: id
+          required: true
+          type: string
+          description: The submission local id
+        - in: path
+          name: workflow_id
+          required: true
+          type: string
+          description: The long-form workflow id for the workflow
+      summary: Gets detailed data on a workflow
+      operationId: lapdog.api.controllers.get_workflow
+      responses:
+        default:
+          description: Error
+        200:
+          description: Gets workflow metadata
+          schema:
+            type: object
+  /api/v1/submissions/expanded/{namespace}/{name}/{id}/workflows/{workflow_id}/{log}/{call}:
+    get:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The submission namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The submission workspace
+        -
+          in: path
+          name: id
+          required: true
+          type: string
+          description: The submission local id
+        -
+          in: path
+          name: workflow_id
+          required: true
+          type: string
+          description: The cromwell ID of the workflow
+        - in: path
+          name: log
+          required: true
+          type: string
+          description: Choice of log to display
+          enum:
+            - stdout
+            - stderr
+            - google
+        - in: path
+          name: call
+          type: integer
+          required: true
+          description: Call ID
+      summary: Gets raw log text from a call
+      operationId: lapdog.api.controllers.read_logs
+      responses:
+        default:
+          description: Error
+        200:
+          description: Gets lines of log-text
+          schema:
+            type: array
+            items:
+              type: string
+  /api/v1/workspaces/{namespace}/{name}/preflight:
+    post:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+        -
+          in: query
+          name: config
+          required: true
+          type: string
+          description: The config name
+        -
+          in: query
+          name: entity
+          required: true
+          type: string
+          description: The workflow entity
+        -
+          in: query
+          name: expression
+          required: false
+          type: string
+          description: The entity expression (optional)
+          default: ""
+        -
+          in: query
+          name: etype
+          required: false
+          type: string
+          description: The entity type (optional)
+          default: ""
+      summary: Checks if the provided inputs are valid to execute
+      operationId: lapdog.api.controllers.preflight
+      responses:
+        default:
+          description: Error
+        200:
+          description: A preflight response
+          schema:
+            $ref: "#/definitions/Preflight"
+  /api/v1/workspaces/{namespace}/{name}/execute:
+    post:
+      parameters:
+        -
+          in: path
+          name: namespace
+          required: true
+          type: string
+          description: The workspaces namespace
+        -
+          in: path
+          name: name
+          required: true
+          type: string
+          description: The workspaces name
+        -
+          in: query
+          name: config
+          required: true
+          type: string
+          description: The config name
+        -
+          in: query
+          name: entity
+          required: true
+          type: string
+          description: The workflow entity
+        -
+          in: query
+          name: expression
+          required: false
+          type: string
+          description: The entity expression (optional)
+          default: ""
+        -
+          in: query
+          name: etype
+          required: false
+          type: string
+          description: The entity type (optional)
+          default: ""
+        -
+          in: query
+          name: memory
+          required: false
+          type: integer
+          description: The memory for cromwell (optional)
+          default: 3
+        -
+          in: query
+          name: batch
+          required: false
+          type: integer
+          description: Max concurrent jobs (optional)
+          default: 250
+        -
+          in: query
+          name: query
+          required: false
+          type: integer
+          description: Number of jobs to query at once (optional)
+          default: 100
+        -
+          in: query
+          name: private
+          required: false
+          type: boolean
+          description: Restrict workflow internet access to google only (Optional)
+          default: false
+        -
+          in: query
+          name: region
+          required: false
+          type: string
+          description: Compute Region
+      summary: Checks if the provided inputs are valid to execute
+      operationId: lapdog.api.controllers.execute
+      responses:
+        default:
+          description: Error
+        200:
+          description: Submission ID for the new execution
+          schema:
+            $ref: "#/definitions/Preflight"
+definitions:
+  Quota:
+    type: object
+    properties:
+      metric:
+        type: string
+        description: The name of the quota
+      limit:
+        type: number
+        description: The maximum allowed usage of the metric
+      usage:
+        type: number
+        description: The current usage of the metric
+      percent:
+        type: string
+        description: A string representing the current percentage usage
+  QuotaReport:
+    type: object
+    properties:
+      raw:
+        type: array
+        items:
+          $ref: "#/definitions/Quota"
+        description: Raw list of all compute quotas
+      alert:
+        type: array
+        items:
+          $ref: "#/definitions/Quota"
+        description: List of quotas above 50% usage
+  Submission:
+    type: object
+    properties:
+      failed:
+        type: boolean
+        description: A boolean if the operation was able to complete
+      ok:
+        type: boolean
+        description: A boolean if the inputs validated
+      global_id:
+        type: string
+        description: The global lapdog ID for the submission
+      local_id:
+        type: string
+        description: The submission ID local to this workspace
+      operation_id:
+        type: string
+        description: The genomics operation ID for the submission
+  Preflight:
+    type: object
+    properties:
+      failed:
+        type: boolean
+        description: A boolean if the operation was able to complete
+      ok:
+        type: boolean
+        description: A boolean if the inputs validated
+      message:
+        type: string
+        description: A failure or success message
+      workflows:
+        type: integer
+        description: The number of workflows that will launch
+      invalid_inputs:
+        type: string
+        description: A list of invalid inputs to the execution
+  Status:
+    type: object
+    properties:
+      health:
+        type: string
+        description: Ok if the overal health of firecloud is ok
+      failed:
+        type: boolean
+        description: Boolean if either firecloud request failed
+      systems:
+        type: object
+        description: A mapping of system names to boolean system status
+  WorkspaceSummary:
+    type: object
+    properties:
+      accessLevel:
+        type: string
+        description: Your permissions to the workspace
+      owners:
+        type: array
+        description: List of email addresses of workspace Owners
+        items:
+          type: string
+      public:
+        type: boolean
+        description: True if the workspace is public
+      namespace:
+        type: string
+        description: Workspace namespace
+      name:
+        type: string
+        description: Workspace name
+      bucket:
+        type: string
+        description: Google bucket for the workspace
+      id:
+        type: string
+        description: Workspace ID
+  ACL:
+    type: object
+    properties:
+      failed:
+        type: boolean
+        description: Indicates if the Firecloud API failed during the processing of this request
+      service_account:
+        type: boolean
+        description: Indicates if the active service account has access to the workspace
+      accounts:
+        type: array
+        description: A list of accounts with access to the workspace
+        items:
+          type: object
+          properties:
+            email:
+              type: string
+              description: The account email
+            access:
+              type: string
+              description: The access level
+            compute:
+              type: boolean
+              description: Indicates if the account has compute permissions
+            share:
+              type: boolean
+              description: Indicates if the account has share permissions
+  ACL_Update:
+    type: object
+    properties:
+      failed:
+        type: boolean
+        description: Indicates if the ACL update failed
+      share:
+        type: boolean
+        description: Indicates if the user account has share access
+      service_account:
+        type: boolean
+        description: Indicates if the active service account has write access to the workspace
+      reason:
+        type: string
+        description: Reason the ACL update failed
+        enum:
+          - gcloud # Unable to read current service account
+          - acl-read # unable to read current ACL state
+          - firecloud # firecloud api failure
+          - permissions # insufficient permissions to update acl
+          - account # service account not registered
+          - success # ACL set
+          - registration # Service account not registered
+  EntityType:
+    type: object
+    properties:
+      attributeNames:
+        type: array
+        items:
+          type: string
+        description: List of attributes for the entity type
+      count:
+        type: integer
+        description: Number of entities of this type
+      idName:
+        type: string
+        description: Name of the attribute serving as the ID of this entity type
+      type:
+        type: string
+        description: Type of entity
+  WorkspaceDetail:
+    type: object
+    properties:
+      accessLevel:
+        type: string
+        description: Access Level to workspace
+        enum:
+          - OWNER
+          - WRITER
+          - READER
+      canCompute:
+        type: boolean
+        description: If user has FireCloud compute permissions
+      canShare:
+        type: boolean
+        description: If user has permissions to share workspace
+      catalog:
+        type: boolean
+      owners:
+        type: array
+        items:
+          type: string
+        description: List of workspace owners
+      workspace:
+        type: object
+        properties:
+          attributes:
+            type: object
+            description: Workspace attributes
+          authorizationDomain:
+            type: array
+            items:
+              type: string
+          bucketName:
+            type: string
+            description: The bucket ID of the workspace
+          createdBy:
+            type: string
+            description: Workspace Creator
+          createdDate:
+            type: string
+            description: Creation date
+          isLocked:
+            type: boolean
+            description: is the workspace locked
+          lastModified:
+            type: string
+            description: Creation date
+          name:
+            type: string
+            description: Workspace Name
+          namespace:
+            type: string
+            description: Workspace Namespace
+          workflowCollectionName:
+            type: string
+          workspaceId:
+            type: string
+            description: UUID of workspace
+      workspaceSubmissionStats:
+        type: object
+        properties:
+          lastFailureDate:
+            type: string
+            description: Date of last submission failure
+          runningSubmissionsCount:
+            type: integer
+            description: Current active submissions
+      entities:
+        type: array
+        items:
+          $ref: "#/definitions/EntityType"
+        description: List of entity types
+      attributes:
+        type: object
+        description: Workspace attributes
+      configs:
+        type: array
+        items:
+          $ref: "#/definitions/Config"
+        description: List of method configs
+  Config:
+    type: object
+    properties:
+      methodRepoMethod:
+        type: object
+        properties:
+          methodName:
+            type: string
+            description: Name of the Method
+          methodNamespace:
+            type: string
+            description: Name of the Method namespace
+          methodVersion:
+            type: integer
+            description: Method Version
+          methodUri:
+            type: string
+          sourceRepo:
+            type: string
+      name:
+        type: string
+        description: Config name
+      namespace:
+        type: string
+        description: Config Namespace
+      rootEntityType:
+        type: string
+        description: Config root entity type
