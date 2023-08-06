@@ -1,0 +1,109 @@
+Metadata-Version: 2.1
+Name: chatora.mmid
+Version: 0.1.4
+Summary: Python helper libraries for MMID.
+Home-page: https://github.com/takaomag/chatora.mmid
+Author: Takao Magoori
+Author-email: takaomag@users.noreply.github.com
+Maintainer: Takao Magoori
+Maintainer-email: takaomag@users.noreply.github.com
+License: MIT
+Download-URL: https://github.com/takaomag/chatora.mmid/releases
+Project-URL: source code, https://github.com/takaomag/chatora.mmid
+Project-URL: issues, https://github.com/takaomag/chatora.mmid/issues
+Project-URL: documentation, https://github.com/takaomag/chatora.mmid/blob/master/README.md
+Description: chatora.mmid
+        ============
+        
+        Python helper libraries for MMID which is similar to UUIDv1 but sortable.
+        
+        
+        ## Usage
+        ```python
+        import datetime
+        import random
+        import uuid
+        from chatora.mmid.api import BaseMMID1
+        
+        
+        BASE_DT = datetime.datetime(2011, 1, 1, tzinfo=datetime.timezone.utc)
+        
+        
+        class MMID1v0(BaseMMID1):
+            __slots__ = ('int',)
+            UUID_VERSION = 4
+            MMID_VERSION = 0
+            TS_BIT_LENGTH = 55
+            EPOCH_DT = datetime.datetime(2010, 1, 1, tzinfo=datetime.timezone.utc)
+        
+        
+        # Construct
+        assert MMID1v0().version == 4
+        assert MMID1v0(dt=BASE_DT).dt == MMID1v0(ts=BASE_DT.timestamp()).dt == BASE_DT
+        
+        
+        # Sortable, which is useful for RDB column index (PostgreSQL UUID/BYTEA, MySQL BINARY).
+        assert MMID1v0(dt=BASE_DT) < MMID1v0(dt=BASE_DT + datetime.timedelta(days=1))
+        
+        clock_seq = random.getrandbits(14)
+        assert MMID1v0(dt=BASE_DT, clock_seq=clock_seq) == MMID1v0(dt=BASE_DT, clock_seq=clock_seq)
+        
+        # create_min_instance_from_time()/create_max_instance_from_time() may be useful in case of range query on RDB.
+        assert MMID1v0.create_min_instance_from_time(
+            dt=BASE_DT,
+        ) == MMID1v0(hex_='811ed178-c6c0-4000-0000-000000000000')
+        
+        assert MMID1v0.create_max_instance_from_time(
+            dt=BASE_DT,
+        ) == MMID1v0(hex_='811ed178-c6c0-4000-ffff-ffffffffffff')
+        
+        
+        
+        # Compatible with UUID1
+        uuid1 = uuid.uuid1()
+        mmid1v0 = MMID1v0(src_uuid1=uuid1)
+        
+        assert uuid1 == mmid1v0
+        assert mmid1v0.uuid1 == uuid1
+        ```
+        
+        
+        Changelog
+        =========
+        
+        0.1 (2019-01-16)
+        ----------------
+        - Birth!
+        
+        0.1.1 (2019-01-16)
+        ------------------
+        - Remove unused requirements.
+        
+        0.1.2 (2019-01-17)
+        ------------------
+        - Fix timestamp/datetime precision.
+        - Accept decimal.Decimal() timestamp values.
+        
+        0.1.3 (2019-01-17)
+        ------------------
+        - Fix timestamp/datetime precision.
+        
+        0.1.4 (2019-05-14)
+        ------------------
+        - Remove `structlog` dependency.
+Keywords: MMID,UUID
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Other Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+Provides-Extra: shell
+Provides-Extra: dev
