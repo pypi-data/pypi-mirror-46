@@ -1,0 +1,257 @@
+<%
+from os.path import relpath
+import re
+import sys
+
+import markdown
+
+try:
+    from pygments import highlight
+    from pygments.formatters import HtmlFormatter
+    from pygments.lexers import Python3Lexer
+except ImportError:
+    use_pygments = False
+else:
+    use_pygments = True
+
+from pdoc3k.cls import BaseClass
+from pdoc3k.consts import HTML_MODULE_SUFFIX
+from pdoc3k.error import ResolveError, UnknownRootError
+from pdoc3k.ext import External
+from pdoc3k.func import ClassFunction, ModuleFunction
+from pdoc3k.module import Module
+from pdoc3k.var import BaseClassVariable, ModuleVariable
+import pdoc3k
+
+def clean_source_lines(lines):
+    """
+    Cleans the source code so that pygments can render it well.
+
+    Returns one string with all of the source code.
+    """
+
+    indent = 0
+
+    for line in lines:
+        trimmed = len(line.lstrip())
+
+        if trimmed > 0:
+            indent = len(line) - trimmed
+            break
+
+    lines = "".join(line[indent:] for line in lines)
+
+    if not use_pygments:    # :-(
+        return "<pre><code>{}</code></pre>".format(lines)
+
+    pylex = Python3Lexer()
+    htmlform = HtmlFormatter(cssclass="codehilite")
+
+    return highlight(lines, pylex, htmlform)
+
+def mark(s, d):
+    s, _ = re.subn("\b\n\b", " ", s)
+    s, _ = re.subn("`[^`]+`", lambda m: linkify(m, d), s)
+
+    return markdown.markdown(s, extensions=[
+        "markdown.extensions.fenced_code",
+        "markdown.extensions.codehilite(linenums=False)",
+        "markdown.extensions.toc(marker=None)",
+    ])
+
+def linkify(match, d):
+    matched = match.group(0)
+    ident = matched[1:-1]
+
+    try:
+        return "[`{}`]({})".format(ident, lookup(ident))
+    except ResolveError:
+        pass
+
+    url = fuzzy_link(ident, d)
+
+    if url is not None:
+        return url
+
+    return matched
+
+def glimpse(s, length=100):
+    s = s.split("\n")[0]
+
+    if len(s) < length:
+        return s
+
+    return "{}...".format(s[:length])
+
+def rel_link(src, dst):
+    src = "/".join(src.refname.split("."))
+    dst = "/".join(dst.refname.split("."))
+
+    return relpath(dst, src)
+
+def full_link(dst):
+    if isinstance(dst, Module):
+        dstmod = dst
+        hash = ""
+    else:
+        dstmod = dst.module
+        hash = "#{}".format(dst.refname)
+
+    if module == dstmod:
+        return hash
+
+    if dstmod.is_package:
+        suffix = "/"
+    else:
+        suffix = HTML_MODULE_SUFFIX
+
+    if module.is_package:
+        srcmod = module
+    else:
+        srcmod = module.parent
+
+    link = rel_link(srcmod, dstmod)
+
+    return "{}{}{}".format(link, suffix, hash)
+
+def obj_url(dst):
+    if isinstance(dst, External):
+        return None
+    else:
+        return full_link(dst)
+
+def ref_url(ident, ref):
+    return "[`{}`]({})".format(ident, obj_url(ref))
+
+def fuzzy_link(ident, d):
+    if isinstance(d, BaseClass):
+        try:
+            return ref_url(ident, d.doc_init[ident])
+        except KeyError:
+            pass
+
+        try:
+            return ref_url(ident, d.doc[ident])
+        except KeyError:
+            pass
+
+        return fuzzy_link(ident, d.module)
+
+    if isinstance(d, Module):
+        try:
+            return ref_url(ident, d.doc[ident])
+        except KeyError:
+            return None
+
+    if isinstance(d, (BaseClassVariable, ClassFunction)):
+        return fuzzy_link(ident, d.cls) or fuzzy_link(ident, d.module)
+
+    if isinstance(d, (ModuleVariable, ModuleFunction)):
+        return fuzzy_link(ident, d.module)
+
+    return None
+
+def lookup(refname):
+    """
+    Given a fully qualified identifier name, return its refname
+    with respect to the current module and a value for a `href`
+    attribute. If `refname` is not in the public interface of
+    this module or its submodules, then `None` is returned for
+    both return values. (Unless this module has enabled external
+    linking.)
+
+    In particular, this takes into account sub-modules and external
+    identifiers. If `refname` is in the public API of the current
+    module, then a local anchor link is given. If `refname` is in the
+    public API of a sub-module, then a link to a different page with
+    the appropriate anchor is given. Otherwise, `refname` is
+    considered external and no link is used.
+    """
+
+    return obj_url(tree.resolve_name(refname))
+
+def lookupret(retname):
+    try:
+        return tree.resolve_name(retname)
+    except UnknownRootError:
+        return External(retname)
+
+def breadcrumbs(modname):
+    parts = modname.split(".")
+
+    if len(parts) == 1:
+        yield modname, "", ""
+        return
+
+    up = len(parts) - 2
+
+    for idx, part in enumerate(parts[:up]):
+        yield part, "../" * (up - idx), "."
+
+    if module.is_package:
+        path = "../"
+    else:
+        path = "."
+
+    yield parts[-2], path, "."
+    yield parts[-1], "", ""
+%>
+
+{% import "util.jinja2" as u with context %}
+
+<!doctype html>
+<html>
+<head>
+    <!-- Documentation generated by pdoc3k -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+
+    <title>{{ module.name }} API documentation</title>
+    <meta name="description" content="{{ module.docstring | glimpse | trim }}" />
+
+    <style type="text/css">
+    {% include "normalize.css" %}
+    </style>
+
+    {% if use_pygments %}
+    <style type="text/css">
+    {{ HtmlFormatter(style="trac").get_style_defs(".codehilite") }}
+    </style>
+    {% endif %}
+
+    <style type="text/css">
+    {% include "main.css" %}
+    </style>
+
+    <style type="text/css">
+    {% include "print.css" %}
+    </style>
+</head>
+<body>
+    <main>
+        {{ u.module_index(module) }}
+        <div id="content-column">
+            <div id="content">
+                {{ u.show_module(module) }}
+            </div>
+        </div>
+    </main>
+
+    <script defer>
+    {% include "toggle.js" %}
+    </script>
+
+    {% if use_latex %}
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [["$", "$"], ["\\(", "\\)"]]
+        }
+    });
+    </script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    {% endif %}
+</body>
+</html>
