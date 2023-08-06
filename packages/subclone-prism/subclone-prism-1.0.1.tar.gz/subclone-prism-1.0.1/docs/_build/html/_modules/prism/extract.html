@@ -1,0 +1,322 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>prism.extract &#8212; prism  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for prism.extract</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">pysam</span>
+<span class="kn">import</span> <span class="nn">cleanlog</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">prism.util</span> <span class="k">as</span> <span class="nn">util</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">prism.util</span> <span class="k">import</span> <span class="n">Region</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">cleanlog</span><span class="o">.</span><span class="n">ColoredLogger</span><span class="p">(</span><span class="s1">&#39;extract&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="extend_region"><a class="viewcode-back" href="../../source/prism.extract.html#prism.extract.extend_region">[docs]</a><span class="k">def</span> <span class="nf">extend_region</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">read</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the union of genomic regions covered by given region and read.</span>
+
+<span class="sd">    :param Region region: Genomic region to be extended.</span>
+<span class="sd">    :param AlignedSegment read: Read used for the extension.</span>
+
+<span class="sd">    :returns: Extended genomic region, which is the union of region and read.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">region</span><span class="o">.</span><span class="n">reference_name</span> <span class="o">==</span> <span class="n">read</span><span class="o">.</span><span class="n">reference_name</span><span class="p">,</span> \
+           <span class="n">f</span><span class="s1">&#39;Unable to extend region. Contigs are incompatible: </span><span class="si">{region.reference_name}</span><span class="s1"> vs </span><span class="si">{read.reference_name}</span><span class="s1">&#39;</span>
+
+    <span class="n">new_start</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">region</span><span class="o">.</span><span class="n">reference_start</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">reference_start</span><span class="p">)</span>
+    <span class="n">new_end</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">region</span><span class="o">.</span><span class="n">reference_end</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">reference_end</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Region</span><span class="p">(</span><span class="n">region</span><span class="o">.</span><span class="n">reference_name</span><span class="p">,</span> <span class="n">new_start</span><span class="p">,</span> <span class="n">new_end</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="has_overlap"><a class="viewcode-back" href="../../source/prism.extract.html#prism.extract.has_overlap">[docs]</a><span class="k">def</span> <span class="nf">has_overlap</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">read</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns True if given region and read overlap, otherwise False.</span>
+
+<span class="sd">    :param Region region: Genomic region to test overlap. </span>
+<span class="sd">    :param AlignedSegment read: Read to test overlap.</span>
+
+<span class="sd">    :returns: True if given region and read overlap, otherwise False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">region</span><span class="o">.</span><span class="n">reference_name</span> <span class="o">!=</span> <span class="n">read</span><span class="o">.</span><span class="n">reference_name</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">reference_start</span><span class="p">,</span> <span class="n">region</span><span class="o">.</span><span class="n">reference_end</span>
+    <span class="n">b0</span><span class="p">,</span> <span class="n">b1</span> <span class="o">=</span> <span class="n">read</span><span class="o">.</span><span class="n">reference_start</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">reference_end</span>
+
+    <span class="k">return</span> <span class="n">a0</span> <span class="o">&lt;=</span> <span class="n">b1</span> <span class="ow">and</span> <span class="n">b0</span> <span class="o">&lt;=</span> <span class="n">a1</span></div>
+
+<div class="viewcode-block" id="character_indices"><a class="viewcode-back" href="../../source/prism.extract.html#prism.extract.character_indices">[docs]</a><span class="k">def</span> <span class="nf">character_indices</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">characters</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a sorted list of indices of characters in the string.</span>
+
+<span class="sd">    :param string string: A string where the characters are expected to appear.</span>
+<span class="sd">    :param list characters: List of characters to return indices.</span>
+
+<span class="sd">    :returns: A list of indices of string where the characters appear.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">character</span> <span class="ow">in</span> <span class="n">characters</span><span class="p">:</span>
+        <span class="n">i</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">character</span><span class="p">,</span> <span class="n">string</span><span class="p">)])</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">i</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="get_cpg_coordinates"><a class="viewcode-back" href="../../source/prism.extract.html#prism.extract.get_cpg_coordinates">[docs]</a><span class="k">def</span> <span class="nf">get_cpg_coordinates</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">paired</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns genomic coordinates of cytosines of CpGs in the read.</span>
+
+<span class="sd">    :param AlignedSegment read: Read to examine for the location of CpGs.</span>
+<span class="sd">    :param bool paired: True if the sequencing library is paired, otherwise False.</span>
+
+<span class="sd">    :returns: Absolute genomic coordinates of CpGs that appear in the read.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">read</span><span class="o">.</span><span class="n">reference_start</span>
+    <span class="n">methylation_string</span> <span class="o">=</span> <span class="n">read</span><span class="o">.</span><span class="n">get_tag</span><span class="p">(</span><span class="s1">&#39;XM&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">paired</span><span class="p">:</span>
+        <span class="c1"># We should care whether the read is mapped to forward strand or reverse strand</span>
+        <span class="c1"># because the coordinates of two cytosines in complementary CpG pair will differ by</span>
+        <span class="c1"># a single base pair.</span>
+        <span class="c1"># Also note that we use 1-based, inclusive coordinate system in MET files.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">read</span><span class="o">.</span><span class="n">is_reverse</span><span class="p">:</span>
+            <span class="c1"># +1 to convert to 1-based system.</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">character_indices</span><span class="p">(</span><span class="n">methylation_string</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># -1 then +1, so apparently no differences are made in the coordinate.</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">character_indices</span><span class="p">(</span><span class="n">methylation_string</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">]))</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Flag 99 and 147 indicates reverse strand. </span>
+        <span class="k">if</span> <span class="n">read</span><span class="o">.</span><span class="n">flag</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">99</span><span class="p">,</span> <span class="mi">147</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">character_indices</span><span class="p">(</span><span class="n">methylation_string</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">]))</span>
+        <span class="c1"># Forward strand.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">character_indices</span><span class="p">(</span><span class="n">methylation_string</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="discard_noninformative_reads"><a class="viewcode-back" href="../../source/prism.extract.html#prism.extract.discard_noninformative_reads">[docs]</a><span class="k">def</span> <span class="nf">discard_noninformative_reads</span><span class="p">(</span><span class="n">cpgs_reads_dict</span><span class="p">,</span> <span class="n">depth_cutoff</span><span class="p">,</span> <span class="n">num_cpg_cutoff</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Discards noninformative reads with low depth or few CpGs.</span>
+
+<span class="sd">    :param dict cpgs_reads_dict: Dictionary mapping a set of CpG coordinates to a group of reads.</span>
+<span class="sd">    :param int depth_cutoff: Minimum depth of a group of reads to be retained.</span>
+<span class="sd">    :param int num_cpg_cutoff: Mininum number of CpGs appearing in the reads to be retained.</span>
+
+<span class="sd">    :returns: Retained (informative) CpG-Read group mapping dictionary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">retained</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">cpgs</span><span class="p">,</span> <span class="n">reads</span> <span class="ow">in</span> <span class="n">cpgs_reads_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Discard if (1) depth or (2) the number of CpG is not sufficient.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">depth_cutoff</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">cpgs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">num_cpg_cutoff</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">pattern_counter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">([</span><span class="n">util</span><span class="o">.</span><span class="n">get_binary_string_representation</span><span class="p">(</span><span class="n">read</span><span class="p">)</span> <span class="k">for</span> <span class="n">read</span> <span class="ow">in</span> <span class="n">reads</span><span class="p">])</span>
+        <span class="c1"># If there is only one kind of pattern, discard it.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pattern_counter</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">continue</span>
+        
+        <span class="n">retained</span><span class="p">[</span><span class="n">cpgs</span><span class="p">]</span> <span class="o">=</span> <span class="n">reads</span>
+        <span class="c1"># p1, p2 = pattern_counter.most_common(2)[0][0], pattern_counter.most_common(2)[1][0]</span>
+
+        <span class="c1"># # (3) the two most frequent pattern should be fully methylated/unmethylated.</span>
+        <span class="c1"># if len(set(str(p1))) != 1 or len(set(str(p2))) != 1:</span>
+        <span class="c1">#     continue</span>
+
+        <span class="c1"># # (4) The two most frequent patterns should account for more than 80% of reads (by default).</span>
+        <span class="c1"># if pattern_counter[p1] + pattern_counter[p2] &gt; sum(pattern_counter.values()) * full_pattern_proportion:</span>
+        <span class="c1">#     retained[cpgs] = reads</span>
+
+    <span class="k">return</span> <span class="n">retained</span></div>
+
+
+<div class="viewcode-block" id="save_met_file"><a class="viewcode-back" href="../../source/prism.extract.html#prism.extract.save_met_file">[docs]</a><span class="k">def</span> <span class="nf">save_met_file</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">depth_cutoff</span><span class="p">,</span> <span class="n">num_cpg_cutoff</span><span class="p">,</span> <span class="n">paired</span><span class="p">,</span> <span class="n">contigs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read through the bam file and identify group of reads mapped to the same genomic region.</span>
+<span class="sd">    Group of reads with insufficient depth and insufficient number of CpGs will be discarded.</span>
+<span class="sd">    NOTE: BAM file should be sorted to guarantee proper generation of MET file.</span>
+
+<span class="sd">    :param AlignmentFile handle: pysam AlignmentFile object for BAM file.</span>
+<span class="sd">    :param string output_path: Output MET file path.</span>
+<span class="sd">    :param int depth_cutoff: Minimum depth for a group of reads to be retained.</span>
+<span class="sd">    :param num_cpg_cutoff: Minimum number of CpGs appearing in the reads to be retained.</span>
+<span class="sd">    :param bool paired: True if the sequencing library is paired, otherwise False.</span>
+<span class="sd">    :param list contigs: A list of contigs to examine.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+    <span class="c1"># We are going to sweep through the genome.</span>
+    <span class="n">current_region</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># To gather reads harboring the same set of CpGs,</span>
+    <span class="c1"># tuples of CpG coordinates will be mapped to a list of corresponding reads.</span>
+    <span class="n">reads</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cpgs_reads_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">contig</span> <span class="ow">in</span> <span class="n">contigs</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Processing contig </span><span class="si">%s</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="n">contig</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">read</span> <span class="ow">in</span> <span class="n">handle</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">contig</span><span class="p">):</span>
+            <span class="c1"># The first iteration.</span>
+            <span class="k">if</span> <span class="n">current_region</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">reads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">read</span><span class="p">)</span>
+                <span class="n">current_region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="n">read</span><span class="o">.</span><span class="n">reference_name</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">reference_start</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">reference_end</span><span class="p">)</span>
+                <span class="n">cpgs_reads_dict</span><span class="p">[</span><span class="n">get_cpg_coordinates</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">paired</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">read</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># If examining current region is not finished,</span>
+            <span class="c1"># extend the current region state with current read,</span>
+            <span class="c1"># and map read information to dictionary with the set of coordinates of CpGs it harbors as a key.</span>
+            <span class="k">if</span> <span class="n">has_overlap</span><span class="p">(</span><span class="n">current_region</span><span class="p">,</span> <span class="n">read</span><span class="p">):</span>
+                <span class="n">reads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">read</span><span class="p">)</span>
+                <span class="n">current_region</span> <span class="o">=</span> <span class="n">extend_region</span><span class="p">(</span><span class="n">current_region</span><span class="p">,</span> <span class="n">read</span><span class="p">)</span>
+                <span class="n">cpgs_reads_dict</span><span class="p">[</span><span class="n">get_cpg_coordinates</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">paired</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">read</span><span class="p">)</span>
+
+            <span class="c1"># If examining current region is finished (i.e., met reads mapped at distant region),</span>
+            <span class="c1"># discard noninformative read groups from the dictionary and</span>
+            <span class="c1"># write read groups to the output file.</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">retained</span> <span class="o">=</span> <span class="n">discard_noninformative_reads</span><span class="p">(</span><span class="n">cpgs_reads_dict</span><span class="p">,</span> <span class="n">depth_cutoff</span><span class="p">,</span> <span class="n">num_cpg_cutoff</span><span class="p">)</span>
+                
+                <span class="k">for</span> <span class="n">cpgs</span><span class="p">,</span> <span class="n">reads</span> <span class="ow">in</span> <span class="n">retained</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span> <span class="o">+</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">current_region</span><span class="o">.</span><span class="n">reference_name</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cpg</span><span class="p">)</span> <span class="k">for</span> <span class="n">cpg</span> <span class="ow">in</span> <span class="n">cpgs</span><span class="p">]),</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">util</span><span class="o">.</span><span class="n">get_binary_string_representation</span><span class="p">(</span><span class="n">read</span><span class="p">)</span> <span class="k">for</span> <span class="n">read</span> <span class="ow">in</span> <span class="n">reads</span><span class="p">]),</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="c1"># Refresh the current information to examine the next region.</span>
+                <span class="n">reads</span> <span class="o">=</span> <span class="p">[</span><span class="n">read</span><span class="p">]</span>
+                <span class="n">current_region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="n">read</span><span class="o">.</span><span class="n">reference_name</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">reference_start</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">reference_end</span><span class="p">)</span>
+                <span class="n">cpgs_reads_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+                <span class="n">cpgs_reads_dict</span><span class="p">[</span><span class="n">get_cpg_coordinates</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">paired</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">read</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> loci in contig </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">contig</span><span class="p">))</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../source/prism.extract.html#prism.extract.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="n">input_fp</span><span class="p">,</span>
+    <span class="n">output_fp</span><span class="p">,</span>
+    <span class="n">depth_cutoff</span><span class="p">,</span>
+    <span class="n">num_cpg_cutoff</span><span class="p">,</span>
+    <span class="n">prepend_chr</span><span class="p">,</span>
+    <span class="n">paired</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">cleanlog</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">prepend_chr</span><span class="p">:</span>
+        <span class="n">contigs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;chr&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">23</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">contigs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">23</span><span class="p">)))</span>
+    
+    <span class="n">handle</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">get_bam_handle</span><span class="p">(</span><span class="n">input_fp</span><span class="p">)</span>
+
+    <span class="n">save_met_file</span><span class="p">(</span>
+        <span class="n">handle</span><span class="o">=</span><span class="n">handle</span><span class="p">,</span>
+        <span class="n">output_path</span><span class="o">=</span><span class="n">output_fp</span><span class="p">,</span>
+        <span class="n">depth_cutoff</span><span class="o">=</span><span class="n">depth_cutoff</span><span class="p">,</span>
+        <span class="n">num_cpg_cutoff</span><span class="o">=</span><span class="n">num_cpg_cutoff</span><span class="p">,</span>
+        <span class="n">paired</span><span class="o">=</span><span class="n">paired</span><span class="p">,</span>
+        <span class="n">contigs</span><span class="o">=</span><span class="n">contigs</span><span class="p">,</span>
+    <span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">prism</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/prism.html">PRISM package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Dohoon Lee.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

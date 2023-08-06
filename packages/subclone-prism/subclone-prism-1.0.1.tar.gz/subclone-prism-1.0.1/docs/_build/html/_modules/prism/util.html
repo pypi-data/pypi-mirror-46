@@ -1,0 +1,283 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>prism.util &#8212; prism  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for prism.util</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pysam</span>
+<span class="kn">import</span> <span class="nn">cycler</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pybedtools</span> <span class="k">as</span> <span class="nn">pb</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">defaultdict</span>
+
+<div class="viewcode-block" id="Region"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.Region">[docs]</a><span class="k">class</span> <span class="nc">Region</span><span class="p">(</span><span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Region&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;reference_name&#39;</span><span class="p">,</span> <span class="s1">&#39;reference_start&#39;</span><span class="p">,</span> <span class="s1">&#39;reference_end&#39;</span><span class="p">])):</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">reference_name</span><span class="p">,</span> <span class="n">reference_start</span><span class="p">,</span> <span class="n">reference_end</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">reference_start</span> <span class="o">&lt;=</span> <span class="n">reference_end</span><span class="p">,</span> <span class="s1">&#39;Invalid genomic region </span><span class="si">%s</span><span class="s1">:</span><span class="si">%d</span><span class="s1">-</span><span class="si">%d</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reference_name</span><span class="p">,</span> <span class="n">reference_start</span><span class="p">,</span> <span class="n">reference_end</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Region</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">reference_name</span><span class="p">,</span> <span class="n">reference_start</span><span class="p">,</span> <span class="n">reference_end</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%d</span><span class="s1">-</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_end</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_bam_handle"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.get_bam_handle">[docs]</a><span class="k">def</span> <span class="nf">get_bam_handle</span><span class="p">(</span><span class="n">bam_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns `pysam.AlignmentFile` object for BAM file.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pysam</span><span class="o">.</span><span class="n">AlignmentFile</span><span class="p">(</span><span class="n">bam_path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_binary_string_representation"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.get_binary_string_representation">[docs]</a><span class="k">def</span> <span class="nf">get_binary_string_representation</span><span class="p">(</span><span class="n">read</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a binary representation string of methylation state of a read.</span>
+<span class="sd">    Unmethylated state = 0, methylated state = 1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([[</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">][</span><span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;Z&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">read</span><span class="o">.</span><span class="n">get_tag</span><span class="p">(</span><span class="s1">&#39;XM&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">]])</span></div>
+
+<div class="viewcode-block" id="is_fully_methylated_or_unmethylated"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.is_fully_methylated_or_unmethylated">[docs]</a><span class="k">def</span> <span class="nf">is_fully_methylated_or_unmethylated</span><span class="p">(</span><span class="n">pattern</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pattern</span><span class="p">)))</span> <span class="o">==</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="pattern_counters_from_met"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.pattern_counters_from_met">[docs]</a><span class="k">def</span> <span class="nf">pattern_counters_from_met</span><span class="p">(</span><span class="n">fp</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse MET file and generate header, and counter of patterns.&quot;&quot;&quot;</span>
+    <span class="n">header</span><span class="p">,</span> <span class="n">binary_patterns</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="k">as</span> <span class="n">inFile</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">inFile</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">pattern_counter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">binary_patterns</span><span class="p">)</span>
+                    <span class="k">yield</span> <span class="n">header</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">pattern_counter</span>
+                    <span class="n">header</span><span class="p">,</span> <span class="n">binary_patterns</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="p">[]</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">header</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">binary_patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+        <span class="n">pattern_counter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">binary_patterns</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">header</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">pattern_counter</span></div>
+
+<div class="viewcode-block" id="random_pattern"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.random_pattern">[docs]</a><span class="k">def</span> <span class="nf">random_pattern</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate `n` random methylation pattern with length `l`.&quot;&quot;&quot;</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">ps</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">l</span><span class="p">)</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">p</span><span class="p">)))</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">l</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">p</span><span class="p">)))</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ps</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="jaccard_similarity"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.jaccard_similarity">[docs]</a><span class="k">def</span> <span class="nf">jaccard_similarity</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute Jaccard similarity of two sets.&quot;&quot;&quot;</span>
+    <span class="n">s1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+    <span class="n">s2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">s1</span> <span class="o">&amp;</span> <span class="n">s2</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">s1</span> <span class="o">|</span> <span class="n">s2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="extract_chromosome"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.extract_chromosome">[docs]</a><span class="k">def</span> <span class="nf">extract_chromosome</span><span class="p">(</span><span class="n">header</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extract chromosome information for epilocus header.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="merge_two_headers"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.merge_two_headers">[docs]</a><span class="k">def</span> <span class="nf">merge_two_headers</span><span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="n">h2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Union two epiloci headers.&quot;&quot;&quot;</span>
+    <span class="n">chromosome</span> <span class="o">=</span> <span class="n">h1</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">start1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">h1</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">start2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">h2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">end1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">h1</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">end2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">h2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%d</span><span class="s1">;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chromosome</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">start1</span><span class="p">,</span> <span class="n">start2</span><span class="p">),</span> <span class="n">chromosome</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">end1</span><span class="p">,</span> <span class="n">end2</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="get_common_headers_by_jaccard_similarity"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.get_common_headers_by_jaccard_similarity">[docs]</a><span class="k">def</span> <span class="nf">get_common_headers_by_jaccard_similarity</span><span class="p">(</span><span class="n">headers1</span><span class="p">,</span> <span class="n">headers2</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given two lists of epiloci headers, determine which epiloci are common.&quot;&quot;&quot;</span>
+    <span class="n">common_h1</span><span class="p">,</span> <span class="n">common_h2</span><span class="p">,</span> <span class="n">merged_headers</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">chr_header1_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">chr_header2_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">h1</span> <span class="ow">in</span> <span class="n">headers1</span><span class="p">:</span>
+        <span class="n">chr_header1_dict</span><span class="p">[</span><span class="n">extract_chromosome</span><span class="p">(</span><span class="n">h1</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span>
+        
+    <span class="k">for</span> <span class="n">h2</span> <span class="ow">in</span> <span class="n">headers2</span><span class="p">:</span>
+        <span class="n">chr_header2_dict</span><span class="p">[</span><span class="n">extract_chromosome</span><span class="p">(</span><span class="n">h2</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h2</span><span class="p">)</span>
+        
+    <span class="k">for</span> <span class="n">chromosome</span> <span class="ow">in</span> <span class="n">chr_header1_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">h1</span> <span class="ow">in</span> <span class="n">chr_header1_dict</span><span class="p">[</span><span class="n">chromosome</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">h2</span> <span class="ow">in</span> <span class="n">chr_header2_dict</span><span class="p">[</span><span class="n">chromosome</span><span class="p">]:</span>
+                <span class="n">cpgs1</span> <span class="o">=</span> <span class="n">h1</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+                <span class="n">cpgs2</span> <span class="o">=</span> <span class="n">h2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">jaccard_similarity</span><span class="p">(</span><span class="n">cpgs1</span><span class="p">,</span> <span class="n">cpgs2</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">cutoff</span><span class="p">:</span>
+                    <span class="n">common_h1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span>
+                    <span class="n">common_h2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h2</span><span class="p">)</span>
+                    <span class="n">merged_headers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">merge_two_headers</span><span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="n">h2</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">common_h1</span><span class="p">,</span> <span class="n">common_h2</span><span class="p">,</span> <span class="n">merged_headers</span></div>
+
+<div class="viewcode-block" id="preset_rc"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.preset_rc">[docs]</a><span class="k">def</span> <span class="nf">preset_rc</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">font_family</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set visually plausible matplotlib rc file.&quot;&quot;&quot;</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.33</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;xtick&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">8</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;ytick&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">8</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;xtick&#39;</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;xtick.major&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">1.33</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;xtick.minor&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">1.33</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;ytick&#39;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;ytick.major&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">1.33</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;ytick.minor&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">1.33</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;legend&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">7</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;grid&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;grey&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.33</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">font_family</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="n">font_family</span><span class="p">)</span>
+
+    <span class="n">color_palette</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;#005AC8&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#AA0A3C&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#0AB45A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#FA7850&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#8214A0&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#FA78FA&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#A0FA82&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#006E82&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#00A0FA&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#14D2DC&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#F0F032&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#FAE6BE&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.prop_cycle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cycler</span><span class="o">.</span><span class="n">cycler</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">color_palette</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="parse_result_line"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.parse_result_line">[docs]</a><span class="k">def</span> <span class="nf">parse_result_line</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse each line in the PRISM result file.&quot;&quot;&quot;</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+    <span class="n">header</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cluster</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">subclone</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">depths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">fields</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))))</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">fields</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))))</span>
+    <span class="n">fingerprint_fractions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">fields</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)))</span>
+
+    <span class="k">return</span> <span class="n">header</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">subclone</span><span class="p">,</span> <span class="n">depths</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">fingerprint_fractions</span></div>
+
+<div class="viewcode-block" id="prepare_header_bed"><a class="viewcode-back" href="../../source/prism.util.html#prism.util.prepare_header_bed">[docs]</a><span class="k">def</span> <span class="nf">prepare_header_bed</span><span class="p">(</span><span class="n">headers</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts a list of epiloci headers to a BedTool object.&quot;&quot;&quot;</span>
+    <span class="n">bed_strings</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">header</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
+        <span class="n">chrom</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># BED file uses 0-based exclusive coordinate system.</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>  
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">bed_strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{chrom}</span><span class="se">\t</span><span class="si">{start}</span><span class="se">\t</span><span class="si">{end}</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">pb</span><span class="o">.</span><span class="n">BedTool</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bed_strings</span><span class="p">),</span> <span class="n">from_string</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">prism</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/prism.html">PRISM package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Dohoon Lee.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

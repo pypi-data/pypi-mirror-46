@@ -1,0 +1,337 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>prism.mixture &#8212; prism  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for prism.mixture</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">cleanlog</span>
+
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="k">import</span> <span class="n">gammaln</span> <span class="k">as</span> <span class="n">logG</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="k">import</span> <span class="n">digamma</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="k">import</span> <span class="n">polygamma</span>
+<span class="kn">from</span> <span class="nn">sklearn.mixture</span> <span class="k">import</span> <span class="n">GaussianMixture</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">cleanlog</span><span class="o">.</span><span class="n">ColoredLogger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;PRISM&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="trigamma"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.trigamma">[docs]</a><span class="k">def</span> <span class="nf">trigamma</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">polygamma</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BetaBinomialMixture"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture">[docs]</a><span class="k">class</span> <span class="nc">BetaBinomialMixture</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Beta-binomial mixture model for PRISM core algorithm.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">=</span> <span class="n">n_components</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tol</span> <span class="o">=</span> <span class="n">tol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+
+    <span class="k">def</span> <span class="nf">_bebin_mle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">ks</span><span class="p">,</span> <span class="n">ws</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Given depths(ns), and counts(ks) find the most likely alpha and beta,</span>
+<span class="sd">        which are the two parameters of beta-binomial distribution.&quot;&quot;&quot;</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">ws</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">p1_bar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">N</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ws</span> <span class="o">*</span> <span class="p">(</span><span class="n">digamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">ks</span><span class="p">)</span> <span class="o">-</span> <span class="n">digamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">ns</span><span class="p">))))</span>
+        <span class="n">p2_bar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">N</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ws</span> <span class="o">*</span> <span class="p">(</span><span class="n">digamma</span><span class="p">(</span><span class="n">b</span> <span class="o">+</span> <span class="p">(</span><span class="n">ns</span> <span class="o">-</span> <span class="n">ks</span><span class="p">))</span> <span class="o">-</span> <span class="n">digamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">ns</span><span class="p">))))</span>
+
+        <span class="c1"># Find good initial esimates.</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p2_bar</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p1_bar</span> <span class="o">-</span> <span class="n">p2_bar</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p1_bar</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p1_bar</span> <span class="o">-</span> <span class="n">p2_bar</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_iter</span><span class="p">):</span>
+            <span class="n">p1_bar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">N</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ws</span> <span class="o">*</span> <span class="p">(</span><span class="n">digamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">ks</span><span class="p">)</span> <span class="o">-</span> <span class="n">digamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">ns</span><span class="p">))))</span>
+            <span class="n">p2_bar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">N</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ws</span> <span class="o">*</span> <span class="p">(</span><span class="n">digamma</span><span class="p">(</span><span class="n">b</span> <span class="o">+</span> <span class="p">(</span><span class="n">ns</span> <span class="o">-</span> <span class="n">ks</span><span class="p">))</span> <span class="o">-</span> <span class="n">digamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">ns</span><span class="p">))))</span>
+
+            <span class="n">n_log_p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ws</span> <span class="o">*</span> <span class="p">(</span><span class="n">digamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">ks</span><span class="p">)</span> <span class="o">-</span> <span class="n">digamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">ns</span><span class="p">)))</span>
+            <span class="n">n_log_p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ws</span> <span class="o">*</span> <span class="p">(</span><span class="n">digamma</span><span class="p">(</span><span class="n">b</span> <span class="o">+</span> <span class="p">(</span><span class="n">ns</span> <span class="o">-</span> <span class="n">ks</span><span class="p">))</span> <span class="o">-</span> <span class="n">digamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">ns</span><span class="p">)))</span>
+
+            <span class="n">q_1</span> <span class="o">=</span> <span class="o">-</span><span class="n">N</span> <span class="o">*</span> <span class="n">trigamma</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+            <span class="n">q_2</span> <span class="o">=</span> <span class="o">-</span><span class="n">N</span> <span class="o">*</span> <span class="n">trigamma</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+            <span class="n">g_1</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="n">digamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span> <span class="o">*</span> <span class="n">digamma</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">n_log_p1</span>
+            <span class="n">g_2</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="n">digamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span> <span class="o">*</span> <span class="n">digamma</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">+</span> <span class="n">n_log_p2</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="n">trigamma</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span>
+            <span class="n">b_</span> <span class="o">=</span> <span class="p">(</span><span class="n">g_1</span> <span class="o">/</span> <span class="n">q_1</span> <span class="o">+</span> <span class="n">g_2</span> <span class="o">/</span> <span class="n">q_2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">z</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">q_1</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">q_2</span><span class="p">)</span>
+
+            <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="p">(</span><span class="n">g_1</span> <span class="o">-</span> <span class="n">b_</span><span class="p">)</span> <span class="o">/</span> <span class="n">q_1</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">b</span> <span class="o">-</span> <span class="p">(</span><span class="n">g_2</span> <span class="o">-</span> <span class="n">b_</span><span class="p">)</span> <span class="o">/</span> <span class="n">q_2</span>
+
+        <span class="k">return</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span>
+
+    <span class="k">def</span> <span class="nf">_bebin_likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bebin_loglikelihood</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_bebin_loglikelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">logG</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">logG</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">logG</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">k</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">+</span> <span class="n">logG</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">-</span> \
+            <span class="p">(</span><span class="n">logG</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">logG</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">logG</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">logG</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">+</span> <span class="n">logG</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">tmp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_gmm_initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize alphas and betas by fitting gaussian mixture model roughly.</span>
+<span class="sd">        Alphas and betas are correspondingly computed from means and variances of each component.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Ratio of methylated reads.</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">k</span> <span class="o">/</span> <span class="n">n</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dim</span><span class="p">)</span>
+
+        <span class="c1"># Fit gaussian mixture model. It assumes that each dimension has its own variance.</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">GaussianMixture</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span> <span class="n">covariance_type</span><span class="o">=</span><span class="s1">&#39;diag&#39;</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+        <span class="n">alphas</span><span class="p">,</span> <span class="n">betas</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">):</span>
+            <span class="c1"># Compute alpha and beta from mean and variance of GMM fit.</span>
+            <span class="n">mu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">means_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">covariances_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="n">alpha</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">/</span> <span class="n">var</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">mu</span><span class="p">)</span> <span class="o">*</span> <span class="n">mu</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">beta</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">mu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">alphas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+            <span class="n">betas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">alphas</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">betas</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BetaBinomialMixture.fit"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">headers</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">:</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># If 1d data are given, reshape them into 2d matrix.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dim</span><span class="p">)</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dim</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">depths</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">headers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alphas_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gmm_initialize</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pi_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span>
+
+        <span class="n">prev_weighted_loglikelihood</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">converged_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="kc">False</span>
+
+        <span class="k">for</span> <span class="n">iteration</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">):</span>
+            <span class="c1"># Compute likelihood of alpha and beta w.r.t. each data point.</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_bebin_likelihood</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphas_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas_</span><span class="p">)])</span>
+
+            <span class="c1"># Compute posterior.</span>
+            <span class="n">weighted_likelihood</span> <span class="o">=</span> <span class="n">l</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pi_</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">curr_weighted_loglikelihood</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">weighted_likelihood</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+            <span class="c1"># Check for convergence.</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">curr_weighted_loglikelihood</span> <span class="o">-</span> <span class="n">prev_weighted_loglikelihood</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tol</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Met convergence criterion at iteration </span><span class="si">{iteration}</span><span class="s1">. Terminating.&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">converged_</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+            <span class="n">prev_weighted_loglikelihood</span> <span class="o">=</span> <span class="n">curr_weighted_loglikelihood</span>
+
+            <span class="n">w</span> <span class="o">=</span> <span class="n">weighted_likelihood</span> <span class="o">/</span> <span class="n">weighted_likelihood</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="c1"># Compute relative size of clusters.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pi_</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_data</span>
+
+            <span class="c1"># Compute maximum likelihood estimates of alpha and beta.</span>
+            <span class="n">alphas</span><span class="p">,</span> <span class="n">betas</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">):</span>
+                <span class="n">alpha_list</span><span class="p">,</span> <span class="n">beta_list</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_dim</span><span class="p">):</span>
+                    <span class="n">tmp_alpha</span><span class="p">,</span> <span class="n">tmp_beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bebin_mle</span><span class="p">(</span><span class="n">n</span><span class="p">[:,</span> <span class="n">j</span><span class="p">],</span> <span class="n">k</span><span class="p">[:,</span> <span class="n">j</span><span class="p">],</span> <span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="n">alpha_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_alpha</span><span class="p">)</span>
+                    <span class="n">beta_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_beta</span><span class="p">)</span>
+
+                <span class="n">alphas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">alpha_list</span><span class="p">)</span>
+                <span class="n">betas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">beta_list</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">alphas_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">alphas</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">betas_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">betas</span><span class="p">)</span>
+        <span class="c1"># END for iteration</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">converged_</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;The EM algorithm did not converge. Increase n_iter enough to ensure convergence.&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_likelihood_</span> <span class="o">=</span> <span class="n">curr_weighted_loglikelihood</span></div>
+
+<div class="viewcode-block" id="BetaBinomialMixture.predict_proba"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture.predict_proba">[docs]</a>    <span class="k">def</span> <span class="nf">predict_proba</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the posterior probabilities of each fingerprint epiloci for each cluster.</span>
+
+<span class="sd">        :param list n: Depths of fingerprint epiloci.</span>
+<span class="sd">        :param list k: Fingerprint pattern counts of fingerprint epiloci.</span>
+
+<span class="sd">        :returns: Posterior probabilities of each fingerprint epiloci.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_bebin_likelihood</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphas_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas_</span><span class="p">)])</span>
+        <span class="n">weighted_likelihood</span> <span class="o">=</span> <span class="n">l</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pi_</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">weighted_likelihood</span> <span class="o">/</span> <span class="n">weighted_likelihood</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_n_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the number of parameters estimated while fitting the model.</span>
+
+<span class="sd">        :returns: Number of parameters in the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dim</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+<div class="viewcode-block" id="BetaBinomialMixture.get_weights"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture.get_weights">[docs]</a>    <span class="k">def</span> <span class="nf">get_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the list of cluster weights.</span>
+<span class="sd">        Note that a cluster weight is computed as a sum of posterior probabilities that</span>
+<span class="sd">        each of the data point will be assiged to that cluster.</span>
+
+<span class="sd">        :returns: Cluster weights.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pi_</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">means_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">a</span> <span class="o">/</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphas_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas_</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="BetaBinomialMixture.get_means"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture.get_means">[docs]</a>    <span class="k">def</span> <span class="nf">get_means</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: Cluster means.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">means_</span></div>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dispersions_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphas_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas_</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="BetaBinomialMixture.get_dispersions"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture.get_dispersions">[docs]</a>    <span class="k">def</span> <span class="nf">get_dispersions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: Cluster dispersions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dispersions_</span></div>
+    
+<div class="viewcode-block" id="BetaBinomialMixture.bic"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture.bic">[docs]</a>    <span class="k">def</span> <span class="nf">bic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: Bayesian Information Criterion (BIC) value of the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_likelihood_</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_parameters</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BetaBinomialMixture.get_n_dimensions"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture.get_n_dimensions">[docs]</a>    <span class="k">def</span> <span class="nf">get_n_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: Number of dimensions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dim</span></div>
+
+<div class="viewcode-block" id="BetaBinomialMixture.get_n_components"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture.get_n_components">[docs]</a>    <span class="k">def</span> <span class="nf">get_n_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: Number of clusters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span></div>
+
+<div class="viewcode-block" id="BetaBinomialMixture.get_depths"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture.get_depths">[docs]</a>    <span class="k">def</span> <span class="nf">get_depths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: Depths of fingerprint epiloci used for fitting the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">depths</span></div>
+    
+<div class="viewcode-block" id="BetaBinomialMixture.get_counts"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture.get_counts">[docs]</a>    <span class="k">def</span> <span class="nf">get_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: Fingerprint pattern counts of fingerprint epiloci used for fitting the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span></div>
+    
+<div class="viewcode-block" id="BetaBinomialMixture.get_headers"><a class="viewcode-back" href="../../source/prism.mixture.html#prism.mixture.BetaBinomialMixture.get_headers">[docs]</a>    <span class="k">def</span> <span class="nf">get_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: Headers of fingerprint epiloci used for fitting the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">prism</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/prism.html">PRISM package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Dohoon Lee.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
