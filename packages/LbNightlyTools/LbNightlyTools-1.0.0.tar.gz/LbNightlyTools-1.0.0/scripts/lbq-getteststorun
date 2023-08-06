@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+###############################################################################
+# (c) Copyright 2016 CERN                                                     #
+#                                                                             #
+# This software is distributed under the terms of the GNU General Public      #
+# Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
+###############################################################################
+'''
+Request for a periodic test to be run
+
+'''
+__author__ = 'Ben Couturier <ben.couturier@cern.ch>'
+
+import sys
+import LbMsg.TestMsg
+from LbNightlyTools.Scripts.Common import PlainScript
+from LbNightlyTools.Utils import JenkinsTest
+from lbmessaging.exchanges.PeriodicTestsExchange import PeriodicTestsExchange
+from lbmessaging.exchanges.Common import check_channel, get_connection
+
+class Script(PlainScript):
+    '''
+    Sends the message that a build has been done
+    '''
+    __usage__ = '%prog'
+    __version__ = ''
+
+
+    def defineOpts(self):
+        '''Define options.'''
+        from LbNightlyTools.Scripts.Common import addBasicOptions
+
+        self.parser.add_option('-q', '--queue', action='store',
+                               default=None,
+                               help='Persistent queue in which to store the messages')
+        self.parser.add_option('-j', '--jenkins', action='store_true',
+                               default=False,
+                               help='Stote the jobs to run in Jenkins format')
+        addBasicOptions(self.parser)
+
+    def main(self):
+        '''
+        Main function of the script.
+        '''
+
+        queueName = None
+        if self.options.queue:
+            queueName = self.options.queue
+
+        # Initializing the messenger and getting the actual list
+        if queueName == None:
+            raise Exception('No point in just getting messages '
+                            'on a newly created queue. '
+                            'Name the queue with -q')
+
+        channel = check_channel(get_connection())
+        broker = PeriodicTestsExchange(channel)
+        testsToRun = broker.get_tests_to_run(queueName)
+
+        # Printing out or creating out files
+        format = "test-params-{0}.txt"
+        idx = 0
+
+        for testToRun in testsToRun:
+            # Just printing out CSV by default
+            if not self.options.jenkins:
+                # In this case the callback just prints the message
+                print testToRun
+            else:
+                # Here we writeout the files for Jenkins
+                self.log.warning("Job %d: %s" % (idx, ", ".join(testToRun.body)))
+                jenkins_test = JenkinsTest(testToRun.body.slot,
+                                           testToRun.body.build_id,
+                                           testToRun.body.project,
+                                           testToRun.body.platform,
+                                           testToRun.body.os_label,
+                                           testToRun.body.group,
+                                           testToRun.body.runner,
+                                           testToRun.body.env)
+                with open(format.format(idx), 'w') as paramfile:
+                    paramfile.writelines(jenkins_test.getParameterLines())
+                    paramfile.writelines("tests_node=" + testToRun.body.os_label)
+                    self.log.warning(format.format(idx))
+                idx += 1
+
+if __name__ == "__main__":
+    sys.exit(Script().run())
