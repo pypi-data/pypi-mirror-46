@@ -1,0 +1,25 @@
+---
+- include_tasks: "../utils/pip-requirements.yml"
+  when: __pip_requirements_available__ is not defined
+
+- name: "[set undefined python_virtualenv_base]"
+  set_fact:
+    python_virtualenv_base: ""
+  when: python_virtualenv_base is not defined
+
+- name: "[calculate virtualenv path]"
+  set_fact:
+    __virtualenv_path__: "{{ python_virtualenv_name | calculate_virtualenv_path(python_virtualenv_base, python_type, python_owner, __python_owner_home__) }}"
+
+- name: "install packages"
+  pip:
+    virtualenv: "{{ __virtualenv_path__ }}"
+    name: "{{ __python_package__ }}"
+    state: "{{ python_pip_packages_state }}"
+    extra_args: "{{ python_pip_extra_args }}"
+  loop: "{{ python_pip_packages }}"
+  loop_control:
+    loop_var: __python_package__
+  when: python_virtualenv_name is defined and python_virtualenv_name
+  become: "{{ python_owner != ansible_env.USER }}"
+  become_user: "{{ python_owner }}"

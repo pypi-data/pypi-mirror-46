@@ -1,0 +1,132 @@
+doc:
+  short_help: Create a Python virtualenv.
+  help: |
+    Installs Python using [pyenv](https://github.com/pyenv/pyenv), then uses that to create a virtualenv with the
+    specified name and Python version. Also lets you specify (optional) system dependencies as well as packages to
+    install in the virtualenv.
+
+    It will also add a piece of code to ``$HOME/.bashrc`` to load pyenv when the user logs in. If you use this to install
+    Python for a user different to the executing one, make sure to specify the 'base_path' argument (absolute path required,
+    relative or using '~'/'$HOME' won't work).
+
+args:
+  venv_name:
+    doc:
+      short_help: The name of the virtualenv to set up.
+    type: string
+    required: true
+  venv_base_path:
+    doc:
+      short_help: The path that holds the virtualenv directory.
+    type: string
+    required: false
+  python_version:
+    doc:
+      short_help: The version of python.
+    default: latest
+    type: string
+  python_base_path:
+    doc:
+      short_help: The base path to install Python into (if using 'pyenv' or 'conda').
+    type: string
+    required: false
+  user:
+    doc:
+      short_help: "The user who owns/runs the virtualenv."
+    type: string
+    required: false
+    cli:
+      metavar: USER
+  group:
+    doc:
+      short_help: "The group who owns/runs the virtualenv."
+    type: string
+    required: false
+    cli:
+      metavar: GROUP
+  system_user:
+    doc:
+      short_help: Whether the user and group should be a system user/group.
+    type: boolean
+    default: false
+    required: false
+    cli:
+      show_default: true
+      is_flag: true
+  gid:
+    doc:
+      short_help: The gid of the group.
+    type: integer
+    required: false
+    cli:
+      metavar: GID
+  uid:
+    doc:
+      short_help: The uid of the user to create (optional).
+    type: integer
+    required: false
+    cli:
+      metavar: UID
+  python_type:
+    doc:
+      short_help: "How to install Python. Defaults to 'pyenv'."
+    type: "string"
+    required: false
+    default: "pyenv"
+    allowed:
+      - "pyenv"
+      - "conda"
+      - "system"
+  python_build_opts:
+    doc:
+      short_help: Build options to be forwarded (if supported by 'install_type').
+    type: string
+    required: false
+    empty: true
+  venv_python_exe:
+    doc:
+      short_help: The (optional) path to an existing Python executable to be used for the venv.
+      help: |
+        This only works in combination with the 'system' 'python_install_type', if used with another type, this task will fail.
+    type: string
+    required: false
+meta: {}
+
+frecklets:
+  - group-exists:
+      frecklet::skip: "{{:: group | true_if_empty ::}}"
+      group: "{{:: group ::}}"
+      gid: "{{:: gid ::}}"
+      system_group: "{{:: system_user ::}}"
+  - user-exists:
+      frecklet::skip: "{{:: user | true_if_empty ::}}"
+      name: "{{:: user ::}}"
+      uid: "{{:: uid ::}}"
+      group: "{{:: group ::}}"
+      system_user: "{{:: system_user ::}}"
+  - frecklet:
+      name: freckfrackery.python
+      type: ansible-role
+      idempotent: true
+      internet: true
+#      elevated: "{{:: user | true_if_not_empty ::}}"
+      elevated: true
+      references:
+        "pyenv homepage": "https://github.com/pyenv/pyenv"
+    task:
+      include-type: include
+      roles:
+        - freckfrackery.install-pkgs
+        - freckfrackery.install-pkg-mgrs
+    vars:
+      python_owner: "{{:: user ::}}"
+      python_base_path: "{{:: python_base_path ::}}"
+      python_build_opts: "{{:: python_build_opts ::}}"
+      python_virtualenv_name: "{{:: venv_name ::}}"
+      python_virtualenv_base: "{{:: venv_base_path ::}}"
+      python_version: "{{:: python_version ::}}"
+      python_type: "{{:: python_type ::}}"
+      python_virtualenv_exe: "{{:: venv_python_exe ::}}"
+      python_tasks:
+        - install-python
+        - create-virtualenv

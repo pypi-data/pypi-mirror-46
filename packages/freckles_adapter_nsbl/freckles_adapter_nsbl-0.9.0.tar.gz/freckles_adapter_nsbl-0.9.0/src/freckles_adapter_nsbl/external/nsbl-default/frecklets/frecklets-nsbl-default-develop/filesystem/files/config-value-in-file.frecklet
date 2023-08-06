@@ -1,0 +1,99 @@
+doc:
+  short_help: Adds a key/value pair to a file.
+  help: |
+    Adds a key/value pair to a file.
+
+    This looks for a line in a file that starts with the value of the ``key`` and ``sep`` variables. If it finds it, it'll
+    replace that line with the provided ``key``/``value`` pair, separated by ``sep``.
+
+    If your ``sep`` value contains whitespaces or special characters, the reg-ex matching probably won't work reliably.
+    In that case you can provide the matching regular expression manually with the ``match-regex`` parameter.
+
+    If it doesn't find a match, the key/value pair will be appended to the end of the file.
+
+    Missing user/group/parent-dir/file will be created if necessary.
+
+  examples:
+    - title: Ensure a key/value pair exists in a file.
+      vars:
+        path: /tmp/app.config
+        key: my_key
+        value: my_value
+        sep: ' = '
+
+args:
+  key:
+    doc:
+      short_help: The config key.
+    type: string
+    required: true
+  value:
+    doc:
+      short_help: The config value.
+    type: string
+    required: true
+  sep:
+    doc:
+      short_help: The seperator token.
+    type: string
+    default: '='
+    required: true
+    cli:
+      show_default: true
+  path:
+    doc:
+      short_help: The path to the file
+    type: string
+    required: true
+  match_regex:
+    doc:
+      short_help: An optional matcher (see help).
+    required: false
+    type: string
+  owner:
+    doc:
+      short_help: "The owner of the file."
+    type: string
+    required: false
+    cli:
+      metavar: USER
+  group:
+    doc:
+      short_help: "The group of the file."
+    type: string
+    required: false
+    cli:
+      metavar: GROUP
+  mode:
+    doc:
+      short_help: "The permissions of the file."
+    type: string
+    required: false
+    cli:
+      metavar: MODE
+  become:
+    doc:
+      short_help: Whether to use elevated privileges.
+    type: boolean
+    required: false
+frecklets:
+  - file-is-present:
+      path: "{{:: path ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: mode ::}}"
+  - task:
+      become: "{{:: become ::}}"
+    frecklet:
+      name: lineinfile
+      type: ansible-module
+      msg: "set config value in file {{:: path ::}}: {{:: key ::}}{{:: sep ::}}{{:: value ::}}"
+      idempotent: false    # possible that file has changed in the same run
+      internet: false
+      elevated: "{{:: become ::}}"
+      references:
+        "'lineinfile' Ansible module": "https://docs.ansible.com/ansible/latest/modules/lineinfile_module.html"
+    vars:
+      path: "{{:: path ::}}"
+      regexp: "'{{:: match_regex | default(key + sep) ::}}'"
+      line: "{{:: key ::}}{{:: sep ::}}{{:: value ::}}"

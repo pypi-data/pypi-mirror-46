@@ -1,0 +1,139 @@
+doc:
+  short_help: "Installs MariaDB (if necessary), and makes sure a specified database exists."
+  help: |
+    Installs MariaDB service on a host, and ensures a database with the provided name is present.
+
+    If a database dump file is provided, the database will be imported from it.
+    Otherwise an empty table will be created.
+
+    If a database dump file is provided, the database name can also be 'all',
+    in which case all databases contained in it will be imported.
+
+    If a username is supplied, but no ``db_user_priv``, the user 'db_name.*:ALL' privileges granted.
+
+
+  further_reading:
+    "'mysql_user' Ansible module": https://docs.ansible.com/ansible/latest/modules/mysql_user_module.html
+    "'mysql_db' Ansible module": https://docs.ansible.com/ansible/latest/modules/mysql_db_module.html
+
+  examples:
+    - title: Install MariaDB and create a MySQL database and user with full access to it.
+      desc: |
+        Be aware, that if you do it like this the user password is used in plain text, which could be a security issue.
+        Please check [the freckles security documentation](https://freckles.io/doc/security/) for details and options.
+      vars:
+        db_name: my_database
+        db_user: freckles
+        db_password: password123
+
+args:
+  mysql_group_id:
+    doc:
+      short_help: "An (optional) custom mysql group id"
+    type: integer
+    required: false
+  mysql_user_id:
+    doc:
+      short_help: "An (optional) custom mysql user id"
+    type: integer
+    required: false
+  db_import:
+    doc:
+      short_help: "Whether to use a sql dump file to create the database."
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+  db_dump_file:
+    doc:
+      short_help: "An (optional) database dump file."
+    type: string
+    required: false
+  db_name:
+    doc:
+      short_help: "The name of the database to use from the dump (or 'all')."
+    type: string
+    required: true
+  db_user:
+    doc:
+      short_help: "The name of the database user."
+    type: string
+    required: false
+  db_host:
+    doc:
+      short_help: "The 'host' part of the MySQL username."
+    type: string
+    required: false
+  db_user_password:
+    doc:
+      short_help: "The password for the database user."
+    type: string
+    required: false
+#    secret: true
+  db_user_priv:
+    doc:
+      short_help: "The user privileges."
+    type: string
+    required: false
+
+meta:
+  tags:
+    - mysql
+    - mariadb
+    - database
+
+frecklets:
+  - mariadb-service:
+      mysql_group_id: "{{:: mysql_group_id ::}}"
+      mysql_user_id: "{{:: mysql_user_id ::}}"
+  - task:
+      become: true
+    frecklet:
+      name: mysql_db
+      type: ansible-module
+      idempotent: true
+      elevated: true
+      internet: false
+      msg: "create database: {{:: db_name ::}}"
+      skip: "{{:: db_import ::}}"
+      references:
+        "Ansible 'mysql_db' module": "https://docs.ansible.com/ansible/latest/modules/mysql_db_module.html"
+    vars:
+      name: "{{:: db_name ::}}"
+  - task:
+      become: true
+    frecklet:
+      name: mysql_db
+      type: ansible-module
+      idempotent: true
+      elevated: true
+      internet: false
+      msg: importing mysql dump
+      skip: "{{:: db_import | negate ::}}"
+      references:
+        "Ansible 'mysql_db' module": "https://docs.ansible.com/ansible/latest/modules/mysql_db_module.html"
+    vars:
+      state: import
+      name: "{{:: db_name ::}}"
+      target: "{{:: db_dump_file ::}}"
+  - task:
+      become: true
+    frecklet:
+      name: mysql_user
+      type: ansible-module
+      idempotent: true
+      elevated: true
+      internet: false
+      msg: "set up mysql db user {{:: db_user ::}}"
+      skip: "{{:: db_user | true_if_empty ::}}"
+      references:
+        "Ansible 'mysql_user' module": "https://docs.ansible.com/ansible/latest/modules/mysql_user_module.html"
+      desc: |
+        Setting up mariadb/mysql user '{{:: db_user ::}}', using the provided password, and granting access to database '{{:: db_name ::}}' with permission string '{{:: db_user_priv | default(db_name + '.*:ALL') ::}}'.
+    vars:
+        name: "{{:: db_user ::}}"
+        host: "{{:: db_host ::}}"
+        password: "{{:: db_user_password ::}}"
+        priv: "{{:: db_user_priv | default(db_name + '.*:ALL') ::}}"
+        state: present

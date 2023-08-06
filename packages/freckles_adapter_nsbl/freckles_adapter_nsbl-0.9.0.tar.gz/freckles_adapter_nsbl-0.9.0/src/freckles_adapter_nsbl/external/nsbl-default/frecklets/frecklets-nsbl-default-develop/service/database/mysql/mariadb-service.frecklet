@@ -1,0 +1,79 @@
+doc:
+  short_help: "Ensures MariaDB service is installed."
+  help: |
+    This frecklet installs the MariaDB service using the [geerlingguy.mysql](https://github.com/geerlingguy/ansible-role-mysql)
+    Ansible role.
+
+    This frecklet does not do any configuration, and uses all the defaults of the underlying
+    Ansible role. Use other tasks to do any configuration after executing this.
+
+  further_reading:
+    "geerlingguy.mysql Ansible role": https://github.com/geerlingguy/ansible-role-mysql
+  examples:
+    - title: Install the MariaDB database service.
+
+args:
+  mysql_group_id:
+    doc:
+      short_help: "An (optional) custom mysql group id"
+    type: integer
+    required: false
+  mysql_user_id:
+    doc:
+      short_help: "An (optional) custom mysql user id"
+    type: integer
+    required: false
+
+meta:
+  tags:
+    - database
+    - service
+    - mysql
+    - mariadb
+    - featured-frecklecutable
+    - install
+
+frecklets:
+  - task:
+      become: true
+    frecklet:
+      name: group
+      type: ansible-module
+      elevated: true
+      idempotent: true
+      internet: true
+      msg: creating mysql group with custom group id
+      skip: "{{:: mysql_group_id | true_if_empty ::}}"
+      references:
+        "Ansible 'group' module": "http://docs.ansible.com/ansible/latest/group_module.html"
+    vars:
+      name: mysql
+      gid: "{{:: mysql_group_id ::}}"
+  - task:
+      become: true
+    frecklet:
+      name: user
+      type: ansible-module
+      idempotent: true
+      elevated: true
+      internet: false
+      msg: "create mysql user with custom user id '{{:: mysql_user_id ::}}'"
+      skip: "{{:: mysql_user_id | true_if_empty ::}}"
+      references:
+        "Ansible 'user' module": "http://docs.ansible.com/ansible/latest/user_module.html"
+    vars:
+      name: mysql
+      gid: "{{:: mysql_user_id ::}}"
+  - task:
+      become: true
+      include-type: import
+    frecklet:
+      idempotent: true
+      elevated: true
+      internet: true
+      msg: "set up mysql database service"
+      references:
+        "geerlingguy.mysql Ansible role": "https://github.com/geerlingguy/ansible-role-mysql"
+      name: geerlingguy.mysql
+      type: ansible-role
+

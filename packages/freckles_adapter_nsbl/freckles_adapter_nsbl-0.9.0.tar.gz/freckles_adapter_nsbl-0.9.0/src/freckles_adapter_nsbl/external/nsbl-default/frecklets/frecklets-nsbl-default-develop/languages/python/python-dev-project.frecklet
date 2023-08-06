@@ -1,0 +1,43 @@
+doc:
+  short_help:
+  help: |
+    (Optionally) clone a Python project git repo, install the right version of Python using pyenv, create a virtualenv for the
+    project, then install the project and it's requirements into the virtualenv for development.
+
+    Also create a .python-version in the project folder so the virtualenv is always activated when the folder is visited
+    in the shell.
+
+args:
+  _import: python-virtualenv
+  project_name:
+    doc:
+      short_help: The name of the project.
+    type: string
+    required: false
+  project_folder:
+    doc:
+      short_help: The project folder.
+    type: string
+    required: true
+  project_repo:
+    doc:
+      short_help: The git repo url of the project (optional).
+    type: string
+    required: false
+
+
+frecklets:
+  - git-repo-synced:
+      frecklet::skip: "{{:: project_repo | true_if_empty ::}}"
+      repo: "{{:: project_repo ::}}"
+      dest: "{{:: project_folder ::}}"
+  - python-virtualenv:
+      venv_name: "{{:: project_name | default(project_folder|basename) ::}}-dev"
+      pip_extra_args: "-e"
+      python_packages:
+        - "{{:: project_folder ::}}"
+      python_version: "{{:: python_version ::}}"
+      python_type: "pyenv"
+  - file-with-content:
+      path: "{{:: project_folder ::}}/.python-version"
+      content: "{{:: project_name | default(project_folder|basename) ::}}-dev"

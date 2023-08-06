@@ -1,0 +1,33 @@
+---
+- name: "[check python_virtualenv_name]"
+  fail:
+    msg: "'python_virutalenv_name' not provided"
+  when: python_virtualenv_name is not defined
+
+- name: "[init python_virtualenv_base]"
+  set_fact:
+    python_virtualenv_base: "{{ __python_owner_home__ }}/.virtualenvs"
+  when: python_virtualenv_base is not defined and not __system_install__
+
+- name: "[init python_virtualenv_base]"
+  set_fact:
+    python_virtualenv_base: "{{ __python_owner_home__ }}/virtualenvs"
+  when: python_virtualenv_base is not defined and __system_install__
+
+- name: "[set virtualenv python]"
+  set_fact:
+    __python_virtualenv_exe__: "/usr/bin/python{{ __python_version_final__ }}"
+  when: python_virtualenv_exe is not defined
+
+- name: "[set virtualenv python]"
+  set_fact:
+    __python_virtualenv_exe__: "{{ python_virtualenv_exe }}"
+  when: python_virtualenv_exe is defined
+
+- name: "create virtualenv '{{ python_virtualenv_name }}' using: {{ __python_virtualenv_exe__ }}"
+  pip:
+    name: pip
+    virtualenv_python: "{{ __python_virtualenv_exe__ }}"
+    virtualenv: "{{ python_virtualenv_base }}/{{ python_virtualenv_name }}"
+  become: "{{ python_owner != ansible_env.USER }}"
+  become_user: "{{ python_owner }}"

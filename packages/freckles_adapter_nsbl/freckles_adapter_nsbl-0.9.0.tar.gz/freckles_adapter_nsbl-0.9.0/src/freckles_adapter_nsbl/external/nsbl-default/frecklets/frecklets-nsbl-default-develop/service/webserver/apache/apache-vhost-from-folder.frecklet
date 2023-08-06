@@ -1,0 +1,55 @@
+doc:
+  short_help: Configure an Apache vhost for static site.
+
+args:
+  hostname:
+    doc:
+      short_help: The domain name the webserver should listen on.
+    type: string
+    required: false
+    default: localhost
+  use_https:
+    doc:
+      short_help: Whether to use https (and request a letsencrypt certificate).
+    type: boolean
+    required: false
+    default: false
+  document_root:
+    doc:
+      short_help: The document root.
+    type: string
+    required: false
+    default: /var/www/html
+  index:
+    doc:
+      short_help: The index file name(s).
+    type: list
+    schema:
+      type: string
+    default:
+      - index.html
+      - index.htm
+    required: false
+    cli:
+      metavar: FILENAME
+      show_default: true
+  server_admin:
+    doc:
+      short_help: "The server admin email."
+    type: string
+    required: false
+    cli:
+      metavar: EMAIL
+frecklets:
+  - apache-vhost-file:
+      path: "/etc/apache2/sites-enabled/{{:: hostname ::}}.{{:: 'https' if use_https else 'http' ::}}.conf"
+      owner: "root"
+      document_root: "{{:: document_root ::}}"
+      server_name: "{{:: hostname ::}}"
+      use_https: "{{:: use_https ::}}"
+##      listen_ip: "{{:: listen_ip ::}}"
+      server_admin: "{{:: server_admin ::}}"
+      folder_directives:
+        - directive_type: Directory
+          path: "{{:: document_root ::}}"
+          DirectoryIndex: "{{:: index | join(' ') ::}}"

@@ -1,0 +1,82 @@
+doc:
+  short_help: "Basic security set-up for a newly installed server."
+  help: |
+    This frecklet can be used to harden a freshly installed server. It installs and configures the [fail2ban](https://www.fail2ban.org) and [ufw](http://gufw.org/) packages.
+  examples:
+    - title: Install and enable firewall & fail2ban on a new server.
+      desc: |
+        Ssh port '22' will be enabled by default.
+      vars:
+        ufw: true
+        ufw_open_tcp:
+          - 80
+          - 443
+        fail2ban: true
+
+args:
+  ufw:
+    doc:
+      short_help: "Whether to install and enable the ufw firewall."
+    type: boolean
+    default: true
+    required: false
+    cli:
+      param_decls:
+        - "--ufw/--no-ufw"
+  ufw_open_tcp:
+    doc:
+      short_help: "A list of tcp ports to open (if ufw enabled)."
+    type: list
+    schema:
+      type: integer
+    required: false
+    cli:
+      metavar: PORT
+  ufw_open_udp:
+    doc:
+      short_help: "A list of udp ports to open (if ufw enabled)."
+    type: list
+    schema:
+      type: integer
+    required: false
+    cli:
+      metavar: PORT
+  fail2ban:
+    doc:
+      short_help: "Whether to install and enable fail2ban."
+    default: true
+    type: boolean
+    required: false
+    cli:
+      param_decls:
+        - "--fail2ban/--no-fail2ban"
+
+meta:
+  tags:
+    - featured-frecklecutable
+    - hardening
+    - security
+    - firewall
+    - fail2ban
+    - ufw
+
+frecklets:
+  - frecklet:
+      name: freckfrackery.basic-security
+      type: ansible-role
+      msg: initial server security setup
+      idempotent: true
+      elevated: true
+      internet: "{{:: ufw or fail2ban ::}}"
+      references:
+        "'freckfrackery.basic-security' Ansible role": "https://gitlab.com/freckfrackery/freckfrackery.basic-security"
+    task:
+      become: true
+    vars:
+      basic_security_enable_ufw: "{{:: ufw ::}}"
+      basic_security_tcp_ports: "{{:: ufw_open_tcp ::}}"
+      basic_security_udp_ports: "{{:: ufw_open_udp ::}}"
+      basic_security_enable_fail2ban: "{{:: fail2ban ::}}"
+
+
+

@@ -1,0 +1,60 @@
+doc:
+  short_help: Creates a vhost to host a 'inaugurate' bootstrap script.
+
+args:
+  document_root:
+    doc:
+      short_help: The document root.
+    type: string
+    required: false
+    default: /var/www/html
+  webserver_user:
+    doc:
+      short_help: The webserver user.
+    type: string
+    required: false
+  hostname:
+    doc:
+      short_help: The domain name.
+    type: string
+    required: false
+    default: localhost
+  use_https:
+    doc:
+      short_help: Whether to use https.
+    type: boolean
+    default: false
+  nginx_location_match:
+    doc:
+      short_help: The location match where the inaugurate script will be accessable.
+    type: string
+    default: "/"
+
+frecklets:
+  - inaugurate-custom-script:
+      path: "{{:: document_root ::}}/inaugurate"
+      owner: "www-data"
+      group: "www-data"
+      mode: "0555"
+  - nginx-server-block-file:
+      owner: "www-data"
+      path: "/etc/nginx/sites-enabled/vhost_inaugurate.conf"
+      document_root: "{{:: document_root ::}}"
+      use_https: "{{:: use_https ::}}"
+      server_names:
+        - "{{:: hostname ::}}"
+      gzip_enabled: true
+      gzip:
+        gzip_min_length: 2000
+        gzip_proxied: any
+        gzip_types: "text/html application/json text/plain"
+      index:
+        - index.html
+        - index.htm
+      location_blocks:
+        - location_match: "{{:: nginx_location_match ::}}"
+          properties: |
+            if ($http_user_agent ~ (curl|Wget|Everything-is-an-agent) ) {
+                rewrite ^/$ /inaugurate;
+            }
+

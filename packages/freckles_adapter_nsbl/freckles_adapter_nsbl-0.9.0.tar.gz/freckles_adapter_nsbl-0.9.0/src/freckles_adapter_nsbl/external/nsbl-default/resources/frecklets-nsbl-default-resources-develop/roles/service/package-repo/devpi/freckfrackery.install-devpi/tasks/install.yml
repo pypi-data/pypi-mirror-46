@@ -1,0 +1,56 @@
+---
+# installation tasks for install-devpi
+
+- name: "creating devpi user '{{ devpi_user }}'"
+  user:
+    name: "{{ devpi_user }}"
+    state: present
+    uid: "{{ devpi_user_id | default(omit) }}"
+  become: true
+
+- name: "[getting dependency packages]"
+  set_platform_fact:
+    dependencies:
+      default:
+        - python-setuptools
+        - python-pip
+        - virtualenv
+
+- name: "installing python-pip"
+  package:
+    name: "{{ item }}"
+    state: present
+  become: true
+  loop: "{{ dependencies | flatten(levels=1) }}"
+
+- name: "installing devpi packages"
+  pip:
+    name: "{{ item }}"
+    umask: 0022
+  become: true
+  when: not devpi_use_virtualenv
+  loop:
+    - devpi-server
+    - devpi-web
+    - devpi-client
+
+- name: "[creating virtualenv parent folder]"
+  file:
+    path: "{{ devpi_virtualenv | dirname }}"
+    state: directory
+    owner: "{{ devpi_user }}"
+  become: true
+  become_user: "{{ devpi_user }}"
+
+- name: "installing devpi packages into virtualenv"
+  pip:
+    name: "{{ item }}"
+    virtualenv: "{{ devpi_virtualenv }}"
+  when: devpi_use_virtualenv
+  become: true
+  become_user: "{{ devpi_user }}"
+  loop:
+    - devpi-server
+    - devpi-web
+    - devpi-client
+

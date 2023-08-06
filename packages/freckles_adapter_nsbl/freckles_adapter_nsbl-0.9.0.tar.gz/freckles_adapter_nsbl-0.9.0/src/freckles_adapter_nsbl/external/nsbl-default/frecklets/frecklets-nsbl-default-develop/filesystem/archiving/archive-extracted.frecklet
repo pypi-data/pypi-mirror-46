@@ -1,0 +1,122 @@
+doc:
+  short_help: Extracts an archive.
+  help: |
+    Extracts an archive into a given location. Makes sure the parent folder of this location exists, as well as an optionally specified owner/group of the extracted archive.
+
+    When using this, make sure the required 'unarchive' tools (like 'unzip', 'bzip2', etc) are installed already on the target system.
+  further_reading:
+    "'unarchive' Ansible module documentation": https://docs.ansible.com/ansible/latest/modules/unarchive_module.html
+  examples:
+    - title: Extract tar.gz archive, changing owner.
+      desc: |
+        Extracts the archive file '/tmp/archive.tar.gz' into the folder '/tmp/archive-restore' and sets the target folder
+        mode to '0700'. Creates the 'freckles' user if it doesn't exist yet.
+        if it doesn't exist yet.
+      vars:
+        src: "/tmp/archive.tar.gz"
+        dest: "/tmp/archive-restore"
+        owner: freckles
+        mode: "0700"
+    - title: Extract zip archive.
+      desc: |
+        Extracts the zip file '/tmp/archive.zip' into the folder '/tmp/archive-restore'.
+      vars:
+        src: "/tmp/archive.zip"
+        dest: "/tmp/archive-restore"
+
+args:
+  src:
+    doc:
+      short_help: The path/url to the archive.
+      help: |
+        If remote_src=no (default), local path to archive file to copy to the target server; can be absolute or relative. If remote_src=yes, path on the target server to existing archive file to unpack.
+        If remote_src=yes and src contains ://, the remote machine will download the file from the URL first. (version_added 2.0). This is only for simple cases, for full download support use the get_url module.
+    type: string
+    required: true
+  dest:
+    doc:
+      short_help: The remote absolute path where the archive should be unpacked.
+    type: string
+    required: true
+  remote_src:
+    doc:
+      short_help: Whether the src file is remote.
+      help: |
+        Set to yes to indicate the archived file is already on the remote system and not local to the Ansible controller.
+    type: boolean
+    required: false
+    default: false
+  keep_newer:
+    doc:
+      short_help: Do not replace existing files that are newer than files from the archive.
+    type: boolean
+    default: false
+    required: false
+  owner:
+    doc:
+      short_help: The owner of the folder, will be created if necessary.
+    type: string
+    required: false
+    cli:
+      metavar: USER_NAME
+  group:
+    doc:
+      short_help: The group of the folder, will be created if necessary.
+    type: string
+    required: false
+    cli:
+      metavar: GROUP_NAME
+  mode:
+    doc:
+      short_help: The permissions of the extracted archive.
+      help: |
+        Mode the file or directory should be. For those used to /usr/bin/chmod remember that modes are actually octal numbers. You must either add a leading zero so that Ansible's YAML parser knows it is an octal number (like 0644 or 01777) or quote it (like '644' or '1777') so Ansible receives a string and can do its own conversion from string into number. Giving Ansible a number without following one of these rules will end up with a decimal number which will have unexpected results. As of version 1.8, the mode may be specified as a symbolic mode (for example, u+rwx or u=rw,g=r,o=r).
+    type: string
+    required: false
+    cli:
+      metavar: MODE
+  parent_dir_mode:
+    doc:
+      short_help: "The permissions of the parent directory."
+    type: string
+    required: false
+    cli:
+      metavar: MODE
+  creates:
+    doc:
+      short_help: If the specified absolute path (file or directory) already exists, this step will not be run.
+    type: string
+    required: false
+frecklets:
+  - folder-exists:
+      path: "{{:: dest ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: parent_dir_mode ::}}"
+  - frecklet:
+      name: "unarchive"
+      type: ansible-module
+      msg: "extract archive '{{:: src ::}}' -> '{{:: dest ::}}'"
+      desc: |
+        Create target folder {{:: dest ::}} if it doesn't exist{%:: if parent_dir_mode ::%} and set its mode to be {{:: parent_dir_mode ::}}{%:: endif ::%}.
+
+        {%:: if not remote_src ::%}Copy archive '{{:: src ::}}' to target machine and extract {%:: else ::%}Extract archive (which is already present on target machine) '{{:: src ::}}'{%:: endif ::%}into target folder '{{:: dest ::}}'. {%:: if not keep_newer ::%}Don't replace {%:: else ::%}Replace {%:: endif ::%}existing files that are newer than files from the archive.
+
+        {%:: if group ::%}Set the group of extracted files to be '{{:: group ::}}'. {%:: endif ::%}{%:: if owner ::%}Set the owner of the extracted files to be '{{:: owner ::}}'.{%:: endif ::%}
+      references:
+        "'unarchive' Ansible module": https://docs.ansible.com/ansible/latest/modules/unarchive_module.html
+      idempotent: true
+      internet: "{{:: '://' in src ::}}"
+      elevated: "{{:: owner | true_if_not_empty ::}}"
+    task:
+      become: "{{:: owner | true_if_not_empty ::}}"
+    vars:
+      src: "{{:: src ::}}"
+      dest: "{{:: dest ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: mode ::}}"
+      keep_newer: "{{:: keep_newer ::}}"
+      remote_src: "{{:: remote_src ::}}"
+      creates: "{{:: creates ::}}"
+

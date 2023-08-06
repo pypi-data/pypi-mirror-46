@@ -1,0 +1,52 @@
+---
+doc:
+  short_help: "A list of init-service to start (if they exist) using Ansible."
+  help: |
+    This frecklet makes sure a list of sytemd services are started.
+
+    Non-existing services will be ignored.
+
+args:
+  services:
+    doc:
+      short_help: "A list of services."
+    type: list
+    schema:
+      type: string
+    required: true
+    empty: true
+    default: []
+    cli:
+      metavar: SERVICE_NAME
+      param_type: argument
+
+meta:
+  tags:
+    - service
+    - systemd
+    - init
+    - impl
+
+frecklets:
+  - frecklet:
+      type: ansible-module
+      name: service_facts
+      msg: gathering facts about init services
+  - task:
+      become: true
+      loop: "{{:: services ::}}"
+      loop_control:
+        loop_var: __service_name__
+      when: "__service_name__ + '.service' in ansible_facts.services.keys()"
+    frecklet:
+      type: ansible-module
+      name: service
+      msg: "start services: {{:: services | join(' ') ::}}"
+      idempotent: true
+      internet: false
+      elevated: true
+      references:
+        "'service' Ansible module'": "https://docs.ansible.com/ansible/latest/modules/service_module.html"
+    vars:
+      name: "{{ __service_name__ }}"
+      state: started

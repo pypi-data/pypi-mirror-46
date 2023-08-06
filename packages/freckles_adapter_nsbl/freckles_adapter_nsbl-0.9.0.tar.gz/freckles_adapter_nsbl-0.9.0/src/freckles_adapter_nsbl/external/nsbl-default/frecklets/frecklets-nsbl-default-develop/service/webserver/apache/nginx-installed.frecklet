@@ -1,0 +1,42 @@
+doc:
+  short_help: "Ensures the nginx web server is installed and running."
+  help: |
+    Installs the Nginx web server.
+
+    This uses the [geerlingguy.nginx](https://github.com/geerlingguy/ansible-role-nginx)
+    Ansible role to do the heavy lifting.
+
+    It's recommended to use the 'webserver-service' frecklet instead of this.
+  furter_reading:
+    "nginx website": https://www.nginx.com
+    "geerlingguy.nginx Ansible role": https://github.com/geerlingguy/ansible-role-nginx
+  examples:
+    - title: Install Nginx webserver
+
+args:
+  user:
+    type: string
+    required: false
+    doc:
+      short_help: the user nginx will run under
+
+meta:
+  tags:
+    - webserver
+    - nginx
+    - featured-frecklecutable
+
+frecklets:
+  - task:
+      include-type: import
+      become: true
+    frecklet:
+      type: ansible-role
+      name: geerlingguy.nginx
+      idempotent: true
+      elevated: true
+      internet: true
+      references:
+        "'geerlingguy.nginx' Ansible role": "https://github.com/geerlingguy/ansible-role-nginx"
+    vars:
+      nginx_user: "{{:: user ::}}"

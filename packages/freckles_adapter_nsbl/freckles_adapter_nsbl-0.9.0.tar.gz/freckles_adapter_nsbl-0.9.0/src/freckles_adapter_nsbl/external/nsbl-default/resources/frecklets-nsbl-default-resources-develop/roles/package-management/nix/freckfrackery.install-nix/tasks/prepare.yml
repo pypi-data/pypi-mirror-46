@@ -1,0 +1,81 @@
+---
+
+- name: creating /nix directory
+  file:
+    path: /nix
+    state: directory
+    owner: "{{ ansible_env.USER | default('root') }}"
+  become: yes
+  when: 'nix_env_binary.stat.exists == False'
+
+- name: installing nix dependencies for Debian-based systems
+  apt:
+    pkg: "{{ nix_dep }}"
+    state: installed
+    update_cache: yes
+    cache_valid_time: 3600
+  loop:
+    # - wget
+    - curl
+    - bzip2
+    - ca-certificates
+    - libdigest-sha-perl
+    - dirmngr
+  loop_control:
+    loop_var: nix_dep
+  become: yes
+  when: 'nix_env_binary.stat.exists == False and ansible_os_family == "Debian"'
+
+- name: "[installing key verify requirements for Debian]"
+  apt:
+    name: "{{ pkg }}"
+    state: present
+  loop:
+    - dirmngr
+    - gnupg
+  loop_control:
+    loop_var: pkg
+  become: true
+  when: 'nix_verify_installer and ansible_os_family == "Debian"'
+
+- name: installing nix dependencies for Redhat-based systems
+  package:
+    pkg: "{{ nix_dep }}"
+    state: installed
+  loop:
+    - bzip2
+    - perl-Digest-SHA
+  loop_control:
+    loop_var: nix_dep
+  become: yes
+  when: 'nix_env_binary.stat.exists == False and ansible_os_family == "RedHat"'
+
+- name: "[installing key verify requirements for RedHat]"
+  apt:
+    name: "{{ pkg }}"
+    state: present
+  loop:
+    - gnupg
+  loop_control:
+    loop_var: pkg
+  become: true
+  when: 'nix_verify_installer and ansible_os_family == "RedHat"'
+
+- name: "[installing key verify requirements for Mac OS X]"
+  homebrew:
+    name: "{{ pkg }}"
+    state: present
+  loop:
+    - gnupg
+  loop_control:
+    loop_var: pkg
+  become: false
+  when: 'nix_verify_installer and ansible_os_family == "Darwin"'
+
+- name: applying fix to enable nix install as root
+  become: yes
+  lineinfile:
+    path: /etc/nix/nix.conf
+    line: 'build-users-group ='
+    create: yes
+  when: 'ansible_env.USER is not defined or ansible_env.USER == "root"'

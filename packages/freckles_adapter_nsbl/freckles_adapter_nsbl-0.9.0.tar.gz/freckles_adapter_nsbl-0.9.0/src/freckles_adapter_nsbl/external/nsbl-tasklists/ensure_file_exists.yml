@@ -1,0 +1,28 @@
+---
+#
+# Copyright (c) 2018, Markus Binsteiner
+#
+# Licensed under The Parity Public license, Version 3.0.0 (the "license");
+# and you may not use this file except in compliance with the license.
+# You may obtain a copy of the License at
+#
+#  https://licensezero.com/licenses/parity
+#
+
+- name: "[creating parent folders(s)]"
+  file:
+    path: "{{ ensure_file_exists_path | dirname }}"
+    state: directory
+    owner: "{{ ensure_file_exists_owner | default(omit) }}"
+    group: "{{ ensure_file_exists_group | default(omit) }}"
+    mode: "{{ ensure_file_exists_mode | default(omit) }}"
+  become: "{{ ensure_file_exists_owner is defined and (true if ansible_env.USER == ensure_file_exists_owner else false) }}"
+
+- name: "[creating file]"
+  file:
+    path: "{{ ensure_file_exists_path }}"
+    state: touch
+    owner: "{{ ensure_file_exists_owner | default(omit) }}"
+    group: "{{ ensure_file_exists_group | default(omit) }}"
+    mode: "{{ ensure_file_exists_mode | default(omit) }}"
+  become: "{{ ensure_file_exists_owner is defined and (true if ansible_env.USER == ensure_file_exists_owner else false) }}"

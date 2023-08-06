@@ -1,0 +1,54 @@
+---
+
+- name: "assembling stow folder metadata"
+  set_fact:
+    __folder_stow_metadata__: "{{ __package_folders__ | overlay_stow_metadata(dotfiles_folder_package_overlay) }}"
+
+# might as well do that here, maybe some of the packages below need it
+- name: "enabling 'epel-release' repository (to be able to install 'stow') -- if on CentOS platform"
+  install:
+    packages:
+      - name: epel-release
+        pkgs:
+          # fedora: ignore
+          centos: epel-release
+          default: ignore
+
+- name: installing stow
+  install:
+    packages:
+      - name: stow
+        pkgs:
+          conda:
+            conda_channels:
+              - conda-forge
+              - freckles
+          default: stow
+        pkg_mgr: "{{ dotfiles_pkg_mgr_for_stow | default(omit) }}"
+
+- name: "stowing configuration from: {{ dotfiles_folder }}"
+  stow:
+    name: "{{ stow_folder.key }}"
+    source_dir: "{{ stow_folder.value.stow_folder_parent | default(dotfiles_folder) }}"
+    target_dir: "{{ stow_folder.value.stow_target_dir | default(dotfiles_default_stow_target_dir) }}"
+    delete_conflicts: "{{ stow_folder.value.stow_delete_conflicts | default(dotfiles_stow_delete_conflicts) }}"
+  ignore_errors: "{{ ignore_errors | default(true) }}"
+  when: "not stow_folder.value.get('no_stow', False) and not dotfiles_unstow"
+  become: "{{ stow_folder.value.get('stow_become', None) | default(false) }}"
+  loop: "{{ __folder_stow_metadata__ | dict2items }}"
+  loop_control:
+      loop_var: stow_folder
+
+- name: "unstowing configuration from: {{ dotfiles_folder }}"
+  stow:
+    name: "{{ stow_folder.key }}"
+    unstow: true
+    source_dir: "{{ stow_folder.value.stow_folder_parent | default(dotfiles_folder) }}"
+    target_dir: "{{ stow_folder.value.stow_target_dir | default(dotfiles_default_stow_target_dir) }}"
+    delete_conflicts: false
+  ignore_errors: "{{ ignore_errors | default(true) }}"
+  when: "stow_folder.value.get('no_stow', False) or dotfiles_unstow"
+  become: "{{ stow_folder.value.get('stow_become', None) | default(false) }}"
+  loop: "{{ __folder_stow_metadata__ | dict2items }}"
+  loop_control:
+      loop_var: stow_folder

@@ -1,0 +1,86 @@
+doc:
+  short_help: Installs the Prometheus node exporter.
+  further_reading:
+    "cloudalchemy.node-exporter Ansible role": https://github.com/cloudalchemy/ansible-node-exporter
+  examples:
+    - title: "Install the prometheus node exporter."
+      vars:
+        web_listen_address: 192.168.1.12:9100
+
+args:
+  version:
+    doc:
+      short_help: The version of the node exporter.
+    type: string
+    required: false
+  web_listen_address:
+    doc:
+      short_help: Address on which the node exporter will listen.
+      help: |
+        Address on which the node exporter will listen. Defaults to '0.0.0.0:9100'
+    type: string
+    required: false
+  enabled_collectors:
+    doc:
+      short_help: List of additionally enabled collectors.
+      help: |
+        List of additionally enabled collectors. It adds collectors to those [enabled by default](https://github.com/prometheus/node_exporter#enabled-by-default).
+      further_reading:
+        - "[list of default collectors](https://github.com/prometheus/node_exporter#enabled-by-default)"
+    type: list
+    required: false
+    empty: true
+    schema:
+      type: string
+    cli:
+      metavar: COLLECTOR
+      param_decls:
+        - "--enable-collector"
+  disabled_collectors:
+    doc:
+      short_help: List of disabled collectors.
+      help: |
+        List of disabled collectors. By default node_exporter disables collectors [listed here](https://github.com/prometheus/node_exporter#disabled-by-default).
+      further_reading:
+        - "[list of disabled collectors](https://github.com/prometheus/node_exporter#disabled-by-default)"
+    type: list
+    required: false
+    empty: true
+    schema:
+      type: string
+    cli:
+      metavar: COLLECTOR
+      param_decls:
+        - "--disable-collector"
+  textfile_dir:
+    doc:
+      short_help: Directory used by the Textfile Collector.
+      help: |
+        Directory used by the [Textfile Collector](https://github.com/prometheus/node_exporter#textfile-collector). To get permissions to write metrics in this directory, users must be in node-exp system group.
+
+        Defaults to "/var/lib/node_exporter".
+      further_reading:
+        - "[Textfile collector documentation](https://github.com/prometheus/node_exporter#textfile-collector)"
+    type: string
+    required: false
+
+frecklets:
+  - task:
+      become: true
+      include-type: import
+    frecklet:
+      name: cloudalchemy.node-exporter
+      type: ansible-role
+      msg: installing Prometheus node-exporter
+      idempotent: true
+      elevated: true
+      internet: true
+      references:
+        "'cloudalchemy.node-exporter'": "https://github.com/cloudalchemy/ansible-node-exporter"
+    vars:
+      node_exporter_version: "{{:: version ::}}"
+      node_exporter_web_listen_address: "{{:: web_listen_address ::}}"
+      node_exporter_enabled_collectors: "{{:: enabled_collectors ::}}"
+      node_exporter_disabled_collectors: "{{:: disabled_collectors ::}}"
+      node_exporter_textfile_dir: "{{:: textfile_dir ::}}"
+

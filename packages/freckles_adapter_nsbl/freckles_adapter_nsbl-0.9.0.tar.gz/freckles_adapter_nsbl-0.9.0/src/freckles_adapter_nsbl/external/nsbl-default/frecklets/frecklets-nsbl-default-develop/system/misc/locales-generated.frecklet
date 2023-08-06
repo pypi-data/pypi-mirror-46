@@ -1,0 +1,38 @@
+doc:
+  short_help: Ensure a set of locales is generated on a system.
+
+args:
+  locales:
+    doc:
+      short_help: A list of locales.
+    type: list
+    schema:
+      type: string
+#    default:
+#      - en_US.UTF-8
+    empty: true
+    cli:
+      param_type: argument
+      nargs: -1
+
+meta:
+  elevated: true
+
+frecklets:
+  - frecklet:
+      type: ansible-module
+      name: locale_gen
+      idempotent: true
+      elevated: true
+      internet: false
+      references:
+        "'locale_gen' Ansible module": "https://docs.ansible.com/ansible/latest/modules/locale_gen_module.html"
+    task:
+      become: true
+      loop: "{{:: locales ::}}"
+      loop_control:
+        loop_var: "__locale_item__"
+    vars:
+      name: "{{ __locale_item__ }}"
+      state: present
+

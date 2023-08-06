@@ -1,0 +1,89 @@
+doc:
+  short_help: "Create Apache wordpress virtual host config."
+  examples:
+    - title: "Apache wordpress vhost config."
+      vars:
+        vhost_name: my_wordpress_site
+        wp_title: "My wordpress site"
+        use_https: true
+        host: dev.frkl.io
+        base_path: "/var/www/wordpress"
+
+args:
+#  vhost_name:
+#    doc:
+#      short_help: "The name of the vhost file."
+#    required: true
+#    type: string
+  base_path:
+    doc:
+      short_help: "The wordpress project folders parent directory."
+    type: string
+    required: false
+    default: "/var/www"
+    cli:
+      show_default: true
+  host:
+    type: string
+    default: "localhost"
+    required: true
+    doc:
+      short_help: "The hostname of the server."
+  server_admin:
+    type: string
+    doc:
+      short_help: "The email address to use in the vhost file and with letsencrypt, falls back to 'wp_admin_email."
+    required: false
+  use_https:
+    type: boolean
+    required: false
+    doc:
+      short_help: "Request a lets-encrypt certificate and serve devpi via https (needs 'server_admin' or 'wp_admin_email' set)."
+    cli:
+      is_flag: true
+  wp_title:
+    doc:
+      short_help: "The name of the wordpress instance."
+    type: string
+    required: true
+    cli:
+      metavar: TITLE
+  listen_ip:
+    doc:
+      short_help: The ip to listen to (necessary if using the Apache webserver.
+      help: |
+        The address to listen to, can be any of the following, optionally followed by a colon and a port number (or *):
+          - The IP address of the virtual host;
+          - A fully qualified domain name for the IP address of the virtual host (not recommended);
+          - The character *, which acts as a wildcard and matches any IP address.
+          - The string _default_, which is an alias for *
+      further_reading:
+        - "[Apache VirtualHost documentation](https://httpd.apache.org/docs/current/mod/core.html#virtualhost)"
+    type: string
+    required: false
+    default: '_default_'
+frecklets:
+  - apache-vhost-file:
+      path: "/etc/apache2/sites-enabled/{{:: wp_title | clean_string | lower ::}}.conf"
+      owner: root
+      become: true
+      server_name: "{{:: host ::}}"
+      use_https: "{{:: use_https ::}}"
+      listen_ip: "{{:: listen_ip ::}}"
+      document_root: "{{:: base_path ::}}/{{:: wp_title | clean_string | lower ::}}"
+      server_admin: "{{:: server_admin ::}}"
+      folder_directives:
+        - directive_type: Directory
+          path: "{{:: base_path ::}}/{{:: wp_title | clean_string | lower ::}}"
+          Options: FollowSymLinks
+          AllowOverride: "Limit Options FileInfo"
+          DirectoryIndex: "index.php"
+          Require: "all granted"
+#        - directive_type: Directory
+#          path: "{{:: base_path ::}}/{{:: wp_title | clean_string ::}}/wp-content"
+#          Options: FollowSymLinks
+#          Require: "all granted"
+        - directive_type: FilesMatch
+          path: "\\.php$"
+          SetHandler: "proxy:fcgi://127.0.0.1:9000"
+

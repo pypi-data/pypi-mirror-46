@@ -1,0 +1,62 @@
+doc:
+  short_help: ufw rule to allow incoming traffic
+args:
+  interface:
+    doc:
+      short_help: The name of the interface.
+    type: string
+    required: false
+  protocol:
+    doc:
+      short_help: The protocol.
+    type: string
+    allowed:
+      - any
+      - tcp
+      - udp
+      - ipv6
+      - esp
+      - ah
+    default: any
+    required: false
+  from_ip:
+    doc:
+      short_help: The source of the traffic to allow.
+    type: string
+    required: false
+    default: any
+  from_port:
+    doc:
+      short_help: The source port of the traffic to allow.
+    type: integer
+    required: false
+  to_ip:
+    doc:
+      short_help: Destination IP address.
+    type: string
+    required: false
+    default: any
+  to_port:
+    doc:
+      short_help: The destination port of the traffic to allow.
+    type: integer
+    required: false
+
+frecklets:
+  - frecklet:
+      name: ufw
+      type: ansible-module
+      elevated: true
+      idempotent: true
+      internet: false
+    task:
+      become: true
+    vars:
+      rule: allow
+      interface: "{{:: interface ::}}"
+      direction: in
+      proto: "{{:: protocol ::}}"
+      from_ip: "{{:: from_ip ::}}"
+      from_port: "{{:: from_port ::}}"
+      to_ip: "{{:: to_ip ::}}"
+      to_port: "{{:: to_port ::}}"

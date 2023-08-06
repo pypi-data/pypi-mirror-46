@@ -1,0 +1,12 @@
+---
+
+- name: "[install pyenv]"
+  import_tasks: pyenv/install_pyenv.yml
+  become: "{{ python_owner != ansible_env.USER }}"
+  become_user: "{{ python_owner }}"
+  when: "not __pyenv_available__"
+
+- name: "[install python version '{{ __python_version_final__ }}']"
+  import_tasks: pyenv/install_python.yml
+  become: "{{ python_owner != ansible_env.USER }}"
+  become_user: "{{ python_owner }}"

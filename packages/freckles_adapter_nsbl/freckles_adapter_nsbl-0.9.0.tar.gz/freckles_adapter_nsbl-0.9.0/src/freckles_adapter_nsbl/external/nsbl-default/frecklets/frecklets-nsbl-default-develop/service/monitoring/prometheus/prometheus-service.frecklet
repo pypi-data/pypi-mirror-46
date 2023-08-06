@@ -1,0 +1,229 @@
+doc:
+  short_help: Installs the Prometheus monitoring service.
+  further_reading:
+    "Prometheus homepage": https://prometheus.io/
+    "cloudalchemy.prometheus Ansible role": https://github.com/cloudalchemy/ansible-prometheus
+  examples:
+    - title: Install prometheus, add two scrape configs.
+      vars:
+        web_listen_address: 192.168.1.12:9090
+        scrape_configs:
+          - job_name: "prometheus"
+            static_configs:
+              - targets:
+                  - "192.168.1.12:9090"
+          - job_name: "node"
+            static_configs:
+              - targets:
+                  - "192.168.1.11:9100"
+                  - "192.168.1.12:9100"
+
+args:
+  version:
+    doc:
+      short_help: The version of Prometheus.
+    type: string
+    required: false
+  web_listen_address:
+    doc:
+      short_help: Address on which prometheus will be listening.
+      help: |
+        Address on which prometheus will be listening.
+
+        Defaults to '0.0.0.0:9090'.
+    type: string
+    required: false
+  web_external_url:
+    doc:
+      short_help: External address on which prometheus is available.
+      help: |
+        External address on which prometheus is available. Useful when behind reverse proxy. Ex. http://example.org/prometheus.
+    type: string
+    required: false
+  storage_retention:
+    doc:
+      short_help: Data retention period.
+      help: |
+        Data retention period, defaults to '30d'.
+    type: string
+    required: false
+  config_flags_extra:
+    doc:
+      short_help: Additional configuration flags passed to prometheus binary at startup.
+    type: dict
+    required: false
+    cli:
+      metavar: FLAGS
+  alertmanager_config:
+    doc:
+      short_help: Configuration responsible for pointing where alertmanagers are.
+      help: |
+        Configuration responsible for pointing where alertmanagers are. This should be specified as list in yaml format. It is compatible with official [<alertmanager_config>](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#alertmanager_config).
+      further_reading:
+        - "[alertmanager_config documentation](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#alertmanager_config)"
+    type: list
+    required: false
+    empty: true
+  alert_relabel_configs:
+    doc:
+      short_help: Alert relabeling rules.
+      help: |
+        Alert relabeling rules. This should be specified as list in yaml format. It is compatible with the official [<alert_relabel_configs>](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#alert_relabel_configs).
+      further_reading:
+        - "[alert_relabel_configs documentation](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#alert_relabel_configs)"
+    type: list
+    required: false
+    empty: true
+  global_config:
+    doc:
+      short_help: Prometheus global config.
+      help: |
+        Prometheus global config. Compatible with [official configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#configuration-file).
+
+        Defaults to:
+
+          {
+            scrape_interval: 60s,
+            scrape_timeout: 15s,
+            evaluation_interval: 15s,
+          }
+
+      further_reading:
+        - "[Prometheus configuration file documentation](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#configuration-file)"
+    type: dict
+    required: false
+    empty: true
+  remote_write:
+    doc:
+      short_help: Remote write.
+      help: |
+        Remote write. Compatible with [official configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#<remote_write>).
+        - "[<remote_write> documentation](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#<remote_write>)"
+    type: list
+    empty: true
+    required: false
+  remote_read:
+    doc:
+      short_help: Remote read.
+      help: |
+        Remote read. Compatible with [official configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#<remote_read>).
+      further_reading:
+        - "[<remote_read> documentation](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#<remote_read>)"
+    type: list
+    empty: true
+    required: false
+  external_labels:
+    doc:
+      short_help: Additional labels.
+      help: |
+        Provide map of additional labels which will be added to any time series or alerts when communicating with external systems.
+
+        Defaults to:
+
+            environment: "{{ ansible_fqdn | default(ansible_host) | default(inventory_hostname) }}"
+    type: dict
+    required: false
+    empty: true
+  alert_rules:
+    doc:
+      short_help: Full list of alerting rules.
+      help: |
+        Full list of alerting rules which will be copied to {{ prometheus_config_dir }}/rules/ansible_managed.rules. Alerting rules can be also provided by other files located in {{ prometheus_config_dir }}/rules/ which have *.rules extension.
+
+        Defaults can be found in the [Ansible role 'defaults' file](https://github.com/cloudalchemy/ansible-prometheus/blob/master/defaults/main.yml).
+    type: list
+    empty: true
+    required: false
+  targets:
+    doc:
+      short_help: Targets which will be scraped.
+      help: |
+        Targets which will be scraped.
+
+        For more information checkout the [Ansible role README.md](https://github.com/cloudalchemy/ansible-prometheus#relation-between-prometheus_scrape_configs-and-prometheus_targets).
+
+        Example:
+
+            prometheus_targets:
+            - targets:
+              - demo.cloudalchemy.org:9100
+              labels:
+                env: demo
+                job: node
+            - targets:
+              - demo.cloudalchemy.org:9093
+              labels:
+                env: demo
+                job: alertmanager
+            - targets:
+              - demo.cloudalchemy.org:3000
+              labels:
+                env: demo
+            job: grafana
+      further_reading:
+        - "[Ansible role readme](https://github.com/cloudalchemy/ansible-prometheus#relation-between-prometheus_scrape_configs-and-prometheus_targets)"
+    type: dict
+    required: false
+    empty: true
+  scrape_configs:
+    doc:
+      short_help: Prometheus scrape jobs.
+      help: |
+        Prometheus scrape jobs provided in same format as in [official docs](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config).
+
+        Defaults can be found in the [Ansible role 'defaults' file](https://github.com/cloudalchemy/ansible-prometheus/blob/master/defaults/main.yml).
+
+        For more information checkout the [Ansible role README.md](https://github.com/cloudalchemy/ansible-prometheus#relation-between-prometheus_scrape_configs-and-prometheus_targets).
+
+      further_reading:
+        - "[Prometheus <scrape_config> documenation](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config)"
+        - "[Ansible role readme](https://github.com/cloudalchemy/ansible-prometheus#relation-between-prometheus_scrape_configs-and-prometheus_targets)"
+    type: list
+    empty: true
+    required: false
+
+frecklets:
+  - frecklet:
+      name: cloudalchemy.prometheus
+      type: ansible-role
+      msg: installing prometheus
+      idempotent: true
+      elevated: true
+      internet: true
+      references:
+        "'cloudalchemy.prometheus' Ansible role": "https://github.com/cloudalchemy/ansible-prometheus"
+    vars:
+      prometheus_version: "{{:: version ::}}"
+      prometheus_web_listen_address: "{{:: web_listen_address ::}}"
+      prometheus_web_external_url: "{{:: web_external_url ::}}"
+      prometheus_storage_retention: "{{:: storage_retention ::}}"
+      prometheus_config_flags_extra: "{{:: config_flags_extra ::}}"
+      prometheus_alertmanager_config: "{{:: alertmanager_config ::}}"
+      prometheus_alert_relabel_configs: "{{:: alert_relabel_configs ::}}"
+      prometheus_global: "{{:: global_config ::}}"
+      prometheus_remote_write: "{{:: remote_write ::}}"
+      prometheus_remote_read: "{{:: remote_read ::}}"
+      prometheus_external_labels: "{{:: external_labels ::}}"
+      prometheus_alert_rules: "{{:: alert_rules ::}}"
+      prometheus_targets: "{{:: targets ::}}"
+      prometheus_scrape_configs: "{{:: scrape_configs ::}}"
+
+#        netdata:
+#          - targets:
+#              - localhost:19999
+#            labels:
+#              env: dev
+#      prometheus_scrape_configs:
+#        - job_name: "prometheus"    # Custom scrape job, here using `static_config`
+#          metrics_path: "/metrics"
+#          static_configs:
+#            - targets:
+#              - "localhost:9090"
+#        - job_name: "netdata"
+#          metrics_path: '/api/v1/allmetrics'
+#          params:
+#            format:
+#              - prometheus
+#          file_sd_configs:
+#            - files:
+#               - "{{ prometheus_config_dir }}/file_sd/netdata.yml"

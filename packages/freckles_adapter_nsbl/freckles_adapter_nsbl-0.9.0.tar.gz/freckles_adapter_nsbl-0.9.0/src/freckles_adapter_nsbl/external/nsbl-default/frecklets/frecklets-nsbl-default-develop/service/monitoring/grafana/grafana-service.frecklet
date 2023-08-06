@@ -1,0 +1,461 @@
+doc:
+  short_help: Installs the grafana service.
+  further_reading:
+    "cloudalchemy.grafana Ansible role": https://github.com/cloudalchemy/ansible-grafana
+  examples:
+    - title: Install Grafana and add a Prometheus datasource and a matching dashboard.
+      desc: |
+        Check out [the freckles security docs](https://freckles.io/doc/security) if you are concerned about providing
+        the password in plain text.
+      vars:
+        admin_password: password123
+        listen_url: http://192.168.1.11:3000
+        datasources:
+          - name: prometheus
+            type: prometheus
+            access: proxy
+            url: 'http://192.168.1.12:9090'
+            basic_auth: false
+        dashboards:
+          - dashboard_id: 1860
+            revision_id: 12
+            datasource: prometheus
+
+args:
+  version:
+    doc:
+      short_help: The grafana version.
+      help: |
+        The grafana version. Defaults to 'latest'.
+    type: string
+    required: false
+  instance_name:
+    doc:
+      short_help: The grafana instance name.
+      help: |
+        The grafana instance name.
+
+        Defaults to:
+
+            {{ ansible_fqdn | default(ansible_host) | default(inventory_hostname) }}
+    required: false
+    type: string
+  listen_address:
+    doc:
+      short_help: The address the service listens on.
+      help: |
+        The address the grafana service listens on.
+
+        Defaults to: '0.0.0.0'
+    type: string
+    required: false
+  listen_port:
+    doc:
+      short_help: The port the service listens on.
+      help: |
+        The port the grafana service listens on. Defaults to 3000.
+    type: integer
+    required: false
+  listen_url:
+    doc:
+      short_help: The full url to access this grafana instance.
+      help: |
+        Full URL used to access Grafana from a web browser.
+
+    type: string
+    required: true
+  server_config:
+    doc:
+      short_help: server config
+      help: |
+        ['server' configuration](http://docs.grafana.org/installation/configuration/#server) section.
+
+        Defaults to:
+
+            {
+              protocol: http,
+              enforce_domain: false,
+              socket: "",
+              cert_key: "",
+              cert_file: "",
+              enable_gzip: false,
+              static_root_path: public,
+              router_logging: false
+            }
+      further_reading:
+        - "[grafana 'server' configuration documentation](http://docs.grafana.org/installation/configuration/#server)"
+    type: dict
+    required: false
+    empty: true
+#  security_config:
+#    doc:
+#      short_help: security config
+#      help: |
+#        ['security' configuration](http://docs.grafana.org/installation/configuration/#security) section.
+#
+#        Defaults to:
+#
+#            {
+#              admin_user: admin,
+#              admin_password: ""
+#            }
+#      further_reading:
+#        - "[grafana 'security' configuration documentation](http://docs.grafana.org/installation/configuration/#security)"
+#    type: dict
+#    required: false
+#    empty: true
+  database_config:
+    doc:
+      short_help: database config
+      help: |
+        ['database' configuration](http://docs.grafana.org/installation/configuration/#database) section.
+
+        Defaults to:
+
+            {
+              type: sqlite3
+            }
+      further_reading:
+        - "[grafana 'database' configuration documentation](http://docs.grafana.org/installation/configuration/#database)"
+    type: dict
+    required: false
+    empty: true
+  auth_config:
+    doc:
+      short_help: auth config
+      help: |
+        ['auth' configuration](http://docs.grafana.org/installation/configuration/#auth) section.
+
+        Defaults to:
+
+            {}
+
+      further_reading:
+        - "[grafana 'auth' configuration documentation](http://docs.grafana.org/installation/configuration/#auth)"
+    type: dict
+    required: false
+    empty: true
+  users_config:
+    doc:
+      short_help: users config
+      help: |
+        ['users' configuration](http://docs.grafana.org/installation/configuration/#users) section.
+
+        Defaults to:
+
+            {
+              allow_sign_up: false,
+              auto_assign_org_role: Viewer,
+              default_theme: dark
+            }
+      further_reading:
+        - "[grafana 'users' configuration documentation](http://docs.grafana.org/installation/configuration/#users)"
+    type: dict
+    required: false
+    empty: true
+  ldap_config:
+    doc:
+      short_help: ldap config
+      help: |
+        ['ldap' configuration](http://docs.grafana.org/installation/configuration/#ldap) section.
+
+        Defaults to:
+
+            {}
+
+      further_reading:
+        - "[grafana 'ldap' configuration documentation](http://docs.grafana.org/installation/configuration/#ldap)"
+    type: dict
+    required: false
+    empty: true
+  session_config:
+    doc:
+      short_help: session config
+      help: |
+        ['session' configuration](http://docs.grafana.org/installation/configuration/#session) section.
+
+        Defaults to:
+
+            {}
+
+      further_reading:
+        - "[grafana 'session' configuration documentation](http://docs.grafana.org/installation/configuration/#session)"
+    type: dict
+    required: false
+    empty: true
+  analytics_config:
+    doc:
+      short_help: analytics config
+      help: |
+        ['analytics' configuration](http://docs.grafana.org/installation/configuration/#analytics) section.
+
+        Defaults to:
+
+            {}
+
+      further_reading:
+        - "[grafana 'analytics' configuration documentation](http://docs.grafana.org/installation/configuration/#analytics)"
+    type: dict
+    required: false
+    empty: true
+  smtp_config:
+    doc:
+      short_help: smtp config
+      help: |
+        ['smtp' configuration](http://docs.grafana.org/installation/configuration/#smtp) section.
+
+        Defaults to:
+
+            {}
+
+      further_reading:
+        - "[grafana 'smtp' configuration documentation](http://docs.grafana.org/installation/configuration/#smtp)"
+    type: dict
+    required: false
+    empty: true
+  alerting_config:
+    doc:
+      short_help: alerting config
+      help: |
+        ['alerting' configuration](http://docs.grafana.org/installation/configuration/#alerting) section.
+
+        Defaults to:
+
+            true
+
+      further_reading:
+        - "[grafana 'alerting' configuration documentation](http://docs.grafana.org/installation/configuration/#alerting)"
+    type: dict
+    required: false
+    empty: true
+  metrics_config:
+    doc:
+      short_help: metrics config
+      help: |
+        ['metrics' configuration](http://docs.grafana.org/installation/configuration/#metrics) section.
+
+        Defaults to:
+
+            {}
+
+      further_reading:
+        - "[grafana 'metrics' configuration documentation](http://docs.grafana.org/installation/configuration/#metrics)"
+    type: dict
+    required: false
+    empty: true
+  tracing_config:
+    doc:
+      short_help: tracing config
+      help: |
+        ['tracing' configuration](http://docs.grafana.org/installation/configuration/#tracing) section.
+
+        Defaults to:
+
+            {}
+
+      further_reading:
+        - "[grafana 'tracing' configuration documentation](http://docs.grafana.org/installation/configuration/#tracing)"
+    type: dict
+    required: false
+    empty: true
+  snapshots_config:
+    doc:
+      short_help: snapshots config
+      help: |
+        ['snapshots' configuration](http://docs.grafana.org/installation/configuration/#snapshots) section.
+
+        Defaults to:
+
+            {}
+
+      further_reading:
+        - "[grafana 'snapshots' configuration documentation](http://docs.grafana.org/installation/configuration/#snapshots)"
+    type: dict
+    required: false
+    empty: true
+  image_storage_config:
+    doc:
+      short_help: image_storage config
+      help: |
+        ['image_storage' configuration](http://docs.grafana.org/installation/configuration/#image_storage) section.
+
+        Defaults to:
+
+            {}
+
+      further_reading:
+        - "[grafana 'image_storage' configuration documentation](http://docs.grafana.org/installation/configuration/#image_storage)"
+    type: dict
+    empty: true
+    required: false
+  email_on_sign_up:
+    doc:
+      short_help: Send welcome email after signing up.
+    type: boolean
+    required: false
+  dashboards:
+    doc:
+      short_help: List of dashboards which should be imported.
+      help: |
+        List of dashboards which should be imported.
+
+        Example:
+
+            - dashboard_id: 111
+              revision_id: 1
+              datasource: prometheus
+    type: list
+    schema:
+      type: dict
+      schema:
+        dashboard_id:
+          type: integer
+          required: true
+          empty: false
+        revision_id:
+          type: integer
+          required: false
+          default: 1
+          empty: false
+        datasource:
+          type: string
+          required: true
+          empty: false
+    required: false
+    empty: true
+    cli:
+      metavar: DASHBOARD
+      param_decls:
+        - "--import-dashboard"
+  dashboard_dir:
+    doc:
+      short_help: Path to a local directory containing dashboards files.
+      help: |
+        Path to a local directory containing dashboards files in json format.
+
+        Defaults to 'dashboards'.
+    type: string
+    required: false
+    empty: false
+  datasources:
+    doc:
+      short_help: List of datasources which should be configured.
+      help: |
+        List of datasources which should be configured.
+
+        Example:
+
+            - name: prometheus
+              type: prometheus
+              access: proxy
+              url: 'http://{{ prometheus_web_listen_address }}'
+              basicAuth: false
+    type: list
+    empty: true
+    required: false
+  environment:
+    doc:
+      short_help: Optional Environment parameters for Grafana installation.
+      help: |
+        Optional Environment param for Grafana installation, usefull ie for setting http_proxy.
+    type: dict
+    required: false
+    empty: true
+  admin_user:
+    doc:
+      short_help: The name of the admin user.
+    type: string
+    required: false
+    default: "admin"
+  admin_password:
+    doc:
+      short_help: The password of the default Grafana admin.
+      help: |
+        The name of the default Grafana admin user (who has full permissions).
+    type: string
+    required: true
+    secret: true
+  login_remember_days:
+    doc:
+      short_help: The number of days the keep me logged in / remember me cookie lasts.
+    type: integer
+    required: false
+  secret_key:
+    doc:
+      short_help: Secret key.
+      help: |
+        Secret key.
+
+        Used for signing some datasource settings like secrets and passwords. Cannot be changed without requiring an update to datasource settings to re-encode them.
+    type: string
+    required: false
+    secret: true
+  disable_gravatar:
+    doc:
+      short_help: Whether to disable gravatar for user profile images.
+      help: |
+        Whether to disable gravatar for user profile images.
+
+        Set to true to disable the use of Gravatar for user profile images. Default is false.
+    type: boolean
+    required: false
+  data_source_proxy_whitelist:
+    doc:
+      short_help: White list of allowed ips/domains to use in data sources.
+      help: |
+        White list of allowed ips/domains to use in data sources.
+
+        Format: ip_or_domain:port separated by spaces.
+    type: string
+    required: false
+    empty: false
+
+frecklets:
+  - path-is-absent:
+      path: /tmp/dashboards
+      become: true
+  - task:
+      become: true
+    frecklet:
+      name: cloudalchemy.grafana
+      type: ansible-role
+      msg: installing grafana
+      idempotent: true
+      internet: true
+      elevated: true
+      references:
+        "'cloudalchemy.grafana' Ansible role": "https://github.com/cloudalchemy/ansible-grafana"
+    vars:
+      grafana_version: "{{:: version ::}}"
+      grafana_instance: "{{:: instance_name ::}}"
+      grafana_address: "{{:: listen_address ::}}"
+      grafana_port: "{{:: listen_port ::}}"
+      grafana_url: "{{:: listen_url ::}}"
+      grafana_server: "{{:: server_config ::}}"
+      grafana_security:
+        admin_user: "{{:: admin_user ::}}"
+        admin_password: "{{:: admin_password ::}}"
+        login_remember_days: "{{:: login_remember_days ::}}"
+        secret_key: "{{:: secret_key ::}}"
+        disable_gravatar: "{{:: disable_gravatar ::}}"
+        data_source_proxy_whitelist: "{{:: data_source_proxy_whitelist ::}}"
+      grafana_database: "{{:: database_config ::}}"
+      grafana_users: "{{:: users_config ::}}"
+      grafana_auth: "{{:: auth_config ::}}"
+      grafana_ldap: "{{:: ldap_config ::}}"
+      grafana_session: "{{:: session_config ::}}"
+      grafana_analytics: "{{:: analytics_config ::}}"
+      grafana_smtp: "{{:: smtp_config ::}}"
+      grafana_alerting: "{{:: alerting_config ::}}"
+      grafana_metrics: "{{:: metrics_config ::}}"
+      grafana_tracing: "{{:: tracing_config ::}}"
+      grafana_snapshots: "{{:: snapshots_config ::}}"
+      grafana_image_storage: "{{:: image_storage_config ::}}"
+      grafana_welcome_email_on_sign_up: "{{:: email_on_sign_up ::}}"
+      grafana_dashboards: "{{:: dashboards ::}}"
+      grafana_dashboard_dir: "{{:: dashboard_dir ::}}"
+      grafana_datasources: "{{:: datasources ::}}"
+      grafana_environment: "{{:: environment ::}}"
+
+
+

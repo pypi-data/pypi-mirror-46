@@ -1,0 +1,29 @@
+---
+# tasks file for freckfrackery.install-pkg-mgrs
+
+#- name: "[gather pkg_mgrs facts if not available]"
+#  freckles_facts: {}
+#  when: __freckles__ is not defined
+
+- name: "[get list of missing package managers]"
+  set_fact:
+     __pkg_mgrs__: "{{ install_pkg_mgrs_packages | filter_required_pkg_mgrs(install_pkg_mgrs, __freckles_facts__) }}"
+
+# somehow, this does not pick up the tasklist files anymore...
+- name: "[retrieving pkg_mgr install tasks]"
+  local_action: stat path="{{ role_path }}/tasks/pkg_mgr_{{ item }}.yml"
+  register: pkg_mgr_task_files
+  become: no
+  loop: "{{ __pkg_mgrs__.keys() | flatten(levels=1) }}"
+
+- name: "[install pkg_mgr]"
+  include_tasks: "pkg_mgr_{{ pkg_mgr_item.item }}.yml"
+  vars:
+    pkg_mgr_details: "{{ __pkg_mgrs__[pkg_mgr_item.item] }}"
+  loop: "{{ pkg_mgr_task_files.results }}"
+  loop_control:
+    loop_var: pkg_mgr_item
+#  when: "pkg_mgr_item.stat.exists"
+
+- name: "[updating freckles facts]"
+  freckles_facts: {}

@@ -1,0 +1,430 @@
+doc:
+  short_help: "Sets up a single-site wordpress instance."
+  help: |
+    Sets up [Wordpress](https://wordpress.com) on a machine, including dependencies
+    (MariaDB, Apache/Nginx, LetsEncrypt).
+
+    Optionally this frecklet can also checkout a folder with theme/plugin sources and
+    [intermingle](https://TODO) it with the wordpress project folder, to support
+    good version control and configuration management practices.
+  examples:
+    - title: Install Wordpress with Nginx webserver and https configured.
+      desc: |
+        Check the [freckles security documentation](https://freckles.io/doc/security) if you are concerned about
+        plain text passwords in files like this.
+      vars:
+        wp_title: "My beautiful wordpress site"
+        webserver: nginx
+        host: dev.frkl.io
+        use_https: true
+        wp_admin_name: admin
+        wp_admin_email: hello@frkl.io
+        wp_admin_password: password123
+        wp_db_password: db_password_123
+    - title: Minimal Wordpress install.
+      desc: |
+        In this example we use the install Wordpress with the minimum amount of customization.
+      vars:
+        wp_title: My first Wordpress site
+        wp_admin_email: hello@frkl.io
+        wp_admin_password: secret_login_password
+        wp_db_password: secret_password_for_wp_database
+    - title: "Install a new instance without any plugins, themes, or custom code, using an external IP address."
+      vars:
+        webserver_user: www-data
+        webserver_group: www-data
+        wp_admin_password: secret_login_password
+        wp_db_password: secret_password_for_wp_database
+        wp_admin_email: hello@frkl.io
+        wp_title: "Freckles example setup"
+        host: 10.0.0.22
+      desc: |
+        Installs a (vanilla) new wordpress instance on the local network, but accessible from outside localhost, without any costumizations.
+args:
+  project_source:
+    doc:
+      short_help: "The (optional) custom source code for this wordpress site."
+      help: |
+        If specified, this location will be checked out into the target host,
+        and '[intermingled](https://TODO)' with the wordpress project folder.
+    type: string
+    required: false
+    cli:
+      metavar: PATH_OR_URL
+  vhost_name:
+    doc:
+      short_help: "The name of the vhost file."
+    required: false
+    type: string
+  base_path:
+    doc:
+      short_help: "The wordpress project folders parent directory."
+    type: string
+    required: false
+    default: "/var/www"
+    cli:
+      show_default: true
+  host:
+    type: string
+    default: "localhost"
+    required: true
+    doc:
+      short_help: "The hostname of the server."
+  letsencrypt_staging:
+    doc:
+      short_help: "Whether to use the letsencrypt staging server."
+      help: |
+        Whether to use the letsencrypt staging server.
+
+        This is useful for developing -- the letsencrypt production server only allows a few requests per day. This option is disabled in the cli, as it is not used very often. Just use an overlay dict to enable this.
+    type: boolean
+    required: false
+    default: false
+  server_admin:
+    type: string
+    doc:
+      short_help: "The email address to use in the vhost file and with letsencrypt, falls back to 'wp_admin_email."
+    required: false
+  use_https:
+    type: boolean
+    required: false
+    doc:
+      short_help: "Request a lets-encrypt certificate and serve devpi via https (needs 'server_admin' or 'wp_admin_email' set)."
+    cli:
+      is_flag: true
+  webserver_user:
+    doc:
+      short_help: "The user to run the webserver as."
+    type: string
+    required: false
+    default: www-data
+    cli:
+      metavar: USERNAME
+  webserver_group:
+    doc:
+      short_help: "The group to run the webserver as (if applicable)."
+    type: string
+    required: false
+    default: www-data
+    cli:
+      metavar: GROUP
+  webserver:
+    doc:
+      short_help: "The webserver to use, currently supported: 'apache', nginx'."
+      further_reading:
+        - "[nginx wordpress vhost setup](https://www.nginx.com/resources/wiki/start/topics/recipes/wordpress/)"
+    type: string
+    allowed:
+      - apache
+      - nginx
+    default: apache
+    required: false
+  wp_title:
+    doc:
+      short_help: "The name of the wordpress instance."
+    type: string
+    required: true
+    cli:
+      metavar: TITLE
+  wp_admin_name:
+    doc:
+      short_help: "The name of the wordpress admin user."
+    type: string
+    required: false
+    default: admin
+    cli:
+      metavar: USERNAME
+  wp_admin_email:
+    doc:
+      short_help: "The email of the wordpress admin user."
+    required: true
+    cli:
+      metavar: EMAIL
+  wp_admin_password:
+    doc:
+      short_help: "The password of the wordpress admin user."
+    required: true
+    type: string
+    secret: true
+  wp_db_user:
+    doc:
+      short_help: "The db user."
+    type: string
+    required: false
+    default: wordpress
+    cli:
+      show_default: true
+      metavar: DB_USER
+  wp_db_host:
+    doc:
+      short_help: "The db host."
+    type: string
+    required: false
+    default: "localhost"
+    cli:
+      show_default: true
+      metavar: HOST
+  wp_db_password:
+    doc:
+      short_help: "The password for the database."
+    type: string
+    required: true
+    secret: true
+  wp_db_import:
+    doc:
+      short_help: "Whether to import a sql dump."
+    type: boolean
+    default: false
+    required: false
+    cli:
+      is_flag: true
+  wp_db_dump_file:
+    doc:
+      short_help: "An (optional) database dump file."
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  wp_db_name:
+    doc:
+      short_help: "The name of the database to use."
+    type: string
+    required: false
+    default: wp_database
+    cli:
+      show_default: true
+      metavar: DB_NAME
+  wp_db_table_prefix:
+    doc:
+      short_help: "The wordpress db table prefix."
+    type: string
+    default: wp_
+    required: false
+    cli:
+      show_default: true
+      metavar: DB_PREFIX
+  wp_plugins:
+    doc:
+      short_help: "A list of plugins to install."
+    type: list
+    schema:
+      type: dict
+      schema:
+        name:
+          type: string
+          required: true
+        zip:
+          type: string
+          required: false
+        url:
+          type: string
+          required: false
+        activate:
+          type: boolean
+          default: true
+          required: false
+        force:
+          type: boolean
+          default: false
+          required: false
+    required: false
+    default: []
+    empty: true
+    cli:
+      metavar: PLUGIN
+  wp_themes:
+    doc:
+      short_help: "A list of themes to install."
+    type: list
+    schema:
+      type: dict
+      schema:
+        name:
+          type: string
+          required: true
+        activate:
+          type: boolean
+    required: false
+    default: []
+    empty: true
+    cli:
+      metavar: THEME
+  wp_group:
+    doc:
+      short_help: "The group who owns the project files."
+    type: string
+    required: false
+    default: www-data
+    cli:
+      metavar: GROUP
+  wp_user:
+    doc:
+      short_help: "The user who owns the project files."
+    type: string
+    required: false
+    default: www-data
+    cli:
+      metavar: USER
+  wp_version:
+    doc:
+      short_help: The version of Wordpress.
+    type: string
+    required: false
+    empty: false
+  wp_project_path:
+    doc:
+      short_help: "The path to the wordpress project folder, needs to contain the folder 'wp-content'."
+      help: |
+        The path to the wordpress project folder.
+
+        Contain the config file ('wp-config.php'), and the content
+        folder ('wp-content').
+
+        This is optional, if specified, this will be symbolically linked to the wordpress folder. Handy for managing wp-content with git.
+    type: string
+    required: false
+    empty: false
+    cli:
+      metavar: PATH
+  wp_content_parent:
+    doc:
+      short_help: "The path relative to 'wp_project_path' that contains the 'wp-content' folder."
+    type: string
+    required: false
+    default: ""
+    cli:
+      metavar: REL_PATH
+  listen_ip:
+    doc:
+      short_help: The ip to listen to (necessary if using the Apache webserver).
+      help: |
+        The address to listen to, can be any of the following, optionally followed by a colon and a port number (or *):
+          - The IP address of the virtual host;
+          - A fully qualified domain name for the IP address of the virtual host (not recommended);
+          - The character *, which acts as a wildcard and matches any IP address.
+          - The string _default_, which is an alias for *
+      further_reading:
+        - "[Apache VirtualHost documentation](https://httpd.apache.org/docs/current/mod/core.html#virtualhost)"
+    type: string
+    required: false
+    default: '_default_'
+
+meta:
+  idempotent: false
+  tags:
+    - featured-frecklecutable
+    - wordpress
+    - standalone
+  platforms:
+    debian:
+      debian:
+        - stretch
+    not_working:
+      debian:
+        ubuntu:
+          18.04.1
+
+frecklets:
+  # creating database & installing server if necessary
+  - mariadb-database-exists:
+      db_import: "{{:: wp_db_import ::}}"
+      db_dump_file: "{{:: wp_db_dump_file ::}}"
+      db_name: "{{:: wp_db_name ::}}"
+      db_user: "{{:: wp_db_user ::}}"
+      db_user_password: "{{:: wp_db_password ::}}"
+#  # creating wordpress apache vhost
+  - wordpress-vhost-nginx:
+      frecklet::skip: "{{:: webserver | false_if_equal('nginx') ::}}"
+      webserver: "{{:: webserver ::}}"
+      vhost_name: "{{:: vhost_name ::}}"
+      wp_title: "{{:: wp_title ::}}"
+      use_https: "{{:: use_https ::}}"
+      host: "{{:: host ::}}"
+      base_path: "{{:: base_path ::}}"
+      server_admin: "{{:: server_admin ::}}"
+      listen_ip: "{{:: listen_ip ::}}"
+  - wordpress-vhost-apache:
+      frecklet::skip: "{{:: webserver | false_if_equal('apache') ::}}"
+      webserver: "{{:: webserver ::}}"
+      vhost_name: "{{:: vhost_name ::}}"
+      wp_title: "{{:: wp_title ::}}"
+      use_https: "{{:: use_https ::}}"
+      host: "{{:: host ::}}"
+      base_path: "{{:: base_path ::}}"
+      server_admin: "{{:: server_admin ::}}"
+      listen_ip: "{{:: listen_ip ::}}"
+  # installing webserver and dependencies (php, https-cert...)
+  - webserver-service:
+      webserver: "{{:: webserver ::}}"
+      letsencrypt_webroot: "{{:: base_path ::}}/{{:: wp_title | clean_string | lower ::}}"
+      use_https: "{{:: use_https | default(false) ::}}"
+      letsencrypt_email: "{{:: server_admin | default(wp_admin_email, true) ::}}"
+      letsencrypt_staging: "{{:: letsencrypt_staging ::}}"
+      letsencrypt_domains:
+        - "{{:: host ::}}"
+      webserver_user: "{{:: webserver_user ::}}"
+      webserver_group: "{{:: webserver_group ::}}"
+      webserver_nginx_config:
+        nginx_client_max_body_size: 64m
+      use_php: true
+      php_packages:
+        debian:
+          - php-zip
+          - php-curl
+          - php-gd
+          - php-mbstring
+          - php-mcrypt
+          - php-xml
+          - php-xmlrpc
+          - php-mysql
+#          - libapache2-mod-php
+  # making sure wordpress project document_root exists
+  - folder-exists:
+      path: "{{:: base_path ::}}/{{:: wp_title | clean_string | lower ::}}"
+      owner: "{{:: webserver_user ::}}"
+      group: "{{:: webserver_group ::}}"
+      mode: "0775"
+      become: true
+  # integrating our project source
+  - folders-intermingled:
+      frecklet::skip: "{{:: wp_project_path | true_if_empty ::}}"
+      become: true
+      checkout_stage: "{{:: project_source | false_if_empty ::}}"
+      checkout_src: "{{:: project_source ::}}"
+      checkout_dest: "{{:: wp_project_path ::}}"
+      checkout_force: true
+      checkout_type: rsync
+      checkout_folder_owner: "{{:: webserver_user ::}}"
+      checkout_folder_group: "{{:: webserver_group ::}}"
+      intermingle_stage: "{{:: wp_project_path | false_if_empty ::}}"
+      intermingle_src: "{{:: wp_project_path ::}}/{{:: wp_content_parent ::}}"
+      intermingle_target: "{{:: base_path ::}}/{{:: wp_title | clean_string | lower ::}}"
+      intermingle_type: symlink
+      intermingle_folder_owner: "{{:: webserver_user ::}}"
+      intermingle_folder_group: "{{:: webserver_group ::}}"
+      intermingle_config:
+        interminglings:
+          "wp-content/themes/*": "wp-content/themes"
+          "wp-content/plugins/*": "wp-content/plugins"
+  # installing Wordpress folders, setting up db tables and wp-config.php and such
+  - wordpress-folder-prepared:
+      wordpress_installs:
+        - name: "{{:: wp_title | clean_string | lower ::}}"
+          dbname: "{{:: wp_db_name ::}}"
+          dbuser: "{{:: wp_db_user ::}}"
+          dbpass: "{{:: wp_db_password ::}}"
+          dbhost: "{{:: wp_db_host ::}}"
+          dbprefix: "{{:: wp_db_table_prefix ::}}"
+          version: "{{:: wp_version ::}}"
+          path: "{{:: base_path ::}}/{{:: wp_title | clean_string | lower ::}}"
+          owner: "{{:: wp_user ::}}"
+          group: "{{:: wp_group ::}}"
+          url: "{{:: use_https | string_for_boolean('https', 'http') ::}}://{{:: host ::}}"
+          title: "{{:: wp_title ::}}"
+          admin_name: "{{:: wp_admin_name ::}}"
+          admin_email: "{{:: wp_admin_email ::}}"
+          admin_password: "{{:: wp_admin_password ::}}"
+          plugins: "{{:: wp_plugins | default([]) ::}}"
+          themes: "{{:: wp_themes | default([]) ::}}"
+          users: {}
+          options: []

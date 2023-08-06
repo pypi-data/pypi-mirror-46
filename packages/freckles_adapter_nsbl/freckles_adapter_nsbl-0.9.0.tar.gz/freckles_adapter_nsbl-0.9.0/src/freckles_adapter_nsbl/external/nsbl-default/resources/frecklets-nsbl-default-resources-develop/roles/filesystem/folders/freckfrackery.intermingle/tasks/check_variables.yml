@@ -1,0 +1,31 @@
+---
+
+- name: "[fail if source not provided]"
+  fail:
+    msg: "No source folder provided."
+  when: intermingle_checkout_stage and (intermingle_checkout_src is not defined or not intermingle_checkout_src)
+
+- name: "[fail if dest not provided on checkout]"
+  fail:
+    msg: "No destination folder provided."
+  when: intermingle_checkout_stage and (intermingle_checkout_dest is not defined or not intermingle_checkout_dest)
+
+- name: "[fail if dest not provided]"
+  fail:
+    msg: "No intermingle source folder provided."
+  when: intermingle_stage and (intermingle_src is not defined or not intermingle_src)
+
+- name: "[fail if target not provided]"
+  fail:
+    msg: "No target folder provided."
+  when: intermingle_stage and (intermingle_target is not defined or not intermingle_target)
+
+- name: "[check if dest folder is not absolute]"
+  fail:
+    msg: "Destination folder needs to be absolute: {{ intermingle_checkout_dest }}"
+  when: "not intermingle_checkout_dest.startswith('/')"
+
+- name: "[check if intermingle_src folder is not absolute]"
+  fail:
+    msg: "Intermingle source folder needs to be absolute: {{ intermingle_src }}"
+  when: "not intermingle_src.startswith('/')"

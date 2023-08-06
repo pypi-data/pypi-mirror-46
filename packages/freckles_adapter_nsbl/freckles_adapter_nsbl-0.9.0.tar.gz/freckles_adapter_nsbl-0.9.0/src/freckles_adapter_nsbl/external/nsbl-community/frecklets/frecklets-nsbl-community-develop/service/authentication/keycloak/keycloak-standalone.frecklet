@@ -1,0 +1,162 @@
+---
+
+args:
+  version:
+    doc:
+      short_help: The version of keycloak.
+    type: string
+    required: false
+    default: "6.0.1"
+  keycloak_bind_ip:
+    doc:
+      short_help: "The ip address keycloak listens on."
+    type: string
+    required: false
+    default: 127.0.0.1
+    cli:
+      metavar: IP
+  keycloak_bind_ip_management:
+    doc:
+      short_help: "The ip address the keycloak management interface listens on."
+    type: string
+    required: false
+    cli:
+      metavar: IP
+  keycloak_admin_password:
+    doc:
+      short_help: "The initial admin user password."
+    type: string
+    empty: false
+    required: true
+    secret: true
+  keycloak_db_name:
+    doc:
+      short_help: "The database name."
+    type: string
+    required: false
+    default: keycloak
+  keycloak_db_user:
+    doc:
+      short_help: "The database user."
+    type: string
+    required: false
+    default: keycloak
+  keycloak_db_password:
+    doc:
+      short_help: "The postgres database password."
+    type: string
+    required: true
+    secret: true
+  hostname:
+    doc:
+      short_help: "The (external) domain name, to be used by the reverse proxy."
+    type: string
+    required: true
+  admin_email:
+    doc:
+      short_help: "The email for letsencrypt."
+  letsencrypt_staging:
+    doc:
+      short_help: "Whether to use the letsencrypt staging server (for development)."
+    default: false
+    required: false
+    type: boolean
+    cli:
+      is_flag: true
+      param_decls:
+        - "--letsencrypt-staging"
+
+meta:
+  tags:
+    - keycloak
+    - authentication
+    - standalone
+
+frecklets:
+  - user-exists:
+      name: keycloak
+      group: keycloak
+  - java-lang-installed
+  - postgresql-database-exists:
+      db_name: "{{:: keycloak_db_name ::}}"
+      db_user: "{{:: keycloak_db_user ::}}"
+      db_user_password: "{{:: keycloak_db_password ::}}"
+      postgresql_listen_addresses:
+        - localhost
+      postgresql_pg_hba:
+        - method: md5
+      setup_postgresql: true
+  - archive-extracted:
+      src: "https://downloads.jboss.org/keycloak/{{:: version ::}}/keycloak-{{:: version ::}}.tar.gz"
+      remote_src: true
+      dest: /opt
+      owner: keycloak
+      group: keycloak
+      creates: "/opt/keycloak-{{:: version ::}}"
+  - path-has-mode:
+      mode: "0700"
+      path: "/opt/keycloak-{{:: version ::}}/standalone"
+  - link-exists:
+      src: "/opt/keycloak-{{:: version ::}}"
+      dest: "/opt/keycloak"
+      owner: keycloak
+      group: keycloak
+      become: true
+  - keycloak-postgresql-jdbc-driver-installed:
+      keycloak_db_name: "{{:: keycloak_db_name ::}}"
+      keycloak_db_user: "{{:: keycloak_db_user ::}}"
+      keycloak_db_password: "{{:: keycloak_db_password ::}}"
+  - keycloak-standalone-config-file:
+      path: "/opt/keycloak/standalone/configuration/standalone.xml"
+      keycloak_bind_ip: "{{:: keycloak_bind_ip ::}}"
+      keycloak_bind_ip_management: "{{:: keycloak_bind_ip_management | default(keycloak_bind_ip) ::}}"
+      proxy_address_forwarding: true
+      owner: keycloak
+  - keycloak-service-launcher-file:
+      path: "/usr/local/bin/keycloak-launch.sh"
+      mode: "0755"
+      owner: root
+  - systemd-service-unit:
+      name: keycloak
+      unit_description: keycloak authentication service
+      service_environment:
+        KEYCLOAK_CONFIG: "standalone.xml"
+        KEYCLOAK_MODE: "standalone"
+        KEYCLOAK_BIND: "{{:: keycloak_bind_ip ::}}"
+        LAUNCH_JBOSS_IN_BACKGROUND: 1
+      service_type: idle
+      service_user: keycloak
+      service_group: keycloak
+      service_exec_start: "/usr/local/bin/keycloak-launch.sh ${KEYCLOAK_MODE} ${KEYCLOAK_CONFIG}"
+      unit_before:
+        - httpd.service
+      unit_after:
+        - network.target
+      service_timeout_start_sec: 600
+      service_timeout_stop_sec: 600
+      install_wanted_by:
+        - multi-user.target
+      enabled: true
+      started: true
+  - keycloak-add-user:
+      username: admin
+      password: "{{:: keycloak_admin_password ::}}"
+  - nginx-reverse-proxy-vhost-config:
+      path: /etc/nginx/sites-enabled/keycloak.conf
+      proxy_url: "http://{{:: keycloak_bind_ip ::}}:8080/"
+      server_names:
+        - "{{:: hostname ::}}"
+      use_https: true
+      proxy_options:
+        - "proxy_set_header Host $host"
+        - "proxy_set_header X-Real-IP $remote_addr"
+        - "proxy_set_header X-Forwarded-Proto $scheme"
+        - "proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for"
+  - webserver-service:
+      webserver: nginx
+      use_https: true
+      letsencrypt_staging: "{{:: letsencrypt_staging ::}}"
+      letsencrypt_email: "{{:: admin_email ::}}"
+      letsencrypt_webroot: /var/www/html
+      letsencrypt_domains:
+        - "{{:: hostname ::}}"

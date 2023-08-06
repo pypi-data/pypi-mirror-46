@@ -1,0 +1,29 @@
+---
+
+- name: "[check domain name(s) is/are provided when using https]"
+  fail: msg="No domain name(s) provided"
+  when: "not webserver_skip_cert_request and (webserver_letsencrypt_domains is not defined or not webserver_letsencrypt_domains)"
+
+# TODO: check for valid email?
+- name: "[checking whether email is provided when using https]"
+  fail:
+    msg: "https enabled, but no email address specified"
+  when: "not webserver_skip_cert_request and (webserver_letsencrypt_email is not defined or not webserver_letsencrypt_email)"
+
+- name: "[setting https related stuff]"
+  set_fact:
+    letsencrypt_cert_domains: "{{ webserver_letsencrypt_domains }}"
+    letsencrypt_email: "{{ webserver_letsencrypt_email }}"
+    letsencrypt_webroot_path: "{{ webserver_letsencrypt_webroot }}"
+    letsencrypt_renewal_command_args: '--renew-hook "systemctl restart {{ __webserver_service_name__ }}"'
+  when: not webserver_skip_cert_request
+
+- name: "[setting letsencrypt server to 'staging']"
+  set_fact:
+    letsencrypt_server: https://acme-staging.api.letsencrypt.org/directory
+  when: webserver_letsencrypt_staging
+
+- name: "[adding ssl module to apache module list]"
+  set_fact:
+    __apache_mods_internal__: "{{ __apache_mods_internal__ }} + [ 'ssl.load' ]"
+

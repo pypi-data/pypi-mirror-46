@@ -1,0 +1,97 @@
+doc:
+  short_help: installs a complete devpi server, including nginx proxy & lets-encrypt certs
+  help: |
+    This frecklet installs a complete nginx-proxied devpi server.
+
+    If a ``backup_archive_file`` is provided, it will be uploaded to the server, unarchived, and the backed-up
+    state will be imported before the server will be started for the first time. Check the frecklet::devpi-create-backup
+    *frecklet* for details about creating such a backup archive file. The import will take a minute or two, as it also
+    (re-)creates the pypi mirror index.
+
+    If the ``use_https`` variable is set, a certificate from LetsEncrypt will be requrested and installed, along
+    with a cron job to automatically renew it before it expires. Nginx will be
+    configured to redirect all http traffic to https.
+
+  further_reading:
+    "freckfrackery.install-devpi Ansible role": https://gitlab.com/freckfrackery/freckfrackery.install-devpi
+  examples:
+    - title: Install the devpi service, incl. Nginx reverse proxy and https certificate.
+      vars:
+        host: dev.frkl.io
+        email: hello@frkl.io
+        use_https: true
+        user: devpi
+    - title: Re-create a devpi service instance from a backup, incl. Nginx reverse proxy and https certificate.
+      vars:
+        host: dev.frkl.io
+        email: hello@frkl.io
+        use_https: true
+        user: devpi
+        backup_archive_file: ~/backups/devpi_backup.tar.gz
+
+args:
+  listen_address:
+    type: string
+    default: "localhost"
+    required: false
+    doc:
+      short_help: "The listen address of the devpi server."
+  user:
+    doc:
+      short_help: "The user to run devpi as well as nginx."
+    type: string
+    required: false
+    default: devpi
+    cli:
+      show_default: true
+  backup_archive_file:
+    doc:
+      short_help: A file to restore the service from.
+      help: |
+        If this is not provided, a normal, 'empty' devpi instance will be created.
+    type: string
+    required: false
+  admin_password:
+    type: string
+    required: false
+    doc:
+      short_help: "The initial admin password."
+      help: |
+        If a password is already set, this will fail and the error will be ignored.
+#  devpi_virtualenv:
+#    doc:
+#      short_help: The folder for the devpi virtualenv.
+#      help: |
+#        Only set that if you know what you are doing.
+#    type: string
+#    required: false
+#  devpi_server_base:
+#    doc:
+#      short_help: The folder for the devpi server folder.
+#      help: |
+#        Only set that if you know what you are doing.
+#    type: string
+#    required: false
+
+meta:
+  tags:
+    - devpi
+    - python
+    - repository
+    - packages
+    - service
+
+frecklets:
+
+  - devpi-installed:
+      user: "{{:: user ::}}"
+      port: 3141
+      host: "{{:: listen_address ::}}"
+      admin_password: "{{:: admin_password ::}}"
+#      devpi_virtualenv: "{{:: devpi_virtualenv ::}}"
+#      devpi_server_base: "{{:: devpi_server_base ::}}"
+  - devpi-import-from-backup:
+      frecklet::skip: "{{:: backup_archive_file | true_if_empty ::}}"
+      backup_archive_file: "{{:: backup_archive_file ::}}"
+#      devpi_server_base: "{{:: devpi_server_base ::}}"
+

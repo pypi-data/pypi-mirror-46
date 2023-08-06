@@ -1,0 +1,24 @@
+---
+- name: "[getting facts about installed services]"
+  service_facts:
+
+- name: "stopping webserver for certificate generation"
+  service:
+    name: "{{ __webserver_service_name__ }}"
+    state: stopped
+  become: true
+  when: "webserver_use_https and __webserver_service_name__ + '.service' in ansible_facts.services.keys()"
+
+# TODO: restart webserver if cert request fails?
+- name: "managing https certificate for {{ apache_domain }}"
+  include_role:
+    name: thefinn93.letsencrypt
+  when: webserver_use_https
+
+- name: "re-starting webserver (if applicable)"
+  service:
+    name: "{{ __webserver_service_name__ }}"
+    state: started
+  become: true
+  when: "webserver_use_https and __webserver_service_name__ + '.service' in ansible_facts.services.keys() and ansible_facts.services.get(__webserver_service_name__ + '.service', 'xxx')['state'] == 'running'"
+

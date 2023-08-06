@@ -1,0 +1,48 @@
+doc:
+  short_help: "Ensures the Apache web server is installed."
+  help: |
+    Installs the Apache web server.
+
+    This uses the [geerlingguy.apache](https://github.com/geerlingguy/ansible-role-apache)
+    Ansible role to do the heavy lifting.
+
+    It's recommended to use the 'webserver-service' frecklet instead of this.
+  furter_reading:
+    "geerlingguy.apache Ansible role": https://github.com/geerlingguy/ansible-role-apache
+  examples:
+    - title: Install Apache webserver.
+
+args:
+  user:
+    type: string
+    required: false
+    doc:
+      short_help: "The user apache will run under."
+  group:
+    type: string
+    required: false
+    doc:
+      short_help: "The group apache will run under."
+
+meta:
+  tags:
+    - webserver
+    - apache
+    - featured-frecklecutable
+    - install
+
+frecklets:
+  - task:
+      include-type: import
+      become: true
+    frecklet:
+      type: ansible-role
+      name: geerlingguy.apache
+      idempotent: true
+      elevated: true
+      internet: true
+      references:
+        "'geerlingguy.apache' Ansible role": "https://github.com/geerlingguy/ansible-role-apache"
+    vars:
+      apache_user: "{{:: user ::}}"
+      apache_group: "{{:: group ::}}"

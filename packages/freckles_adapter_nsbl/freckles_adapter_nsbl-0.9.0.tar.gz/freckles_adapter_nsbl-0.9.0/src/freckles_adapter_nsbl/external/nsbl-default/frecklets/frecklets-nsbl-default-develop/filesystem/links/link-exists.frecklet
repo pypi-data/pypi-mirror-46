@@ -1,0 +1,110 @@
+doc:
+  short_help: Ensure a filesystem link exists.
+  help: |
+    Ensure a filesystem link from to a file/folder exists.
+
+    If the ``owner`` and/or ``group`` variables is/are specified, those will be created if they don't exist yet.
+  examples:
+    - title: Make sure a symbolic link to a file/folder exists.
+      vars:
+        src: /tmp/source
+        dest: /tmp/dest
+    - title: Make sure a hard link to a file/folder exists.
+      vars:
+        src: /tmp/source
+        dest: /tmp/dest
+        hard: true
+
+args:
+  src:
+    doc:
+      short_help: "The path to the file to link to."
+    type: string
+    required: true
+  dest:
+    doc:
+      short_help: "The path to the target of the link."
+    type: string
+    required: true
+  hard:
+    doc:
+      short_help: "Whether to create a hard link instead of a symlink."
+    type: boolean
+    default: false
+    required: false
+    cli:
+      show_default: true
+  owner:
+    doc:
+      short_help: The owner of the link, will be created if necessary.
+    type: string
+    required: false
+    cli:
+      metavar: USER_NAME
+  group:
+    doc:
+      short_help: The group of the link, will be created if necessary.
+    type: string
+    required: false
+    cli:
+      metavar: GROUP_NAME
+  mode:
+    doc:
+      short_help: The permissions of the link.
+    type: string
+    required: false
+    cli:
+      metavar: MODE
+  parent_dir_mode:
+    doc:
+      short_help: "The permissions of the parent directory."
+    type: string
+    required: false
+    cli:
+      metavar: MODE
+  system_user:
+    doc:
+      short_help: Whether the user (and group) should be of system user/group type.
+    type: boolean
+    default: false
+    required: false
+    cli:
+      show_default: true
+      is_flag: true
+
+meta:
+  is_interface: true
+  tags:
+    - link
+    - filesystem
+    - featured-frecklecutable
+
+frecklets:
+  - parent-folder-exists:
+      path: "{{:: dest ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: parent_dir_mode ::}}"
+
+  - task:
+      become: "{{:: owner | true_if_not_empty ::}}"
+    frecklet:
+      name: file
+      type: ansible-module
+      msg: "link '{{:: src ::}}' -> '{{:: dest ::}}'"
+      idempotent: true
+      internet: false
+      elevated: "{{:: owner | true_if_not_empty ::}}"
+      desc: |
+        Create a {%:: if hard ::%}hard{%:: else ::%}symbolic{%:: endif ::%} link from  {{:: src ::}} to {{:: dest ::}} (if it doesn't exist yet).
+
+        {%:: if mode ::%}Ensure the link mode is '{{:: mode ::}}'{%:: else ::%}Leave link mode as is (or default if file has to be created){%:: endif ::%}. {%:: if group ::%}Set group for the link to be '{{:: group ::}}'{%:: else ::%}Use the executing users main group (or leave be if file already exists){%:: endif ::%} and {%:: if owner ::%}set owner of the link to be '{{:: owner ::}}'{%:: else ::%}use the executing users name as the owner (or leave be if file already exists){%:: endif ::%}.
+    vars:
+      src: "{{:: src ::}}"
+      dest: "{{:: dest ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: mode ::}}"
+      state: "{{:: 'hard' if hard else 'link' ::}}"
+
+

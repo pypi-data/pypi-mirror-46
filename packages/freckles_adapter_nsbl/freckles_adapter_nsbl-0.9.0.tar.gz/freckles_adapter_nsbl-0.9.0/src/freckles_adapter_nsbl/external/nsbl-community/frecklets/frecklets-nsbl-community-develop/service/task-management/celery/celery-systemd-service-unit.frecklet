@@ -1,0 +1,64 @@
+doc:
+  short_help: Systemd service unit for Celery workers.
+
+args:
+  user:
+    doc:
+      short_help: The user to run celery.
+    type: string
+    required: false
+    default: celery
+
+  env_files:
+    doc:
+      short_help: Additional systemd environment configuration files.
+      help: |
+        Additional systemd environment files, usefule for app-specific configuration.
+
+        Format is:
+
+            CONFIG_KEY_1=config_value_1
+            CONFIG_KEY_2=config_value_2
+
+    type: list
+    schema:
+      type: string
+    required: false
+    empty: true
+    default: []
+
+frecklets:
+  - systemd-service-unit:
+      name: celery
+      enabled: true
+      started: true
+      unit_description: "Celery worker daemons."
+      unit_after:
+        - network.target
+      install_wanted_by:
+        - multi-user.target
+      service_type: forking
+      service_environment_file: "{{:: env_files ::}}"
+      service_environment:
+        CELERYD_NODES: "w1"
+        CELERY_BIN: "{{:: celery_bin ::}}"
+        CELERY_APP: "{{:: celery_entrypoint ::}}"
+        CELERYD_MULTI: "multi"
+        CELERYD_OPTS: "--time-limit=300 --concurrency=8"
+        CELERYD_PID_FILE: "/run/celery/%n.pid"
+        CELERYD_LOG_FILE: "/var/log/celery/%n%I.log"
+        CELERYD_LOG_LEVEL: "INFO"
+        CELERYBEAT_PID_FILE: "/run/celery/beat.pid"
+        CELERYBEAT_LOG_FILE: "/var/log/celery/beat.log"
+      service_exec_start: "/bin/sh -c '${CELERY_BIN} ${CELERYD_MULTI} start ${CELERYD_NODES} -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} --logfile=${CELERYD_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} ${CELERYD_OPTS}'"
+      service_exec_stop: "/bin/sh -c '${CELERY_BIN} ${CELERYD_MULTI} stopwait ${CELERYD_NODES} --pidfile=${CELERYD_PID_FILE}'"
+      service_exec_reload: "/bin/sh -c '${CELERY_BIN} ${CELERYD_MULTI} restart ${CELERYD_NODES} -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} --logfile=${CELERYD_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} ${CELERYD_OPTS}'"
+      service_exec_start_pre:
+        - "+/bin/mkdir /run/celery"
+        - "+/bin/chown -R {{:: user ::}} /run/celery"
+        - "+/bin/mkdir -p /var/log/celery"
+        - "+/bin/chown -R {{:: user ::}} /var/log/celery"
+      service_exec_stop_post:
+        - "+/bin/rm -rf /run/celery"
+  - init-service-restarted:   # can't make it work otherwise
+      name: "celery"

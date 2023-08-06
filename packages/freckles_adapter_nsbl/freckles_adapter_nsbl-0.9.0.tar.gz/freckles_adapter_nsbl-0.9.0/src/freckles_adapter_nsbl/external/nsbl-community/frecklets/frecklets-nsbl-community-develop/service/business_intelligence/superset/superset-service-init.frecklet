@@ -1,0 +1,58 @@
+args:
+  admin_username:
+    doc:
+      short_help: The username of the admin user.
+    type: string
+    required: false
+    default: admin
+  admin_firstname:
+    doc:
+      short_help: The first name of the admin user.
+    type: string
+    required: true
+  admin_lastname:
+    doc:
+      short_help: The last name of the admin user.
+    type: string
+    required: true
+  admin_email:
+    doc:
+      short_help: The email address of the admin user.
+    type: string
+    required: true
+  admin_password:
+    doc:
+      short_help: The db password.
+    type: string
+    required: true
+  superset_virtualenv:
+    doc:
+      short_help: The path to the virtualenv where Superset is installed.
+    type: string
+    default: "/var/lib/pyenv/versions/3.6.5/envs/superset"
+  superset_user:
+    doc:
+      short_help: The superset user.
+    type: string
+    default: superset
+
+frecklets:
+  - python-virtualenv-execute-shell:
+      command: "superset db upgrade"
+      virtualenv_path: "{{:: superset_virtualenv ::}}"
+      become_user: "{{:: superset_user ::}}"
+      environment:
+        PYTHONPATH: /etc/superset
+  - python-virtualenv-execute-shell:
+      command: "superset init"
+      virtualenv_path: "{{:: superset_virtualenv ::}}"
+      become_user: "{{:: superset_user ::}}"
+      environment:
+        PYTHONPATH: /etc/superset
+  - python-virtualenv-execute-shell:
+      command: "fabmanager create-admin --app superset --username {{:: admin_username ::}} --firstname {{:: admin_firstname ::}} --lastname {{:: admin_lastname ::}} --email {{:: admin_email ::}} --password {{:: admin_password ::}}"
+      virtualenv_path: "{{:: superset_virtualenv ::}}"
+      become_user: "{{:: superset_user ::}}"
+      environment:
+        PYTHONPATH: /etc/superset
+

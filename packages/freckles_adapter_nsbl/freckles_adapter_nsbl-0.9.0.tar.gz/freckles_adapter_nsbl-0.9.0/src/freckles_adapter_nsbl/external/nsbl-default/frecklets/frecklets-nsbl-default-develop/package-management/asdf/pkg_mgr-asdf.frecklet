@@ -1,0 +1,74 @@
+doc:
+  short_help: "Ensures 'asdf' is installed."
+  help: |
+    Installs the [asdf](https://github.com/asdf-vm/asdf) versions/package manager.
+
+    Optionally, you can also install plugins at the same time.
+
+    This installs a global profile file into /etc/profile.d/asdf.sh. After installation of asdf you either need to logout and login again to have ``asdf`` available, or execute either ``source /etc/profile.d/asdf.sh`` or ``source ~/.asdf/asdf.sh``.
+
+    Once *asdf* is available, you can install plugins by executing ``asdf pulgin-add [plugin-name]``, a list of available plugins can be found [here](https://github.com/asdf-vm/asdf-plugins).
+
+    Having a plugin installed doesn't mean the language/pkg itself is installed, for that you need to pick a version. To list all available versions for a plugin, issue: ``asdf list-all [plugin]``, for example: ``asdf list-all ruby``. Then install via ``asdf install [package] [version]``, e.g. ``asdf install ruby 2.5.3``.
+    Then you need to set that version to be global (or local, if that better fits your need): ``asdf global ruby 2.5.3``.
+  further_reading:
+    "asdf github page": https://github.com/asdf-vm/asdf
+    "cimon-io.asdf Ansible role": https://github.com/cimon-io/ansible-role-asdf
+
+args:
+  plugins:
+    doc:
+      short_help: "A list of plugins and details about them."
+    required: false
+    default: []
+    empty: true
+    type: list
+    schema:
+      type: dict
+      schema:
+        name:
+          type: string
+          required: true
+          empty: false
+        versions:
+          type: list
+          schema:
+            type: string
+          required: false
+        global:
+          type: string
+          required: false
+          empty: false
+    cli:
+      enabled: false
+  user:
+    doc:
+      short_help: "The name of the user (optional)."
+    type: string
+    required: false
+    default: "{{ ansible_env.USER }}"
+
+meta:
+  tags:
+    - featured-frecklecutable
+    - conda
+    - package-manager
+    - package-management
+    - install
+
+frecklets:
+  - task:
+      include-type: include
+      become: true
+    frecklet:
+      name: cimon-io.asdf
+      type: ansible-role
+      idempotent: true
+      elevated: true
+      internet: true
+      msg: "install the asdf package manager"
+      references:
+        "'cimon-io.asdf' Ansible role": "https://github.com/cimon-io/ansible-role-asdf"
+    vars:
+      asdf_plugins: "{{:: plugins ::}}"
+      asdf_user: "{{:: user ::}}"

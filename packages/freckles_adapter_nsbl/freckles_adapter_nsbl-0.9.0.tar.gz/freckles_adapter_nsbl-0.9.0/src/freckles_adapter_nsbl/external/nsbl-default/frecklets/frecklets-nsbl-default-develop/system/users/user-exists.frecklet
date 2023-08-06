@@ -1,0 +1,137 @@
+doc:
+  short_help: Make sure a user exists
+  help: |
+    Ensure a user exists on a system.
+
+    If no ``password`` argument is provided, the created user won't be able do login via ssh via
+    password auth, and they won't be able to do sudo if passwordless sudo is not enabled for the user.
+
+    This task allows for providing the password in plain text. It will
+
+    Optionally, you can specify UID, main group and GID of the user.
+    If the ``group`` var is specified, a corresponding group will be created if it doesn't exist yet.
+  further_reading:
+    "Creating a User in Ansible": https://serversforhackers.com/c/create-user-in-ansible
+  examples:
+    - title: "Create (if not already exist) user and group 'freckles', with gid/uid 1111."
+      desc: |
+        This (obviously) assigns the 'freckles' group to be the new users main group.
+      vars:
+        name: freckles
+        uid: 1111
+        group: freckles
+        gid: 1111
+
+args:
+  name:
+    doc:
+      short_help: The name of the user to create.
+    type: string
+    required: true
+    empty: false
+    cli:
+      metavar: USER_NAME
+      param_type: argument
+  uid:
+    doc:
+      short_help: The uid of the user to create (optional).
+    type: integer
+    required: false
+    cli:
+      metavar: UID
+  group:
+    doc:
+      short_help: The name of the users main group.
+    type: string
+    required: false
+    empty: false
+    cli:
+      metavar: GROUP_NAME
+  gid:
+    doc:
+      short_help: The GID of the users main group (optional).
+    type: integer
+    required: false
+    cli:
+      metavar: GID
+  system_user:
+    doc:
+      short_help: Whether the user to create (and potentially group) should be created as system user.
+    type: boolean
+    required: false
+    cli:
+      show_default: true
+      is_flag: true
+#  password:
+#    doc:
+#      short_help: "The crypted user password."
+#      help: |
+#        This sets the users password. If not provided, the user won't be able to login via password auth, and can't do
+#        sudo if passwordless sudo is not configured.
+#      further_reading:
+#        - "[password encryption](https://docs.ansible.com/ansible/latest/modules/user_module.html)"
+#    type: string
+#    required: false
+#    cli:
+#      metavar: PWD
+  password:
+    doc:
+      short_help: "The user password in plain text."
+      help: |
+        This sets the users password. The user input will be sha512-hashed before forwareded to the connector.
+
+        If not provided, the user won't be able to login via password auth, and can't do
+        sudo if passwordless sudo is not configured.
+    type: string
+    required: false
+    secret: True
+    cli:
+      metavar: PWD
+  shell:
+    doc:
+      short_help: "The users default shell."
+    type: string
+    required: false
+    default: "/bin/bash"
+
+meta:
+  tags:
+    - user
+    - user-management
+    - system
+
+frecklets:
+  - group-exists:
+      frecklet::msg: "ensure group {{:: group ::}} exists"
+      group: "{{:: group ::}}"
+      gid: "{{:: gid ::}}"
+      system: "{{:: system_user ::}}"
+      frecklet::skip: "{{:: group | true_if_empty ::}}"
+
+  - frecklet:
+      name: user
+      type: ansible-module
+      msg: "ensure user '{{:: name ::}}' exists"
+      desc: |
+        {%:: if name == 'root' ::%}No need to do anything, user 'root' always exists.
+        {%:: else ::%}Create user '{{:: name ::}}'{%:: if uid ::%}, using the user id '{{:: uid ::}}'{%:: endif ::%}.
+        {%:: if group ::%}Set the users main group to be '{{:: group ::}}'.{%:: endif ::%}
+        {%:: if system_user ::%}The new user should be a system user.{%:: endif ::%}
+
+        {%:: if shell and shell != "/bin/bash" ::%}Set the users shell to be '{{:: shell ::}}'{%:: endif ::%}{%:: endif ::%}
+      idempotent: true
+      elevated: true
+      internet: false
+      references:
+        "'user' Ansible module": "https://docs.ansible.com/ansible/latest/modules/user_module.html"
+    task:
+      become: true
+    vars:
+      name: "{{:: name ::}}"
+      state: present
+      groups: "{{:: group ::}}"
+      append: true
+      uid: "{{:: uid ::}}"
+      system: "{{:: system_user ::}}"
+      password: "{{:: password | sha512_crypt ::}}"
+      shell: "{{:: shell ::}}"

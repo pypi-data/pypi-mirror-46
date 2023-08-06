@@ -1,0 +1,19 @@
+---
+
+- name: "[getting archive formats endings]"
+  set_fact:
+    __archive_formats__: "{{ pkg_mgr_details['packages'] | get_archive_formats }}"
+
+- name: "[setting unarchiver executables fact]"
+  set_fact:
+    __unarchiver_executables__: "{{ box_very_basics.executables | default({}) }}"
+
+- name: "[calculating missing unarchivers]"
+  set_fact:
+    __missing_unarchivers__: "{{ __archive_formats__ | get_missing_unarchivers( __unarchiver_executables__ ) }}"
+
+- name: "[installing unzip]"
+  install:
+    packages: "{{ __missing_unarchivers__ }}"
+  when: __missing_unarchivers__
+

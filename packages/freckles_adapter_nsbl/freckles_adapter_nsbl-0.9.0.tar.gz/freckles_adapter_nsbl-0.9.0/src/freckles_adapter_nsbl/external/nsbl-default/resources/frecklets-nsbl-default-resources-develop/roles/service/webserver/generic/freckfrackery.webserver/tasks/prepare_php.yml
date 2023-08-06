@@ -1,0 +1,30 @@
+---
+
+- name: "installing php/fcgi Apache module"
+  install:
+    packages:
+      - name: fcgi
+        pkgs:
+          debian:
+            - libapache2-mod-fcgid
+          default: ignore
+  when: webserver_name == "apache"
+
+
+- name: "installing php"
+  import_role:
+    name: geerlingguy.php
+  vars:
+    php_webserver_daemon: "{{ __webserver_service_name__ }}"
+  become: true
+
+# this is a workaround, as most of the time the webserver uses the public ip to connect to fpm
+# but the geerlingguy.php role doesn't allow to 'unset' that variable
+- name: "unsetting allowed_clients for fpm"
+  lineinfile:
+    dest: "{{ php_fpm_pool_conf_path }}"
+    regexp: '^listen\.allowed_clients.?=.+$'
+    line: ";listen.allowed_clients =    # disabled by the freckfrackery.webserver role"
+    state: present
+  become: true
+  when: not webserver_php_fpm_config.get("php_fpm_listen_allowed_clients", None)

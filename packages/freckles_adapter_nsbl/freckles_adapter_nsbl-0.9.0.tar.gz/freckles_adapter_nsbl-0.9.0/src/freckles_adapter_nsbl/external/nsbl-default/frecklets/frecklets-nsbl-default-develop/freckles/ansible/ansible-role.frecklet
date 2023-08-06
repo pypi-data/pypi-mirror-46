@@ -1,0 +1,56 @@
+doc:
+  short_help: Execute an arbitrary role from Ansible Galaxy.
+  help: |
+    This is a generic task to execute any of the Ansible roles that are hosted on [Ansible galaxy](https://galaxy.ansible.com).
+
+    Currently only a few basic metadata keys are supported: ``include_type``, ``become`` &``become_user``. The other ones will be added
+    shortly.
+args:
+  name:
+    doc:
+      short_help: The role name.
+    type: string
+    required: true
+    cli:
+      param_type: argument
+  become:
+    doc:
+      short_help: Whether to become another user.
+    type: boolean
+    required: false
+  become_user:
+    doc:
+      short_help: The user to become.
+    type: string
+    empty: false
+    required: false
+  vars:
+    doc:
+      short_help: The parameters for the module.
+    type: dict
+    required: false
+    empty: true
+    default: {}
+  include_type:
+    doc:
+      short_helop: Whether to 'include' or 'import' the role.
+    type: string
+    allowed:
+      - "include"
+      - "import"
+    default: "include"
+
+frecklets:
+  - frecklet:
+      name: ansible-role
+      type: ansible-meta
+      elevated: '{{:: become ::}}'
+    task:
+      become: "{{:: become ::}}"
+      become_user: "{{:: become_user ::}}"
+      include-type: "{{:: include_type ::}}"
+    vars:
+      name: "{{:: name ::}}"
+      become: "{{:: become ::}}"
+      become_user: "{{:: become_user ::}}"
+      vars: "{{:: vars ::}}"

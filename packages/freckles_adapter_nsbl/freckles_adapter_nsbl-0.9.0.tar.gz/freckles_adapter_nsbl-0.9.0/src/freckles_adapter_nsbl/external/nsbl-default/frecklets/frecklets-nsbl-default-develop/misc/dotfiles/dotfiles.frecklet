@@ -1,0 +1,118 @@
+doc:
+  short_help: Setup dotfiles and associated apps.
+  help: |
+    Symbolically link dotfile folders into place and install associated applications.
+
+    This frecklet is mainly meant to be used with ``freckelize`` to provide a 'one-command' way
+    of initializing a new workstation setup, including application install and configuration.
+
+    It can be used without ``freckelize``, but this usage is neither documented nor supported.
+
+args:
+  path:
+    doc:
+      short_help: The path to the folder to process.
+    type: string
+    required: true
+    cli:
+      param_type: argument
+      metavar: FOLDER
+  unstow:
+    doc:
+      short_help: Unstow dotfiles folders instead of stowing them, this also prevents the installation of packages.
+    type: boolean
+    default: false
+    required: false
+    cli:
+      is_flag: true
+      show_default: true
+  folder_overlay:
+    doc:
+      short_help: Overlay dictionary to specify more details install instructions for folder-based package install.
+    type: "dict"
+    required: false
+  packages:
+    doc:
+      short_help: List of additional packages to install.
+    type: list
+    required: false
+    cli:
+      metavar: PACKAGE
+      param_decls:
+        - "--package"
+        - "-p"
+  skip_folder_packages:
+    doc:
+      short_help: Skip the install of packages calculated from folder names.
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+      show_default: true
+  skip_extra_packages:
+    doc:
+      short_help: Skip the install of extra packages specified in a .freckle file.
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+      show_default: true
+  fail_on_install_error:
+    doc:
+      short_help: Whether to stop if an install step fails (this will still continue until the current list is finished though).
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+      show_default: true
+  __folder_files__:
+    doc:
+      short_help: A list of files contained in the dotfile folder.
+    type: list
+    required: false
+    cli:
+      enabled: false
+
+meta:
+  freckelize:
+    var_map:
+      path: "{{:: path ::}}"
+      folder_overlay: "{{:: extra_vars ::}}"
+      packages: "{{:: vars['packages'] ::}}"
+      __folder_files__: "{{:: files ::}}"
+  tags:
+    - freckelize
+    - dotfiles
+    - configuration
+
+frecklets:
+  - task:
+      # ignore_errors: "{{:: fail_on_install_error | negate ::}}"
+      import-type: "import"
+      roles:
+        - freckfrackery.install-pkgs
+        - freckfrackery.install-pkg-mgrs
+        - freckfrackery.install-conda
+        - freckfrackery.install-nix
+        - freckfrackery.install-vagrant
+        - freckfrackery.install-virtualbox
+        - geerlingguy.homebrew
+        - elliotweiser.osx-command-line-tools
+    frecklet:
+      name: freckfrackery.dotfiles
+      type: ansible-role
+      msg: "process dotfile folder '{{:: path ::}}'"
+      references:
+        "'freckfrackery.dotfiles' Ansible role": "https://gitlab.com/freckfrackery/freckfrackery.dotfiles"
+    vars:
+      dotfiles_folder: "{{:: path ::}}"
+      dotfiles_folder_files: "{{:: __folder_files__ ::}}"
+      dotfiles_packages: "{{:: packages ::}}"
+      dotfiles_folder_package_overlay: "{{:: folder_overlay ::}}"
+      dotfiles_unstow: "{{:: unstow ::}}"
+      dotfiles_ignore_install_errors: "{{:: fail_on_install_error | negate ::}}"
+      dotfiles_skip_extra_packages: "{{:: skip_extra_packages ::}}"
+      dotfiles_skip_folder_packages: "{{:: skip_folder_packages ::}}"

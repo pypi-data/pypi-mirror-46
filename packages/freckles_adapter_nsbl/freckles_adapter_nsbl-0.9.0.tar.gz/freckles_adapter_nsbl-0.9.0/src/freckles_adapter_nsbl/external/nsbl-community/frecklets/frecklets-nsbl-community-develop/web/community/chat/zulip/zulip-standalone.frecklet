@@ -1,0 +1,57 @@
+doc:
+  short_help: Install a Zulip standalone server.
+  help: |
+    Install a Zulip standalone server.
+
+    This uses the install script recommended by the Zulip project to setup a Zulip service and all dependencies.
+
+    #TODO: configure email settings
+args:
+  version:
+    doc:
+      short_help: The version of Zulip.
+    type: string
+    default: "2.0.3"
+    required: false
+  email:
+    doc:
+      short_help: The email of the Zulip administrator.
+    type: string
+    required: true
+  hostname:
+    doc:
+      short_help: The domain name of the Zulip server.
+    type: string
+    required: true
+
+frecklets:
+#  - path-is-absent:
+#      dest: /tmp/_zulip_install
+#      become: true
+#  - archive-extracted:
+#      parent_dir_mode: "0700"
+#      owner: root
+#      group: root
+#      src: "https://www.zulip.org/dist/releases/zulip-server-{{:: version ::}}.tar.gz"
+#      remote_src: true
+#      dest: /tmp/_zulip_install
+  - frecklet:
+      name: lineinfile
+      type: ansible-module
+      elevated: true
+      idempotent: true
+      msg: "patch install script to agree to Letsencrypt TOS w/o user interaction"
+    task:
+      become: true
+      become_user: root
+    vars:
+      path: "/tmp/_zulip_install/zulip-server-{{:: version ::}}/scripts/lib/install"
+      regexp: '.*setup/setup-certbot.*'
+      line: '"$ZULIP_PATH"/scripts/setup/setup-certbot --agree-tos \'
+  - execute-shell:
+      command: "./zulip-server-{{:: version ::}}/scripts/setup/install --certbot --email={{:: email ::}} --hostname={{:: hostname ::}}"
+      chdir: "/tmp/_zulip_install"
+      become_user: root
+#  - path-is-absent:
+#      path: /tmp/_zulip_install
+#      become: true

@@ -1,0 +1,83 @@
+doc:
+  short_help: Stow (symlink) a folder.
+  help: |
+    Stow a folder.
+
+    This uses the [stow](https://www.gnu.org/software/stow/) application to symbolically link a folder (recursively).
+
+    If ``target_owner`` is set, the destination folder will be changed to be owned by this user (and created with root permissions if
+    it doesn't exist yet), and stow will be executed as that user.
+  further_reading:
+    "stow homepage": https://www.gnu.org/software/stow/
+  examples:
+    - title: "'stow' a folder"
+      desc: |
+        'stow' child folder ``subfolder_1`` from ``/tmp/source/`` its contents into ``/tmp/target``
+      vars:
+        dirname: subfolder_1
+        src: /tmp/source
+        target: /tmp/target
+
+args:
+  dirname:
+    doc:
+      short_help: "The name of the directory to stow."
+    type: string
+    required: true
+  src:
+    doc:
+      short_help: "The (parent) source directory to stow from."
+    type: string
+    required: true
+  target:
+    doc:
+      short_help: "The (parent) target directory to stow into."
+    type: string
+    required: true
+  become:
+    doc:
+      short_help: "Whether to stow using root permissions."
+    type: boolean
+    required: false
+    cli:
+      is_flag: true
+  target_owner:
+    doc:
+      short_help: "The user to who owns the destination folder."
+    type: string
+    required: false
+
+meta:
+  is_interface: true
+  tags:
+    - stow
+    - symlink
+    - folder
+    - filesystem
+
+frecklets:
+  - stow-installed
+  - folder-exists:
+      path: "{{:: target ::}}"
+      owner: "{{:: target_owner ::}}"
+  - task:
+      become: "{{:: become ::}}"
+      become_user: "{{:: target_owner ::}}"
+    frecklet:
+      name: stow
+      type: ansible-module
+      msg: "stow folder '{{:: src ::}} -> {{:: target ::}}"
+      idempotent: true
+      internet: false
+      elevated: "{{:: become ::}}"
+      desc: |
+        Stow folder '{{:: dirname ::}}' (from '{{:: src ::}}') into '{{:: target ::}}'.
+
+        {%:: if target_owner ::%}Use user '{{:: target_owner ::}}' for the stowing process, which means the target link(s) will be owned by it.{%:: endif ::%}
+      references:
+        "'stow' Ansible module (non-official)": "https://gitlab.com/nsbl/nsbl-plugins/blob/master/library/stow.py"
+    vars:
+      name: "{{:: dirname ::}}"
+      source_dir: "{{:: src ::}}"
+      target_dir: "{{:: target ::}}"
+

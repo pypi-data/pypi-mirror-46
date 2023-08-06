@@ -1,0 +1,47 @@
+doc:
+  short_help: "Adds a keycloak (admin) user."
+
+args:
+  username:
+    doc:
+      short_help: "The username."
+    type: string
+    empty: false
+    required: true
+  password:
+    doc:
+      short_help: "The users password."
+    type: string
+    secret: true
+    empty: false
+    required: true
+    cli:
+      enabled: false
+  ignore_error:
+    doc:
+      short_help: "Ignore errors (when the user already exists, this fails)."
+    type: boolean
+    required: false
+    default: false
+  keycloak_home:
+    doc:
+      short_help: "The path to the keycloak app."
+    type: string
+    required: false
+    empty: false
+    default: "/opt/keycloak"
+  realm:
+    doc:
+      short_help: The realm.
+    type: string
+    required: false
+    default: master
+
+frecklets:
+  - execute-command:
+      command: "{{:: keycloak_home ::}}/bin/add-user-keycloak.sh -r {{:: realm ::}} -u {{:: username ::}} -p '{{:: password ::}}'"
+      become_user: "keycloak"
+      ignore_error: true
+      no_log: false
+  - init-service-restarted:
+      name: keycloak

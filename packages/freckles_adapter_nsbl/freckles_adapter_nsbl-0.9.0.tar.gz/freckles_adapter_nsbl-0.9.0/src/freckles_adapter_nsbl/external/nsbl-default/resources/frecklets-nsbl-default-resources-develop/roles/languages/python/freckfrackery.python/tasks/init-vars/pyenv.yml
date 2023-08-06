@@ -1,0 +1,58 @@
+---
+
+- name: "[setting pyenv base path]"
+  set_fact:
+    __pyenv_base_path__: "{{ __python_base_path__}}/.pyenv"
+    __pyenv_setting_path__: "{{ __python_owner_home__ }}/.bashrc"
+  when: not __system_install__
+
+- name: "[setting pyenv base path for system install]"
+  set_fact:
+    __pyenv_base_path__: "{{ __python_base_path__}}/pyenv"
+    __pyenv_setting_path__: "/etc/profile.d/pyenv.sh"
+  when: __system_install__
+
+- name: "[setting pyenv init options]"
+  set_fact:
+    __pyenv_init_options__: "{% if __system_install__ %}--no-rehash{% endif %}"
+
+- name: "[check whether pyenv bin exists]"
+  stat:
+    path: "{{ __pyenv_base_path__ }}/bin/pyenv"
+  register: __pyenv_bin__
+
+- name: "[check whether pyenv settings exist]"
+  stat:
+    path: "{{ __pyenv_base_path__ }}/.pyenvrc"
+  register: __pyenv_rc__
+
+#- name: "[check whether pyenv update already installed]"
+#  stat:
+#    path: "{{ __pyenv_base_path__ }}/plugins/pyenv-update/bin/pyenv-update"
+#  register: __pyenv_update_bin__
+
+- name: "[set install status variable]"
+  set_fact:
+    __pyenv_available__: "{{ __pyenv_bin__.stat.exists and __pyenv_rc__.stat.exists }}"
+
+- name: "[set python build options]"
+  set_fact:
+    __pyenv_python_configure_opts__: "{{ python_build_opts }}"
+  when: python_build_opts is defined
+
+- name: "[set python build options]"
+  set_fact:
+    __pyenv_python_configure_opts__: ""
+  when: python_build_opts is not defined
+
+- name: "[check whether virtualenv path is set when using pyenv]"
+  fail:
+    msg: "'python_virtualenv_base' set when using pyenv, this is not allowed"
+  no_log: false
+  when: python_virtualenv_base is defined and python_type == "pyenv"
+
+- name: "[check whether virtualenv python executable is set]"
+  fail:
+    msg: "'python_virtualenv_exe' set when using pyenv, this is not allowed"
+  no_log: false
+  when: python_virtualenv_exe is defined and python_type == "pyenv"

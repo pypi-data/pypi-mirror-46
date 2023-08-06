@@ -1,0 +1,102 @@
+doc:
+  short_help: "Check out or pulls a git repo."
+  help: |
+    Clones or pulls a git repository.
+
+    Create the group/owner if not available on the system. This does not put the owner into the group if both are specified,
+    so do that before-hand if you need that much control.
+
+    This does not install 'git' if it isn't already available and will fail if that's the case.
+  examples:
+    - title: Clone the 'freckles' git repo into $HOME.
+      vars:
+        repo: https://gitlab.com/freckles-io/freckles.git
+        dest: ~/freckles
+    - title: Clone the 'freckles' git repo, create users if not exist already.
+      desc: |
+        This creates the group/user 'freckles' as well as the parent directory ``/var/lib/parent`` (if necessary),
+        then checks out the 'freckles' git repo into it, and changes the owner and group to be 'freckles'.
+      vars:
+        repo: https://gitlab.com/freckles-io/freckles.git
+        dest: /var/lib/parent/freckles
+        owner: freckles
+        group: freckles
+
+args:
+  repo:
+    doc:
+      short_help: "The source repository."
+    type: string
+    required: true
+    cli:
+      metavar: URL
+  dest:
+    doc:
+      short_help: "The destination path."
+    type: string
+    required: true
+    cli:
+      metavar: PATH
+  version:
+    doc:
+      short_help: "The version (tag, branch, hash, ..) to use."
+    type: string
+    required: true
+    default: master
+#  become:
+#    doc:
+#      short_help: "Whether to use elevated privileges."
+#    type: boolean
+#    required: false
+#    default: false
+  owner:
+    doc:
+      short_help: "The owner of the target folder."
+    type: string
+    required: false
+  group:
+    doc:
+      short_help: "The group of the target folder."
+    type: string
+    required: false
+
+meta:
+  tags:
+    - git
+    - version control
+
+frecklets:
+  - group-exists:
+      frecklet::skip: "{{:: group | true_if_empty ::}}"
+      group: "{{:: group ::}}"
+  - user-exists:
+      frecklet::skip: "{{:: owner | true_if_empty ::}}"
+      name: "{{:: owner ::}}"
+  - parent-folder-exists:
+      frecklet::skip: "{{:: owner | true_if_all_empty(group) ::}}"
+      path: "{{:: dest ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+  - task:
+      become: "{{:: owner | true_if_not_empty ::}}"
+    frecklet:
+      name: git
+      type: ansible-module
+      idempotent: false
+      internet: true
+      elevated: "{{:: owner | true_if_not_empty ::}}"
+      references:
+        "'git' Ansible module": "https://docs.ansible.com/ansible/latest/modules/git_module.html"
+      msg: "check out git repo '{{:: repo ::}}'"
+      desc: |
+        Clone (if destination is empty) or pull the git repo '{{:: repo ::}}' to '{{:: dest ::}}'{%:: if version ::%}, using branch/tag/version '{{:: version ::}}'{%:: endif ::%}.
+
+    vars:
+      dest: "{{:: dest ::}}"
+      repo: "{{:: repo ::}}"
+      version: "{{:: version ::}}"
+  - path-is-owned-by:
+      frecklet::skip: "{{:: owner | true_if_all_empty(group) ::}}"
+      path: "{{:: dest ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"

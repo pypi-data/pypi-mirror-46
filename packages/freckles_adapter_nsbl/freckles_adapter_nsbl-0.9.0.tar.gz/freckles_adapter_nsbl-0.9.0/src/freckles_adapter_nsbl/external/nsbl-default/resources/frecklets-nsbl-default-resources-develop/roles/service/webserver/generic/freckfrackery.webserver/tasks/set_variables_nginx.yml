@@ -1,0 +1,14 @@
+---
+
+- name: "[setting extra nginx vars]"
+  set_fact:
+    "{{ __nginx_config_item__.0 }}": "{{ __nginx_config_item__.1 }}"
+  loop: "{{ webserver_nginx_config | dictsort }}"
+  loop_control:
+    loop_var: __nginx_config_item__
+
+- name: "[setting various nginx vars]"
+  set_fact:
+    nginx_user: "{{ webserver_user }}"
+    nginx_vhosts: []
+    nginx_remove_default_vhost: true

@@ -1,0 +1,350 @@
+---
+doc:
+  short_help: "Ensures a webserver is installed and running."
+  help: |
+    This frecklet helps you set up a webserver.
+
+    Currently the 'nginx' and 'apache' webservers are supported. This does not configure the webserver, except for some
+    basic stuff. It does, however, setup dependencies like letsencrypt certificates, htpasswd files, etc.
+
+    More features are planned, like setting up php and configure it to work with the webserver, for example.
+
+    To do webserver configuration, use one of the templig frecklets, like 'apache-vhost-exists'. More of those will be
+    coming in the future.
+
+  further_reading:
+    "freckfrackery.webserver Ansible role": https://gitlab.com/freckfrackery/freckfrackery.webserver
+    "geerlingguy.apache Ansible role": https://github.com/geerlingguy/ansible-role-apache
+    "geerlingguy.apache Nginx role": https://github.com/geerlingguy/ansible-role-nginx
+  examples:
+    - title: Install Apache webserver, incl. letsencrypt and PHP
+      vars:
+        webserver: apache
+        letsencrypt_webroot: /var/www/html
+        use_https: true
+        letsencrypt_email: hello@frkl.io
+        letsencrypt_domains:
+          - dev.frkl.io
+        use_php: true
+        php_packages:
+          debian:
+            - php-zip
+            - php-curl
+            - php-gd
+            - php-mbstring
+            - php-mcrypt
+            - php-xml
+            - php-xmlrpc
+            - php-mysql
+    - title: Install Nginx webserver, incl. letsencrypt.
+      vars:
+        webserver: nginx
+        letsencrypt_webroot: /var/ww/html
+        use_https: true
+        letsencrypt_email: hello@frkl.io
+        letsencrypt_domains:
+          - dev.frkl.io
+
+
+args:
+  webserver:
+    doc:
+      short_help: "The webserver to install, either 'nginx' (default) or 'apache'."
+    type: string
+    default: nginx
+    required: false
+    cli:
+      metavar: WEBSERVER
+  skip_cert_request:
+    doc:
+      short_help: "Whether to skip letsencrypt certificate request."
+    type: boolean
+    default: false
+    required: false
+  letsencrypt_domains:
+    doc:
+      short_help: "The domains (for requesting https certificates)."
+    type: list
+    schema:
+      type: string
+    required: false
+    cli:
+      metavar: DOMAIN
+  letsencrypt_webroot:
+    doc:
+      short_help: "The document root, needed for letsencrypt certificate requests."
+    required: false
+    type: string
+    cli:
+      metavar: PATH
+  use_https:
+    doc:
+      short_help: "Whether to use https and request a letsencrypt certificate."
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+  letsencrypt_email:
+    doc:
+      short_help: "The email to use when requesting a letsencrypt certificate."
+    type: string
+    required: false
+    cli:
+      metavar: EMAIL
+  letsencrypt_staging:
+    doc:
+      short_help: "Whether to use the letsencrypt staging server (for developing -- production only allows a few requests per day)."
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+  use_basic_auth:
+    doc:
+      short_help: "Whether to setup basic auth."
+    type: boolean
+    default: false
+    required: false
+    cli:
+      enabled: false
+  basic_auth_users:
+    doc:
+      short_help: "A dict with username as key, password as value."
+    type: dict
+    required: false
+    cli:
+      enabled: false
+  basic_auth_user_file:
+    doc:
+      short_help: "The file to store htpasswd information."
+    type: string
+    required: false
+    default: "/etc/htpasswd"
+    cli:
+      show_default: true
+  webserver_user:
+    doc:
+      short_help: "The user to run the webserver as."
+    type: string
+    required: false
+    cli:
+      metavar: USERNAME
+  webserver_group:
+    doc:
+      short_help: "The group to run the webserver as (if applicable)."
+    type: string
+    required: false
+    cli:
+      metavar: GROUP
+  webserver_apache_config:
+    doc:
+      short_help: "Extra, Apache-specific vars."
+      further_reading:
+        - "[geerlingguy.nginx Ansible role](https://github.com/geerlingguy/ansible-role-apache)"
+    type: dict
+    required: false
+    cli:
+      enabled: false
+      help: |
+        Key/Value pairs in this variable will be forwared to the [geerligguy.nginx Ansible role](https://github.com/geerlingguy/ansible-role-apache), check its documentation for details.
+  webserver_nginx_config:
+    doc:
+      short_help: "Extra, Nginx-specific vars."
+      help: |
+        Key/Value pairs in this variable will be forwared to the [geerligguy.nginx Nginx role](https://github.com/geerlingguy/ansible-role-nginx), check its documentation for details.
+      further_reading:
+        - "[geerlingguy.nginx Ansible role](https://github.com/geerlingguy/ansible-role-nginx)"
+    type: dict
+    required: false
+    cli:
+      enabled: false
+  listen_port:
+    doc:
+      short_help: "The port the webserver is listening on by default."
+    type: "integer"
+    default: 80
+    required: false
+    cli:
+      metavar: PORT
+  listen_port_https:
+    doc:
+      short_help: "The port the webserver is listening on by default (for https)."
+    type: "integer"
+    required: false
+    default: 443
+    cli:
+      metavar: PORT
+  use_php:
+    doc:
+      short_help: "Whether to install & enable PHP (fpm)."
+    required: false
+    type: boolean
+    default: false
+    cli:
+      is_flag: true
+  php_packages:
+    doc:
+      short_help: "Platform-dependent php-package names."
+      help: |
+        A map of platform-dependent php packages to install.
+
+        Specified in the form:
+
+        ```
+        php_packages:
+          <platform_matcher>:
+            - <pkg1>
+            - ...
+        ```
+
+        For example:
+        ```
+        php_packages:
+          debian:
+            - php-zip
+          ubuntu:
+            - php-zip
+            - php-gd
+          redhat:
+            - <whatever, no idea how those are named>
+        ```
+    type: dict
+    required: false
+    default: {}
+    empty: true
+    cli:
+      enabled: false
+  php_config:
+    doc:
+      short_help: "PHP config"
+      help: |
+        PHP config.
+
+        This forwards 'fpm'-related configuration key/values to the [geerlingguy.php Ansible role](https://github.com/geerlingguy/ansible-role-php)". For a list of available vars refer to its README file.
+    type: dict
+    required: false
+    default: {}
+    empty: true
+    cli:
+      enabled: false
+  php_fpm_user:
+    doc:
+      short_help: The user to run the php-fpm daemon.
+    type: string
+    required: false
+    cli:
+      metavar: USER
+  php_fpm_group:
+    doc:
+      short_help: The group to run the php-fpm daemon.
+    type: string
+    required: false
+    cli:
+      metavar: GROUP
+  php_fpm_config:
+    doc:
+      short_help: "PHP fpm config"
+      help: |
+        PHP fpm config.
+
+        This forwards 'fpm'-related configuration key/values to the [geerlingguy.php Ansible role](https://github.com/geerlingguy/ansible-role-php)". Available vars:
+
+          - php_fpm_listen: "127.0.0.1:9000"
+          - php_fpm_listen_allowed_clients: "127.0.0.1"
+          - php_fpm_pm_max_children: 50
+          - php_fpm_pm_start_servers: 5
+          - php_fpm_pm_min_spare_servers: 5
+          - php_fpm_pm_max_spare_servers: 5
+
+      further_reading:
+        - "[geerlingguy.php Ansible role](https://github.com/geerlingguy/ansible-role-php)"
+    type: dict
+    required: false
+    default: {}
+    empty: true
+    schema:
+      php_fpm_listen:
+        required: false
+        type: string
+      php_fpm_listen_allowed_clients:
+        required: false
+        type: string
+      php_fpm_max_children:
+        required: false
+        type: integer
+      php_fpm_start_servers:
+        required: false
+        type: integer
+      php_fpm_min_spare_servers:
+        required: false
+        type: integer
+      php_fpm_max_spare_servers:
+        required: false
+        type: integer
+    cli:
+      enabled: false
+  restart_webserver:
+    doc:
+      short_help: "Whether to restart the webserver afterwards."
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+
+meta:
+  tags:
+    - webserver
+    - nginx
+    - apache
+    - setup
+    - web
+    - service
+    - featured-frecklecutable
+
+frecklets:
+#  - user-exists:
+#      name: "{{:: webserver_user ::}}"
+#      group: "{{:: webserver_group ::}}"
+  - task:
+      roles:
+        - geerlingguy.apache
+        - geerlingguy.nginx
+        - geerlingguy.php
+        - thefinn93.letsencrypt
+    frecklet:
+      name: freckfrackery.webserver
+      type: ansible-role
+      msg: "install the {{:: webserver ::}} webserver"
+      idempotent: true
+      elevated: true
+      internet: true
+      references:
+        "'freckfrackery.webserver' Ansible role": "https://gitlab.com/freckfrackery/freckfrackery.webserver"
+    vars:
+      webserver_name: "{{:: webserver ::}}"
+      webserver_letsencrypt_webroot: "{{:: letsencrypt_webroot ::}}"
+      webserver_use_https: "{{:: use_https ::}}"
+      webserver_letsencrypt_email: "{{:: letsencrypt_email ::}}"
+      webserver_letsencrypt_staging: "{{:: letsencrypt_staging ::}}"
+      webserver_use_basic_auth: "{{:: use_basic_auth ::}}"
+      webserver_basic_auth_users: "{{:: basic_auth_users ::}}"
+      webserver_basic_auth_user_file: "{{:: basic_auth_user_file ::}}"
+      webserver_user: "{{:: webserver_user ::}}"
+      webserver_group: "{{:: webserver_group ::}}"
+      webserver_apache_config: "{{:: webserver_apache_config ::}}"
+      webserver_nginx_config: "{{:: webserver_nginx_config ::}}"
+      webserver_listen_port: "{{:: listen_port ::}}"
+      webserver_listen_port_ssl: "{{:: listen_port_https ::}}"
+      webserver_use_php: "{{:: use_php ::}}"
+      webserver_php_packages: "{{:: php_packages ::}}"
+      webserver_php_config: "{{:: php_config ::}}"
+      webserver_php_fpm_user: "{{:: php_fpm_user ::}}"
+      webserver_php_fpm_group: "{{:: php_fpm_group ::}}"
+      webserver_php_fpm_config: "{{:: php_fpm_config ::}}"
+      webserver_letsencrypt_domains: "{{:: letsencrypt_domains ::}}"
+      webserver_skip_cert_request: "{{:: skip_cert_request ::}}"
+  - init-service-restarted:
+      frecklet::skip: "{{:: restart_webserver | negate ::}}"
+      name: "{{:: webserver ::}}"

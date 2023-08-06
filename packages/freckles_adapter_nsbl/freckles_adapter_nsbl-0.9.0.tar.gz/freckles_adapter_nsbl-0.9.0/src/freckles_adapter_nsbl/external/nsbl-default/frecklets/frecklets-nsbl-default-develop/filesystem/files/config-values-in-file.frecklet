@@ -1,0 +1,91 @@
+doc:
+  short_help: Adds key/value pairs to a file.
+  help: |
+    Adds one or several key/value pairs to a file.
+
+    For every pair, this looks for a line in a file that starts with the value of the ``key`` and ``sep`` variables.
+    If it finds it, it'll replace that line with the provided ``key``/``value`` pair, separated by ``sep``.
+
+    If your ``sep`` value contains whitespaces or special characters, the reg-ex matching probably won't work reliably and you
+    might not be able to use this.
+
+    If it doesn't find a match, the key/value pair will be appended to the end of the file.
+
+    Missing user/group/parent-dir/file will be created if necessary.
+  examples:
+    - title: Ensure a few key/value pairs exists in a file.
+      vars:
+        path: /tmp/app.config
+        sep: ": "
+        config:
+          my_key_1: my_value_1
+          my_key_2: my_value_2
+
+args:
+  config:
+    doc:
+      short_help: A dict of config key/value pairs.
+    type: dict
+    required: true
+  sep:
+    doc:
+      short_help: The seperator token.
+    type: string
+    default: ' = '
+    required: true
+    cli:
+      show_default: true
+  path:
+    doc:
+      short_help: The path to the file
+    type: string
+    required: true
+  owner:
+    doc:
+      short_help: "The owner of the file."
+    type: string
+    required: false
+    cli:
+      metavar: USER
+  group:
+    doc:
+      short_help: "The group of the file."
+    type: string
+    required: false
+    cli:
+      metavar: GROUP
+  mode:
+    doc:
+      short_help: "The permissions of the file."
+    type: string
+    required: false
+    cli:
+      metavar: MODE
+  become:
+    doc:
+      short_help: Whether to use elevated privileges.
+    type: boolean
+    required: false
+
+frecklets:
+  - file-is-present:
+      path: "{{:: path ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: mode ::}}"
+  - task:
+      loop: "{{:: config | dictsort ::}}"
+      become: "{{:: become ::}}"
+    frecklet:
+      name: lineinfile
+      type: ansible-module
+      msg: "set config values in file: {{:: path ::}}"
+      idempotent: false    # possible that file has changed in the same run
+      internet: false
+      elevated: "{{:: become ::}}"
+      references:
+        "'lineinfile' Ansible module": "https://docs.ansible.com/ansible/latest/modules/lineinfile_module.html"
+    vars:
+      path: "{{:: path ::}}"
+      regexp: "^{{ item.0 }}{{:: sep ::}}"
+      line: "{{ item.0 }}{{:: sep ::}}{{ item.1 }}"

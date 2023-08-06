@@ -1,0 +1,73 @@
+---
+# tasks file for ansible-nix-single
+
+# - name: test whether nix-installer line is already present in .profile
+#   command: grep -q "# added by Nix installer" "{{ ansible_env.HOME }}/.profile"
+#   register: nix_line
+#   check_mode: false
+#   ignore_errors: true
+#   changed_when: false
+#   when: 'nix_env_binary.stat.exists == false'
+
+- name: downloading nix installer script
+  get_url:
+    url: "{{ nix_installer_url }}"
+    dest: "/tmp/nix_install.sh"
+    mode: 0700
+    force: yes
+  become: no
+
+- name: downloading nix installer signature
+  get_url:
+    url: "{{ nix_installer_url }}.sig"
+    dest: "/tmp/nix_install.sh.sig"
+    mode: 0700
+    force: yes
+  when: nix_verify_installer
+
+- name: downloading public gpg key
+  command: gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys B541D55301270E0BCF15CA5D8170B4726D7198DE
+  when: nix_verify_installer
+
+- name: verifying installer signature
+  command: gpg --verify /tmp/nix_install.sh.sig
+  when: nix_verify_installer
+
+- name: running nix installer
+  become: no
+  shell: /tmp/nix_install.sh
+  args:
+    creates: "{{ ansible_env.HOME  }}/.nix-profile/bin/nix-env"
+  environment:
+    USER: "{{ ansible_env.USER | default('root') }}"
+    ALLOW_PREEXISTING_INSTALLATION: "x"
+  when: "ansible_os_family != 'Darwin'"
+
+- name: running nix installer on Mac OS X
+  become: no
+  shell: /tmp/nix_install.sh
+  args:
+    creates: "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
+  environment:
+    USER: "{{ ansible_env.USER | default('root') }}"
+    ALLOW_PREEXISTING_INSTALLATION: "x"
+  when: "ansible_os_family == 'Darwin'"
+
+# - name:
+# source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+
+# - name: remove nix-added line in .profile
+#   lineinfile: dest="{{ ansible_env.HOME }}/.profile" regexp='# added by Nix installer' state=absent
+#   ignore_errors: true
+#   when: 'nix_line.rc == 1'
+
+# - name: add nix path
+#   become: no
+#   lineinfile:
+#     dest: "{{ item }}"
+#     line: "if [ -e \"$HOME/.nix-profile/etc/profile.d/nix.sh\" ]; then source \"$HOME/.nix-profile/etc/profile.d/nix.sh\"; fi  # added by freckles"
+#     create: yes
+#   when: 'nix_env_binary.stat.exists == False and add_to_path'
+#   ignore_errors: true
+#   with_items:
+#     - "{{ rc_files_to_add_path_to }}"

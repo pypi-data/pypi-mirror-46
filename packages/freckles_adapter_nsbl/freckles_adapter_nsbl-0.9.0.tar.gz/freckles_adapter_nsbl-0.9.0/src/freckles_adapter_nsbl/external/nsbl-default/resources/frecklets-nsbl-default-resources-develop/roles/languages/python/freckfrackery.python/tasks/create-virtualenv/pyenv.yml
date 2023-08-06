@@ -1,0 +1,8 @@
+---
+
+- name: "create virtual environment: {{ python_virtualenv_name }}"
+  shell: . "{{ __pyenv_base_path__ }}/.pyenvrc" && pyenv virtualenv "{{ __python_version_final__ }}" "{{ python_virtualenv_name }}"
+  args:
+    creates: "{{ __pyenv_base_path__ }}/versions/{{ python_virtualenv_name }}/bin/python"
+  become: "{{ python_owner != ansible_env.USER }}"
+  become_user: "{{ python_owner }}"

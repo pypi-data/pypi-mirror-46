@@ -1,0 +1,32 @@
+---
+
+- name: "[getting target details]"
+  stat:
+    path: "{{ intermingle_target }}"
+  register: __intermingle_target_details__
+
+- name: "[setting folder facts]"
+  set_fact:
+    __intermingle_target_exists__: "{{ __intermingle_target_details__.stat.exists }}"
+    __intermingle_target_is_dir__: false
+
+- name: "[setting more folder facts]"
+  set_fact:
+    __intermingle_target_is_dir__: "{{ __intermingle_target_details__.stat.isdir }}"
+  when: __intermingle_target_exists__
+
+- name: "[fail if existing folder not allowed]"
+  fail:
+    msg: "Target folder '{{ intermingle_target }}' already exists, and 'fail_if_target_exists' set to true."
+  when: __intermingle_target_exists__ and intermingle_fail_if_target_exists
+
+- name: "creating target folder"
+  file:
+    path: "{{ intermingle_target }}"
+    owner: "{{ intermingle_folder_owner | default(omit) }}"
+    group: "{{ intermingle_folder_group | default(omit) }}"
+    state: directory
+    recurse: true
+  become: "{{ intermingle_become }}"
+  when: not __intermingle_target_exists__
+

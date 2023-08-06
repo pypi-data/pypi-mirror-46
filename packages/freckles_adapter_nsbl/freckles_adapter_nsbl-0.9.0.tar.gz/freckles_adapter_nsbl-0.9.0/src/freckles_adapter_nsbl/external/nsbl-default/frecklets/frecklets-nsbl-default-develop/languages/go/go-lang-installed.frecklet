@@ -1,0 +1,43 @@
+doc:
+  short_help: "Make sure Go is available."
+  help: |
+    Installs the Go programming language.
+
+  further_reading:
+    "fubarhouse.golang Ansible role": "https://github.com/fubarhouse/ansible-role-golang"
+  examples:
+    - title: "Install go version 1.11.4."
+      vars:
+        go_version: "1.11.4"
+    - title: "Install latest version of go."
+
+args:
+  go_version:
+    required: false
+    doc:
+      short_help: "The version of go."
+    cli:
+      param_decls:
+        - --version
+
+meta:
+  tags:
+    - featured-frecklecutable
+    - go
+    - language
+    - install
+
+frecklets:
+  - frecklet:
+      name: fubarhouse.golang
+      type: ansible-role
+      idempotent: true
+      internet: true
+      elevated: true
+      references:
+        "'fubarhouse.golang' Ansible role": "https://github.com/fubarhouse/ansible-role-golang"
+    task:
+      include-type: import
+      become: true
+    vars:
+      go_version: "{{:: go_version ::}}"

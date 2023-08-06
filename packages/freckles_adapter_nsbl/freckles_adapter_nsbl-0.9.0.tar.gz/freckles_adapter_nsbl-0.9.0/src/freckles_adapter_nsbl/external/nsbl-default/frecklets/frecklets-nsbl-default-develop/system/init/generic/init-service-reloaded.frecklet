@@ -1,0 +1,42 @@
+---
+doc:
+  short_help: "Reload init service."
+  examples:
+    - title: Reload the 'apache2' service.
+      desc: |
+        This doesn't enable the apache2 service, but starts it if it isn't already running.
+      vars:
+        name: apache2
+
+args:
+  name:
+    doc:
+      short_help: "The name of the service."
+    type: string
+    required: true
+    cli:
+      metavar: SERVICE_NAME
+      param_type: argument
+
+meta:
+  tags:
+    - service
+    - systemd
+    - init
+
+frecklets:
+  - task:
+      become: true
+    frecklet:
+      type: ansible-module
+      name: service
+      msg: "reload service: {{:: name ::}}"
+      idempotent: true
+      internet: false
+      elevated: true
+      references:
+        "'service' Ansible module'": "https://docs.ansible.com/ansible/latest/modules/service_module.html"
+    vars:
+      name: "{{:: name ::}}"
+      state: reloaded
+

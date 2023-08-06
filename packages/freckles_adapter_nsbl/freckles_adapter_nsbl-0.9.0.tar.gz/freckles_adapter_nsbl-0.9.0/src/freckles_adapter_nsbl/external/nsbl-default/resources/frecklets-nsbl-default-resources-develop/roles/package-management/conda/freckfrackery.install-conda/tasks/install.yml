@@ -1,0 +1,35 @@
+---
+
+- name: creating conda parent directory
+  file:
+    path: "{{ conda_parent_dir }}"
+    state: directory
+  become: no
+
+- name: downloading linux miniconda install
+  get_url:
+    url: "{{ linux_miniconda_installer_url }}"
+    dest: "/tmp/miniconda_install.sh"
+    validate_certs: "{{ conda_validate_certs }}"
+    mode: 0700
+  become: no
+  when: ansible_os_family == "Debian" or ansible_os_family == "RedHat"
+
+- name: downloading macos miniconda install
+  get_url:
+    url: "{{ macos_miniconda_installer_url }}"
+    dest: "/tmp/miniconda_install.sh"
+    validate_certs: "{{ conda_validate_certs }}"
+    mode: 0700
+  become: no
+  when: ansible_os_family == "Darwin"
+
+- name: running miniconda installer
+  shell: bash /tmp/miniconda_install.sh -f -b -p "{{ conda_parent_dir }}/conda"
+  args:
+    creates: "{{ conda_parent_dir }}/conda/bin/conda }}"
+  become: no
+
+- name: updating conda
+  become: no
+  shell: "{{ conda_parent_dir }}/conda/bin/conda update {{ conda_extra_args }} --name root conda"

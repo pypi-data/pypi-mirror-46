@@ -1,0 +1,17 @@
+- name: "read public key"
+  slurp:
+    src: "{{ __path_to_key__ }}.pub"
+  register: __slurped_public_ssh_key__
+
+- name: "remove ssh key as gitlab deploy key for project: {{ __project_name__ }}"
+  become: false
+  no_log: true
+  gitlab_deploy_key:
+    api_url: https://gitlab.com/api
+    private_token: "{{ __gitlab_private_access_token__ }}"
+    project: "{{ __project_name__ }}"
+    title: "{{ __deploy_key_title__ }}"
+    state: absent
+    key: "{{ __slurped_public_ssh_key__.content | b64decode }}"
+
+

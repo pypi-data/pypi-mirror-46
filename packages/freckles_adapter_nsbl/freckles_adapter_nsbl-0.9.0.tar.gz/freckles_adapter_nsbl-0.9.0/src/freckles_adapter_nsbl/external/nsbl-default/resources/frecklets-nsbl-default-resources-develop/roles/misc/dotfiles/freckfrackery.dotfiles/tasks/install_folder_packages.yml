@@ -1,0 +1,12 @@
+---
+
+- name: "assembling package folder metadata"
+  set_fact:
+    __folder_packages_metadata__: "{{ __package_folders__ | overlay_package_metadata(dotfiles_folder_package_overlay) }}"
+
+- name: "installing packages for dotfile folders within: {{ dotfiles_folder }}"
+  include_role:
+    name: freckfrackery.install-pkgs
+  vars:
+    install_packages: "{{ __folder_packages_metadata__ }}"
+    install_ignore_errors: "{{ dotfiles_ignore_install_errors }}"

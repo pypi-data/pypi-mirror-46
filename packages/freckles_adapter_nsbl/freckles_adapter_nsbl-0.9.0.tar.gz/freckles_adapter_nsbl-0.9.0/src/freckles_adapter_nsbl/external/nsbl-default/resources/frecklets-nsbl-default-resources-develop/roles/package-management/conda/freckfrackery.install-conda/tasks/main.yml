@@ -1,0 +1,28 @@
+---
+# tasks to install the conda package manager
+
+- name: "[test whether conda executable exists]"
+  stat: path="{{ conda_parent_dir }}/conda/bin/conda"
+  become: no
+  register: conda_binary
+
+# this contains the tasks that require sudo permissions
+- name: "[preparing nix install]"
+  include_tasks: prepare.yml
+  when: conda_binary.stat.exists == False
+
+- name: "[installing conda]"
+  include_tasks: install.yml
+  when: conda_binary.stat.exists == False
+
+- name: adding conda path
+  become: no
+  lineinfile:
+    dest: "{{ conda_add_path_file }}"
+    line: "if [ -e \"$HOME/{{ conda_rel_path }}/conda/bin/conda\" ]; then export PATH=\"$HOME/{{ conda_rel_path }}/conda/bin:$PATH\"; fi   # added automatically"
+    create: yes
+  ignore_errors: true
+  loop: "{{ conda_add_path_files }}"
+  loop_control:
+    loop_var: conda_add_path_file
+  when: 'conda_add_to_path'

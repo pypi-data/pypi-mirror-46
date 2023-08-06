@@ -1,0 +1,100 @@
+doc:
+  short_help: Ensure an admin user with elevated permissions exists.
+  help: |
+    Create an admin user with an (optionally) provided password (hashed, for details see: [Ansible user module](https://docs.ansible.com/ansible/latest/modules/user_module.html)).
+
+    If no ``admin_password`` argument is provided, the created user won't be able do login via ssh via
+    password auth, and they won't be able to do sudo if passwordless sudo is not enabled for the user.
+
+    Also lets you choose the default shell of that user, provide public ssh keys, and whether passwordless sudo should be enabled for the user.
+  furter_reading:
+    - https://docs.ansible.com/ansible/latest/modules/user_module.html
+
+  examples:
+    - title: "Create admin user with passwordless-sudo enabled, and ssh-keys added."
+      desc: |
+        Create
+      vars:
+        user_name: 'admin'
+        ssh_keys:
+          - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQA...."
+        passwordless_sudo: true
+
+meta:
+  tags:
+    - user
+    - admin
+    - featured-frecklecutable
+    - hardening
+
+args:
+    user_name:
+      doc:
+        short_help: The username of the admin user.
+      type: string
+      required: true
+      cli:
+        param_type: argument
+    admin_password:
+      doc:
+        short_help: "The user password."
+        help: |
+          This sets the users password in plain text. The user input will be sha512-hashed before forwareded to the connector.
+
+          If not provided, the user won't be able to login via password auth, and can't do
+          sudo if passwordless sudo is not configured.
+      type: string
+      secret: true
+      required: false
+      cli:
+        metavar: PWD
+    shell:
+      doc:
+        short_help: Default shell of admin user.
+      type: string
+      required: false
+      default: "/bin/bash"
+      cli:
+        metavar: SHELL
+    ssh_keys:
+      doc:
+        short_help: "A list of public ssh keys for this admin user."
+      type: list
+      required: false
+      cli:
+        metavar: KEY
+    passwordless_sudo:
+      doc:
+        short_help: Whether to enable passwordless sudo for this user.
+      type: boolean
+      required: false
+      cli:
+        is_flag: true
+      default: false
+
+frecklets:
+
+  - frecklet:
+      name: freckfrackery.basic-security
+      type: ansible-role
+      idempotent: true
+      elevated: true
+      internet: false
+      references:
+        "'freckfrackery.basic-security' Ansible role": "https://gitlab.com/freckfrackery/freckfrackery.basic-security"
+      msg: "ensure admin user '{{:: user_name ::}}' exists"
+      desc: |
+        Ensure user '{{:: user_name ::}} exists on this system is the sudoers group to be able to gain elevated permissions.
+        {%:: if passwordless_sudo ::%}Grant the user permission to execute ``sudo`` without having to enter a password.{%:: endif ::%}
+
+        {%:: if ssh_keys ::%}Add the following public ssh keys to ``~{{:: user_name ::}}/.ssh/authorized_keys``:
+        {%:: for k in ssh_keys ::%}
+        - {{:: k ::}}
+        {%:: endfor ::%}{%:: endif ::%}
+    vars:
+      basic_security_user_name: "{{:: user_name ::}}"
+      basic_security_user_pw: "{{:: admin_password ::}}"
+      basic_security_user_shell: "{{:: shell ::}}"
+      basic_security_user_public_keys: "{{:: ssh_keys ::}}"
+      basic_security_enable_passwordless_sudo: "{{:: passwordless_sudo ::}}"
+

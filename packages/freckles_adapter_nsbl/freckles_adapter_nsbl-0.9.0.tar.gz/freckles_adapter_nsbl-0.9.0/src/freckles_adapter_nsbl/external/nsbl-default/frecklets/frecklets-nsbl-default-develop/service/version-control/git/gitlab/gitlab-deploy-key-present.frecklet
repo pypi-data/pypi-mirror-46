@@ -1,0 +1,52 @@
+doc:
+  short_help: Add a deploy key to a Gitlab server.
+
+args:
+  user:
+    doc:
+      short_help: The (local) user.
+    type: string
+    required: false
+  access_token:
+    doc:
+      short_help: The Gitlab access token.
+    type: string
+    required: true
+    secret: true
+  path_to_key:
+    doc:
+      short_help: The path to the ssh key to create.
+    type: string
+    required: true
+  gitlab_user:
+    doc:
+      short_help: The Gitlab user- or organization name.
+    type: string
+    required: true
+  gitlab_project:
+    doc:
+      short_help: The name of the Gitlab project.
+    type: string
+    required: true
+  deploy_key_title:
+    doc:
+      short_help: The title of the deploy key on Gitlab.
+    type: string
+    required: false
+    default: deploy
+frecklets:
+  - user-exists:
+      frecklet::skip: "{{:: user | true_if_empty ::}}"
+      name: "{{:: user ::}}"
+  - ssh-key-exists:
+      user: "{{:: user ::}}"
+      path_to_key: "{{:: path_to_key ::}}"
+  - add-gitlab-deploy-key.yml:
+      frecklet::type: ansible-tasklist
+      __path_to_key__: "{{:: path_to_key ::}}"
+      __project_name__: "{{:: gitlab_user ::}}/{{:: gitlab_project ::}}"
+      __gitlab_private_access_token__: "{{:: access_token ::}}"
+      __deploy_key_title__: "{{:: deploy_key_title ::}}"
+      __become__: "{{:: user | false_if_empty ::}}"
+      __become_user__: "{{:: user ::}}"
+

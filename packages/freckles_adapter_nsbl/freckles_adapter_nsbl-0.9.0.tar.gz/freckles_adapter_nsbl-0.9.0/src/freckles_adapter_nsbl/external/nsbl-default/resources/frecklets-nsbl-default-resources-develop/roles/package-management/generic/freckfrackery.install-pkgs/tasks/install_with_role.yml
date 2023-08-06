@@ -1,0 +1,25 @@
+---
+# this is a bit silly, but couldn't figure out a better way...
+
+- name: "[backing up vars overwrittern by role]"
+  set_fact: {"{{ __role_temp_item__.key }}_backup": "{{ lookup('vars', __role_temp_item__.key, default='') }}"}
+  loop: "{{ __role_vars__ | dict2items }}"
+  loop_control:
+    loop_var: __role_temp_item__
+
+- name: "[setting role vars]"
+  set_fact: {"{{ __role_temp_item__.key }}": "{{ __role_temp_item__.value }}"}
+  loop: "{{ __role_vars__ | dict2items }}"
+  loop_control:
+    loop_var: __role_temp_item__
+
+- name: "installing package using role '{{ __role_name__ }}'"
+  include_role:
+    name: "{{ __role_name__ }}"
+  become: "{{ __role_become__ }}"
+
+- name: "[restoring vars overwritten by role]"
+  set_fact: {"{{ __role_temp_item__.key }}": "{{ lookup('vars', __role_temp_item__.key + '_backup') }}"}
+  loop: "{{ __role_vars__ | dict2items }}"
+  loop_control:
+    loop_var: __role_temp_item__

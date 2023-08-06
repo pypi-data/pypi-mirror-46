@@ -1,0 +1,16 @@
+---
+
+- name: "[getting destination details]"
+  stat:
+    path: "{{ intermingle_src }}"
+  register: __intermingle_src_details__
+
+- name: "[setting folder facts]"
+  set_fact:
+    __intermingle_src_exists__: "{{ __intermingle_src_details__.stat.exists }}"
+    __intermingle_src_is_dir__: false
+
+- name: "[setting more folder facts]"
+  set_fact:
+    __intermingle_src_is_dir__: "{{ __intermingle_src_details__.stat.isdir }}"
+  when: __intermingle_src_exists__

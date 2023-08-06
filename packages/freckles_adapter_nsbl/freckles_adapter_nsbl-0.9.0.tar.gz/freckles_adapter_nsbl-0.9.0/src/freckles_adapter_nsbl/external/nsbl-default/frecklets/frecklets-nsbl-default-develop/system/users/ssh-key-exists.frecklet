@@ -1,0 +1,33 @@
+doc:
+  short_help: Ensures an ssh key exists for a user.
+  help: |
+    Ensures an ssh key exists for a user.
+
+    Creates one with empty password if necessary..
+
+args:
+  user:
+    doc:
+      short_help: The name of the user.
+    type: string
+    required: false
+  path_to_key:
+    doc:
+      short_help: The path to the ssh key.
+    type: string
+    required: true
+
+frecklets:
+  - parent-folder-exists:
+      path: "{{:: path_to_key ::}}"
+      owner: "{{:: user ::}}"
+  - frecklet:
+      name: command
+      type: ansible-module
+      msg: "create ssh key (if necessary): {{:: path_to_key ::}}"
+    task:
+      become: "{{:: user | false_if_empty ::}}"
+      become_user: "{{:: user ::}}"
+    vars:
+      free_form: 'ssh-keygen -q -t rsa -f {{:: path_to_key ::}} -C "" -N ""'
+      creates: "{{:: path_to_key ::}}"

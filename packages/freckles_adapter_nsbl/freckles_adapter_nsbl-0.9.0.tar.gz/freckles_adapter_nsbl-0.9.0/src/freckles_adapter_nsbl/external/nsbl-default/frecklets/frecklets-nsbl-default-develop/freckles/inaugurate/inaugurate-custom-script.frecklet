@@ -1,0 +1,48 @@
+doc:
+  short_help: Generate a custom inaugurate script.
+
+args:
+  path:
+    doc:
+      short_help: The path for the generated script.
+    type: string
+    required: true
+  owner:
+    doc:
+      short_help: The owner of the folder, will be created if necessary.
+    type: string
+    required: false
+    cli:
+      metavar: USER_NAME
+  group:
+    doc:
+      short_help: The group of the folder, will be created if necessary.
+    type: string
+    required: false
+    cli:
+      metavar: GROUP_NAME
+  mode:
+    doc:
+      short_help: The permissions of the folder.
+    type: string
+    required: false
+    default: "0775"
+    cli:
+      metavar: MODE
+meta:
+  tags:
+    - freckles
+    - inaugurate
+
+frecklets:
+  - parent-folder-exists:
+      path: "{{:: path ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+  - command-output-to-file:
+      command: "freckles inaugurate generate"
+      path: "{{:: path ::}}"
+      owner: "{{:: owner ::}}"
+      group: "{{:: group ::}}"
+      mode: "{{:: mode ::}}"
+

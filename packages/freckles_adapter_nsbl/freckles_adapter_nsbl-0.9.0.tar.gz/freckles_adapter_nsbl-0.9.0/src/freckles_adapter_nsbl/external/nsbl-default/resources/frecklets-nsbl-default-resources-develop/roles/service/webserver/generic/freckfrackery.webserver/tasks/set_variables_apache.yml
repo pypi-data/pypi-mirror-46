@@ -1,0 +1,28 @@
+---
+
+- name: "[setting extra nginx vars]"
+  set_fact:
+    "{{ __apache_config_item__.0 }}": "{{ __apache_config_item__.1 }}"
+  loop: "{{ webserver_apache_config | dictsort }}"
+  loop_control:
+    loop_var: __apache_config_item__
+
+- name: "[setting apache_mods_* vars]"
+  set_fact:
+    apache_mods_enabled: "{{ webserver_apache_config.get('apache_mods_enabled', [])}} + {{ __apache_mods_internal__ }}"
+
+#- name: "[setting site_url if custom port]"
+#  set_fact:
+#    apache_site_url: "http://{{ webserver_domain }}:{{ webserver_port }}"
+#  when: "not webserver_use_https and webserver_port != 80"
+
+- name: "[setting various apache vars]"
+  set_fact:
+    apache_user: "{{ webserver_user }}"
+    apache_group: "{{ webserver_group }}"
+#    apache_listen_port: "{{ webserver_port }}"
+#    apache_listen_ip: "{{ webserver_extra_vars.get('apache', {}).get('listen_ip', '*') }}"
+    apache_create_vhosts: false
+    apache_remove_default_vhost: true
+    apache_listen_port: "{{ webserver_listen_port }}"
+    apache_listen_port_ssl: "{{ webserver_listen_port_ssl }}"

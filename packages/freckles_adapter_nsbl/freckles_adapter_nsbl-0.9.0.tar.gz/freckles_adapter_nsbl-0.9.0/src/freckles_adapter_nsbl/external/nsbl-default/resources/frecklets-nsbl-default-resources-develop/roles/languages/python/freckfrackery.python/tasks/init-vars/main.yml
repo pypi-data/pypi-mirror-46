@@ -1,0 +1,66 @@
+- name: "[check install type]"
+  fail:
+    msg: "Support for install type '{{ python_type }}' not supported (yet)."
+  when: "python_type not in ['pyenv', 'system']"
+
+- name: "[check base path]"
+  fail:
+    msg: "'python_base_path' setting not available for python type: {{ python_type }}."
+  when: "python_type not in ['pyenv', 'conda'] and python_base_path is defined"
+
+- name: "[check virtualenv setting]"
+  fail:
+    msg: "'python_virtualenv_exe' can't be set for type: {{ python_type }}"
+  when: "python_type not in ['system'] and python_virtualenv_exe is defined"
+
+- name: "[check configure opts]"
+  fail:
+    msg: "'python_build_opts' setting not available for python type: {{ python_type }}."
+  when: "python_type not in ['pyenv'] and python_build_opts is defined"
+
+- name: "[setting default python user]"
+  set_fact:
+    python_owner: "{{ ansible_env.USER }}"
+  when: "python_owner is not defined or not python_owner"
+
+#- name: "[overwrite owner if system install]"
+#  set_fact:
+#    python_owner: "root"
+#  when: "python_type == 'system'"
+
+- name: "[calculate python owner home]"
+  set_fact:
+    __python_owner_home__: "{{ ansible_env.HOME }}"
+  when: "python_owner == ansible_env.USER"
+
+- name: "[calculate python owner home]"
+  when: "python_owner != ansible_env.USER"
+  block:
+    - getent:
+        database: passwd
+        key: "{{ python_owner }}"
+        split: ":"
+
+    - set_fact:
+        __python_owner_home__: "{{ getent_passwd[python_owner][4] }}"
+
+- name: "[setting python base path for user install]"
+  set_fact:
+    __python_base_path__: "{{ __python_owner_home__ }}"
+    __system_install__: false
+  when: python_base_path is not defined and python_owner != "root"
+
+- name: "[python base path for system install]"
+  set_fact:
+    __python_base_path__: "/usr/local"
+    __system_install__: true
+  when: python_base_path is not defined and python_owner == "root"
+
+- name: "[setting Python version]"
+  set_fact:
+    __python_version_final__: "{{ python_version | calculate_python_version(python_type) }}"
+
+# does install_type specific variable inits, as well as making sure python_version is set to a valid value
+- name: "[init '{{ python_type }}' vars]"
+  include_tasks: "{{ python_type }}.yml"
+
