@@ -1,0 +1,27 @@
+"""Tests file for hass-cli map."""
+import json
+import re
+
+from click.testing import CliRunner
+import homeassistant_cli.cli as cli
+import requests_mock
+
+
+def test_map_google(basic_entities_text) -> None:
+    """Test map feature."""
+    with requests_mock.Mocker() as mock:
+        mock.get(
+            "http://localhost:8123/api/states",
+            text=basic_entities_text,
+            status_code=200,
+        )
+
+         with mock.patch(
+        'webbrowser.open_new_tab', return_value=None
+         ) as method:
+             runner = CliRunner()
+             result = runner.invoke(
+                 cli.cli, ["--output=json", "map", "zone.school"], catch_exceptions=False
+             )
+             assert result.exit_code == 0
+             method.assert_called_with('google')
