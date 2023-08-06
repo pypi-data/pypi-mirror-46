@@ -1,0 +1,68 @@
+# -*- coding: utf-8 -*-
+# (c) Nano Nano Ltd 2019
+# $Id: wallet.py,v 1.6 2019/04/21 09:25:03 scottgreen Exp $
+
+from .config import config, log
+
+class Wallet(object):
+    wallets = {}
+
+    @classmethod
+    def add_tokens(cls, wallet, asset, quantity):
+        if (wallet, asset) not in cls.wallets:
+            cls.wallets[(wallet, asset)] = Wallet(wallet, asset)
+
+        cls.wallets[(wallet, asset)].add(quantity)
+
+    @classmethod
+    def subtract_tokens(cls, wallet, asset, quantity):
+        if (wallet, asset) not in cls.wallets:
+            cls.wallets[(wallet, asset)] = Wallet(wallet, asset)
+
+        cls.wallets[(wallet, asset)].subtract(quantity)
+
+    def __init__(self, wallet, asset):
+        self.wallet = wallet
+        self.asset = asset
+        self.balance = 0
+
+    def _format_balance(self):
+        return '{:0,f}'.format(self.balance.normalize())
+
+    def _format_wallet_name(self):
+        return self.wallet + ":" + self.asset
+
+    def add(self, quantity):
+        self.balance += quantity
+        log.debug("%s=%s (+%s)",
+                  self._format_wallet_name(),
+                  self._format_balance(),
+                  '{:0,f}'.format(quantity))
+
+    def subtract(self, quantity):
+        self.balance -= quantity
+        log.debug("%s=%s (-%s)",
+                  self._format_wallet_name(),
+                  self._format_balance(),
+                  '{:0,f}'.format(quantity))
+
+        if self.balance < 0 and self.asset not in config.fiat_list:
+            log.warning("Balance at %s is negative %s",
+                        self._format_wallet_name(),
+                        self._format_balance())
+
+    def __str__(self):
+        return self._format_wallet_name() + "=" + self._format_balance()
+
+def audit_transactions(transaction_records):
+    log.info("==FULL AUDIT TRANSACTIONS==")
+    for tr in transaction_records:
+        if tr.buy_asset:
+            Wallet.add_tokens(tr.wallet, tr.buy_asset, tr.buy_quantity)
+
+        if tr.sell_asset:
+            Wallet.subtract_tokens(tr.wallet, tr.sell_asset, tr.sell_quantity)
+
+    log.info("==FINAL AUDIT BALANCES==")
+    for wallet in sorted(Wallet.wallets):
+        log.info(Wallet.wallets[wallet])
