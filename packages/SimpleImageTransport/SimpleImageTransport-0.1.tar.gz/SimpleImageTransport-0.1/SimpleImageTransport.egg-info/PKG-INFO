@@ -1,0 +1,45 @@
+Metadata-Version: 2.1
+Name: SimpleImageTransport
+Version: 0.1
+Summary: Simple python 3 library for transporting images to a remote machine, applying transformations and returning a response.
+Home-page: https://github.com/RaymondKirk/SimpleImageTransport
+Author: Raymond Kirk
+Author-email: ray.tunstill@live.co.uk
+License: UNKNOWN
+Description: # SimpleImageTransport
+        
+        Simple python 3 library for transporting images to a remote machine, applying transformations and returning a response.
+        
+        ## Usage
+        
+        Start a server on the remote machine:
+        
+        ```python
+        from SimpleImageTransport import ImageReceiver
+        
+        # Callback takes a single parameter image and returns a dict of useful data
+        def example_callback(img):
+            return {'message': 'image received. size={}x{}'.format(img.shape[1], img.shape[0])}
+        
+        # Initialize the application
+        flask_receiver = ImageReceiver()
+        flask_receiver.set_callback(example_callback)
+        flask_receiver.run()
+        ```
+        
+        On the local machine you can send an image and get an appropriate response:
+        
+        ```python
+        from SimpleImageTransport import ImageSender
+        import numpy as np
+        
+        img = np.zeros((1080, 1920))
+        
+        response = ImageSender(img)
+        print(response)  # {'message': 'image received. size=1920x1080'}
+        ```
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Description-Content-Type: text/markdown
