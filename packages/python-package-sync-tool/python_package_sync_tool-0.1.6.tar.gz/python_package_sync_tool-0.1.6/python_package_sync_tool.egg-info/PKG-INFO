@@ -1,0 +1,165 @@
+Metadata-Version: 2.1
+Name: python-package-sync-tool
+Version: 0.1.6
+Summary: Small tool to sync package from different machines
+Home-page: https://github.com/alex-ber/PythonPackageSyncTool
+Author: Alexander Berkovich
+License: Apache 2.0
+Description: PythonPackageSyncTool
+        =======================
+        
+        PythonPackageSyncTool is a Python utility to "fix" requirements.txt.
+        
+        It is used to make manipulation on requirements.txt that is produces by 'pip freeze'
+        
+        Getting Help
+        ============
+        
+        QuickStart
+        ==========
+        #wget https://github.com/alex-ber/PythonPackageSyncTool/archive/master.zip -O master.zip; unzip master.zip; rm master.zip
+        
+        pip3 install https://github.com/alex-ber/PythonPackageSyncTool/archive/master.zip#egg=python-package-sync-tool[tests]
+        
+        
+        
+        ====
+        
+        python3 -m pip install https://github.com/alex-ber/PythonPackageSyncTool/archive/master.zip
+        
+        cd /opt/anaconda3/lib/python3.7/site-packages/alexber/reqsync/data/
+        
+        Note: This is Path where you're actually install my utility, it can be different in your machine.
+        
+        If you use venv it will look something like:
+        
+        cd /opt/MyProject/venv/Lib/site-packages/alexber/reqsync
+        
+        ====
+        
+        Alternatively you can create these file for yourself, named driver.py:
+        
+        
+           #!/usr/bin/python3
+        
+           import alexber.reqsync.app as app
+        
+           if __name__ == "__main__":
+               app.main()
+        
+        
+        Than create file config.yml near your script (see data/config.yml) or provide all parameter using command line
+        argruments. Use ':' in places where you should naturally write '==' (see explanation below).
+        
+        Parammeters 'source' and 'destination' are required. You should also provide (requirements) file for 'source'.
+        
+        'mutual_exclusion' has default value True.
+        
+        
+        
+        ====
+        
+        After you'll go to the directory with driver script (whether provided or that you've just written). Type
+        
+        Note: I'm assuming hear that you have config.yml as in data/config.yml.
+        
+        chmod 755 driver.py
+        
+        ./driver.py --add=some_new_package:1.0.0
+        
+        This will add some_new_package with version 1.0.0 to the requirements-dest.txt
+        
+        Note:
+        
+        Semicolomn and not equal sign is used here due to Python limitaion of usage of equal sign in the value in the command line.
+        
+        You can specified multiple packages using comma delimiter.
+        
+        You can specifiy path to your config file using `--config_file`.
+        
+        It can be relative to the folder whether you put driver.py script or absolute.
+        
+        ====
+        
+        ./driver.py --add=some_new_package
+        
+        This will run quick check whether package is not in remove list.
+        
+        
+        
+        Installing from source
+        =======================
+        
+        python3 -m pip install . # only installs "required"
+        
+        python3 -m pip install .[test] # installs dependencies for tests
+        
+        ====
+        
+        From the directory with setup.py
+        
+        python3 setup.py test #run all tests
+        
+        pytest
+        
+        
+        
+        
+        Requirements
+        ============
+        
+        PythonPackageSyncTool requires the following modules.
+        
+        * Python 3.7+
+        
+        * PyYAML==5.1
+        
+        .. :changelog:
+        
+        Changelog
+        =========
+        TODO
+        
+        Add test
+        
+        # --add=zzzzzzzzzzzzzzzzzz,
+        # --add=awscli
+        # --add=awscli,
+        # --add=not_exists
+        # --add=not_exists,
+        # --remove=zzzzzzzzzzzzzzzzzz,
+        # --remove=awscli
+        # --remove=awscli,
+        # --remove=not_exists
+        # --remove=not_exists,
+        
+        
+        
+        * Fix add zzz
+        
+        *   Test mutual exclusion
+        
+        *   Test & fix use of buffer
+        
+Keywords: tools tool sync package pip
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Topic :: Utilities
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Desktop Environment
+Classifier: Topic :: Education
+Classifier: Operating System :: OS Independent
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: Unix
+Classifier: Natural Language :: English
+Requires-Python: >=3.7.1
+Provides-Extra: tests
