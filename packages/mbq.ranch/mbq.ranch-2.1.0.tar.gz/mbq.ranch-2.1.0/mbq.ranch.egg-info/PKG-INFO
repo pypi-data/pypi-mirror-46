@@ -1,0 +1,91 @@
+Metadata-Version: 2.1
+Name: mbq.ranch
+Version: 2.1.0
+Summary: MBQ Ranch
+Home-page: https://github.com/managedbyq/mbq.ranch
+Author: Managed by Q, Inc.
+Author-email: open-source@managedbyq.com
+Maintainer: Managed by Q, Inc.
+Maintainer-email: open-source@managedbyq.com
+License: Apache 2.0
+Description: Ranch
+        =====
+        
+        Standardized tooling, monitoring, and retry logic for use with Celery
+        
+        ## Installation
+        
+        Ranch is a Django application. To use Ranch with Celery, add the following to your settings file:
+        
+        ```python
+        INSTALLED_APPS = [
+            ...
+            'mbq.ranch'
+        ]
+        
+        RANCH = {
+            'env': ENV_NAME,  # e.g. production, development
+            'service': MY_SERVICE_NAME,  # e.g. os-core
+        }
+        ```
+        
+        ## Features
+        
+        ### Metrics
+        
+        Any application with Ranch installed will have Celery metrics available in [the Celery/Ranch DataDog Dashboard](https://app.datadoghq.com/dash/930140/celery--ranch).
+        
+        ### Monitors
+        
+        *TODO: Include link to Invoice's monitors once they're built*
+        
+        You may set up monitors for your application using the metrics provided by Ranch. To get started, you might want to copy Invoicing's monitors.
+        
+        ### Dead Letter Queue
+        
+        Celery jobs that fail will be stored in the application's database for inspection and reprocessing. Ranch provides an Admin interface for this.
+        
+        See [OS Core's Ranch Admin](https://api.managedbyq.com/admin/ranch/loggedtask/) for an example.
+        
+        ### Correlation IDs
+        
+        Ranch can flow correlation IDs through your Celery jobs. Ranch will *not* change any of your logging configuration, so you'll still need to do that as part of your correlation ID implementation.
+        
+        To use the correlation ID functionality, add the following settings:
+        
+        ```python
+        RANCH = {
+            ...,
+            'correlation': {
+                'getter': getter_fn,  # callable with no args that returns the current correlation ID
+                'setter': setter_fn,  # callable with one arg which should be set as the current correlation ID
+            },
+        }
+        ```
+        
+        ### Supplemental Error Tagging
+        
+        Ranch provides a hook to add additional tagging information to error item metrics. This is used in OS Core to tag each error as belonging to a specific team.
+        
+        To use this feature, add the following settings:
+        
+        ```python
+        RANCH = {
+            ...,
+            # tags_fn takes a single arg (the Ranch Task object that failed)
+            # and should return a list of strings in the format "tag_name:tag_value"
+            # See OS Core's usage for an example
+            'extra_error_queue_tags_fn': tags_fn,
+        }
+        ```
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Software Development :: Libraries
+Description-Content-Type: text/markdown
