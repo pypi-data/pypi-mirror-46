@@ -1,0 +1,31 @@
+---
+- name: add OsloMessagingRpc and OsloMessagingNotify services
+  replace:
+    path: "{{ roles_data }}"
+    regexp: '(\s+)(- OS::TripleO::Services::RabbitMQ$)'
+    replace: '\1\2\1- {{ item }}'
+  with_items:
+    - "OS::TripleO::Services::OsloMessagingRpc"
+    - "OS::TripleO::Services::OsloMessagingNotify"
+
+- name: drop RabbiMQ service
+  replace:
+    dest: "{{ roles_data }}"
+    regexp: '(\s+)(- OS::TripleO::Services::RabbitMQ$)'
+    replace: ''
+
+- name: add ContainerImagePrepare service
+  replace:
+    path: "{{ roles_data }}"
+    regexp: '(\s+)(- OS::TripleO::Services::HAproxy$)'
+    replace: '\1\2\1- OS::TripleO::Services::ContainerImagePrepare'
+
+- name: drop deprecated telemetry services
+  replace:
+    dest: "{{ roles_data }}"
+    regexp: '(\s+)(- OS::TripleO::Services::{{ item }}$)'
+    replace: ''
+  with_items:
+    - CeilometerApi
+    - CeilometerCollector
+    - CeilometerExpirer
