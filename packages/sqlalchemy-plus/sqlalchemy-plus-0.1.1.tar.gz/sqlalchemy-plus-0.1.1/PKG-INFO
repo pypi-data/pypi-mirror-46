@@ -1,0 +1,76 @@
+Metadata-Version: 2.1
+Name: sqlalchemy-plus
+Version: 0.1.1
+Summary: Additional tools for SqlAlchemy
+Home-page: https://github.com/opus-42/sqlalchemy-plus
+Author: Emmanuel Bavoux
+Author-email: emmanuel.bavoux@gmail.com
+License: UNKNOWN
+Description: # SQL Alchemy Plus
+        
+        This package provide additional package definition for SqlAlchemy
+        that are specific for PostgreSQL and other database.
+        
+        Here are the currently supported features (database supported):
+        * View (PostgreSQL)
+        * Materialized View (PostgreSQL)
+        
+        
+        ## Installation
+        
+        Install SQL Alchemy Plus using pip
+        
+        ```bash
+        pip install sqlalchemyplus
+        ```
+        
+        ## Quick start
+        
+        **Define a View or a Materialized View programmatically**
+        
+        ```
+        from sqlalchemy import Table, select, Column, MetaData, Integer, String
+        from sqlalchemyplus import View
+        
+        metadata = MetaData()
+        table = Table('mytable',
+                      metadata,
+                      Column('key', Integer),
+                      Column('value', String))
+        
+        select_table = table.select()
+        view = View(
+            'myview',
+            metadata,
+            select_table
+        )
+        
+        ```
+        
+        **Create and drop a view**
+        
+        ```
+        from sqlalchemy import create_engine
+        from sqlalchemyplus import CreateView, DropView
+        
+        engine = create_engine("postgresql://example:example@localhost:5432/mydatabase")
+        
+        view = View(
+            'myview',
+            metadata,
+            select_table
+        )
+        
+        # Execute 'CREATE VIEW myview AS (...)'
+        engine.execute(CreateView(view))
+        
+        # Execute 'DROP VIEW myview'
+        engine.execute(CreateView(view))
+        ```
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: Development Status :: 3 - Alpha
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
