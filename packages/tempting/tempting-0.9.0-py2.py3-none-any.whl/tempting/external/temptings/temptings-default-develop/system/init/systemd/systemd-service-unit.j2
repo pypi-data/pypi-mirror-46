@@ -1,0 +1,660 @@
+---
+doc:
+  short_help: A systemd service unit configuration.
+
+args:
+  unit_description:
+    doc:
+      short_help: A human readable name for the unit.
+      help: |
+         A human readable name for the unit. This is used by systemd (and other UIs) as the label for the unit, so this string should identify the unit rather than describe it, despite the name. "Apache2 Web Server" is a good example. Bad examples are "high-performance light-weight HTTP server" (too generic) or "Apache2" (too specific and meaningless for people who do not know Apache). systemd will use this string as a noun in status messages ("Starting description...", "Started description.", "Reached target description.", "Failed to start description."), so it should be capitalized, and should not be a full sentence or a phrase with a continous verb. Bad examples include "exiting the container" or "updating the database once per day.".
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Description="
+    type: string
+    required: false
+
+  unit_documentation:
+    doc:
+      short_help: A space-separated list of URIs referencing documentation for this unit or its configuration.
+      help: |
+        A space-separated list of URIs referencing documentation for this unit or its configuration. Accepted are only URIs of the types "http://", "https://", "file:", "info:", "man:". For more information about the syntax of these URIs, see uri(7). The URIs should be listed in order of relevance, starting with the most relevant. It is a good idea to first reference documentation that explains what the unit's purpose is, followed by how it is configured, followed by any other related documentation. This option may be specified more than once, in which case the specified list of URIs is merged. If the empty string is assigned to this option, the list is reset and all prior assignments will have no effect.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Documentation="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  unit_requires:
+    doc:
+      short_help: Configures requirement dependencies on other units.
+      help: |
+        Configures requirement dependencies on other units. If this unit gets activated, the units listed here will be activated as well. If one of the other units fails to activate, and an ordering dependency After= on the failing unit is set, this unit will not be started. Besides, with or without specifying After=, this unit will be stopped if one of the other units is explicitly stopped. This option may be specified more than once or multiple space-separated units may be specified in one option in which case requirement dependencies for all listed names will be created. Note that requirement dependencies do not influence the order in which services are started or stopped. This has to be configured independently with the After= or Before= options. If a unit foo.service requires a unit bar.service as configured with Requires= and no ordering is configured with After= or Before=, then both units will be started simultaneously and without any delay between them if foo.service is activated. Often, it is a better choice to use Wants= instead of Requires= in order to achieve a system that is more robust when dealing with failing services.
+
+        Note that this dependency type does not imply that the other unit always has to be in active state when this unit is running. Specifically: failing condition checks (such as ConditionPathExists=, ConditionPathIsSymbolicLink=, … — see below) do not cause the start job of a unit with a Requires= dependency on it to fail. Also, some unit types may deactivate on their own (for example, a service process may decide to exit cleanly, or a device may be unplugged by the user), which is not propagated to units having a Requires= dependency. Use the BindsTo= dependency type together with After= to ensure that a unit may never be in active state without a specific other unit also in active state (see below).
+
+        Note that dependencies of this type may also be configured outside of the unit configuration file by adding a symlink to a .requires/ directory accompanying the unit file. For details, see above.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Requires="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  unit_requisite:
+    doc:
+      short_help: Similar to Requires=. However, if the units listed here are not started already, they will not be started and the starting of this unit will fail immediately.
+      help: |
+        Similar to Requires=. However, if the units listed here are not started already, they will not be started and the starting of this unit will fail immediately. Requisite= does not imply an ordering dependency, even if both units are started in the same transaction. Hence this setting should usually be combined with After=, to ensure this unit is not started before the other unit.
+
+        When Requisite=b.service is used on a.service, this dependency will show as RequisiteOf=a.service in property listing of b.service. RequisiteOf= dependency cannot be specified directly.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Requisite="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  unit_wants:
+    doc:
+      short_help: A weaker version of Requires=. Units listed in this option will be started if the configuring unit is.
+      help: |
+        A weaker version of Requires=. Units listed in this option will be started if the configuring unit is. However, if the listed units fail to start or cannot be added to the transaction, this has no impact on the validity of the transaction as a whole. This is the recommended way to hook start-up of one unit to the start-up of another unit.
+
+        Note that dependencies of this type may also be configured outside of the unit configuration file by adding symlinks to a .wants/ directory accompanying the unit file. For details, see above.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Wants="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  unit_binds_to:
+    doc:
+      short_help: Configures requirement dependencies, very similar in style to Requires=.
+      help: |
+        Configures requirement dependencies, very similar in style to Requires=. However, this dependency type is stronger: in addition to the effect of Requires= it declares that if the unit bound to is stopped, this unit will be stopped too. This means a unit bound to another unit that suddenly enters inactive state will be stopped too. Units can suddenly, unexpectedly enter inactive state for different reasons: the main process of a service unit might terminate on its own choice, the backing device of a device unit might be unplugged or the mount point of a mount unit might be unmounted without involvement of the system and service manager.
+
+        When used in conjunction with After= on the same unit the behaviour of BindsTo= is even stronger. In this case, the unit bound to strictly has to be in active state for this unit to also be in active state. This not only means a unit bound to another unit that suddenly enters inactive state, but also one that is bound to another unit that gets skipped due to a failed condition check (such as ConditionPathExists=, ConditionPathIsSymbolicLink=, … — see below) will be stopped, should it be running. Hence, in many cases it is best to combine BindsTo= with After=.
+
+        When BindsTo=b.service is used on a.service, this dependency will show as BoundBy=a.service in property listing of b.service. BoundBy= dependency cannot be specified directly.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#BindsTo="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  unit_part_of:
+    doc:
+      short_help: Configures dependencies similar to Requires=, but limited to stopping and restarting of units.
+      help: |
+        Configures dependencies similar to Requires=, but limited to stopping and restarting of units. When systemd stops or restarts the units listed here, the action is propagated to this unit. Note that this is a one-way dependency — changes to this unit do not affect the listed units.
+
+        When PartOf=b.service is used on a.service, this dependency will show as ConsistsOf=a.service in property listing of b.service. ConsistsOf= dependency cannot be specified directly.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#PartOf="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  unit_conflicts:
+    doc:
+      short_help: A space-separated list of unit names. Configures negative requirement dependencies.
+      help: |
+        A space-separated list of unit names. Configures negative requirement dependencies. If a unit has a Conflicts= setting on another unit, starting the former will stop the latter and vice versa. Note that this setting is independent of and orthogonal to the After= and Before= ordering dependencies.
+
+        If a unit A that conflicts with a unit B is scheduled to be started at the same time as B, the transaction will either fail (in case both are required parts of the transaction) or be modified to be fixed (in case one or both jobs are not a required part of the transaction). In the latter case, the job that is not required will be removed, or in case both are not required, the unit that conflicts will be started and the unit that is conflicted is stopped.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Conflicts="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  unit_before:
+    doc:
+      short_help: These two settings ('Before', 'After') expect a space-separated list of unit names. They configure ordering dependencies between units.
+      help: |
+        These two settings ('Before', 'After') expect a space-separated list of unit names. They configure ordering dependencies between units. If a unit foo.service contains a setting Before=bar.service and both units are being started, bar.service's start-up is delayed until foo.service has finished starting up. Note that this setting is independent of and orthogonal to the requirement dependencies as configured by Requires=, Wants= or BindsTo=. It is a common pattern to include a unit name in both the After= and Requires= options, in which case the unit listed will be started before the unit that is configured with these options. This option may be specified more than once, in which case ordering dependencies for all listed names are created. After= is the inverse of Before=, i.e. while After= ensures that the configured unit is started after the listed unit finished starting up, Before= ensures the opposite, that the configured unit is fully started up before the listed unit is started. Note that when two units with an ordering dependency between them are shut down, the inverse of the start-up order is applied. i.e. if a unit is configured with After= on another unit, the former is stopped before the latter if both are shut down. Given two units with any ordering dependency between them, if one unit is shut down and the other is started up, the shutdown is ordered before the start-up. It doesn't matter if the ordering dependency is After= or Before=, in this case. It also doesn't matter which of the two is shut down, as long as one is shut down and the other is started up. The shutdown is ordered before the start-up in all cases. If two units have no ordering dependencies between them, they are shut down or started up simultaneously, and no ordering takes place. It depends on the unit type when precisely a unit has finished starting up. Most importantly, for service units start-up is considered completed for the purpose of Before=/After= when all its configured start-up commands have been invoked and they either failed or reported start-up success.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Before="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  unit_after:
+    doc:
+      short_help: These two settings ('Before', 'After') expect a space-separated list of unit names. They configure ordering dependencies between units.
+      help: |
+        These two settings ('Before', 'After') expect a space-separated list of unit names. They configure ordering dependencies between units. If a unit foo.service contains a setting Before=bar.service and both units are being started, bar.service's start-up is delayed until foo.service has finished starting up. Note that this setting is independent of and orthogonal to the requirement dependencies as configured by Requires=, Wants= or BindsTo=. It is a common pattern to include a unit name in both the After= and Requires= options, in which case the unit listed will be started before the unit that is configured with these options. This option may be specified more than once, in which case ordering dependencies for all listed names are created. After= is the inverse of Before=, i.e. while After= ensures that the configured unit is started after the listed unit finished starting up, Before= ensures the opposite, that the configured unit is fully started up before the listed unit is started. Note that when two units with an ordering dependency between them are shut down, the inverse of the start-up order is applied. i.e. if a unit is configured with After= on another unit, the former is stopped before the latter if both are shut down. Given two units with any ordering dependency between them, if one unit is shut down and the other is started up, the shutdown is ordered before the start-up. It doesn't matter if the ordering dependency is After= or Before=, in this case. It also doesn't matter which of the two is shut down, as long as one is shut down and the other is started up. The shutdown is ordered before the start-up in all cases. If two units have no ordering dependencies between them, they are shut down or started up simultaneously, and no ordering takes place. It depends on the unit type when precisely a unit has finished starting up. Most importantly, for service units start-up is considered completed for the purpose of Before=/After= when all its configured start-up commands have been invoked and they either failed or reported start-up success.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Before="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  # TODO: other 'unit' properties
+  install_alias:
+    doc:
+      short_help: A space-separated list of additional names this unit shall be installed under.
+      help: |
+        A space-separated list of additional names this unit shall be installed under. The names listed here must have the same suffix (i.e. type) as the unit filename. This option may be specified more than once, in which case all listed names are used. At installation time, systemctl enable will create symlinks from these names to the unit filename. Note that not all unit types support such alias names, and this setting is not supported for them. Specifically, mount, slice, swap, and automount units do not support aliasing.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Alias="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  install_wanted_by:
+    doc:
+      short_help: This option may be used more than once, or a space-separated list of unit names may be given.
+      help: |
+        This option may be used more than once, or a space-separated list of unit names may be given. A symbolic link is created in the .wants/ or .requires/ directory of each of the listed units when this unit is installed by systemctl enable. This has the effect that a dependency of type Wants= or Requires= is added from the listed unit to the current unit. The primary result is that the current unit will be started when the listed unit is started. See the description of Wants= and Requires= in the [Unit] section for details.
+
+        WantedBy=foo.service in a service bar.service is mostly equivalent to Alias=foo.service.wants/bar.service in the same file. In case of template units, systemctl enable must be called with an instance name, and this instance will be added to the .wants/ or .requires/ list of the listed unit. E.g. WantedBy=getty.target in a service getty@.service will result in systemctl enable getty@tty2.service creating a getty.target.wants/getty@tty2.service link to getty@.service.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#WantedBy="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  install_required_by:
+    doc:
+      short_help: This option may be used more than once, or a space-separated list of unit names may be given.
+      help: |
+        This option may be used more than once, or a space-separated list of unit names may be given. A symbolic link is created in the .wants/ or .requires/ directory of each of the listed units when this unit is installed by systemctl enable. This has the effect that a dependency of type Wants= or Requires= is added from the listed unit to the current unit. The primary result is that the current unit will be started when the listed unit is started. See the description of Wants= and Requires= in the [Unit] section for details.
+
+        WantedBy=foo.service in a service bar.service is mostly equivalent to Alias=foo.service.wants/bar.service in the same file. In case of template units, systemctl enable must be called with an instance name, and this instance will be added to the .wants/ or .requires/ list of the listed unit. E.g. WantedBy=getty.target in a service getty@.service will result in systemctl enable getty@tty2.service creating a getty.target.wants/getty@tty2.service link to getty@.service.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#WantedBy="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  install_also:
+    doc:
+      short_help: Additional units to install/deinstall when this unit is installed/deinstalled.
+      help: |
+        Additional units to install/deinstall when this unit is installed/deinstalled. If the user requests installation/deinstallation of a unit with this option configured, systemctl enable and systemctl disable will automatically install/uninstall units listed in this option as well.
+
+        This option may be used more than once, or a space-separated list of unit names may be given.
+
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Also="
+    type: list
+    schema:
+      type: string
+    required: false
+
+  install_default_instance:
+    doc:
+      short_help: In template unit files, this specifies for which instance the unit shall be enabled if the template is enabled without any explicitly set instance.
+      help: |
+        In template unit files, this specifies for which instance the unit shall be enabled if the template is enabled without any explicitly set instance. This option has no effect in non-template unit files. The specified string must be usable as instance identifier.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Also="
+    type: string
+    required: false
+
+  service_type:
+    doc:
+      short_help: Configures the process start-up type for this service unit.
+      help: |
+        Configures the process start-up type for this service unit. One of simple, exec, forking, oneshot, dbus, notify or idle:
+
+        If set to simple (the default if ExecStart= is specified but neither Type= nor BusName= are), the service manager will consider the unit started immediately after the main service process has been forked off. It is expected that the process configured with ExecStart= is the main process of the service. In this mode, if the process offers functionality to other processes on the system, its communication channels should be installed before the service is started up (e.g. sockets set up by systemd, via socket activation), as the service manager will immediately proceed starting follow-up units, right after creating the main service process, and before executing the service's binary. Note that this means systemctl start command lines for simple services will report success even if the service's binary cannot be invoked successfully (for example because the selected User= doesn't exist, or the service binary is missing).
+
+        The exec type is similar to simple, but the service manager will consider the unit started immediately after the main service binary has been executed. The service manager will delay starting of follow-up units until that point. (Or in other words: simple proceeds with further jobs right after fork() returns, while exec will not proceed before both fork() and execve() in the service process succeeded.) Note that this means systemctl start command lines for exec services will report failure when the service's binary cannot be invoked successfully (for example because the selected User= doesn't exist, or the service binary is missing).
+
+        If set to forking, it is expected that the process configured with ExecStart= will call fork() as part of its start-up. The parent process is expected to exit when start-up is complete and all communication channels are set up. The child continues to run as the main service process, and the service manager will consider the unit started when the parent process exits. This is the behavior of traditional UNIX services. If this setting is used, it is recommended to also use the PIDFile= option, so that systemd can reliably identify the main process of the service. systemd will proceed with starting follow-up units as soon as the parent process exits.
+
+        Behavior of oneshot is similar to simple; however, the service manager will consider the unit started after the main process exits. It will then start follow-up units. RemainAfterExit= is particularly useful for this type of service. Type=oneshot is the implied default if neither Type= nor ExecStart= are specified.
+
+        Behavior of dbus is similar to simple; however, it is expected that the service acquires a name on the D-Bus bus, as configured by BusName=. systemd will proceed with starting follow-up units after the D-Bus bus name has been acquired. Service units with this option configured implicitly gain dependencies on the dbus.socket unit. This type is the default if BusName= is specified.
+
+        Behavior of notify is similar to exec; however, it is expected that the service sends a notification message via sd_notify(3) or an equivalent call when it has finished starting up. systemd will proceed with starting follow-up units after this notification message has been sent. If this option is used, NotifyAccess= (see below) should be set to open access to the notification socket provided by systemd. If NotifyAccess= is missing or set to none, it will be forcibly set to main. Note that currently Type=notify will not work if used in combination with PrivateNetwork=yes.
+
+        Behavior of idle is very similar to simple; however, actual execution of the service program is delayed until all active jobs are dispatched. This may be used to avoid interleaving of output of shell services with the status output on the console. Note that this type is useful only to improve console output, it is not useful as a general unit ordering tool, and the effect of this service type is subject to a 5s timeout, after which the service program is invoked anyway.
+
+        It is generally recommended to use Type=simple for long-running services whenever possible, as it is the simplest and fastest option. However, as this service type won't propagate service start-up failures and doesn't allow ordering of other units against completion of initialization of the service (which for example is useful if clients need to connect to the service through some form of IPC, and the IPC channel is only established by the service itself — in contrast to doing this ahead of time through socket or bus activation or similar), it might not be sufficient for many cases. If so, notify or dbus (the latter only in case the service provides a D-Bus interface) are the preferred options as they allow service program code to precisely schedule when to consider the service started up successfully and when to proceed with follow-up units. The notify service type requires explicit support in the service codebase (as sd_notify() or an equivalent API needs to be invoked by the service at the appropriate time) — if it's not supported, then forking is an alternative: it supports the traditional UNIX service start-up protocol. Finally, exec might be an option for cases where it is enough to ensure the service binary is invoked, and where the service binary itself executes no or little initialization on its own (and its initialization is unlikely to fail). Note that using any type other than simple possibly delays the boot process, as the service manager needs to wait for service initialization to complete. It is hence recommended not to needlessly use any types other than simple. (Also note it is generally not recommended to use idle or oneshot for long-running services.)
+
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#Type="
+
+    type: string
+    required: true
+    default: simple
+    allowed:
+      - simple
+      - exec
+      - forking
+      - oneshot
+      - dbus
+      - notify
+      - idle
+
+  service_exec_start:
+    doc:
+      short_help: Commands with their arguments that are executed when this service is started.
+      help: |
+        Commands with their arguments that are executed when this service is started. The value is split into zero or more command lines according to the rules described below (see section "Command Lines" below).
+
+        Unless Type= is oneshot, exactly one command must be given. When Type=oneshot is used, zero or more commands may be specified. Commands may be specified by providing multiple command lines in the same directive, or alternatively, this directive may be specified more than once with the same effect. If the empty string is assigned to this option, the list of commands to start is reset, prior assignments of this option will have no effect. If no ExecStart= is specified, then the service must have RemainAfterExit=yes and at least one ExecStop= line set. (Services lacking both ExecStart= and ExecStop= are not valid.)
+      further_reading:
+        "systemd service documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStart="
+    type:
+      - list
+      - string
+    required: true
+
+  service_exec_reload:
+    doc:
+      short_help: Commands to execute to trigger a configuration reload in the service.
+      help: |
+        Commands to execute to trigger a configuration reload in the service. This argument takes multiple command lines, following the same scheme as described for ExecStart= above. Use of this setting is optional. Specifier and environment variable substitution is supported here following the same scheme as for ExecStart=.
+
+        One additional, special environment variable is set: if known, $MAINPID is set to the main process of the daemon, and may be used for command lines like the following:
+
+            /bin/kill -HUP $MAINPID
+
+        Note however that reloading a daemon by sending a signal (as with the example line above) is usually not a good choice, because this is an asynchronous operation and hence not suitable to order reloads of multiple services against each other. It is strongly recommended to set ExecReload= to a command that not only triggers a configuration reload of the daemon, but also synchronously waits for it to complete.
+      further_reading:
+        "systemd service documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecReload="
+    type:
+      - string
+      - list
+    required: false
+
+  service_exec_stop:
+    doc:
+      short_help: Commands to execute to stop the service started via ExecStart=.
+      help: |
+        Commands to execute to stop the service started via ExecStart=. This argument takes multiple command lines, following the same scheme as described for ExecStart= above. Use of this setting is optional. After the commands configured in this option are run, it is implied that the service is stopped, and any processes remaining for it are terminated according to the KillMode= setting (see systemd.kill(5)). If this option is not specified, the process is terminated by sending the signal specified in KillSignal= when service stop is requested. Specifier and environment variable substitution is supported (including $MAINPID, see above).
+
+        Note that it is usually not sufficient to specify a command for this setting that only asks the service to terminate (for example, by queuing some form of termination signal for it), but does not wait for it to do so. Since the remaining processes of the services are killed according to KillMode= and KillSignal= as described above immediately after the command exited, this may not result in a clean stop. The specified command should hence be a synchronous operation, not an asynchronous one.
+
+        Note that the commands specified in ExecStop= are only executed when the service started successfully first. They are not invoked if the service was never started at all, or in case its start-up failed, for example because any of the commands specified in ExecStart=, ExecStartPre= or ExecStartPost= failed (and weren't prefixed with "-", see above) or timed out. Use ExecStopPost= to invoke commands when a service failed to start up correctly and is shut down again. Also note that the stop operation is always performed if the service started successfully, even if the processes in the service terminated on their own or were killed. The stop commands must be prepared to deal with that case. $MAINPID will be unset if systemd knows that the main process exited by the time the stop commands are called.
+
+        Service restart requests are implemented as stop operations followed by start operations. This means that ExecStop= and ExecStopPost= are executed during a service restart operation.
+
+        It is recommended to use this setting for commands that communicate with the service requesting clean termination. For post-mortem clean-up steps use ExecStopPost= instead.
+      further_reading:
+        "systemd service documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStop="
+    type:
+      - string
+      - list
+    required: false
+
+  service_exec_start_pre:
+    doc:
+      short_help: Additional commands that are executed before or after the command in ExecStart=, respectively.
+      help: |
+        Additional commands that are executed before or after the command in ExecStart=, respectively. Syntax is the same as for ExecStart=, except that multiple command lines are allowed and the commands are executed one after the other, serially.
+
+        If any of those commands (not prefixed with "-") fail, the rest are not executed and the unit is considered failed.
+
+        ExecStart= commands are only run after all ExecStartPre= commands that were not prefixed with a "-" exit successfully.
+
+        ExecStartPost= commands are only run after the commands specified in ExecStart= have been invoked successfully, as determined by Type= (i.e. the process has been started for Type=simple or Type=idle, the last ExecStart= process exited successfully for Type=oneshot, the initial process exited successfully for Type=forking, "READY=1" is sent for Type=notify, or the BusName= has been taken for Type=dbus).
+
+        Note that ExecStartPre= may not be used to start long-running processes. All processes forked off by processes invoked via ExecStartPre= will be killed before the next service process is run.
+
+        Note that if any of the commands specified in ExecStartPre=, ExecStart=, or ExecStartPost= fail (and are not prefixed with "-", see above) or time out before the service is fully up, execution continues with commands specified in ExecStopPost=, the commands in ExecStop= are skipped.
+      further_reading:
+        "systemd service documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStartPre="
+    type:
+      - list
+      - string
+    required: false
+
+  service_exec_start_post:
+    doc:
+      short_help: Additional commands that are executed before or after the command in ExecStart=, respectively.
+      help: |
+        Additional commands that are executed before or after the command in ExecStart=, respectively. Syntax is the same as for ExecStart=, except that multiple command lines are allowed and the commands are executed one after the other, serially.
+
+        If any of those commands (not prefixed with "-") fail, the rest are not executed and the unit is considered failed.
+
+        ExecStart= commands are only run after all ExecStartPre= commands that were not prefixed with a "-" exit successfully.
+
+        ExecStartPost= commands are only run after the commands specified in ExecStart= have been invoked successfully, as determined by Type= (i.e. the process has been started for Type=simple or Type=idle, the last ExecStart= process exited successfully for Type=oneshot, the initial process exited successfully for Type=forking, "READY=1" is sent for Type=notify, or the BusName= has been taken for Type=dbus).
+
+        Note that ExecStartPre= may not be used to start long-running processes. All processes forked off by processes invoked via ExecStartPre= will be killed before the next service process is run.
+
+        Note that if any of the commands specified in ExecStartPre=, ExecStart=, or ExecStartPost= fail (and are not prefixed with "-", see above) or time out before the service is fully up, execution continues with commands specified in ExecStopPost=, the commands in ExecStop= are skipped.
+      further_reading:
+        "systemd service documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStartPre="
+    type:
+      - list
+      - string
+    required: false
+
+  service_exec_stop_post:
+    doc:
+      short_help: Additional commands that are executed after the service is stopped.
+      help: |
+        Additional commands that are executed after the service is stopped. This includes cases where the commands configured in ExecStop= were used, where the service does not have any ExecStop= defined, or where the service exited unexpectedly. This argument takes multiple command lines, following the same scheme as described for ExecStart=. Use of these settings is optional. Specifier and environment variable substitution is supported. Note that – unlike ExecStop= – commands specified with this setting are invoked when a service failed to start up correctly and is shut down again.
+
+        It is recommended to use this setting for clean-up operations that shall be executed even when the service failed to start up correctly. Commands configured with this setting need to be able to operate even if the service failed starting up half-way and left incompletely initialized data around. As the service's processes have been terminated already when the commands specified with this setting are executed they should not attempt to communicate with them.
+
+        Note that all commands that are configured with this setting are invoked with the result code of the service, as well as the main process' exit code and status, set in the $SERVICE_RESULT, $EXIT_CODE and $EXIT_STATUS environment variables, see systemd.exec(5) for details.
+      further_reading:
+        "systemd service documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStopPost="
+    type:
+      - list
+      - string
+    required: false
+
+  service_remain_after_exit:
+    doc:
+      short_help: Takes a boolean value that specifies whether the service shall be considered active even when all its processes exited. Defaults to no.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#RemainAfterExit="
+    type: boolean
+    required: false
+
+  service_guess_main_pid:
+    doc:
+      short_help: Takes a boolean value that specifies whether systemd should try to guess the main PID of a service if it cannot be determined reliably.
+      help: |
+        Takes a boolean value that specifies whether systemd should try to guess the main PID of a service if it cannot be determined reliably. This option is ignored unless Type=forking is set and PIDFile= is unset because for the other types or with an explicitly configured PID file, the main PID is always known. The guessing algorithm might come to incorrect conclusions if a daemon consists of more than one process. If the main PID cannot be determined, failure detection and automatic restarting of a service will not work reliably. Defaults to yes.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#GuessMainPID="
+    type: boolean
+    required: false
+
+  service_pid_file:
+    doc:
+      short_help: Takes a path referring to the PID file of the service.
+      help: |
+        Takes a path referring to the PID file of the service. Usage of this option is recommended for services where Type= is set to forking. The path specified typically points to a file below /run/. If a relative path is specified it is hence prefixed with /run/. The service manager will read the PID of the main process of the service from this file after start-up of the service. The service manager will not write to the file configured here, although it will remove the file after the service has shut down if it still exists. The PID file does not need to be owned by a privileged user, but if it is owned by an unprivileged user additional safety restrictions are enforced: the file may not be a symlink to a file owned by a different user (neither directly nor indirectly), and the PID file must refer to a process already belonging to the service.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#PIDFile="
+    type: string
+    required: false
+
+  service_bus_name:
+    doc:
+      short_help: Takes a D-Bus bus name that this service is reachable as. This option is mandatory for services where Type= is set to dbus.
+      further_reading:
+        "systemd documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#BusName="
+    type: string
+    required: false
+    empty: false
+
+  service_environment:
+    doc:
+      short_help: Sets environment variables for executed processes.
+      help: |
+        Sets environment variables for executed processes. Takes a space-separated list of variable assignments. This option may be specified more than once, in which case all listed variables will be set. If the same variable is set twice, the later setting will override the earlier setting. If the empty string is assigned to this option, the list of environment variables is reset, all prior assignments have no effect. Variable expansion is not performed inside the strings, however, specifier expansion is possible. The $ character has no special meaning. If you need to assign a value containing spaces or the equals sign to a variable, use double quotes (") for the assignment.
+
+        Example:
+
+            Environment="VAR1=word1 word2" VAR2=word3 "VAR3=$word 5 6"
+
+        gives three variables "VAR1", "VAR2", "VAR3" with the values "word1 word2", "word3", "$word 5 6".
+
+        See environ(7) for details about environment variables.
+
+        Note that environment variables are not suitable for passing secrets (such as passwords, key material, …) to service processes. Environment variables set for a unit are exposed to unprivileged clients via D-Bus IPC, and generally not understood as being data that requires protection. Moreover, environment variables are propagated down the process tree, including across security boundaries (such as setuid/setgid executables), and hence might leak to processes that should not have access to the secret data.
+      further_reading:
+        "systemd exec documentation": "https://www.freedesktop.org/software/systemd/man/systemd.exec.html#Environment="
+    type: dict
+    required: false
+    keyschema:
+      type: string
+
+  service_environment_file:
+    doc:
+      short_help: Similar to Environment= but reads the environment variables from a text file.
+      help: |
+        Similar to Environment= but reads the environment variables from a text file. The text file should contain new-line-separated variable assignments. Empty lines, lines without an "=" separator, or lines starting with ; or # will be ignored, which may be used for commenting. A line ending with a backslash will be concatenated with the following one, allowing multiline variable definitions. The parser strips leading and trailing whitespace from the values of assignments, unless you use double quotes (").
+
+        The argument passed should be an absolute filename or wildcard expression, optionally prefixed with "-", which indicates that if the file does not exist, it will not be read and no error or warning message is logged. This option may be specified more than once in which case all specified files are read. If the empty string is assigned to this option, the list of file to read is reset, all prior assignments have no effect.
+
+        The files listed with this directive will be read shortly before the process is executed (more specifically, after all processes from a previous unit state terminated. This means you can generate these files in one unit state, and read it with this option in the next).
+
+        Settings from these files override settings made with Environment=. If the same variable is set twice from these files, the files will be read in the order they are specified and the later setting will override the earlier setting.
+      further_reading:
+        "systemd exec documentation": "https://www.freedesktop.org/software/systemd/man/systemd.exec.html#EnvironmentFile="
+    type:
+      - list
+      - string
+    required: false
+    empty: true
+    default: []
+
+  service_environment_file_extra:
+    doc:
+      short_help: Extra environment files, helper var to make parent templating easier.
+    type:
+      - list
+      - string
+    required: false
+    empty: true
+    default: []
+
+  service_user:
+    doc:
+      short_help: Set the UNIX user or group that the processes are executed as, respectively.
+      help: |
+        Set the UNIX user or group that the processes are executed as, respectively. Takes a single user or group name, or a numeric ID as argument. For system services (services run by the system service manager, i.e. managed by PID 1) and for user services of the root user (services managed by root's instance of systemd --user), the default is "root", but User= may be used to specify a different user. For user services of any other user, switching user identity is not permitted, hence the only valid setting is the same user the user's service manager is running as. If no group is set, the default group of the user is used. This setting does not affect commands whose command line is prefixed with "+".
+
+        Note that restrictions on the user/group name syntax are enforced: the specified name must consist only of the characters a-z, A-Z, 0-9, "_" and "-", except for the first character which must be one of a-z, A-Z or "_" (i.e. numbers and "-" are not permitted as first character). The user/group name must have at least one character, and at most 31. These restrictions are enforced in order to avoid ambiguities and to ensure user/group names and unit files remain portable among Linux systems.
+
+        When used in conjunction with DynamicUser= the user/group name specified is dynamically allocated at the time the service is started, and released at the time the service is stopped — unless it is already allocated statically (see below). If DynamicUser= is not used the specified user and group must have been created statically in the user database no later than the moment the service is started, for example using the sysusers.d(5) facility, which is applied at boot or package install time.
+      further_reading:
+        "systemd exec documentation": "https://www.freedesktop.org/software/systemd/man/systemd.exec.html#User="
+    type: string
+    required: false
+
+  service_group:
+    doc:
+      short_help: Set the UNIX user or group that the processes are executed as, respectively.
+      help: |
+        Set the UNIX user or group that the processes are executed as, respectively. Takes a single user or group name, or a numeric ID as argument. For system services (services run by the system service manager, i.e. managed by PID 1) and for user services of the root user (services managed by root's instance of systemd --user), the default is "root", but User= may be used to specify a different user. For user services of any other user, switching user identity is not permitted, hence the only valid setting is the same user the user's service manager is running as. If no group is set, the default group of the user is used. This setting does not affect commands whose command line is prefixed with "+".
+
+        Note that restrictions on the user/group name syntax are enforced: the specified name must consist only of the characters a-z, A-Z, 0-9, "_" and "-", except for the first character which must be one of a-z, A-Z or "_" (i.e. numbers and "-" are not permitted as first character). The user/group name must have at least one character, and at most 31. These restrictions are enforced in order to avoid ambiguities and to ensure user/group names and unit files remain portable among Linux systems.
+
+        When used in conjunction with DynamicUser= the user/group name specified is dynamically allocated at the time the service is started, and released at the time the service is stopped — unless it is already allocated statically (see below). If DynamicUser= is not used the specified user and group must have been created statically in the user database no later than the moment the service is started, for example using the sysusers.d(5) facility, which is applied at boot or package install time.
+      further_reading:
+        "systemd exec documentation": "https://www.freedesktop.org/software/systemd/man/systemd.exec.html#User="
+    type: string
+    required: false
+
+  service_timeout_start_sec:
+    doc:
+      short_help: Configures the time to wait for start-up.
+      help: |
+        Configures the time to wait for start-up. If a daemon service does not signal start-up completion within the configured time, the service will be considered failed and will be shut down again. Takes a unit-less value in seconds, or a time span value such as "5min 20s". Pass "infinity" to disable the timeout logic. Defaults to DefaultTimeoutStartSec= from the manager configuration file, except when Type=oneshot is used, in which case the timeout is disabled by default (see systemd-system.conf(5)).
+
+        If a service of Type=notify sends "EXTEND_TIMEOUT_USEC=…", this may cause the start time to be extended beyond TimeoutStartSec=. The first receipt of this message must occur before TimeoutStartSec= is exceeded, and once the start time has exended beyond TimeoutStartSec=, the service manager will allow the service to continue to start, provided the service repeats "EXTEND_TIMEOUT_USEC=…" within the interval specified until the service startup status is finished by "READY=1". (see sd_notify(3)).
+      further_reading:
+        "systemd service documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#TimeoutStartSec="
+    type: integer
+    required: false
+
+  service_timeout_stop_sec:
+    doc:
+      short_help: Configures the time to wait for each ExecStop= command and the time to wait for the service itself to stop.
+      help: |
+        This option serves two purposes. First, it configures the time to wait for each ExecStop= command. If any of them times out, subsequent ExecStop= commands are skipped and the service will be terminated by SIGTERM. If no ExecStop= commands are specified, the service gets the SIGTERM immediately. Second, it configures the time to wait for the service itself to stop. If it doesn't terminate in the specified time, it will be forcibly terminated by SIGKILL (see KillMode= in systemd.kill(5)). Takes a unit-less value in seconds, or a time span value such as "5min 20s". Pass "infinity" to disable the timeout logic. Defaults to DefaultTimeoutStopSec= from the manager configuration file (see systemd-system.conf(5)).
+
+        If a service of Type=notify sends "EXTEND_TIMEOUT_USEC=…", this may cause the stop time to be extended beyond TimeoutStopSec=. The first receipt of this message must occur before TimeoutStopSec= is exceeded, and once the stop time has exended beyond TimeoutStopSec=, the service manager will allow the service to continue to stop, provided the service repeats "EXTEND_TIMEOUT_USEC=…" within the interval specified, or terminates itself (see sd_notify(3)).
+      further_reading:
+        "systemd service documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#TimeoutStopSec="
+    type: integer
+    required: false
+
+  service_timeout_sec:
+    doc:
+      short_help: A shorthand for configuring both TimeoutStartSec= and TimeoutStopSec= to the specified value.
+      further_reading:
+        "systemd service documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#TimeoutSec="
+    type: integer
+    required: false
+
+  service_working_directory:
+    doc:
+      short_help: Takes a directory path relative to the service's root directory specified by RootDirectory=, or the special value "~".
+      help: |
+        Takes a directory path relative to the service's root directory specified by RootDirectory=, or the special value "~". Sets the working directory for executed processes. If set to "~", the home directory of the user specified in User= is used. If not set, defaults to the root directory when systemd is running as a system instance and the respective user's home directory if run as user. If the setting is prefixed with the "-" character, a missing working directory is not considered fatal. If RootDirectory=/RootImage= is not set, then WorkingDirectory= is relative to the root of the system running the service manager. Note that setting this parameter might result in additional dependencies to be added to the unit (see above).
+      further_reading:
+        "systemd exec documentation": "https://www.freedesktop.org/software/systemd/man/systemd.exec.html#WorkingDirectory="
+    type: string
+    empty: false
+    required: false
+
+  service_restart:
+    doc:
+      short_help: Configures whether the service shall be restarted when the service process exits, is killed, or a timeout is reached.
+      help: |
+        Configures whether the service shall be restarted when the service process exits, is killed, or a timeout is reached. The service process may be the main service process, but it may also be one of the processes specified with ExecStartPre=, ExecStartPost=, ExecStop=, ExecStopPost=, or ExecReload=. When the death of the process is a result of systemd operation (e.g. service stop or restart), the service will not be restarted. Timeouts include missing the watchdog "keep-alive ping" deadline and a service start, reload, and stop operation timeouts.
+
+        Takes one of no, on-success, on-failure, on-abnormal, on-watchdog, on-abort, or always. If set to no (the default), the service will not be restarted. If set to on-success, it will be restarted only when the service process exits cleanly. In this context, a clean exit means an exit code of 0, or one of the signals SIGHUP, SIGINT, SIGTERM or SIGPIPE, and additionally, exit statuses and signals specified in SuccessExitStatus=. If set to on-failure, the service will be restarted when the process exits with a non-zero exit code, is terminated by a signal (including on core dump, but excluding the aforementioned four signals), when an operation (such as service reload) times out, and when the configured watchdog timeout is triggered. If set to on-abnormal, the service will be restarted when the process is terminated by a signal (including on core dump, excluding the aforementioned four signals), when an operation times out, or when the watchdog timeout is triggered. If set to on-abort, the service will be restarted only if the service process exits due to an uncaught signal not specified as a clean exit status. If set to on-watchdog, the service will be restarted only if the watchdog timeout for the service expires. If set to always, the service will be restarted regardless of whether it exited cleanly or not, got terminated abnormally by a signal, or hit a timeout.
+      further_reading:
+        "systemd service documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#Restart="
+    type: string
+    allowed:
+      - no
+      - on-success
+      - on-failure
+      - on-abnormal
+      - on-watchdog
+      - on-abort
+      - always
+    required: false
+
+  service_restart_sec:
+    doc:
+      short_help: Configures the time to sleep before restarting a service (as configured with Restart=).
+      help: |
+        Configures the time to sleep before restarting a service (as configured with Restart=). Takes a unit-less value in seconds, or a time span value such as "5min 20s". Defaults to 100ms.
+      further_reading:
+        "systemd service documentation": "https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec="
+    type: integer
+    required: false
+
+  service_private_tmp:
+    doc:
+      short_help: If true, sets up a new file system namespace for the executed processes and mounts private /tmp and /var/tmp directories inside it that is not shared by processes outside of the namespace.
+      help: |
+        Takes a boolean argument. If true, sets up a new file system namespace for the executed processes and mounts private /tmp and /var/tmp directories inside it that is not shared by processes outside of the namespace. This is useful to secure access to temporary files of the process, but makes sharing between processes via /tmp or /var/tmp impossible. If this is enabled, all temporary files created by a service in these directories will be removed after the service is stopped. Defaults to false. It is possible to run two or more units within the same private /tmp and /var/tmp namespace by using the JoinsNamespaceOf= directive, see systemd.unit(5) for details. This setting is implied if DynamicUser= is set. For this setting the same restrictions regarding mount propagation and privileges apply as for ReadOnlyPaths= and related calls, see above. Enabling this setting has the side effect of adding Requires= and After= dependencies on all mount units necessary to access /tmp and /var/tmp. Moreover an implicitly After= ordering on systemd-tmpfiles-setup.service(8) is added.
+
+        Note that the implementation of this setting might be impossible (for example if mount namespaces are not available), and the unit should be written in a way that does not solely rely on this setting for security.
+
+        This option is only available for system services and is not supported for services running in per-user instances of the service manager.
+      further_reading:
+        "systemd exec documentation": "https://www.freedesktop.org/software/systemd/man/systemd.exec.html#PrivateTmp="
+    type: boolean
+    required: false
+
+  service_permissions_start_only:
+    doc:
+      help: |
+        Takes a boolean argument. If true, the permission-related execution options, as configured with User= and similar options (see systemd.exec(5) for more information), are only applied to the process started with ExecStart=, and not to the various other ExecStartPre=, ExecStartPost=, ExecReload=, ExecStop=, and ExecStopPost= commands. If false, the setting is applied to all configured commands the same way. Defaults to false.
+
+        Deprecated.
+    type: boolean
+    required: false
+
+---
+[Unit]
+{%:: if unit_description is defined and unit_description ::%}Description={{:: unit_description ::}}
+{%:: endif -::%}
+{%:: if unit_documentation is defined and unit_documentation ::%}Documentation={{:: unit_documentation | join(' ') ::}}
+{%:: endif -::%}
+{%:: if unit_requires is defined and unit_requires ::%}Requires={{:: unit_requires | join(' ') ::}}
+{%:: endif -::%}
+{%:: if unit_requisite is defined and unit_requisite ::%}Requisite={{:: unit_requisite | join(' ') ::}}
+{%:: endif -::%}
+{%:: if unit_wants is defined and unit_wants ::%}Wants={{:: unit_wants | join(' ') ::}}
+{%:: endif -::%}
+{%:: if unit_binds_to is defined and unit_binds_to ::%}BindsTo={{:: unit_binds_to | join(' ') ::}}
+{%:: endif -::%}
+{%:: if unit_part_of is defined and unit_part_of ::%}PartOf={{:: unit_part_of | join(' ') ::}}
+{%:: endif -::%}
+{%:: if unit_conflicts is defined and unit_conflicts ::%}Conflicts={{:: unit_conflicts | join(' ') ::}}
+{%:: endif -::%}
+{%:: if unit_before is defined and unit_before ::%}Before={{:: unit_before | join(' ') ::}}
+{%:: endif -::%}
+{%:: if unit_after is defined and unit_after ::%}After={{:: unit_after | join(' ') ::}}
+{%:: endif -::%}
+
+[Install]
+{%:: if install_alias is defined and install_alias ::%}Alias={{:: install_alias | join(' ') ::}}
+{%:: endif -::%}
+{%:: if install_wanted_by is defined and install_wanted_by ::%}WantedBy={{:: install_wanted_by | join(' ') ::}}
+{%:: endif -::%}
+{%:: if install_required_by is defined and install_required_by ::%}RequiredBy={{:: install_required_by | join(' ') ::}}
+{%:: endif -::%}
+{%:: if install_also is defined and install_also ::%}Also={{:: install_also | join(' ') ::}}
+{%:: endif -::%}
+{%:: if install_default_instance is defined and install_default_instance ::%}DefaultInstance={{:: install_default_instance ::}}
+{%:: endif -::%}
+
+[Service]
+{%:: if service_type is defined and service_type ::%}Type={{:: service_type ::}}
+{%:: endif -::%}
+{%:: if service_remain_after_exit is defined ::%}RemainAfterExit={%:: if service_remain_after_exit ::%}yes{%:: else ::%}no{%:: endif ::%}
+{%:: endif -::%}
+{%:: if service_guess_main_pid is defined ::%}GuessMainPID={%:: if service_guess_main_pid ::%}yes{%:: else ::%}no{%:: endif ::%}
+{%:: endif -::%}
+{%:: if service_pid_file is defined and service_pid_file ::%}PIDFile={{:: service_pid_file ::}}
+{%:: endif -::%}
+{%:: if service_bus_name is defined and service_bus_name ::%}BusName={{:: service_bus_name ::}}
+{%:: endif -::%}
+{%:: if service_environment is defined and service_environment ::%}{%:: for k, v in service_environment.items() ::%}Environment={{:: k ::}}={{:: v ::}}
+{%:: endfor -::%}
+{%:: endif ::%}
+{%:: if service_environment_file is defined and service_environment_file ::%}{%:: if service_environment_file is string ::%}EnvironmentFile={{:: service_environment_file ::}}
+{%:: elif service_environment_file is iterable ::%}{%:: for file in service_environment_file ::%}EnvironmentFile={{:: file ::}}
+{%:: endfor ::%}{%:: endif ::%}{%:: endif -::%}
+{%:: if service_environment_file_extra is defined and service_environment_file_extra ::%}{%:: if service_environment_file_extra is string ::%}EnvironmentFile={{:: service_environment_file_extra ::}}
+{%:: elif service_environment_file_extra is iterable ::%}{%:: for file in service_environment_file_extra ::%}EnvironmentFile={{:: file ::}}
+{%:: endfor ::%}{%:: endif ::%}{%:: endif -::%}
+{%:: if service_user is defined and service_user ::%}User={{:: service_user ::}}
+{%:: endif ::%}
+{%:: if service_group is defined and service_group ::%}Group={{:: service_group ::}}
+{%:: endif ::%}
+{%:: if service_exec_start is defined and service_exec_start ::%}{%:: if service_exec_start is string ::%}ExecStart={{:: service_exec_start ::}}
+{%:: elif service_exec_start is iterable::%}{%:: for start in service_exec_start ::%}ExecStart={{:: start ::}}
+{%:: endfor ::%}{%:: endif ::%}{%:: endif ::%}
+{%:: if service_exec_reload is defined and service_exec_reload ::%}{%:: if service_exec_reload is string ::%}ExecReload={{:: service_exec_reload ::}}
+{%:: elif service_exec_reload is iterable::%}{%:: for reload in service_exec_reload ::%}ExecReload={{:: reload ::}}
+{%:: endfor ::%}{%:: endif ::%}{%:: endif ::%}
+{%:: if service_exec_stop is defined and service_exec_stop ::%}{%:: if service_exec_stop is string ::%}ExecStop={{:: service_exec_stop ::}}
+{%:: elif service_exec_stop is iterable::%}{%:: for stop in service_exec_stop ::%}ExecStop={{:: stop ::}}
+{%:: endfor ::%}{%:: endif ::%}{%:: endif ::%}
+{%:: if service_exec_stop_post is defined and service_exec_stop_post ::%}{%:: if service_exec_stop_post is string ::%}ExecStopPost={{:: service_exec_stop_post ::}}
+{%:: elif service_exec_stop_post is iterable::%}{%:: for stop in service_exec_stop_post ::%}ExecStopPost={{:: stop ::}}
+{%:: endfor ::%}{%:: endif ::%}{%:: endif ::%}
+{%:: if service_exec_start_pre is defined and service_exec_start_pre ::%}{%:: if service_exec_start_pre is string ::%}ExecStartPre={{:: service_exec_start_pre ::}}
+{%:: elif service_exec_start_pre is iterable::%}{%:: for start in service_exec_start_pre ::%}ExecStartPre={{:: start ::}}
+{%:: endfor ::%}{%:: endif ::%}{%:: endif ::%}
+{%:: if service_exec_start_post is defined and service_exec_start_post ::%}{%:: if service_exec_start_post is string ::%}ExecStartPost={{:: service_exec_start_post ::}}
+{%:: elif service_exec_start_post is iterable::%}{%:: for start in service_exec_start_post ::%}ExecStartPost={{:: start ::}}
+{%:: endfor ::%}{%:: endif ::%}{%:: endif ::%}
+{%:: if service_timeout_start_sec is defined ::%}TimeoutStartSec={{:: service_timeout_start_sec ::}}
+{%:: endif ::%}
+{%:: if service_working_directory is defined and service_working_directory ::%}WorkingDirectory={{:: service_working_directory ::}}
+{%:: endif ::%}
+{%:: if service_restart is defined and service_restart::%}Restart={{:: service_restart ::}}
+{%:: endif ::%}
+{%:: if service_restart_sec is defined ::%}RestartSec={{:: service_restart_sec ::}}
+{%:: endif ::%}
+{%:: if service_private_tmp is defined ::%}PrivateTmp={%:: if service_private_tmp ::%}yes{%:: else ::%}no{%:: endif ::%}
+{%:: endif -::%}
+{%:: if service_permissions_start_only is defined ::%}PermissionsStartOnly={%:: if service_permissions_start_only ::%}yes{%:: else ::%}no{%:: endif ::%}
+{%:: endif -::%}
+
+
+
+

@@ -1,0 +1,241 @@
+---
+doc:
+  short_help: Apache vhost configuration
+
+args:
+  listen_ip:
+    doc:
+      short_help: The ip to listen to.
+      help: |
+        The address to listen to, can be any of the following, optionally followed by a colon and a port number (or *):
+          - The IP address of the virtual host;
+          - A fully qualified domain name for the IP address of the virtual host (not recommended);
+          - The character *, which acts as a wildcard and matches any IP address.
+          - The string _default_, which is an alias for *
+      further_reading:
+        - "[Apache VirtualHost documentation](https://httpd.apache.org/docs/current/mod/core.html#virtualhost)"
+    type: string
+    required: false
+    default: '_default_'
+  use_https:
+    doc:
+      short_help: Whether to use https.
+      help: |
+        Whether to use https.
+
+        All http traffic will be redirected to https.
+    type: boolean
+    required: false
+#    default: true
+  use_letsencrypt:
+    doc:
+      short_help: Whether to use letsencrypt certificates.
+      help: |
+        Whether to use [letsencrypt](https://letsencrypt.org/) certificates.
+
+        If this is the case, and 'use_https' is selected, the ssl_* certificate
+        paths don't need to be provided, and the location to renew them will be added
+        automatically.
+      further_reading:
+        - "[LetsEncrypt homepage](https://letsencrypt.org/)"
+    type: boolean
+    required: false
+    default: true
+    cli:
+      enabled: false
+  listen_port_https:
+    doc:
+      short_help: "The port to listen for https."
+    type: integer
+    default: 443
+    required: false
+  listen_port:
+    doc:
+      short_help: "The port to listen to."
+    type: integer
+    required: false
+    default: 80
+  server_aliases:
+    doc:
+      short_help: "A list of server aliases."
+    type: list
+    schema:
+      type: string
+    required: false
+    cli:
+      param_decls:
+        - "--alias"
+      metavar: ALIAS
+  server_admin:
+    doc:
+      short_help: "The server admin email."
+    type: string
+    required: false
+    cli:
+      metavar: EMAIL
+  error_log:
+    doc:
+      short_help: "The error log file for this vhost."
+      further_reading:
+        - "[Apache logs documentation](https://httpd.apache.org/docs/2.4/logs.html)"
+    type: string
+    required: false
+    default: "${APACHE_LOG_DIR}/error.log"
+    cli:
+      metavar: PATH
+  custom_log:
+    doc:
+      short_help: "The custom log."
+      help: |
+        This is in the format: "CustomLog log_location log_format", and the 'log_format' must refer to a LogFormat defined in the Apache conf.
+      further_reading:
+        - "[Apache logs documentation](https://httpd.apache.org/docs/2.4/logs.html)"
+    type: string
+    default: "${APACHE_LOG_DIR}/access.log combined"
+    cli:
+      metavar: LOG_SPEC
+  server_name:
+    doc:
+      short_help: "The server name."
+    type: string
+    required: false
+    default: localhost
+  document_root:
+    doc:
+      short_help: "The document root."
+      further_reading:
+        - "[Apache vhost examples](https://httpd.apache.org/docs/2.4/vhosts/examples.html)"
+        - "[Apache document root documentation](https://httpd.apache.org/docs/2.4/mod/core.html#documentroot)"
+    type: string
+    required: false
+    default: "/var/www/html"
+    cli:
+      metavar: PATH
+  ssl_certificate_file:
+    doc:
+      short_help: The ssl certificate file.
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  ssl_ca_certificate_file:
+    doc:
+      short_help: The ssl ca certificate file.
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  ssl_certificate_chain_file:
+    doc:
+      short_help: The ssl certificate chain file.
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  folder_directives:
+    doc:
+      short_help: A list of "Directory", "DirectoryMatch", "Files", "FilesMatch", "Location", "LocationMatch" directives.
+      further_reading:
+        - "[Apache 'Directory' directive doc](https://httpd.apache.org/docs/2.4/mod/core.html)"
+    type: list
+    default: []
+    cli:
+      enabled: false
+    schema:
+      type: dict
+      schema:
+        directive_type:
+          required: true
+          type: string
+          allowed:
+            - "Directory"
+            - "DirectoryMatch"
+            - "Files"
+            - "FilesMatch"
+            - "Location"
+            - "LocationMatch"
+        path:
+          required: true
+          type: string
+          empty: false
+        Options:
+          required: false
+          empty: false
+          type: string
+        AllowOverride:
+          required: false
+          empty: false
+          type: string
+        DirectoryIndex:
+          required: false
+          empty: false
+          type: string
+        Allow:
+          required: false
+          type: string
+        Require:
+          required: false
+          type: string
+          empty: false
+        AuthType:
+          required: false
+          type: string
+          empty: false
+        AuthName:
+          required: false
+          type: string
+          empty: false
+        AuthUserFile:
+          required: false
+          type: string
+          empty: false
+        SetHandler:
+          required: false
+          type: string
+          empty: False
+---
+{%:: if use_https ::%}
+<VirtualHost {{:: listen_ip ::}}:{{:: listen_port ::}}>
+  ServerName {{:: server_name ::}}
+  {%:: if server_aliases ::%}
+  {%:: for alias in server_aliases ::%}  ServerAlias {{:: alias ::}}
+  {%:: endfor ::%}{%:: endif ::%}
+
+  Redirect / https://{{:: server_name ::}}{%:: if listen_port_https != 443 ::%}:{{:: listen_port_https ::}}{%:: endif ::%}
+</VirtualHost>
+{%:: endif ::%}
+<VirtualHost {{:: listen_ip ::}}:{%:: if not use_https ::%}{{:: listen_port ::}}{%:: else ::%}{{:: listen_port_https ::}}{%:: endif ::%}>
+  ServerName {{:: server_name ::}}
+{%:: if server_aliases ::%}
+{%:: for alias in server_aliases ::%}  ServerAlias {{:: alias ::}}
+{%:: endfor ::%}{%:: endif ::%}
+  DocumentRoot "{{:: document_root ::}}"
+
+  {%:: if server_admin ::%}ServerAdmin {{:: server_admin ::}}{%:: endif ::%}
+  {%:: if error_log ::%}ErrorLog {{:: error_log ::}}{%:: endif ::%}
+  {%:: if custom_log ::%}CustomLog {{:: custom_log ::}}{%:: endif ::%}
+
+{%:: if use_https ::%}
+  SSLEngine on
+  SSLVerifyClient none
+  SSLProtocol TLSv1.2
+
+{%:: if use_letsencrypt ::%}
+SSLCertificateFile /etc/letsencrypt/live/{{:: server_name ::}}/cert.pem
+SSLCertificateKeyFile /etc/letsencrypt/live/{{:: server_name ::}}/privkey.pem
+SSLCertificateChainFile /etc/letsencrypt/live/{{:: server_name ::}}/fullchain.pem
+{%:: else ::%}
+{%:: if ssl_certificate_file ::%}SSLCertificateFile {{:: ssl_certificate_file ::}}{%:: endif ::%}
+{%:: if ssl_ca_certificate_file ::%}SSLCertificateFile {{:: ssl_ca_certificate_file ::}}{%:: endif ::%}
+{%:: if ssl_certificate_chain_file ::%}SSLCertificateChainFile {{:: ssl_certificate_chain_file ::}}{%:: endif ::%}
+{%:: endif ::%}
+{%:: endif ::%}
+{%:: for d in folder_directives ::%}
+  <{{:: d.directive_type ::}} "{{:: d.path ::}}">
+{%:: for var_name in ["AllowOverride", "Options", "Require", "Allow", "AuthType", "AuthName", "AuthUserFile", "SetHandler", "DirectoryIndex"] ::%}
+    {%:: if d[var_name] ::%}{{:: var_name ::}} {{:: d[var_name] ::}}{%:: endif ::%}{%:: endfor ::%}
+  </{{:: d.directive_type ::}}>
+{%:: endfor ::%}
+</VirtualHost>
+
+

@@ -1,0 +1,385 @@
+---
+
+doc:
+  short_help: Nginx server configuration
+  todo:
+    - nginx basic auth
+args:
+  default_server:
+    doc:
+      short_help: Whether this server is the 'default' (catchall) server.
+      help: |
+        One Nginx instance can only have one 'default' server, this is used for everything that hasn't been
+        caught otherwise.
+      further_reading:
+        - "[Nginx server block documentation](https://www.nginx.com/resources/wiki/start/topics/examples/server_blocks/#a-default-catch-all-server-block)"
+    type: boolean
+    default: false
+    required: false
+    cli:
+      is_flag: true
+  use_https:
+    doc:
+      short_help: Whether to use https.
+      help: |
+        Whether to use https.
+
+        All http traffic will be redirected to https.
+    type: boolean
+    required: false
+    default: false
+  use_letsencrypt:
+    doc:
+      short_help: Whether to use letsencrypt certificates.
+      help: |
+        Whether to use [letsencrypt](https://letsencrypt.org/) certificates.
+
+        If this is the case, and 'use_https' is selected, the ssl_* certificate
+        paths don't need to be provided, and the location to renew them will be added
+        automatically.
+      further_reading:
+        - "[LetsEncrypt homepage](https://letsencrypt.org/)"
+    type: boolean
+    required: false
+    default: true
+    cli:
+      enabled: false
+  listen_port_https:
+    doc:
+      short_help: "The port to listen for https."
+    type: integer
+    default: 443
+    required: false
+  listen_port:
+    doc:
+      short_help: "The port to listen to."
+    type: integer
+    required: false
+    default: 80
+  server_admin:
+    doc:
+      short_help: "The server admin email."
+    type: string
+    required: false
+    cli:
+      metavar: EMAIL
+  access_log:
+    doc:
+      short_help: "The access log."
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  error_log:
+    doc:
+      short_help: "The error log path and (optional) log level."
+      further_reading:
+        - "[Nginx core documentation](http://nginx.org/en/docs/ngx_core_module.html#error_log)"
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  server_names:
+    doc:
+      short_help: "The server names."
+      further_reading:
+        - "[Nginx server documentation](https://www.nginx.com/resources/wiki/start/topics/examples/server_blocks/#wildcard-subdomains-in-a-parent-folder)"
+    type: list
+    required: true
+    empty: false
+    schema:
+      type: string
+    default:
+      - localhost
+    cli:
+      param_decls:
+        - "--server-name"
+        - "-n"
+  document_root:
+    doc:
+      short_help: "The document root."
+    type: string
+    required: false
+    default: "/var/www/html"
+    cli:
+      metavar: PATH
+  ssl_certificate_file:
+    doc:
+      short_help: The ssl certificate file.
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  ssl_certificate_key_file:
+    doc:
+      short_help: The ssl certificate key file.
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  ssl_trusted_certificate_file:
+    doc:
+      short_help: The ssl certificate chain file.
+    type: string
+    required: false
+    cli:
+      metavar: PATH
+  index:
+    doc:
+      short_help: The index files.
+    type: list
+    schema:
+      type: string
+    default:
+      - index.html
+      - index.htm
+    required: false
+    cli:
+      metavar: FILENAME
+  error_page:
+    doc:
+      short_help: The error page.
+    type: string
+    required: false
+  add_header:
+    doc:
+      short_help: Adding header.
+    type: string
+    required: false
+  upstream:
+    doc:
+      short_help: A list of upstreams.
+    type: list
+    required: false
+    default: []
+    empty: true
+    schema:
+      type: dict
+      schema:
+        name:
+          type: string
+          required: true
+          empty: false
+        properties:
+          type: string
+          required: true
+          empty: false
+    cli:
+      enabled: false
+  location_blocks:
+    doc:
+      short_help: A list of location blocks.
+      further_reading:
+        - "[DigitalOcean nginx location tutorial](https://www.digitalocean.com/community/tutorials/understanding-nginx-server-and-location-block-selection-algorithms )"
+    type: list
+    required: false
+    default: []
+    empty: true
+    schema:
+      type: dict
+      schema:
+        location_match:
+          type: string
+          required: true
+        location_modifier:
+          type: string
+          required: false
+          allowed:
+            - '='
+            - '~'
+            - '~*'
+            - '^~'
+        properties:
+          type: string
+          required: false
+          default: ""
+    cli:
+      enabled: false
+  gzip_enabled:
+    doc:
+      short_help: Whether to enable gzip.
+    type: boolean
+    required: false
+    cli:
+      is_flag: true
+  gzip:
+    doc:
+      short_help: gzip configuration, if enabled
+      further_reading:
+        - "[Nginx gzip module documentation](http://nginx.org/en/docs/http/ngx_http_gzip_module.html)"
+    type: dict
+    required: false
+    empty: true
+    default: {}
+    schema:
+      gzip_buffers:
+        type: string
+        required: false
+      gzip_comp_level:
+        type: integer
+        min: 1
+        max: 9
+        required: false
+      gzip_disable:
+        type: string
+        required: false
+      gzip_http_version:
+        type: string
+        required: false
+      gzip_min_length:
+        type: integer
+        required: false
+      gzip_proxied:
+        type: string
+        required: false
+      gzip_types:
+        type: string
+        required: false
+      gzip_vary:
+        type: string
+        allowed:
+          - on
+          - off
+  proxy_read_timeout:
+    doc:
+      short_help: Proxy read timeout.
+    type: string
+    required: false
+  client_max_body_size:
+    doc:
+      short_help: Client max body size.
+    type: string
+    required: false
+  webserver_user:
+    doc:
+      short_help: "The user to run the webserver as."
+    type: string
+    required: false
+    cli:
+      metavar: USERNAME
+  webserver_group:
+    doc:
+      short_help: "The group to run the webserver as (if applicable)."
+    type: string
+    required: false
+    cli:
+      metavar: GROUP
+  letsencrypt_staging:
+    doc:
+      short_help: "Whether to use the letsencrypt staging server (for developing -- production only allows a few requests per day)."
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+  use_basic_auth:
+    doc:
+      short_help: "Whether to setup basic auth."
+    type: boolean
+    required: false
+    default: false
+    cli:
+      enabled: false
+  basic_auth_message:
+    doc:
+      short_help: "The message that will be displayed to the user."
+      help: |
+        The message that will be displayed to the user.
+    type: string
+    empty: false
+    required: false
+    default: "Please authenticate."
+  basic_auth_users:
+    doc:
+      short_help: "A dict with username as key, password as value."
+    type: dict
+    required: false
+    cli:
+      enabled: false
+  basic_auth_user_file:
+    doc:
+      short_help: "The file to store htpasswd information."
+    type: string
+    required: false
+    default: "/etc/htpasswd"
+    cli:
+      show_default: true
+      enabled: false
+  restart_webserver:
+    doc:
+      short_help: "Whether to restart the webserver afterwards."
+    type: boolean
+    required: false
+    default: false
+    cli:
+      is_flag: true
+
+---
+{%:: for u in upstream ::%}
+upstream {{:: u.name ::}} {
+{{:: u.properties | indent(2, True) ::}}
+}
+{%:: endfor ::%}
+{%:: if use_https ::%}
+server {
+  listen {{:: listen_port ::}};
+  listen [::]{{:: listen_port ::}};
+
+  server_name {{:: server_names | join(' ') ::}};
+
+  return 301 https://{{:: server_names[0] ::}}$request_uri;
+}
+{%:: endif ::%}
+server {
+  listen {%:: if not use_https ::%}{{:: listen_port ::}}{%:: else ::%}{{:: listen_port_https ::}} ssl http2{%:: endif ::%}{%:: if default_server ::%} default_server{%:: endif ::%};
+  listen [::]:{%:: if not use_https ::%}{{:: listen_port ::}}{%:: else ::%}{{:: listen_port_https ::}} ssl http2{%:: endif ::%}{%:: if default_server ::%} default_server{%:: endif ::%};
+  server_name {{:: server_names | join(' ') ::}};
+
+  root "{{:: document_root ::}}";
+  {%:: if error_page ::%}error_page {{:: error_page ::}};{%:: endif ::%}
+  {%:: if access_log ::%}access_log {{:: access_log ::}};{%:: endif ::%}
+  {%:: if error_log ::%}error_log {{:: error_log ::}};{%:: endif ::%}
+  {%:: if index ::%}index {{:: index | join(' ') ::}};{%:: endif ::%}
+  {%:: if add_header ::%}add_header {{:: add_header ::}};{%:: endif ::%}
+  {%:: if use_https ::%}
+    {%:: if use_letsencrypt ::%}
+    ssl_certificate /etc/letsencrypt/live/{{:: server_names[0] ::}}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{:: server_names[0] ::}}/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/{{:: server_names[0] ::}}/fullchain.pem;
+
+    location ~ /\.well-known\/acme-challenge {
+      allow all;
+      default_type "text/plain";
+    }
+    {%:: else ::%}
+    {%:: if ssl_certificate_file ::%}ssl_certificate {{:: ssl_certificate_file ::}};{%:: endif ::%}
+    {%:: if ssl_certificate_key_file ::%}ssl_certificate_key {{:: ssl_certificate_key_file ::}};{%:: endif ::%}
+    {%:: if ssl_trusted_certificate_file ::%}ssl_trusted_certificate {{:: ssl_trusted_certificate_file ::}};{%:: endif ::%}
+    {%:: endif ::%}
+  {%:: endif ::%}
+
+  {%:: if use_basic_auth ::%}
+  auth_basic              "{{:: basic_auth_message ::}}";
+  auth_basic_user_file    {{:: basic_auth_user_file ::}};
+  {%:: endif ::%}
+
+  {%:: if gzip_enabled ::%}
+  gzip on;
+  {%:: for k, v in gzip.items() ::%}
+  {{:: k ::}} {{:: v ::}};{%:: endfor ::%}
+  {%:: endif ::%}
+
+  {%:: if proxy_read_timeout ::%}
+  proxy_read_timeout {{:: proxy_read_timeout ::}};
+  {%:: endif ::%}
+
+  {%:: if client_max_body_size ::%}
+  client_max_body_size {{:: client_max_body_size ::}};
+  {%:: endif ::%}
+
+  {%:: for l in location_blocks ::%}
+  location {%:: if l.location_modifier ::%}{{:: l.location_modifier ::}}{%:: endif ::%} {{:: l.location_match ::}} {
+{{:: l.properties | indent(4, true) ::}}
+  }
+  {%:: endfor ::%}
+}
