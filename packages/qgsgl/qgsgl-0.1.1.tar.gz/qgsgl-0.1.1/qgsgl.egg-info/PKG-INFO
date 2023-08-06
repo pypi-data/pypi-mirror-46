@@ -1,0 +1,65 @@
+Metadata-Version: 2.1
+Name: qgsgl
+Version: 0.1.1
+Summary: Convert QGIS project into webmapgl style
+Home-page: https://ccrpc.org/programs/transportation/
+Author: Edmond Lai
+Author-email: klai@ccrpc.org
+License: UNKNOWN
+Description: # Conversion tool for QGIS map project into webmapgl style
+        
+        ## Usage
+        
+        ### Sources
+        
+        #### GeoJSON
+        
+        ```py
+        from qgsgl import GeoJSONSource
+        
+        url = 'https://example.com/data/stations.geojson'
+        source = GeoJSONSource('stations', url)
+        source.add_layer(station_layer)
+        source.write('/www/data/stations.geojson')
+        style.add_source(source)
+        ```
+        
+        #### Vector
+        
+        ```py
+        from qgsgl import VectorSource
+        
+        url = 'https://example.com/tiles/project.json'
+        source = VectorSource('project', url)
+        source.add_layer(station_layer, min_zoom=12, max_zoom=14)
+        source.add_layer(street_layer, min_zoom=10, max_zoom=14)
+        source.write('/www/tiles/project.mbtiles')
+        style.add_source(source)
+        ```
+        
+        ## Running Tests
+        ```
+        python -m unittest discover
+        ```
+        
+        # Changelog
+        
+        ## [0.1.1] - 2019-05-20
+         - Fixes bugs with color not using alpha channel (#45)
+         - Created checks for unsupported symbol layer and simplified layer class
+           selection logic (#46)
+         - Removed incorrect visibility logic from layer converter (#51)
+        
+        ## [0.1.0] - 2019-05-02
+         - Initial release
+        
+Keywords: QGIS gl
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Win32 (MS Windows)
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Topic :: Database
+Classifier: Topic :: Scientific/Engineering :: GIS
+Classifier: Programming Language :: Python :: 3.6
+Description-Content-Type: text/markdown
