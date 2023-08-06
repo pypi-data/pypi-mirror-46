@@ -1,0 +1,74 @@
+# COBRA Tools
+
+An assortment of tools used by COBRA Lab for bioinformatics.
+
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+Requires Python 3.6 or later. All other requirements are included in `requirements.txt`
+
+### Installing
+
+A step by step series of examples that tell you how to get a development env running
+
+Say what the step will be
+
+```
+Give the example
+```
+
+And repeat
+
+```
+until finished
+```
+
+End with an example of getting some data out of the system or using it for a little demo
+
+### Unit testing
+
+Run unit tests with 
+
+    cd general
+    pytest -sv --cov-report term-missing --cov=models
+
+### Linting
+
+Lint with
+
+    cd general
+    pylint *.py models tests
+    
+Note that pylint treats all module-level variables as constants.
+
+Also
+
+    cd general
+    flake8
+
+### Type Checking
+
+Run static type checking (from project root) with
+
+    mypy general/*.py general/tests general/models
+
+## Contributing
+
+Please read SOMETHING HERE for details and process for submitting pull requests to us.
+
+## Versioning
+
+Something about versioning here
+
+## Authors
+
+* **Clayton Cafiero** - *Initial work*
+
+See also the list of [contributors](https://github.com/cbcafiero/cobra/contributors) who participated in this project.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
