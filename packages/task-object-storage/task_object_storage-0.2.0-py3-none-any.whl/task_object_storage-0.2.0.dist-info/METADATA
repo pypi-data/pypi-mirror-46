@@ -1,0 +1,142 @@
+Metadata-Version: 2.1
+Name: task-object-storage
+Version: 0.2.0
+Summary: Task Object Storage package.
+Home-page: https://gitlab.siilicloud.com/intelligent_automation/tos
+Author: Siili Solutions Oyj, Intelligent Automation
+Author-email: henrik.vesterinen@siili.com
+License: Apache License 2.0
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Dist: dnspython
+Requires-Dist: Pillow (==5.4.1)
+Requires-Dist: pymongo (==3.7.2)
+Requires-Dist: robotframework (==3.1)
+Requires-Dist: wheel
+
+Task Object Storage
+===================
+
+Transaction management for Robot Framework RPA using MongoDB.
+
+Included are two packages: ``tos`` and ``TOSLibrary``.
+The former is the actual task object storage implementation written in
+pure Python, without any Robot Framework dependencies. ``TOSLibrary`` is
+a Robot Framework keyword library built on top of ``tos``. It is built as a
+lightweight dynamic proxy library, so all the changes in ``tos`` are immediately
+available in ``TOSLibrary`` keywords.
+
+
+For full documentation see https://intelligent_automation.gitlab-siili.io/tos
+
+
+Quickstart guide
+----------------
+
+Requirements
+............
+
+* MongoDB (version >4)
+* Python (version >3.6)
+
+Installation
+............
+
+Test PyPi:
+
+.. code-block:: bash
+
+  pip install --extra-index https://test.pypi.org/simple task-object-storage
+
+Usage
+.....
+
+You can import ``TOSLibrary`` into your Robot Framework suite with
+
+.. code-block:: robotframework
+
+  *** Settings ***
+  Library  TOSLibrary  ${db_server}:${db_port}  ${db_name}
+
+
+If you are using authentication in MongoDB, you can pass credentials:
+
+.. code-block:: robotframework
+
+  *** Settings ***
+  Library  TOSLibrary  ${db_server}:${db_port}  ${db_name}  ${db_user}  ${db_passw}
+
+
+Now the keywords are callable from Robot Framework.
+
+This library instance can also be accessed inside Python keywords with
+
+.. code-block:: python
+
+  from robot.libraries.BuiltIn import BuiltIn
+
+  BuiltIn().get_library_instance("TOSLibrary")
+
+The keywords can be also called with:
+
+.. code-block:: python
+
+  BuiltIn().run_keyword("<keyword name>")
+
+
+To use task object storage in Python without any Robot Framework dependencies
+you should use ``tos`` package directly:
+
+.. code-block:: python
+
+  from tos.task_object_storage import TaskObjectStorage
+
+  tos = TaskObjectStorage(
+          db_server=server,
+          db_name=db_name,
+          db_user=db_user,
+          db_passw=db_passw,
+  )
+
+
+If ``db_user`` and ``db_passw`` are empty strings, ``TaskObjectStorage`` will default
+to using no authentication.
+
+Available keywords
+------------------
+See the full API documentation.
+
+
+Building a distribution package from source
+...........................................
+
+Create a pip wheel package using
+
+.. code-block:: bash
+
+  scripts/build.sh
+
+
+or
+
+.. code-block:: bash
+
+  python setup.py bdist_wheel
+
+
+and distribute the `whl` package found in the `dist` directory.
+
+This local package can be installed with
+
+.. code-block:: bash
+
+  pip install <package-name>.whl
+
+To upload to PyPi:
+
+.. code-block:: bash
+
+  twine upload --repository-url https://test.pypi.org/legacy/ dist/* --verbose
+
+
