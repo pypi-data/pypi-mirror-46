@@ -1,0 +1,31 @@
+{% comment %}
+Copyright (C) 2017-2018  The Software Heritage developers
+See the AUTHORS file at the top-level directory of this distribution
+License: GNU Affero General Public License version 3, or any later version
+See top-level LICENSE file for more information
+{% endcomment %}
+
+{% load swh_templatetags %}
+
+<hr class="mt-1 mb-1">
+<div class="swh-origin-visit-details">
+  <ul>
+    {% if snapshot_context.origin_info %}
+      <li><i class="{{ swh_object_icons.visits }} fa-fw"></i><a href="{{ snapshot_context.browse_url }}">Visits</a></li>
+    {% endif %}
+    {% if snapshot_context.visit_info %}
+      <li><i class="{{ swh_object_icons.snapshot }} fa-fw"></i> Snapshot date: <a href="{{ snapshot_context.visit_info.url }}">{{ snapshot_context.visit_info.fmt_date }}</a></li>
+    {% endif %}
+    {% if not snapshot_context.snapshot_size.revision %}
+      <li><i class="{{ swh_object_icons.branches }} fa-fw"></i> Branches (0)</li>
+    {% else %}
+      <li><i class="{{ swh_object_icons.branches }} fa-fw"></i> <a href="{{ snapshot_context.branches_url }}">Branches ({{ snapshot_context.snapshot_size.revision}})</a></li>
+    {% endif %}
+    {% if not snapshot_context.snapshot_size.release %}
+      <li><i class="{{ swh_object_icons.releases }} fa-fw"></i> Releases (0)</li>
+    {% else %}
+      <li><i class="{{ swh_object_icons.releases }} fa-fw"></i> <a href="{{ snapshot_context.releases_url }}">Releases ({{ snapshot_context.snapshot_size.release }})</a></li>
+    {% endif %}
+  </ul>
+</div>
+<hr class="mt-1 mb-1">
