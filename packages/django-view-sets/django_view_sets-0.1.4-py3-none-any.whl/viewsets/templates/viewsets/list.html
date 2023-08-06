@@ -1,0 +1,70 @@
+{% extends 'viewsets/base.html' %}
+
+{% load viewset_tags staticfiles i18n %}
+
+{% block extrahead %}
+  {{ filter.form.media }}
+{% endblock %}
+
+{% block breadcrumbs_items %}
+  {% if viewset.view_index %}
+    <li class="breadcrumb-item"><a href="{{ viewset.get_index_url }}">{% trans 'Home' %}</a></li>
+  {% endif %}
+  <li class="breadcrumb-item active">{{ opts.verbose_name_plural|capfirst }}</li>
+{% endblock %}
+
+{% block body_title %}{{ opts.verbose_name_plural|capfirst }}{% endblock %}
+
+{% block title_buttons %}
+  {% if has_create_permission and not is_popup %}
+    <a class="btn btn-primary float-right"
+       href="{% viewset_url model_viewset 'create' %}{% if is_popup %}?{{ request.GET.urlencode }}{% endif %}">
+      <i class="fa fa-plus-square"></i> {% trans 'Add' %}
+    </a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% block filters %}
+    {% include 'viewsets/includes/_filter.html' %}
+  {% endblock %}
+
+  {% block objects_table %}
+    {% if object_list %}
+      <div class="listTable table-responsive">
+        <table class="table">
+          <thead>
+          <tr>
+            {% for field_name, title, sorting in serializer.cols %}
+              <th>
+                {% sort_link field_name title sorting %}
+              </th>
+            {% endfor %}
+          </tr>
+          </thead>
+          <tbody>
+          {% for object, row in serializer %}
+            <tr>
+              {% for col in row %}
+                <td>
+                  {% if forloop.first and not is_popup and has_update_permission and has_detail_permission %}
+                    <a href="{% viewset_url model_viewset 'update' pk=object.pk  %}" class="badge">
+                      <i class="fa fa-pencil-alt"></i>
+                    </a>
+                  {% endif %}
+
+                  {{ col }}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% elif filter.form.has_changed %}
+      <p>{% trans 'Nothing found' %}.</p>
+    {% endif %}
+  {% endblock %}
+{% endblock %}
+
+{% block content_footer %}{% show_paginator %}{% endblock %}

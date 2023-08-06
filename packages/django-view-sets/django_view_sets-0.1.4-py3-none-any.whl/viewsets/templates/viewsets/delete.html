@@ -1,0 +1,54 @@
+{% extends 'viewsets/base.html' %}
+
+{% load viewset_tags i18n %}
+
+{% block breadcrumbs_items %}
+  {% if viewset.view_index %}
+    <li class="breadcrumb-item"><a href="{{ viewset.get_index_url }}">{% trans 'Home' %}</a></li>
+  {% endif %}
+  <li class="breadcrumb-item">
+    <a href="{% viewset_url model_viewset 'list' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  </li>
+  <li class="breadcrumb-item text-muted">
+    {% if has_detail_permission %}
+      <a href="{% viewset_url model_viewset 'detail' pk=object.pk %}">
+    {% endif %}
+    <span>{{ object|capfirst }}</span>
+    {% if has_detail_permission %}
+      </a>
+    {% endif %}
+  </li>
+  <li class="breadcrumb-item active">{% trans 'Delete' %}</li>
+{% endblock %}
+
+{% block body_title %}{{ object|capfirst }}: {% trans 'Delete' %}{% endblock %}
+
+{% block content %}
+  {% if perms_lacking %}
+    <p>{% blocktrans with escaped_object=object %}Deleting the {{ object_name }} '{{ escaped_object }}' would result in
+      deleting related objects, but your account doesn't have permission to delete the following types of
+      objects:{% endblocktrans %}</p>
+    <ul>
+      {% for obj in perms_lacking %}
+        <li>{{ obj }}</li>
+      {% endfor %}
+    </ul>
+  {% elif protected %}
+    <p>{% blocktrans with escaped_object=object %}Deleting the {{ object_name }} '{{ escaped_object }}' would require
+      deleting the following protected related objects:{% endblocktrans %}</p>
+    <ul>
+      {% for obj in protected %}
+        <li>{{ obj }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>{% blocktrans with escaped_object=object %}Are you sure you want to delete the {{ object_name }}
+      "{{ escaped_object }}"? All of the following related items will be deleted:{% endblocktrans %}</p>
+    <ul>{{ to_delete|unordered_list }}</ul>
+    <form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+
+      <input type="submit" value="{% trans 'Yes' %}" class="btn btn-danger">
+      <a href="{% viewset_url model_viewset 'update' pk=object.pk %}" class="btn btn-default">{% trans 'No' %}</a>
+    </form>
+  {% endif %}
+{% endblock %}
