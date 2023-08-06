@@ -1,0 +1,200 @@
+#!/mnt/nfs/experiments/env/bin/python
+import sys
+import traceback
+import time
+import os
+import json
+import fcntl
+import subprocess
+from socket import gethostname
+import requests
+import signal
+from datetime import datetime
+from gnomehat import sysinfo
+import shutil
+
+CHAT_URL = os.environ.get('GNOMEHAT_CHAT_URL')
+SLEEPINESS = 4
+
+def log(*args):
+    print(*args)
+
+
+def chat_notification(msg):
+    log(msg)
+    if not CHAT_URL:
+        return
+    try:
+        resp = requests.post(CHAT_URL, data={
+            'username': gethostname(),
+            'message': msg,
+        })
+    except Exception as e:
+        log("Failed to send chat message due to {}: {}".format(e, msg))
+
+
+def get_gpu():
+    available_gpus = sysinfo.get_gpu_info()
+    cuda_visible = os.environ.get('CUDA_VISIBLE_DEVICES')
+    if cuda_visible:
+        gpu_idx = int(cuda_visible)
+    else:
+        gpu_idx = 0
+    gpu = available_gpus[gpu_idx]
+    return gpu_idx
+
+
+def getinfo():
+    info = {
+        'name': gethostname(),
+        'start_time': time.time(),
+        'gpu': get_gpu(),
+    }
+    return json.dumps(info)
+
+
+def gpu_is_in_use(gpu_id, threshold_memory_use_percent=10.0):
+    gpu_id = int(gpu_id)
+    cmd = "nvidia-smi -q -i {} | egrep Memory.*% | awk '{{print $3}}'".format(gpu_id)
+    text = subprocess.check_output(cmd, shell=True)
+    memory_used = float(text)
+    return memory_used >= threshold_memory_use_percent
+
+
+def run_experiments(experiments_dir):
+    #log('Worker waking up...')
+    gpu_idx = get_gpu()
+    if gpu_is_in_use(gpu_idx):
+        log('GPU {} is being used, going back to sleep'.format(gpu_idx))
+        return
+    experiments = os.listdir(experiments_dir)
+    for name in experiments:
+        dirname = os.path.join(experiments_dir, name)
+        if not os.path.isdir(dirname):
+            continue
+        files = os.listdir(dirname)
+        # Look for one that has a ./gnomehat_start.sh
+        if not 'gnomehat_start.sh' in files:
+            continue
+        # And does not have a worker_lockfile
+        if 'worker_lockfile' in files:
+            continue
+        # And does not have a worker_finished
+        if 'worker_finished' in files:
+            continue
+        # And did not fail due to an error
+        if 'worker_error' in files:
+            continue
+        log('Starting job {}'.format(dirname))
+        run_experiment(dirname)
+        break
+    #log('Worker sleeping...')
+
+
+def create_python_environment(experiments_dir):
+    shell_environ = os.environ.copy()
+    env_bin_dir = os.path.join(experiments_dir, 'env', 'bin')
+    if os.path.exists(env_bin_dir):
+        shell_environ['PATH']= ':'.join([env_bin_dir, os.environ['PATH']])
+    return shell_environ
+
+
+def run_experiment(dirname):
+    os.chdir(dirname)
+    env = create_python_environment(experiments_dir)
+
+    lockfile_name = os.path.join(dirname, 'worker_lockfile')
+    delete_when_finished = os.path.join(dirname, 'gnomehat_delete_when_finished')
+    fp_lock = open(lockfile_name, 'w+')
+    log("Attempting to acquire lock on {}".format(lockfile_name))
+    try:
+        fcntl.flock(fp_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        log('Acquired lock on {}'.format(lockfile_name))
+    except OSError:
+        log('Experiment is already locked by another process')
+        return
+
+    try:
+        with open('worker_started', 'w') as fp:
+            fp.write(getinfo())
+
+        # Before execute_runscript(), the following preconditions must hold:
+        #   No other worker (on any machine) has acquired a lock on dirname
+        #   All repository-relevant files identified by `gnomehat run` exist in the cwd
+        #   The given env locates `python` at $EXPERIMENT_DIR/env/bin if it exists
+        execute_runscript(dirname, env=env)
+
+        with open('worker_finished', 'w') as fp:
+            fp.write('{}'.format(getinfo()))
+            chat_notification('Finished job {}'.format(dirname))
+    except Exception as e:
+        chat_notification("Error {} while running experiment {}".format(e, dirname))
+        with open('worker_error', 'w') as fp:
+            traceback.print_exc()
+            fp.write('{}'.format(e))
+    finally:
+        log('Removing lock on file {}'.format(lockfile_name))
+        fcntl.flock(fp_lock, fcntl.LOCK_UN)
+        if os.path.exists(lockfile_name):
+            os.remove(lockfile_name)
+        if os.path.exists(delete_when_finished):
+            log('Removing temporary directory {}'.format(dirname))
+            shutil.rmtree(dirname)
+    log('Finished cleaning up experiment {}'.format(dirname))
+
+
+def execute_runscript(dirname, env=None):
+    # Run the experiment
+    with open('stdout.txt', 'a') as log_fp:
+        log('Worker opening stdout.txt...')
+        log_fp.write('[{} starting experiment at {}]\n'.format(gethostname(), get_timestamp()))
+        log('Worker starting subprocess.Popen()')
+        proc = subprocess.Popen('./gnomehat_start.sh',
+                                stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                env=env,
+                                bufsize=1,
+                                universal_newlines=True,
+                                preexec_fn=os.setsid)
+        log('Worker reading from subprocess...')
+        for line in iter(proc.stdout.readline, ''):
+            if os.path.exists('worker_abort'):
+                log('Worker aborting experiment {}'.format(dirname))
+                log_fp.write('[Worker recieved termination signal at {}]'.format(get_timestamp()))
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+                raise Exception("Abort experiment")
+            timestamp = datetime.now().strftime('%H:%M:%S')
+            log_fp.write('[{}] {}'.format(timestamp, line))
+            log_fp.flush()
+        proc.wait()
+        log_fp.write('[Worker finished experiment at {}, return code {}]'.format(get_timestamp(), proc.returncode))
+        log_fp.write('')
+        log('Worker closing files...')
+    log("Worker finished running experiment {}".format(dirname))
+
+
+def get_timestamp():
+    return subprocess.check_output('date').decode('utf-8').strip()
+
+
+def main(experiments_dir):
+    gpu = get_gpu()
+    log('Worker starting with GPU {} in {}'.format(gpu, experiments_dir))
+    while True:
+        os.chdir(experiments_dir)
+        log('Worker looking for jobs...')
+        for namespace in os.listdir(experiments_dir):
+            namespace_dir = os.path.join(experiments_dir, namespace)
+            if os.path.isdir(namespace_dir):
+                run_experiments(namespace_dir)
+        time.sleep(SLEEPINESS)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        log('Usage: worker <experiments_dir>')
+        log('\texperiments_dir: Directory containing experiments (eg. /home/username/experiments)')
+        exit(1)
+    experiments_dir = sys.argv[1]
+    main(experiments_dir)
