@@ -1,0 +1,87 @@
+#!/bin/bash
+set -e
+
+# make sure the npm clean command is only removing the content of /app/client/dist
+# and not the directory itself so mounting it works as expected
+if [ -f /app/package.json ]; then
+    printf "Patching package.json..."
+    if ! sed -i -e 's/"rm -rf \.\/client\/dist\/"/"rm -rf \.\/client\/dist\/\*"/g' /app/package.json
+    then
+      echo "failed."
+    else
+      echo "done."
+    fi
+fi
+
+pushd /extension
+# always install inside the running container
+PIP_QUIET=true flit install --user --python=/usr/bin/python --symlink --extras=test,dev
+popd
+
+# Trash the existing and copy the current extension bundles again
+rm -rf /app/client/app/extensions/*
+/app/bin/bundle-extensions
+
+server() {
+  exec /usr/local/bin/gunicorn -b 0.0.0.0:5000 --name redash -w${REDASH_WEB_WORKERS:-4} redash.wsgi:app
+}
+
+devserver() {
+  # Start a watchdog to copy extension bundles over to /app/client/app/extensions
+  ~/.local/bin/watchmedo shell-command \
+    --patterns="*.js;*.jsx" \
+    --ignore-directories \
+    --recursive \
+    --command='/app/bin/bundle-extensions' \
+    /extension/ &
+  npm run start
+}
+
+create_tables() {
+  pushd /app
+  /extension/bin/wait-for-it.sh postgres:5432 -- /app/manage.py database create_tables
+  popd
+}
+
+tests() {
+  export REDASH_DATABASE_URL="postgresql://postgres@postgres/tests"
+  create_tables
+
+  if [ $# -eq 0 ]; then
+    TEST_ARGS=/extension
+  else
+    TEST_ARGS=$@
+  fi
+  pytest $TEST_ARGS
+}
+
+case "$1" in
+  tests)
+	shift
+	tests $@
+;;
+  ci)
+	shift
+	tests $@
+  bash <(curl -s https://codecov.io/bash) -s /tmp
+;;
+  create_tables)
+	shift
+	create_tables
+;;
+  manage)
+	shift
+	exec /app/manage.py $*
+;;
+  server)
+	shift
+	server $@
+;;
+  devserver)
+	shift
+	devserver $@
+;;
+  *)
+	exec "$@"
+;;
+esac
