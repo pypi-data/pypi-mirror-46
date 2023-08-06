@@ -1,0 +1,3 @@
+# sob
+
+This is a placeholder for the new home of `serial`...
