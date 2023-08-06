@@ -1,0 +1,91 @@
+<html>
+  <script src="/static/js/lib/jquery.js"></script>
+  <script src="/static/js/lib/underscore.js"></script>
+
+<style>
+  a {
+    width: 100%;
+  }
+
+  .btn-cancelled {
+    background: whitesmoke;
+    color: black;
+  }
+
+  b {
+    font-family: arial;
+  }
+</style>
+
+
+<body>
+
+<div class="row">
+  <div class="col-md-4 col-md-offset-4">
+    <h1>Scorpion User Study</h1>
+
+    <p>
+    Hello!  This is a user study of the Scorpion data analysis tool.  You will be asked to go through a few tutorials
+    about how to user the analysis tool, then asked to complete three data analysis tasks.  
+    </p>
+    <p>
+    The system stores your answers
+    and timing information about how you answered each question in the tasks.
+    </p>
+    <p>
+    Please <a href="http://sirrice.github.io/files/misc/dbwipes_consentform.pdf"><b style="font-size: 14pt">read the consent form</b></a> to understand the risks and your rights.</p>
+    </p>
+
+    <h3><span id="nametitle">What is your full name?</span> <a href="#"><small id="nameclear">clear</small></a></h3>
+    <p><form id="nameform"><input class='input form-control' id="name" style='width:100%' placeholder="press enter to submit"/></form></p>
+
+    <div id="next">
+      <a href="/study/" class="btn btn-primary" style="padding:1em; font-size: 18pt">
+        <span style="font-size: 14pt">I understand and agree to the consent form.</span><br/>
+        Start Study
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  $(function() {
+    var validName = function(name) {
+      return name && name != '';
+    };
+
+
+    var render = function(name) {
+      $("#name").val(name);
+      if (validName(name)) {
+        localStorage['name'] = name;
+        $("#nametitle").text("Your name: " + name);
+        $("#next").show();
+      } else {
+        delete localStorage['name'];
+        $("#nametitle").text("What is your full name?")
+        $("#next").hide();
+      }
+    };
+
+    render(localStorage['name']);
+
+    $("#nameform").on("submit", function() {
+      render($("#name").val());
+      return false;
+    });
+
+    $("#nameclear").click(function() {
+      render(null);
+    });
+  });
+</script>
+
+{% include 'footer.html' %}
+
+</body>
+
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/css/base.css"/>
+</html>
