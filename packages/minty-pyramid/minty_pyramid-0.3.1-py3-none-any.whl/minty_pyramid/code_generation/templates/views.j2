@@ -1,0 +1,55 @@
+from pyramid.exceptions import HTTPBadRequest
+
+{% for view in views %}
+def {{ view.handler }}(request):
+    """Documentation: {{view.handler }}."""
+    # TODO Update with correct domain
+    {% if view.method == "POST"%}
+    command_instance = request.get_command_instance("")
+    {% elif view.method == "GET"%}
+    query_instance = request.get_query_instance("")
+    {% endif %}
+    {% for group in view.grouped_params -%}
+    {% if group == "path" -%}
+    {% for g_param in view.grouped_params[group] -%}
+    {{ g_param.name }} = request.matchdict("{{ g_param.name }}")
+    {% endfor %}
+    {% endif -%}
+
+
+    {% if group == "query_multiple" %}
+    {% for g_param in view.grouped_params[group] -%}
+    {{ g_param.name }} = request.params.getall("{{ g_param.name }}")
+    {% endfor %}
+    {% endif -%}
+
+    {% if group == "query_optional" %}
+    {% for g_param in view.grouped_params[group] -%}
+    {{ g_param.name }} = request.params.get("{{ g_param.name }}", "")
+    {% endfor %}
+    {% endif -%}
+
+    {% if group == "query_required" -%}
+    try:
+    {%- for g_param in view.grouped_params[group] %}
+        {{ g_param.name }} = request.params["{{ g_param.name }}"]
+    {%- endfor %}
+    except KeyError as e:
+        raise HTTPBadRequest(json_body={"error": f"missing {e} parameter"})
+    {% endif -%}
+    {% endfor -%}
+
+    call_dict = { {% for param in view.params %}
+        "{{ param.name }}": {{ param.name }},{% endfor %}
+    }
+
+    {% if view.method == "POST" %}
+    # TODO Update with correct command method
+    result = command_instance.command_method(**call_dict)
+    {% elif view.method == "GET" %}
+    # TODO Update with correct query method
+    result = query_instance.query_method(**call_dict)
+    {%- endif %}
+    return {"results": result}
+
+{% endfor %}

@@ -1,0 +1,27 @@
+{% extends "base_template.j2" %}
+{% block template %}
+
+def add_routes(config):
+    """Add routes to pyramid application.
+
+    :param config: pyramid config file
+    :type config: Configurator
+    """
+    handlers = [{% for route in routes %}
+        {
+            "route": "{{ route.route }}",
+            "handler": "{{ route.handler  }}",
+            "method": "{{ route.method }}",
+            "view": "{{ route.view }}",
+        },{% endfor %}
+    ]
+
+    for h in handlers:
+        config.add_route(h["handler"], h["route"])
+        config.add_view(
+            view=h["view"],
+            route_name=h["handler"],
+            renderer="json",
+            request_method=h["method"],
+        )
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base_template.j2" %}
+{% block template %}
+
+from unittest import TestCase, mock
+
+import webtest
+
+from {{ package_name }} import main
+
+{% for group in routes %}
+class TestRoutes{{ group.capitalize() }}(TestCase):
+    def setUp(self):
+        from {{ package_name }}.views import {{ group }}
+
+        self.patched_{{ group }} = mock.patch(
+            "{{ package_name }}.views.{{ group }}", spec={{ group }}
+        )
+        self.{{ group }} = self.patched_{{ group }}.start()
+
+        settings = {
+            "minty_service.infrastructure.config_file": "tests/data/config.conf"
+        }
+        app = main({}, **settings)
+        self.mock_app = webtest.TestApp(app)
+
+    def tearDown(self):
+        self.patched_{{ group }}.stop()
+
+    def test_routes_{{ group }}(self):{% for route in routes[group] %}
+        self.{{ group }}.{{ route.handler }}.return_value = 200
+        self.mock_app.{{ route.method.lower() }}("{{ route.route }}", status=200){% endfor %}
+{% endfor %}{% endblock %}
