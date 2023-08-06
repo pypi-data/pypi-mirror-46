@@ -1,0 +1,32 @@
+<div class="card {{card.cssClass}}" {{card.customCss|safe}}>
+  <h4 class="card-header">
+  {% if card.icon is not none %}   
+  <span class="fa {{card.icon}}" style="float:right; color:{{card.iconColour}}"></span>
+  {% endif %}
+  {{card._get_header()}}
+  </h4>
+  <div class="card-body">
+  <table style="width:100%;">
+  {% if card.hasDetails==false %}
+    <tr {{card._get_filtered_custom_css('color')}}>
+     <td rowspan={{card.rowSpan}}><h1 class="card-title"><strong>{{card.body}}</strong></h1></td>
+    </tr>
+  {% else %}
+    {% for key, value in card.detailsMap.items() %} 
+        <tr {{card._get_filtered_custom_css('color')}}>
+         {% if loop.index == 1 %}
+     		<td rowspan={{card.rowSpan}}><h1 class="card-title">
+     		{% if card.lastMoveIcon is not none %}
+     		<i class="{{card.moveIcon}}" style="color:{{card._get_last_move_flash_colour()}}"></i>
+     		{% endif %}
+     		 <strong>{{card.body}}</strong>
+     		</h1></td>
+         {% endif %}
+         <td style="text-align:right;">{{key}}</td>
+         <td style="text-align:right;">{{value}}</td>           
+        </tr>
+    {% endfor %}
+  {% endif %}
+  </table>
+  </div>
+</div>
