@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+import tifffile
+import numpy
+
+import spam.mesh
+import spam.helpers
+import argparse
+
+# Define argument parser object
+parser = argparse.ArgumentParser()
+
+# Parse arguments with external helper function
+args = spam.helpers.optionsParser.BCFromDVCParser(parser)
+
+print("\nCurrent Settings:")
+argsDict = vars(args)
+for key in sorted(argsDict):
+    print("\t{}: {}".format(key, argsDict[key]))
+
+print("\nLoading data...")
+# Get the meshNodes
+if args.GMSHFILE is not None:
+    import meshio
+    print("Read gmsh file: {}".format(args.GMSHFILE.name))
+    gmsh = meshio.read(args.GMSHFILE.name)
+    meshNodes = numpy.zeros((gmsh.points.shape[0], 4))
+    for i, node in enumerate(gmsh.points):
+        meshNodes[i] = [i+1, node[2], node[1], node[0]] #zyx
+elif args.VTKFILE is not None:
+    points, connectivity, _ ,_ = spam.helpers.readUnstructuredVTK(args.VTKFILE.name)
+    meshNodes = numpy.zeros((points.shape[0], 4))
+    for i, node in enumerate(points):
+        meshNodes[i] = [i+1, node[0], node[1], node[2]] #zyx
+else:
+    print("You need to input an unstructured mesh")
+    exit()
+
+# Get dvc field
+if args.TSVDVCFILE is not None:
+    dvcField = spam.helpers.readTSV(args.TSVDVCFILE.name)
+    fieldCoords = dvcField["fieldCoords"]
+    fieldDisp = dvcField["Ffield"][:, :3, -1]
+    mask = None
+    if args.MASK:
+        mask = numpy.ones(fieldCoords.shape[0])
+        mask[numpy.where(dvcField["SubPixReturnStat"]<-4)] = 0
+    dvcField = numpy.hstack((fieldCoords, fieldDisp))
+else:
+    print("You need to input a dvc grid displacement")
+    exit()
+
+print("\nGetting the boundary conditions...")
+# Get boundary conditions
+bc = spam.mesh.BCFieldFromDVCField(meshNodes, dvcField, mask = mask, pixelSize=args.PIXEL_SIZE,
+                                   meshType=args.MESHTYPE, centre=args.CYLCENTRE, radius=args.CYLRADIUS,
+                                   topBottom=args.TOP_BOTTOM, neighbours=args.NEIGHBOURS_INT, tol=args.TOL)
+
+# write BC conditions in FEAP format
+if args.FEAPBC:
+    feapBC = args.OUT_DIR+"/"+args.PREFIX+"Itail"
+    with open(feapBC, "w") as f:
+        f.write("\nBOUN\n")
+        for d in bc:
+            f.write("{:.0f}, 0, 1, 1, 1\n".format(d[0]))
+        f.write("\nDISP\n")
+        for d in bc:
+            f.write("{:.0f}, 0, {:.6f}, {:.6f}, {:.6f}\n".format(d[0], d[6], d[5], d[4])) #xyz
+        f.write("\nPROP\n")
+        for d in bc:
+            f.write("{:.0f}, 0, 1, 1, 1\n".format(d[0]))
+        f.write("\nEND\n")
+
+# save mesh with BC as vtk
+if args.SAVE_VTK:
+    if not args.VTKFILE:
+        points, connectivity, _ ,_ = spam.helpers.readUnstructuredVTK(args.GMSHFILE.name)
+    nodeDisp = numpy.zeros((points.shape[0], 3))
+    bc[:, 0] -= 1
+    edgeNodes = bc[:, 0].astype(int).tolist()
+    nodeDisp[edgeNodes] = bc[:, 4:]
+
+    spam.helpers.writeUnstructuredVTK(points, connectivity, pointData = {"BCdisp": nodeDisp}, fileName=args.OUT_DIR+"/"+args.PREFIX+".vtk")
+
