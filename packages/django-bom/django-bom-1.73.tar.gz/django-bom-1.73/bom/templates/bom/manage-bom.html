@@ -1,0 +1,137 @@
+{% extends BASE_TEMPLATE %}
+
+{% load staticfiles %}
+{% load materializecss %}
+
+{% block head-title %}Manage BOM{% endblock %}
+
+{% block title %}
+Manage BOM
+<link rel="stylesheet" type="text/css" href="{% static 'bom/style.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'bom/css/jquery.treetable.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'bom/treetable-theme.css' %}" />
+{{ add_subpart_form.media }}
+{% endblock %}
+
+{% block menu %}
+<li><a href="{% url 'bom:part-octopart-match-bom' part_id=part.id %}">Octopart Match All Subparts</a></li>
+<li><a href="{% url 'bom:part-info' part_id=part.id %}">Cancel</a></li>
+{% endblock%}
+
+{% block content %}
+<div class="part-info">
+    <p>Item #{{ part.full_part_number}}</p>
+    <!-- <h5>{{ part.description }}</h5> -->
+    <div id="bom" class="col s12">
+        <br><h5>Modify Subparts</h5>
+        <a href="#" onclick="jQuery('#indented-bom').treetable('expandAll'); return false;">Expand all</a>
+        <div class="responsive-table-wrapper">
+            <table id="indented-bom" class="highlight part-list tight single-line">
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>Part No.</th>
+                        <th>Qty</th>
+                        <th>Description</th>
+                        <th>Rev</th>
+                        <th>Manufacturer</th>
+                        <th>MPN</th>
+                        <th>Reference</th>
+                        <!-- <th>Seller</th> -->
+                        <!-- <th>Price</th> -->
+                        {% if profile.role == 'A' %}
+                        <!-- <th>Octopart Match</th> -->
+                        <th>Edit</th>
+                        <th>Remove</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subpart in parts %}
+                    <tr data-tt-id="{{ subpart.partchangehistory.id }}" {% if subpart.parent_id %}data-tt-parent-id="{{ subpart.parent_id }}"{% endif %}>
+                        <td class="text-normal">{{ subpart.indent_level }}</td>
+                        <td>{{ subpart.part.full_part_number }}</td>
+                        <td>{{ subpart.quantity }}</td>
+                        <td>{{ subpart.part.description }}</td>
+                        <td>{{ subpart.part.revision }}</td>
+                        <td>{{ subpart.part.primary_manufacturer_part.manufacturer.name }}</td>
+                        <td>{{ subpart.part.primary_manufacturer_part.manufacturer_part_number }}</td>
+                        <td>{{ subpart.reference }}</td>
+                        <!-- <td>{{ subpart.seller_part.seller.name | default:"-" }}</td> -->
+                        <!-- <td>{{ subpart.seller_price | default:"-"}}</td> -->
+                        <!-- <td><a href="{% url 'bom:part-octopart-match' part_id=subpart.part.id %}">Match Part</a></td> -->
+                        {% if subpart.indent_level == 1 and subpart.subpart is not None %}
+                        <td><a href="{% url 'bom:part-edit-subpart' part_id=part.id part_change_history_id=part_change_history_id subpart_id=subpart.subpart.id %}">edit</a></td>
+                        <td><a href="{% url 'bom:part-remove-subpart' part_id=part.id part_change_history_id=part_change_history.id subpart_id=subpart.subpart.id %}" onclick="return confirm('Are you sure you want to remove {{ subpart.part.full_part_number }}?')">Remove</a></td>
+                        {% else %}
+                        <td colspan="2"></td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <br><h5>Add Subpart</h5>
+        <div class="row">
+            <form action="{% url 'bom:part-add-subpart' part_id=part.id part_change_history_id=part_change_history.id %}" method="post" class="col s12">
+                {% csrf_token %}
+                {{ add_subpart_form.subpart_part }}
+                {{ add_subpart_form.count|materializecss:'m6 s12' }}
+                {{ add_subpart_form.reference|materializecss:'m6 s12' }}
+                <div class="fieldWrapper">
+                    <button class="waves-effect waves-light btn green lighten-1" type="submit" name="action">add</button>
+                </div>
+            </form>
+        </div>
+        <br><h5>Batch Add Subparts</h5>
+        <p>To add batch subparts, upload a csv that contains at least two columns with the headers: <b>part_number</b> <i>or</i> <b>manufacturer_part_number</b> and <b>quantity</b>; the 'part_number' or 'manufacturer_part_number' column must contain part numbers that have already been created in this system.</p>
+        <p>Additional fields include 'reference' or 'designator' to add a reference field to the subpart; 'dnp' if you don't want to upload the part to IndaBOM.</p>
+        <form action="{% url 'bom:part-upload-bom' part_id=part.id %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col s9 file-field input-field">
+                    <div class="green lighten-1 btn">
+                        <span>File</span>
+                        {{ upload_subparts_csv_form.file }}
+                    </div>
+                    <div class="file-path-wrapper">
+                        <input class="file-path validate" type="text" placeholder="Upload a file.">
+                        {{ upload_subparts_csv_form.file.errors }}
+                    </div>
+                </div>
+                <div class="col s1 input-field">
+                    <input class="green lighten-1 btn" type="submit" value="Upload"/>
+                </div>
+            </div>
+        </form>
+        <br><br>
+        <div class="center">
+            <a class="waves-effect waves-light red lighten-2 btn" href="{% url 'bom:part-remove-all-subparts' part_id=part.id part_change_history_id=part_change_history_id %}" onclick="return confirm('Are you sure you want to remove ALL subparts from {{ part.full_part_number }}?')">Remove All Subparts</a>
+        </div>
+        <br>
+    </div>
+</div>
+{% endblock %}
+
+{% block script%}
+<!-- Tree Table -->
+<script src="{% static 'bom/js/jquery.treetable.js' %}"></script>
+<script>
+    $("#indented-bom").treetable({ 
+        expandable: true, 
+        indent: 2,
+        initialState: 'collapsed',
+        onInitialized: function () {
+                $("#indented-bom").treetable("reveal", {{ part_change_history.id }});
+            }
+        });
+</script>
+
+<!-- Floating Horizontal Scrollbar -->
+<script type="text/javascript" src="{% static 'bom/js/jquery.ba-floatingscrollbar.min.js' %}"></script>
+<script>
+$(function() {
+  $('.responsive-table-wrapper').floatingScrollbar();
+});
+</script>
+{% endblock %}
