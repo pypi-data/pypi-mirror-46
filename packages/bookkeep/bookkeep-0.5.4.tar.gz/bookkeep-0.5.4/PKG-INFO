@@ -1,0 +1,207 @@
+Metadata-Version: 1.1
+Name: bookkeep
+Version: 0.5.4
+Summary: keep track of units and measurement bounds.
+Home-page: https://github.com/yoelcortes/bookkeep
+Author: Yoel Cortes-Pena
+Author-email: yoelcortes@gmail.com
+License: MIT
+Download-URL: https://github.com/yoelcortes/bookkeep.git
+Description: ========
+        bookkeep 
+        ========
+        
+        .. image:: http://img.shields.io/pypi/v/bookkeep.svg?style=flat
+           :target: https://pypi.python.org/pypi/bookkeep
+           :alt: Version_status
+        .. image:: http://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat
+           :target: https://bookkeep.readthedocs.io/en/latest/
+           :alt: Documentation
+        .. image:: http://img.shields.io/badge/license-MIT-blue.svg?style=flat
+           :target: https://github.com/yoelcortes/bookkeep/blob/master/LICENSE.txt
+           :alt: license
+        
+        
+        .. contents::
+        
+        What is bookkeep?
+        -----------------
+        
+        bookkeep is a python package for keeping track of units of measure and measurment bounds. The package mainly features the SmartBook, a dictionary subclass that incorporates `pint Quantity objects  <https://pint.readthedocs.io/en/latest/>`__ for managing units of measure.
+        
+        Installation
+        ------------
+        
+        Get the latest version of bookkeep from
+        https://pypi.python.org/pypi/bookkeep/
+        
+        If you have an installation of Python with pip, simple install it with:
+        
+            $ pip install bookkeep
+        
+        To get the git version, run:
+        
+            $ git clone git://github.com/yoelcortes/bookkeep
+        
+        Documentation
+        -------------
+        
+        bookkeep's documentation is available on the web:
+        
+            http://bookkeep.readthedocs.io/
+        
+        Getting started
+        ---------------
+        
+        **SmartBook objects are dictionaries that provide an easy way to keep track of units of measure and enforce bounds.**
+            
+        Create a `SmartBook <https://bookkeep.readthedocs.io/en/latest/SmartBook.html>`__ object with *units*, *bounds*, a *source* description, and arguments to initialize the dictionary:
+        
+        .. code-block:: python
+        
+            >>> sb = SmartBook(units={'T': 'K', 'Duty': 'kJ/hr'},
+            ...                bounds={'T': (0, 1000)},
+            ...                source='Operating conditions',
+            ...                T=350)
+            >>> sb
+            {'T': 350 (K)}
+        
+        The *units* attribute becomes a `UnitManager <https://bookkeep.readthedocs.io/en/latest/UnitManager.html>`__ object with a reference to all dictionaries (*clients*) it controls. These include the SmartBook and its bounds.
+        
+        .. code-block:: python    
+            
+            >>> sb.units
+            UnitManager:
+            {'T': 'degC',
+             'Duty': 'kJ/hr'}
+            >>> sb.units.clients
+            [{'T': 350 (K)}, {'T': (0, 1000)}]
+        
+        Change units:
+        
+        .. code-block:: python
+            
+            >>> sb.units['T'] = 'degC'
+            >>> sb
+            {'T': 76.85 (degC)}
+            >>> sb.bounds
+            {'T': array([ -273.15, 726.85])}
+        
+        Add items:
+        
+        .. code-block:: python    
+                
+            >>> sb['P'] = 101325
+            >>> sb
+            {'T': 76.85 (degC),
+             'P': 101325}
+            
+        Add units:
+        
+        .. code-block:: python    
+                
+            >>> sb.units['P'] = 'Pa'
+            >>> sb
+            {'T': 76.85 (degC),
+             'P': 101325 (Pa)}
+             
+        A BookkeepWarning is issued when a value is set out of bounds:
+        
+        .. code-block:: python
+                        
+            >>> sb['T'] = -300
+            __main__:1: BookkeepWarning: @Operating conditions: T (-300 degC) is out of bounds (-273.15 to 726.85 degC).
+        
+        **Nested SmartBook objects are easy to read, and can be made using the same units and bounds.**
+        
+        Create new SmartBook objects:
+        
+        .. code-block:: python    
+            
+            >>> sb1 = SmartBook(sb.units, sb.bounds,
+            ...                 T=25, P=500)
+            >>> sb2 = SmartBook(sb.units, sb.bounds,
+            ...                 T=50, Duty=50)
+            >>> sb1
+            {'T': 25 (degC),
+             'P': 500 (Pa)}
+            >>> sb2
+            {'T': 50 (degC),
+             'Duty': 50 (kJ/hr)})
+            
+        Create nested SmartBook:
+            
+        .. code-block:: python    
+            
+            >>> nsb = SmartBook(sb1=sb1, sb2=sb2)
+            {'sb1':
+                {'T': 25 (degC),
+                 'P': 500 (Pa)},
+             'sb2':
+                {'T': 50 (degC),
+                 'Duty': 50 (kg/hr)}}
+            
+        **Pint** `Quantity <https://pint.readthedocs.io/en/latest/>`__ **objects are also compatible, so long as the corresponding Quantity class is set as the Quantity attribute.**
+        
+        Set a Quantity object:
+            
+        .. code-block:: python
+             
+            >>> Q_ = SmartBook.Quantity
+            >>> sb1.bounds['T'] = Q_((0, 1000), 'K')
+            >>> sb1['T'] = Q_(100, 'K')
+            >>> sb1
+            {'T': -173.15 degC,
+             'P': 500 (Pa)}
+        
+        Setting a Quantity object out of bounds will issue a warning:
+        
+        .. code-block:: python 
+            
+            >>> sb1['T'] = Q_(-1, 'K')
+             __main__:1: BookkeepWarning: T (-274.15 degC) is out of bounds (-273.15 to 726.85 degC).
+        
+        Trying to set a Quantity object with wrong dimensions will raise an error:
+        
+        .. code-block:: python
+            
+            >>> Q_ = SmartBook.Quantity    
+            >>> sb1['T'] = Q_(100, 'meter')
+            DimensionalityError: Cannot convert from 'meter' ([length]) to 'degC' ([temperature])
+             
+        Latest source code
+        ------------------
+        
+        The latest development version of bookeep's sources can be obtained at:
+        
+            https://github.com/yoelcortes/bookkeep
+        
+        
+        Bug reports
+        -----------
+        
+        To report bugs, please use the bookkeep's Bug Tracker at:
+        
+            https://github.com/yoelcortes/bookkeep
+        
+        
+        License information
+        -------------------
+        
+        See ``LICENSE.txt`` for information on the terms & conditions for usage
+        of this software, and a DISCLAIMER OF ALL WARRANTIES.
+        
+        Although not required by the bookkeep license, if it is convenient for you,
+        please cite bookkeep if used in your work. Please also consider contributing
+        any changes you make back, and benefit the community.
+        
+        
+        Citation
+        --------
+        
+        To cite bookkeep in publications use::
+        
+            Yoel Cortes-Pena (2018). bookkeep: An easy way to track quantities
+            https://github.com/yoelcortes/bookkeep
+        
+Platform: Windows
