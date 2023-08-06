@@ -1,0 +1,122 @@
+# Nodeflux Cloud Client Library for Python
+
+This repository is a Python client library for Nodeflux Cloud Analytics. It implements the APIs defined in [nodefluxapis](https://gitlab.com/nodefluxio/nodefluxapis).
+
+## Installation
+
+```
+pip install nodeflux-cloud
+```
+
+## Example
+
+```python
+# image_analytic.py
+
+from nodeflux.cloud.clients import ImageAnalyticClient
+from nodeflux.cloud.requests import ImageAnalyticRequest, AnalyticTypes
+
+client = ImageAnalyticClient()
+
+with open('some-image.jpg', 'rb') as image_file:
+    image_content = image_file.read()
+
+requests = [
+    ImageAnalyticRequest(
+        image_content,
+        [
+            AnalyticTypes.FACE_DETECTION,
+            AnalyticTypes.FACE_DEMOGRAPHY,
+            AnalyticTypes.FACE_RECOGNITION,
+        ],
+    )
+]
+
+response = client.batch_image_analytic(requests)
+
+print(response)
+```
+
+Setup your credentials and run the example:
+
+```bash
+$ export NODEFLUX_ACCESS_KEY={YOUR_ACCESS_KEY}
+$ export NODEFLUX_SECRET_KEY={YOUR_SECRET_KEY}
+$ python image_analytic.py
+responses {
+  face_detections {
+    bounding_box {
+      top: 0.24583333730697632
+      left: 0.2984375059604645
+      height: 0.6583333015441895
+      width: 0.3749999701976776
+    }
+    confidence: 0.871170473098755
+  }
+  face_recognitions {
+    candidates {
+      face_id: 17136476860973057
+      confidence: 9.6
+    }
+  }
+  face_demographics {
+    gender: FEMALE
+    gender_confidence: 0.9403232932090759
+    age: 19
+  }
+}
+```
+
+More examples can be found in the [example](example) directory.
+
+## Reference
+
+### ImageAnalyticClient
+
+| Method Name           | Request Type                                            | Response Type                                             | Description                                |
+| --------------------- | ------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------ |
+| batch_image_analytic  | List[[ImageAnalyticRequest](#ImageAnalyticRequest)]     | [BatchImageAnalyticResponse](#BatchImageAnalyticResponse) | Run image analytics for a batch of images  |
+| stream_image_analytic | Iterator[[ImageAnalyticRequest](#ImageAnalyticRequest)] | Iterator[[ImageAnalyticResponse](#ImageAnalyticResponse)] | Run image analytics for a stream of images |
+
+### ImageAnalyticRequest
+
+Individual image request to be analyzed by Nodeflux Cloud.
+
+| Field       | Type                  | Description                                       |
+| ----------- | --------------------- | ------------------------------------------------- |
+| `image`     | `bytes`               | Image to be analyzed in the Nodeflux Cloud.       |
+| `analytics` | `List[AnalyticTypes]` | A list of analytics to be performed to the image. |
+
+### AnalyticTypes
+
+Enums of analytic types supported by Nodeflux Cloud.
+
+| Enums                       | Description                                                |
+| --------------------------- | ---------------------------------------------------------- |
+| `FACE_DETECTION`            | Detect faces from an image.                                |
+| `FACE_DEMOGRAPHY`           | Predict age and gender from faces in the image.            |
+| `FACE_RECOGNITION`          | Search for similar faces in the face recognition database. |
+| `VEHICLE_RECOGNITION`       | Detect vehicles from an image.                             |
+| `LICENSE_PLATE_RECOGNITION` | Recognize license plate number of vehicles in an image.    |
+
+### BatchImageAnalyticResponse
+
+Response to a batch image analytic request.
+
+| Field     | Type                                            | Label    | Description                                                        |
+| --------- | ----------------------------------------------- | -------- | ------------------------------------------------------------------ |
+| responses | [ImageAnalyticResponse](#ImageAnalyticResponse) | repeated | Individual responses to image analytics requests within the batch. |
+
+### ImageAnalyticResponse
+
+Response to an image analytic request.
+
+| Field                      | Type                                                                                                                                                                   | Label    | Description                                                                                                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| error                      | [google.rpc.Status](#google.rpc.Status)                                                                                                                                |          | If set, represents the error message for the operation. Note that filled-in image analytics response are guaranteed to be correct, even when `error` is set. |
+| extensions                 | [google.protobuf.Any](#google.protobuf.Any)                                                                                                                            | repeated | If present, extension analytics has completed successfully.                                                                                                  |
+| face_detections            | [nodeflux.analytics.v1beta1.FaceDetection](https://gitlab.com/nodefluxio/nodefluxapis/blob/master/docs/analytics.md#facedetection)                                     | repeated | If present, face detection has completed successfully.                                                                                                       |
+| face_recognitions          | [nodeflux.analytics.v1beta1.FaceRecognition](https://gitlab.com/nodefluxio/nodefluxapis/blob/master/docs/analytics.md#facerecognition)                                 | repeated | If present, face recognition has completed successfully.                                                                                                     |
+| face_demographics          | [nodeflux.analytics.v1beta1.FaceDemography](https://gitlab.com/nodefluxio/nodefluxapis/blob/master/docs/analytics.md#facedemography)                                   | repeated | If present, face demographics has completed successfully.                                                                                                    |
+| vehicle_detections         | [nodeflux.analytics.v1beta1.VehicleDetection](https://gitlab.com/nodefluxio/nodefluxapis/blob/master/docs/analytics.md#nodefluxanalyticsv1beta1vehicle_detectionproto) | repeated | If present, vehicle has completed successfully.                                                                                                              |
+| license_plate_recognitions | [nodeflux.analytics.v1beta1.LicensePlateRecognition](https://gitlab.com/nodefluxio/nodefluxapis/blob/master/docs/analytics.md#licenseplaterecognition)                 | repeated | If present, license plate recognition has completed successfully.                                                                                            |
