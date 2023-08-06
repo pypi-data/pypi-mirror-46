@@ -1,0 +1,31 @@
+{% extends "registration/base.html" %}
+{% load i18n static spider_protections spider_rdf %}
+{% extract_protections "protections" as protections %}
+
+{% block main_attributes %}{{block.super}} prefix="spkc: {% spkc_namespace %} xsd: http://www.w3.org/2001/XMLSchema#" resource="{{hostpart}}{{ request.path }}"{% endblock %}
+
+{% block content %}
+  <h2>Login</h2>
+  <form action="{{ request.get_full_path }}" name="SPKCLoginForm" method="post">
+    {% csrf_token %}
+    <data hidden="hidden" property="spkc:protections.amount" datatype="xsd:nonNegativeInteger">{{protections|length}}</data>
+    <data hidden="hidden" property="spkc:strength" datatype="xsd:integer">10</data>
+    <input type="hidden" name="next" value="{{ next }}" />
+    <fieldset>
+      {% include "spider_base/partials/base_form.html" with form=form %}
+    </fieldset>
+
+    <fieldset style="overflow-y: auto; max-height:600px">
+      <legend><h1>{% trans 'Authenticate with' %}</h1></legend>
+      {% extract_protections "protections" as protections %}
+      {% for prot in protections %}
+        {% include "spider_base/protections/protection_item.html" with prot=prot %}
+      {% endfor %}
+    </fieldset>
+    <button class="w3-button w3-grey" type="submit">Login</button><br/>
+    {% if SETTINGS.OPEN_FOR_REGISTRATION %}
+      <a href="{% url 'auth:signup' %}">{% trans 'No account? Signup?' %}</a>
+    {% endif %}
+  </form>
+
+{% endblock %}
