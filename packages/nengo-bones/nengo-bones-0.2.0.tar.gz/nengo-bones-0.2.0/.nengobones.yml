@@ -1,0 +1,154 @@
+project_name: Nengo Bones
+pkg_name: nengo_bones
+repo_name: nengo/nengo-bones
+
+description: Tools for managing Nengo projects
+copyright_start: 2018
+
+travis_yml:
+  python: 3.6
+  global_vars:
+    TEST_GLOBAL_VAR: test global var val
+    TEST_LOCAL_VAR: this val will be overwritten
+  jobs:
+    - script: static
+    - script: docs
+    - script: examples
+    - script: test
+      cache: false
+      env:
+        TEST_LOCAL_VAR: test local var val
+      test_args: --test-arg --test-arg
+      python: 3.5
+    - script: test-coverage
+      env:
+        TEST_LOCAL_VAR: test local var val
+      test_args: --test-arg
+    - script: test-nengo
+      env:
+        TEST_LOCAL_VAR: test local var val
+      test_args: --test-arg -p nengo.tests.options
+      python: 3.7
+      dist: xenial
+  pypi_user: drasmuss
+  deploy_dists:
+    - sdist
+    - bdist_wheel
+  bones_install: git+https://github.com/nengo/nengo-bones.git@$BRANCH_NAME
+
+codecov_yml: {}
+
+ci_scripts:
+  - template: static
+    pre_commands:
+      - cat .ci/static.sh
+  - template: test
+    pre_commands:
+      - cat .ci/test.sh
+      - export TEST_PRE_COMMANDS=True
+    post_commands:
+      - export TEST_POST_COMMANDS=True
+  - template: test
+    output_name: test-coverage
+    coverage: true
+    pre_commands:
+      - cat .ci/test-coverage.sh
+      - export TEST_PRE_COMMANDS=True
+    post_commands:
+      - export TEST_POST_COMMANDS=True
+  - template: test
+    output_name: test-nengo
+    nengo_tests: true
+    pip_install:
+      # TODO: update this to release version once there is one with the
+      # nengo_test_unsupported config
+      - git+https://github.com/nengo/nengo#egg=nengo[tests]
+    pre_commands:
+      - cat .ci/test-nengo.sh
+      - export TEST_PRE_COMMANDS=True
+    post_commands:
+      - export TEST_POST_COMMANDS=True
+  - template: docs
+    pre_commands:
+      - cat .ci/docs.sh
+    pip_install:
+      - sphinx-click>=2.0.1
+  - template: examples
+    pre_commands:
+      - cat .ci/examples.sh
+    pip_install:
+      - mock
+  - template: deploy
+    pre_commands:
+      - cat .ci/deploy.sh
+
+contributing_rst: {}
+
+contributors_rst: {}
+
+license_rst: {}
+
+manifest_in: {}
+
+setup_py:
+  entry_points:
+    console_scripts:
+      - bones-generate=nengo_bones.scripts.generate_bones:main
+      - bones-check=nengo_bones.scripts.check_bones:main
+      - bones-pr-number=nengo_bones.scripts.pr_number:main
+  include_package_data: True
+  # note: docs/tests_req are intentionally empty to test that the correct
+  # requirements are built into the ci scripts
+  install_req:
+    - click>=7.0
+    - jinja2>=2.10
+    - pyyaml>=5.1
+    - requests>=2.21
+  classifiers:
+    - "Development Status :: 4 - Beta"
+    - "Framework :: Nengo"
+    - "Intended Audience :: Developers"
+    - "License :: Free for non-commercial use"
+    - "Operating System :: Microsoft :: Windows"
+    - "Operating System :: POSIX :: Linux"
+    - "Programming Language :: Python"
+    - "Programming Language :: Python :: 3.5"
+    - "Programming Language :: Python :: 3.6"
+    - "Programming Language :: Python :: 3.7"
+    - "Topic :: Software Development"
+
+setup_cfg:
+  pytest:
+    addopts: []
+    norecursedirs:
+      - tests/ignoreme
+    markers:
+      test-marker:
+        Not a real
+        marker
+    nengo_test_unsupported:
+      "*":
+        All tests are
+        unsupported
+  coverage:
+    exclude_lines:
+      - "if __name__ == .__main__.:"
+    omit_files:
+      - nengo_bones/tests/utils.py
+      - nengo_bones/tests/ignoreme/*
+  flake8:
+    exclude:
+      - nengo_bones/tests/ignoreme
+  pylint:
+    ignore:
+      - nengo_bones/tests/ignoreme
+
+docs_conf_py:
+  exclude_patterns:
+    - examples/test-example.ipynb
+  sphinx_options:
+    suppress_warnings: "['image.nonlocal_uri']"
+  extensions:
+    - sphinx_click.ext
+  intersphinx_mapping:
+    click: https://click.palletsprojects.com/en/7.x
