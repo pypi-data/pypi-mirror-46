@@ -1,0 +1,67 @@
+{% extends "bee_django_course_simple/base.html" %}
+{% load bee_django_course_simple_filter %}
+
+{% block content %}
+    <div class="text-center"><h3>
+        课件列表
+    </h3>
+    </div>
+    <div>
+        <form method="get" action="">
+            <input name="section_name" type="text" value="{{ request.GET.section_name }}"
+                   placeholder="课件名..."/>
+
+            <input type="submit" value="搜索"/>
+        </form>
+        <a class="btn btn-default" href="{% url 'bee_django_course_simple:section_add' course_id= %}">添加课件</a>
+    </div>
+    <div>共{{ paginator.count }}个</div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>顺序</th>
+            <th>标题</th>
+            <th>额外标题</th>
+            <th></th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for section in section_list %}
+            <tr>
+                <td>{{ forloop.number }}</td>
+                <td>{{ section.title}}</td>
+
+                <td>{{ section.extra_title|default:""  }}</td>
+
+                <td>
+                    <a href="{% url 'bee_django_course_simple:section_detail' section.id %}  ">详情</a>
+                        <a href="{% url 'bee_django_course_simple:section_update' section.id %}  ">修改</a>
+                    {#                    <a href="#" id="delete_{{ section.id }}"#}
+                    {#                       data-confirm="{% url "bee_django_course:section_delete" section.id %}"#}
+                    {#                       onclick="click_del(this)">删除</a>#}
+                </td>
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'bee_django_course/paginator.html' %}
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+
+        function click_del(_this) {
+            if (!confirm('确认要执行这个操作？')) {
+                return false;
+            }
+            var url = $(_this).attr('data-confirm');
+            $.post(url).done(function (data) {
+                alert('删除成功!');
+                location.reload();
+            });
+        }
+
+        window.click_del = click_del;
+    </script>
+{% endblock %}
