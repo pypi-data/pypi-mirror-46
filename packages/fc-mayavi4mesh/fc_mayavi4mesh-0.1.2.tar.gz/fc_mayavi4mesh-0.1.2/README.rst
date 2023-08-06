@@ -1,0 +1,159 @@
+.. _gmsh: http://gmsh.info
+   
+.. _fc-oogmsh: http://www.math.univ-paris13.fr/~cuvelier/software/fc-oogmsh-Python.html 
+
+.. _fc-mayavi4mesh: http://www.math.univ-paris13.fr/~cuvelier/software/Python/fc-mayavi4mesh.html  
+     
+.. _fc-meshtools: http://www.math.univ-paris13.fr/~cuvelier/software/fc-meshtools-Python.html   
+      
+.. _python: http://www.python.org
+     
+.. _mayavi: http://docs.enthought.com/mayavi/mayavi/
+   
+.. image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/pyfc-mayavi4mesh_400.png
+  :width: 200px
+  :align: left
+
+The **fc\_mayavi4mesh** Python package allows to display simplicial meshes or datas on simplicial meshes by using `mayavi`_ (>= 4.6.2)
+Python package. The simplicial meshes must be given by two arrays : the vertices array and the connectivity array.
+   
+Introduction:
+-------------   
+
+Simplicial meshes could be:
+
+  - a triangular mesh in dimension 2, made with 2-simplices (ie. triangles),
+  - a tetrahedral mesh in dimension 3, made with 3-simplices (ie. tetrahedron),
+  - a triangular mesh in dimension 3 (surface mesh), made with 2-simplices,
+  - a line mesh in dimension 2 or 3 made with 1-simplices (ie. lines).
+
+A simplicial mesh is given by its vertices array **q** and its connectivity array **me**.
+For demonstration purpose, we used some simplicial meshes provided by the `fc-meshtools`_ Python package: 
+they can be load by using the function ``getMesh2D``, ``getMesh3D`` or ``getMesh3Ds``
+of the ``fc_meshtools.simplicial`` module.
+
+Documentation is available on `fc-mayavi4mesh`_ dedicated web page.
+
+
+Installation:
+-------------
+
+The **fc\_mayavi4mesh** Python package is available from the Python Package Index, so to install/upgrade simply type
+
+.. code:: 
+
+    pip install fc_mayavi4mesh -U
+    
+
+Thereafter, it's possible to run one of the demo functions 
+
+.. code:: python
+
+      import fc_mayavi4mesh
+      fc_mayavi4mesh.demos.plot2D()
+      
+      
+.. |plot2D_fig1| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_plot2D_fig1.png      
+   :width: 300
+   :align: middle
+   
+.. |plot2D_fig2| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_plot2D_fig2.png      
+   :width: 300
+   :align: middle
+  
+.. |plot2D_fig3| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_plot2D_fig3.png      
+   :width: 300
+   :align: middle
+   
+.. |plot2D_fig4| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_plot2D_fig4.png      
+   :width: 300
+   :align: middle
+   
++---------------+---------------+---------------+---------------+
+| |plot2D_fig1| | |plot2D_fig2| | |plot2D_fig3| | |plot2D_fig4| |
++---------------+---------------+---------------+---------------+
+
+.. code:: python
+
+      import fc_mayavi4mesh
+      fc_mayavi4mesh.demos.plot3D()
+      
+      
+.. |plot3D_fig1| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_plot3D_fig1.png      
+   :width: 300
+   :align: middle
+   
+.. |plot3D_fig2| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_plot3D_fig2.png      
+   :width: 300
+   :align: middle
+  
+.. |plot3D_fig3| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_plot3D_fig3.png      
+   :width: 300
+   :align: middle
+   
++---------------+---------------+---------------+
+| |plot3D_fig1| | |plot3D_fig2| | |plot3D_fig3| |
++---------------+---------------+---------------+
+
+.. code:: python
+
+      import fc_mayavi4mesh
+      fc_mayavi4mesh.demos.streamline3D01()
+      
+      
+.. |streamline_fig1| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_streamline_fig1.png      
+   :width: 300
+   :align: middle
+   
+.. |streamline_fig2| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_streamline_fig2.png      
+   :width: 300
+   :align: middle
+  
+.. |streamline_fig3| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_streamline_fig3.png      
+   :width: 300
+   :align: middle
+   
+.. |streamline_fig4| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_streamline_fig4.png      
+   :width: 300
+   :align: middle
+   
++-------------------+-------------------+-------------------+-------------------+
+| |streamline_fig1| | |streamline_fig2| | |streamline_fig3| | |streamline_fig4| |
++-------------------+-------------------+-------------------+-------------------+
+
+Example:
+--------
+
+There is a complete source code used to represent a function on a sphere
+
+.. code:: python
+
+      from mayavi import mlab
+      from fc_meshtools import simplicial as mshsim
+      import fc_mayavi4mesh.simplicial as mlab4sim
+      import numpy as np
+      q2,me2=mshsim.getMesh3Ds(2)[:2]
+      q1,me1=mshsim.getMesh3Ds(1)[:2]
+      f=lambda x,y,z: np.cos(3*x-1)*np.sin(2*y-2)*np.sin(3*z)
+      u2=f(q2[:,0],q2[:,1],q2[:,2])
+      u1=f(q1[:,0],q1[:,1],q1[:,2])
+      mlab.figure(1)
+      mlab4sim.plot(q2,me2,u2)
+      mlab4sim.plotmesh(q1,me1,color='Black',line_width=2)
+      mlab.colorbar()
+      mlab.figure(2)
+      mlab4sim.plot(q1,me1,u1,line_width=2,vmin=min(u2),vmax=max(u2))
+      mlab4sim.plotmesh(q2,me2,color='LightGray',opacity=0.1)
+      mlab.colorbar()
+
+.. |plot3Ds_fig1| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_plot3Ds_fig1.png      
+   :width: 300
+   :align: middle
+   
+.. |plot3Ds_fig2| image:: http://www.math.univ-paris13.fr/~cuvelier/software/codes/Python/fc-mayavi4mesh/snapshots/mayavi4mesh_plot3Ds_fig2.png      
+   :width: 300
+   :align: middle
+
++----------------+----------------+
+| |plot3Ds_fig1| | |plot3Ds_fig2| |
++----------------+----------------+
