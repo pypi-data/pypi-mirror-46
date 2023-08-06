@@ -1,0 +1,127 @@
+Metadata-Version: 2.1
+Name: all-purpose-dict
+Version: 0.2.3
+Summary: A dict that works with both hashable and non-hashable keys
+Home-page: https://github.com/olsonpm/py_all-purpose-dict
+Author: Philip Olson
+Author-email: philip.olson@pm.me
+Requires-Python: >=3.7,<4.0
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Project-URL: Repository, https://github.com/olsonpm/py_all-purpose-dict
+Description-Content-Type: text/markdown
+
+# All Purpose Dict
+
+*Note: This document is best viewed [on github](https://github.com/olsonpm/py_all-purpose-dict).
+Pypi's headers are all caps which presents inaccurate information*
+
+
+<br>
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [What is it?](#what-is-it)
+- [Why create it?](#why-create-it)
+- [Simple usage](#simple-usage)
+- [See Also](#see-also)
+- [Api](#api)
+- [Test](#test)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+<br>
+
+### What is it?
+
+- A dict which doesn't require hashable keys
+
+<br>
+
+### Why create it?
+
+- I often have a need to store non-hashable keys in a dict.  For example storing
+  a dict as a key isn't possible with the builtin dict.
+
+  ```py
+  # doesn't work
+  someDict = { "key": "value" }
+  anotherDict = { someDict: "anotherValue" }
+  ```
+
+<br>
+
+### Simple usage
+
+```py
+from all_purpose_dict import ApDict
+
+someDict = { "key": "value" }
+anotherDict = ApDict([(someDict, "anotherValue")])
+
+print(someDict in anotherDict) # prints True
+```
+
+<br>
+
+### See Also
+
+- [All Purpose Set](https://github.com/olsonpm/py_all-purpose-set)
+
+<br>
+
+### Api
+
+*Note: This api is young and subject to change quite a bit.  There also may be
+functionality present in the builtin dict which ApDict doesn't cover.  I'm
+willing to add it so please just raise a github issue or PR with details.*
+
+#### class ApDict([a list of pairs])
+- 'pairs' may be either a list or tuple with a length of 2
+- all methods return `self` unless specified otherwise
+- iterates in the order of insertion
+- views are not implemented because I don't have a need for them. Instead I
+  expose `keysIterator` and `valuesIterator`.  If you need views then raise a
+  github issue.
+- the internal methods implemented are
+  - \_\_contains\_\_
+  - \_\_delitem\_\_
+  - \_\_getitem\_\_
+  - \_\_iter\_\_
+  - \_\_len\_\_
+  - \_\_setitem\_\_
+
+##### clear()
+
+##### delete(key)
+- a function alternative to `del aDict[key]`
+
+##### get(key, default=None) => value
+- get the value for key if key is in the dictionary, else default.
+- *note: this never raises a KeyError.*
+
+##### has(key) => bool
+- a function alternative to `key in aDict`
+
+##### getKeysIterator() => ApDictKeysIterator
+
+##### set(key, value)
+- a function alternative to `aDict[key] = val`
+
+##### getValuesIterator() => ApDictValuesIterator
+
+<br>
+
+### Test
+
+```sh
+#
+# you must have poetry installed
+#
+$ poetry shell
+$ poetry install
+$ python runTests.py
+```
+
