@@ -1,0 +1,38 @@
+{% extends "rt_dashboard/base.html" %}
+
+
+{% block content %}
+<ul class="nav nav-tabs" id="header-tabs">
+    <li role="presentation"><a href="{{ url_for('overview') }}">Overview</a></li>
+    <li role="presentation" class="active"><a href="#">Task History</a></li>
+</ul>
+<div id="loader"><h1 style="text-align: center; margin-top: 4em">
+        Rendering ...</h1></div>
+<div id="visualization" style="display: none"></div>
+<style>
+    body > .container {
+        width: 100%;
+    }
+    .vis-left .vis-label {
+        font-size: 10px;
+        padding-top: 10px;
+        text-align: right;
+    }
+</style>
+
+<script type="text/javascript">
+window.addEventListener('load', function() {
+    var container = document.getElementById('visualization');
+    var items = new vis.DataSet([ {{rows}} ]);
+    var groups = [ {{groups}} ]
+    var options = {
+        stack: false,
+        stackSubgroups: false,
+        editable: false,
+    };
+    var timeline = new vis.Timeline(container, items, groups, options);
+    document.getElementById('loader').style.display = 'none';
+    container.style.display = 'block';
+});
+</script>
+{% endblock %}

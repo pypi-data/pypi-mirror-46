@@ -1,0 +1,217 @@
+{% extends "rt_dashboard/base.html" %}
+
+
+{% block content %}
+<ul class="nav nav-tabs" id="header-tabs">
+    <li role="presentation" class="active"><a href="#">Overview</a></li>
+    <li role="presentation"><a href="{{ url_for('history') }}">Task History</a></li>
+</ul>
+<div class="row">
+    <div class="span6">
+        <div class="section">
+
+            <h1>Queues</h1>
+            <p class="fixed intro">This list below contains all the registered queues with the number of tasks currently in the queue.  Select a queue from above to view all tasks currently pending on the queue.</p>
+
+            <table id="queues" class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Queue</th>
+                        <th class="narrow">Tasks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-role="loading-placeholder">
+                        <td colspan="2">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <script name="queue-row" type="text/template">
+                <tr data-role="queue">
+                    <td><i class="icon-inbox" style="opacity: .5;"></i> <a href="<%= d.url %>"><%= d.name %></a></td>
+                    <td class="narrow"><%= d.count %></td>
+                </tr>
+            </script>
+
+            <script name="no-queues-row" type="text/template">
+                <tr>
+                    <td colspan="3">No queues.</td>
+                </tr>
+            </script>
+
+        </div>
+    </div>
+
+    <div class="span6">
+        <div class="section">
+
+        <h1>Workers</h1>
+
+        <button id="workers-btn" type="button" class="btn btn-info">Toggle workers list</button>
+        <p id="workers-count" class="fixed intro">No workers registered!</p>
+
+        <table id="workers" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th style="width:48px">State</th>
+                    <th>Worker</th>
+                    <th>Queues</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-role="loading-placeholder">
+                    <td colspan="3">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script name="worker-row" type="text/template">
+            <tr data-role="worker">
+                <td><i class="icon-<%= d.state %>"></i></td>
+                <td><%= d.name %></td>
+                <td><%= d.queues.join(', ') %></td>
+            </tr>
+        </script>
+
+        <script name="no-workers-row" type="text/template">
+            <tr>
+                <td colspan="3">No workers.</td>
+            </tr>
+        </script>
+
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="span12">
+        <div class="section">
+
+        <h1>Tasks on <strong{% if queue.name == '[failed]' %} class="failed"{% endif %}>{{ queue.name }}</strong></h1>
+        <p class="intro">
+        {% if queue.count() %}
+            <a href="{{ url_for('empty_queue', queue_name=queue.name) }}"
+            id="empty-btn" class="btn btn-danger btn-small" style="float: right" data-toggle="tooltip"
+            title="Remove all tasks from this queue (<b>destructive</b>)" data-html=true >
+                <i class="icon-trash icon-white"></i> Empty
+            </a>
+        {% elif not queue.name.startswith('[') %}
+            <a href="{{ url_for('delete_queue', queue_name=queue.name) }}"
+            id="empty-btn" class="btn btn-danger btn-small" style="float: right" data-toggle="tooltip"
+            title="Delete this queue" data-html=true >
+                <i class="icon-trash icon-white"></i> Delete
+            </a>
+        {% endif %}
+        This list below contains all the registered tasks on queue
+        <strong>{{ queue.name }}</strong>, sorted by age
+        {% if queue.name.startswith('[') %}
+            (newest on top).
+        {% else %}
+            (oldest on top).
+        {% endif %}
+        </p>
+
+        <table id="jobs" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th class="narrow">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-role="loading-placeholder">
+                    <td colspan="2">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script name="job-row" type="text/template">
+            <tr data-role="job" data-job-id="<%= d.id %>">
+                <td>
+                    <i class="icon-file" style="opacity: .5;"></i>
+                    <span class="description"><%= $('<div/>').text(d.description).html() %></span>
+                    {% if queue.name.startswith('[') %}
+                        <span class="origin">
+                            from <strong><%= d.origin %></strong>
+                            <% if (d.worker) { %>
+                                running on <strong><%= d.worker %></strong>
+                            <% } %>
+                        </span>
+                    {% endif %}
+                    <div class="job_id"><%= d.id %></div>
+                    <% if (d.status == 'running') { %>
+                        <span class="end_date">Enqueued <%= d.enqueued_at.relative() %></span>
+                    <% } else if (d.status == 'failed') { %>
+                        <span class="end_date">
+                            Enqueued <%= d.enqueued_at.relative() %>,
+                            failed <%= d.ended_at.relative() %>,
+                            ran for <%= (d.ended_at - d.started_at).duration() %>
+                        </span>
+                        <pre class="exc_info"><%= $('<div/>').text(d.error_message).html() %></pre>
+                    <% } else if (d.status == 'finished') { %>
+                        <span class="end_date">
+                            Enqueued <%= d.enqueued_at.relative() %>,
+                            finished <%= d.ended_at.relative() %>,
+                            ran for <%= (d.ended_at - d.started_at).duration() %>
+                        </span>
+                    <% } %>
+                </td>
+                <td><span class="creation_date">
+                    <% if (d.status == 'running') { %>
+                        <%= (Date.create() - d.started_at).duration() %>
+                    <% } else { %>
+                        <%= (d.ended_at ? d.ended_at : d.enqueued_at).relative() %>
+                    <% } %>
+                </span></td>
+                <td class="actions narrow">
+                    <a href="#" data-role="cancel-job-btn" class="btn btn-small"><i class="icon-remove"></i> Cancel</a>
+                </td>
+            </tr>
+        </script>
+
+        <script name="no-jobs-row" type="text/template">
+            <tr>
+                <td colspan="3">No tasks.</td>
+            </tr>
+        </script>
+
+        <div id="page-selection" class="pagination pagination-centered">
+          <ul>
+          </ul>
+        </div>
+
+        <script name="no-previous-page-link" type="text/template">
+            <li class="disabled" ><a href="#" >&laquo;</a></li>
+        </script>
+
+        <script name="previous-page-link" type="text/template">
+            <li><a href="<%= url %>" >&laquo;</a></li>
+        </script>
+
+        <script name="page-link" type="text/template">
+            <li><a href="<%= url %>" ><%= number %></a></li>
+        </script>
+
+        <script name="next-page-link" type="text/template">
+            <li><a href="<%= url %>" >&raquo;</a></li>
+        </script>
+
+        <script name="no-next-page-link" type="text/template">
+            <li class="disabled" ><a href="#" >&raquo;</a></li>
+        </script>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block inline_js %}
+var POLL_INTERVAL = {{ poll_interval }};
+document.addEventListener("DOMContentLoaded", function(){
+    {% include "rt_dashboard/dashboard.js" with context %}
+});
+{% endblock %}
