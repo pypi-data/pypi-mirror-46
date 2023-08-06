@@ -1,0 +1,37 @@
+<div class="row mb-4">
+    <div class="col-sm">
+        <div class="-table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        {% set _columns = columns if columns else (data[0] or {}).keys() %}
+                        {% for c in _columns %}
+                            {% set _title = display_as.get(c, c.replace('_', ' ')) %}
+                            <th scope="col" data-sortable="true" data-field="{{ c }}">{{ _title | capitalize }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                        <tr>
+                            {% for c in _columns %}
+
+                                {% if callback_columns[c] %}
+
+                                    <td>{{ callback_columns[c](row.get(c, ''), row) }}</td>
+
+                                {% else %}
+
+                                    <td>{{ row.get(c, '') }}</td>
+
+                                {% endif %}
+
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
