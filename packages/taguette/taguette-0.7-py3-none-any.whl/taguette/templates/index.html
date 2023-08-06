@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% set active_page = "index" %}
+
+{% block contents %}
+<div id="messages-div"></div>
+{% if multiuser %}
+<h1>{% trans user_login=user.login %}Welcome {{ user_login }}{% endtrans %}</h1>
+{% else %}
+<h1>{% trans %}Welcome!{% endtrans %}</h1>
+{% endif %}
+<p>{% trans %}Here are your projects:{% endtrans %}</p>
+<ul class="list-group">
+{% for project in projects %}
+  <li class="list-group-item"><a href="{{ reverse_url('project', project.id) }}">{{ project.name }}</a></li>
+{% else %}
+  <li class="list-group-item disabled" style="font-style: oblique;">{% trans %}You have no projects yet.{% endtrans %}</li>
+{% endfor %}
+  <li class="list-group-item list-group-item-primary" style="font-weight: bold;"><a href="{{ reverse_url('new_project') }}">{% trans %}Create a project{% endtrans %}</a></li>
+</ul>
+{% endblock %}
