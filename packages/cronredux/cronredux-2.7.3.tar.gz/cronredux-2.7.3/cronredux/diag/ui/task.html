@@ -1,0 +1,37 @@
+{% set taskid = request.GET.get('id')|int(default=-1) %}
+{% if taskid >= 0 and taskid in tasks_by_id %}
+    {% set task = tasks_by_id[taskid] %}
+    {% set title = task|string|e %}
+{% else %}
+    {% set task = None %}
+    {% set title = "Task Not Found" %}
+{% endif %}
+<html>
+    <head>
+        <title>Cronredux - {{ title }}</title>
+        <link href="static/theme.css" rel="stylesheet" type="text/css"/>
+    </head>
+    <body>
+        <a href="index.html">Back</a>
+        <h1>Cronredux - {{ title }}</h1>
+
+        {% if task %}
+            <table class="dict">
+                <tr><td>Task</td><td>{{task|e}}</td></tr>
+                <tr><td>Active</td><td>{{ sched.is_active(task) }}</td></tr>
+                <tr><td>Next Run</td><td>{{ task.next_run() }}</td></tr>
+                <tr><td>Runs</td><td>{{ task.run_count }}</td></tr>
+                <tr>
+                    <td>Elapsed/Run</td>
+                    <td>
+                        {{ task.run_count and
+                           task.elapsed / task.run_count }}
+                    </td>
+                </tr>
+                <tr><td>Elapsed Total</td><td>{{ task.elapsed }}</td></tr>
+            </table>
+
+        {% endif %}
+
+    </body>
+</html>
