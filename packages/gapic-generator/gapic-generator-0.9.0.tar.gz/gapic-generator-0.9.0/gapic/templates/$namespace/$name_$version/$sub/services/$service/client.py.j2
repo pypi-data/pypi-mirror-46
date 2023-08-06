@@ -1,0 +1,208 @@
+{% extends '_base.py.j2' %}
+
+{% block content %}
+import pkg_resources
+from typing import Mapping, Optional, Sequence, Tuple, Type, Union
+
+from google.api_core import exceptions
+from google.api_core import gapic_v1
+from google.api_core import retry as retries
+from google.auth import credentials
+
+{% filter sort_lines -%}
+{% for method in service.methods.values() -%}
+{% for ref_type in method.ref_types -%}
+{{ ref_type.ident.python_import }}
+{% endfor -%}
+{% endfor -%}
+{% endfilter %}
+from .transports import _transport_registry
+from .transports import {{ service.name }}Transport
+
+
+class {{ service.name }}:
+    """{{ service.meta.doc|rst(width=72, indent=4) }}"""
+    def __init__(self, *,
+            host: str{% if service.host %} = '{{ service.host }}'{% endif %},
+            credentials: credentials.Credentials = None,
+            transport: Union[str, {{ service.name }}Transport] = None,
+            ) -> None:
+        """Instantiate the {{ (service.name|snake_case).replace('_', ' ') }}.
+
+        Args:
+            host ({% if service.host %}Optional[str]{% else %}str{% endif %}):
+                {{- ' ' }}The hostname to connect to.
+            credentials (Optional[google.auth.credentials.Credential]): The
+                authorization credentials to attach to requests. These
+                credentials identify the application to the service; if none
+                are specified, the client will attempt to ascertain the
+                credentials from the environment.
+            transport (Union[str, ~.{{ service.name }}Transport]): The
+                transport to use. If set to None, a transport is chosen
+                automatically.
+        """
+        # Save or instantiate the transport.
+        # Ordinarily, we provide the transport, but allowing a custom transport
+        # instance provides an extensibility point for unusual situations.
+        if isinstance(transport, {{ service.name }}Transport):
+            if credentials:
+                raise ValueError('When providing a transport instance, '
+                                 'provide its credentials directly.')
+            self._transport = transport
+        else:
+            Transport = self.get_transport_class(transport)
+            self._transport = Transport(credentials=credentials, host=host)
+
+    {% for method in service.methods.values() -%}
+    def {{ method.name|snake_case }}(self,
+            request: {{ method.input.ident }} = None, *,
+            {% for field in method.flattened_fields.values() -%}
+            {{ field.name }}: {{ field.ident }} = None,
+            {% endfor -%}
+            retry: retries.Retry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> {{ method.client_output.ident }}:
+        r"""{{ method.meta.doc|rst(width=72, indent=8) }}
+
+        Args:
+            request (:class:`{{ method.input.ident.sphinx }}`):
+                The request object.{{ ' ' -}}
+                {{ method.input.meta.doc|wrap(width=72, offset=36, indent=16) }}
+            {% for key, field in method.flattened_fields.items() -%}
+            {{ field.name }} (:class:`{{ field.ident.sphinx }}`):
+                {{ field.meta.doc|rst(width=72, indent=16, nl=False) }}
+                This corresponds to the ``{{ key }}`` field
+                on the ``request`` instance; if ``request`` is provided, this
+                should not be set.
+            {% endfor -%}
+            retry (~.retries.Retry): Designation of what errors, if any,
+                should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, str]]): Strings which should be
+                sent along with the request as metadata.
+        {%- if not method.void %}
+
+        Returns:
+            {{ method.client_output.ident.sphinx }}:
+                {{ method.client_output.meta.doc|wrap(width=72, indent=16) }}
+        {%- endif %}
+        """
+        {% if method.flattened_fields -%}
+        # Sanity check: If we got a request object, we should *not* have
+        # gotten any keyword arguments that map to the request.
+        if request is not None and any([{{ method.flattened_fields.values()|join(', ', attribute='name') }}]):
+            raise ValueError('If the `request` argument is set, then none of '
+                             'the individual field arguments should be set.')
+
+        {% endif -%}
+        # Create or coerce a protobuf request object.
+        {% if method.flattened_fields -%}
+        # If we have keyword arguments corresponding to fields on the
+        # request, apply these.
+        {% endif -%}
+        request = {{ method.input.ident }}(request)
+        {%- for key, field in method.flattened_fields.items() %}
+        if {{ field.name }} is not None:
+            request.{{ key }} = {{ field.name }}
+        {%- endfor %}
+
+        # Wrap the RPC method; this adds retry and timeout information,
+        # and friendly error handling.
+        rpc = gapic_v1.method.wrap_method(
+            self._transport.{{ method.name|snake_case }},
+            default_retry=retries.Retry(predicate=retries.if_exception_type(
+                {%- if method.idempotent %}
+                exceptions.Aborted,
+                {%- endif %}
+                exceptions.ServiceUnavailable,
+                {%- if method.idempotent %}
+                exceptions.Unknown,
+                {%- endif %}
+            )),
+            default_timeout=None,
+            client_info=_client_info,
+        )
+        {%- if method.field_headers %}
+
+        # Certain fields should be provided within the metadata header;
+        # add these here.
+        metadata = tuple(metadata) + (
+            gapic_v1.routing_header.to_grpc_metadata((
+                {%- for field_header in method.field_headers %}
+                ('{{ field_header }}', request.{{ field_header }}),
+                {%- endfor %}
+            )),
+        )
+        {%- endif %}
+
+        # Send the request.
+        {% if not method.void %}response = {% endif %}rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
+        {%- if method.lro %}
+
+        # Wrap the response in an operation future.
+        response = operation.from_gapic(
+            response,
+            self._transport.operations_client,
+            {{ method.lro.response_type.ident }},
+            metadata_type={{ method.lro.metadata_type.ident }},
+        )
+        {%- elif method.paged_result_field %}
+
+        # This method is paged; wrap the response in a pager, which provides
+        # an `__iter__` convenience method.
+        response = {{ method.client_output.ident }}(
+            method=rpc,
+            request=request,
+            response=response,
+        )
+        {%- endif %}
+        {%- if not method.void %}
+
+        # Done; return the response.
+        return response
+        {%- endif %}
+        {{ '\n' }}
+    {% endfor -%}
+
+    @classmethod
+    def get_transport_class(cls,
+            label: str = None,
+            ) -> Type[{{ service.name }}Transport]:
+        """Return an appropriate transport class.
+
+        Args:
+            label: The name of the desired transport. If none is
+                provided, then the first transport in the registry is used.
+
+        Returns:
+            The transport class to use.
+        """
+        # If a specific transport is requested, return that one.
+        if label:
+            return _transport_registry[label]
+
+        # No transport is requested; return the default (that is, the first one
+        # in the dictionary).
+        return next(iter(_transport_registry.values()))
+
+
+try:
+    _client_info = gapic_v1.client_info.ClientInfo(
+        gapic_version=pkg_resources.get_distribution(
+            '{{ api.naming.warehouse_package_name }}',
+        ).version,
+    )
+except pkg_resources.DistributionNotFound:
+    _client_info = gapic_v1.client_info.ClientInfo()
+
+
+__all__ = (
+    '{{ service.name }}',
+)
+{% endblock %}
