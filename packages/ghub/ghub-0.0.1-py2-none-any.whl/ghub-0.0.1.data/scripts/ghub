@@ -1,0 +1,36 @@
+#!python
+
+from github import Github
+from docopt import docopt
+import sys
+
+app_name = "ghub"
+
+usage = """
+Usage:
+  {0} pull-request create --token=<token> --repo=<repo> --title=<title> [--body=<body>] --into=<into> --from=<from>
+  {0} --version
+ 
+Options:
+  --token=<token>      Github token
+  --repo=<repo>        Repo name
+  --title=<title>      Title
+  --body=<body>        Body [default: ]
+  --into=<into>        Base branch
+  --from=<from>        Compare branch
+  --version            Version
+""".format(app_name)
+    
+arguments = docopt(usage, version='0.0.1')
+
+if 'pull-request' in arguments:
+    if arguments['pull-request'] == 1:
+        if 'create' in arguments:
+            if arguments['create']:
+                g = Github(arguments['--token'])
+                r = g.get_repo(arguments['--repo'])
+                pull = r.create_pull(arguments['--title'], arguments['--body'], arguments['--into'], arguments['--from'], True)        
+                sys.exit(0)
+
+
+
