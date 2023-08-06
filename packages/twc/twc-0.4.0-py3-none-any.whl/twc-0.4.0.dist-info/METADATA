@@ -1,0 +1,211 @@
+Metadata-Version: 2.1
+Name: twc
+Version: 0.4.0
+Summary: TaskWarrior's interactive terminal frontend
+Home-page: https://gitlab.com/mgoral/twc
+Author: Michał Góral
+Author-email: dev@mgoral.org
+License: GPLv3+
+Platform: linux
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Console
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
+Classifier: Natural Language :: English
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Utilities
+Requires-Dist: prompt-toolkit (==2.0.9)
+Requires-Dist: tasklib (==1.1.0)
+Requires-Dist: attrs (==19.1.0)
+Requires-Dist: mgcomm (>=0.2.0)
+
+twc
+===
+
+**TWC - TaskWarrior Controller** (previously TaskWarrior Curses) is interactive
+terminal frontend for task and TODO manager - TaskWarrior.
+
+.. image:: https://gitlab.com/mgoral/twc/raw/master/docs/img/screenshot.png
+    :align: center
+
+For full documentation please refer to the `User Manual
+<https://mgoral.gitlab.io/twc/>`_.
+
+Features
+~~~~~~~~
+
+* agendas - display several filters on a single screen simultaneously
+  (influenced by `org-mode <https:orgmode.org>`_)
+* create, modify, delete, annotate tasks
+* autocomplete and tab-complete writing task descriptions, annotations, tags
+  etc.
+* task formatting (with HTML-like markup)
+* tasks and sub-tasks grouping (influenced by
+  `taskwiki <https://github.com/tbabej/taskwiki>`_)
+* synchronize tasks with task server
+* status line showing arbitrary informations
+* styling
+* configurable key bindings
+* search and incremental search of tasks
+* search can be case-sensitive, case-insensitive or smart-case (case sensitivite
+  only when there are upper case characters in searched term)
+
+Introduction
+~~~~~~~~~~~~
+
+TWC works with a concept of "agendas" influenced and borrowed from the mighty
+org-mode. Agenda is basically a view of several TaskWarrior filters (called
+blocks) displayed on a single screen simultaneously. You can jump between
+blocks and single tasks.
+
+To add agenda, first create a configuration file inside
+``~/.config/twc/config.py``. It is a regular Python file with exposed variable
+``c`` which references a configuration object. You can add new blocks like that:
+
+.. code:: python
+
+    c.add_block(
+        agenda='My Agenda',
+        title='Next Tasks',
+        filter='status:pending',
+        sort='priority+,urgency-')
+
+    c.add_block(
+        agenda='My Agenda',
+        title='Projects',
+        filter='-WAITING and (+BLOCKING or +BLOCKED) and -INSTANCE',
+        sort='project-,priority-,order+,urgency-',
+        format='* {description}<info>{tags}</info>')
+
+Style and colors
+~~~~~~~~~~~~~~~~
+
+TWC can be styled in any way you want. To change its colors use `c.set_style()`:
+
+.. code:: python
+
+    c.set_style('highlight', 'bg:ansiblue bold')
+    c.set_style('error', 'fg:white bg:red')
+
+Style examples:
+
+- ``fg:white`` (white foreground, named color)
+- ``bg:#000000`` (black background, hexadecimal notation)
+- ``bold italic underline blink reverse hidden`` (supported style flags)
+
+Any style name can be used in task formatting. Some interface elements however
+use specific style names.
+
+Task Format
+~~~~~~~~~~~
+
+Block's format (``format``) is a mix of `Python's string format
+<https://docs.python.org/3/library/string.html#formatspec>`_ and HTML-like
+markup.
+
+You can use any TaskWarrior's attribute name as format's placeholder and it will
+be displayed if present.
+
+.. code:: html
+
+    *<sr left=" ["> right="] ">{id}</sr>{description}
+
+Some additional markup can be added to the tasks. The following tags are
+available:
+
+* ``<sr left="[", right="]>text</sr>``: surrounds text with *left* and *right*.
+* ``<ind value="A">text</ind>``: if there is any text inside a tag, it will be
+  replaced with *value*. It's particularily useful for indicating that some
+  task's property is present, without displaying it (like long list of
+  annotations):
+  ``<sr left="[" right="]"><ind value="A">{annotations}</ind></sr>``
+
+Key bindings
+~~~~~~~~~~~~
+
+By default you can navigate with arrows or vim-style ``j`` and ``k``. Exit TWC
+with ``q``.
+
+You can bind and unbind keys with ``c.bind(key, command)`` and
+``c.unbind(key)``. Refer to `User Manual <https://mgoral.gitlab.io/twc/>`_ for
+a list of commands and other default key bindings.
+
+Status line
+~~~~~~~~~~~
+
+Bottom status line can display arbitrary informations and  is configurable by
+two variables: ``statusleft`` and ``statusright``. They describe format similar
+to the one described in `Task Format`_ The main difference is that task
+attributes are referenced by ``{task.<attribute>}`` placeholder and that there
+additional placeholders available.
+
+.. code:: python
+
+    c.set('statusleft', '{COMMAND} {task.id}')
+    c.set('statusright', '<ind value=A>{task.annotations}</ind>')
+
+Status line placeholders also include: ``taskrc``, ``command``, ``COMMAND``, 
+``agenda.pos``, ``agenda.size``, ``agenda.ppos``.
+
+Installation
+~~~~~~~~~~~~
+
+First, make sure that TaskWarrior is installed on your system. TaskWarrior is
+packaged for most of Linux distributions. Please refer to TaskWarrior's
+`documentation <https://taskwarrior.org/download/>`_ for details.
+
+TWC is distributed via `pypi <https://pypi.org/project/twc/>`_. You can
+install it with pip:
+
+.. code::
+
+    $ pip3 install --user twc
+
+or with pip wrapper like `pipsi <https://github.com/mitsuhiko/pipsi>`_:
+
+.. code::
+
+    $ pipsi install --python python3 twc
+
+TWC reads your ``taskrc``. It'll use the default one, which is usually located
+in ``~/.taskrc``, but you can change it with ``-t`` switch:
+
+.. code::
+
+    $ twc -t ~/dotfiles/my_taskrc
+
+Termux
+~~~~~~
+
+TWC works on `Termux <https://termux.com/>`_, although there's currently a `bug
+<https://github.com/regebro/tzlocal/pull/55>`_ in tzlocal - a library
+indirectly used by TWC to get local timezone information.
+
+Before running TWC on Termux you have to export the following environment
+variable:
+
+.. code:: shell
+
+    export TZ=$(getprop persist.sys.timezone)
+
+Termux emulates scroll events as key presses. You can bind them for easier
+navigation:
+
+.. code:: python
+
+    c.bind('right', 'next-agenda')
+    c.bind('left', 'prev-agenda')
+
+License
+~~~~~~~
+
+TWC was created by Michał Góral.
+
+TWC is free software, published under the terms of GNU GPL3 or any later
+version. See LICENSE file for details.
+
+
