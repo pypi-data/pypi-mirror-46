@@ -1,0 +1,386 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Release notes &#8212; bodhi 4.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.x release notes" href="3.x_release_notes.html" />
+    <link rel="prev" title="initialize_bodhi_db" href="man_pages/initialize_bodhi_db.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="release-notes">
+<h1>Release notes<a class="headerlink" href="#release-notes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="v4-0-0">
+<h2>v4.0.0<a class="headerlink" href="#v4-0-0" title="Permalink to this headline">¶</a></h2>
+<p>This is a major release with many backwards incompatible changes.</p>
+<div class="section" id="backwards-incompatible-changes">
+<h3>Backwards incompatible changes<a class="headerlink" href="#backwards-incompatible-changes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Values NULL and 0 are not allowed in update’s stable_karma and unstable_karma (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1029">#1029</a>).</li>
+<li>Updates no longer have a <code class="docutils literal notranslate"><span class="pre">title</span></code> attribute. This affects many elements of Bodhi’s REST API,
+including URLs (update titles can no longer be used to reference updates, only aliases), REST API
+data structures, and Bodhi’s messages (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/186">#186</a>, <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1542">#1542</a>, <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1714">#1714</a>, and
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1946">#1946</a>).</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">prefer_ssl</span></code> setting has been renamed to <code class="docutils literal notranslate"><span class="pre">libravatar_prefer_tls</span></code> and now defaults to
+<code class="docutils literal notranslate"><span class="pre">True</span></code> instead of <code class="docutils literal notranslate"><span class="pre">None</span></code> (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1921">#1921</a>).</li>
+<li>Integration with pkgdb is no longer supported (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1970">#1970</a>).</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">/admin/</span></code> API has been removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1985">#1985</a>).</li>
+<li>The relationship between Packages and Users was dropped. As a result, the <code class="docutils literal notranslate"><span class="pre">packages</span></code>
+parameter in users query API has also been removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1997">#1997</a>).</li>
+<li>Support for CVE tracking was dropped. It was technically not possible to use the feature, so it
+is unlikely to affect any deployments (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1998">#1998</a>).</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">processing</span></code> update status has been removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1999">#1999</a>).</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">/masher</span></code> API has been removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2024">#2024</a>).</li>
+<li>Default sqlalchemy.url setting points to PostgreSQL instead of SQLite (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2040">#2040</a>).</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">Masher</span></code> was renamed to <code class="docutils literal notranslate"><span class="pre">Composer</span></code>. As a result, the <code class="docutils literal notranslate"><span class="pre">bodhi-clean-old-mashes</span></code> script
+was renamed to <code class="docutils literal notranslate"><span class="pre">bodhi-clean-old-composes</span></code>, notification topics <code class="docutils literal notranslate"><span class="pre">mashtask.start</span></code>,
+<code class="docutils literal notranslate"><span class="pre">mashtask.mashing</span></code>, <code class="docutils literal notranslate"><span class="pre">mashtask.complete</span></code>, <code class="docutils literal notranslate"><span class="pre">mashtask.sync.wait</span></code> and <code class="docutils literal notranslate"><span class="pre">mashtask.sync.done</span></code>
+was renamed to <code class="docutils literal notranslate"><span class="pre">compose.start</span></code>, <code class="docutils literal notranslate"><span class="pre">compose.composing</span></code>, <code class="docutils literal notranslate"><span class="pre">compose.complete</span></code>, <code class="docutils literal notranslate"><span class="pre">compose.sync.wait</span></code>
+and <code class="docutils literal notranslate"><span class="pre">compose.sync.done</span></code>, configuration settings <code class="docutils literal notranslate"><span class="pre">mash_dir</span></code>, <code class="docutils literal notranslate"><span class="pre">mash_stage_dir</span></code> and
+<code class="docutils literal notranslate"><span class="pre">max_concurrent_mashes</span></code> was renamed to <code class="docutils literal notranslate"><span class="pre">compose_dir</span></code>, <code class="docutils literal notranslate"><span class="pre">compose_stage_dir</span></code> and
+<code class="docutils literal notranslate"><span class="pre">max_concurrent_composes</span></code> (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2151">#2151</a>).</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">bodhi-monitor-composes</span></code> script has been removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2171">#2171</a>).</li>
+<li>The stacks feature has been removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2241">#2241</a>).</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">bodhi-manage-releases</span></code> script has been removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2420">#2420</a>).</li>
+<li>Support for anonymous comments was dropped. As a result, the <code class="docutils literal notranslate"><span class="pre">anonymous</span></code> field on the Comment
+object was removed and comments query API parameter <code class="docutils literal notranslate"><span class="pre">anonymous</span></code> was dropped. All <code class="docutils literal notranslate"><span class="pre">captcha.*</span></code>
+settings were removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2700">#2700</a>).</li>
+<li>Bodhi client and server no longer support Python 2. Python 3.6+ are the only supported Python
+releases (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2759">#2759</a>).</li>
+<li>Support for the <code class="docutils literal notranslate"><span class="pre">ci_url</span></code> on the <code class="docutils literal notranslate"><span class="pre">Build</span></code> object was dropped (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2782">#2782</a>).</li>
+<li>Support for <code class="docutils literal notranslate"><span class="pre">active_releases</span></code> parameter in updates query API was dropped (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2815">#2815</a>).</li>
+<li>Support for fedmsg has been dropped (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2838">#2838</a>).</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">/updates/ALIAS/TITLE</span></code> API has been removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2869">#2869</a>).</li>
+<li>Support for update’s old_updateid was dropped (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2903">#2903</a>).</li>
+<li>The UI no longer has fedmsg integrations to show events happening elsewhere in Bodhi
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2913">#2913</a>).</li>
+<li>Support for update’s greenwave_unsatisfied_requirements was dropped (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2958">#2958</a>).</li>
+<li>The batching feature was dropped, and thus updates can no longer be in the batched request state.
+As a result, the bodhi-dequeue-stable CLI has also been removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2977">#2977</a>).</li>
+<li>Support for obsolete scripts in <code class="docutils literal notranslate"><span class="pre">tools</span></code> folder was dropped (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2980">#2980</a>).</li>
+<li>Support for update’s greenwave_summary_string has been dropped (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1339">#1339</a> and <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2988">#2988</a>).</li>
+<li>Bug objects no longer include a <code class="docutils literal notranslate"><span class="pre">private</span></code> field (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3016">#3016</a>).</li>
+<li>The CLI now defaults to the <code class="docutils literal notranslate"><span class="pre">--wait</span></code> flag when creating or editing buildroot overrides. The old
+behavior can be achieved with the <code class="docutils literal notranslate"><span class="pre">--no-wait</span></code> flag (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3006">#3006</a>).</li>
+<li>All messages and API responses that serialize updates no longer have a <code class="docutils literal notranslate"><span class="pre">submitter</span></code> field. This
+was redundant with the included <code class="docutils literal notranslate"><span class="pre">user.name</span></code> field, and was only in place for compatibility with
+Bodhi 1 which was EOL many years ago (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3144">#3144</a>).</li>
+<li>All of Bodhi’s fedmsgs have been changed. A new bodhi.messages packages has been added with new
+published message schemas. Note that only the fields listed in the documented schemas are
+supported in Bodhi 4, even though Bodhi still sends messages similar to the messages it sent in
+the past. Message consumers should not rely on any undocumented fields in these messages. If you
+need information that is not included in the supported schema, please work with the Bodhi project
+to get the schema adjusted accordingly. Bodhi’s messages are now documented in
+<a class="reference internal" href="../server_api/index.html"><span class="doc">Bodhi Server APIs</span></a>.</li>
+</ul>
+</div>
+<div class="section" id="dependency-changes">
+<h3>Dependency changes<a class="headerlink" href="#dependency-changes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>pkgdb is no longer required (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1970">#1970</a>).</li>
+<li>cryptography is no longer required (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2700">#2700</a>).</li>
+<li>Fonts are no longer required for the captcha (Bodhi previously defaulted to using
+liberation-mono-fonts, but this wasn’t a strict requirement since the font was configurable)
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2700">#2700</a>).</li>
+<li>pillow is no longer required (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2700">#2700</a>).</li>
+<li>six is no longer required for the client or server (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2759">#2759</a>).</li>
+<li><code class="docutils literal notranslate"><span class="pre">bodhi-server</span></code> now depends on <code class="docutils literal notranslate"><span class="pre">bodhi-messages</span></code>.</li>
+<li>kitchen is no longer required (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3094">#3094</a>).</li>
+<li>hawkey is no longer required.</li>
+<li>PyYAML is now a required dependency (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3174">#3174</a>).</li>
+<li>Twisted is now required (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3145">#3145</a>).</li>
+<li>Bodhi now requires Python 3.6 or greater (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2856">#2856</a>).</li>
+<li>Bodhi no longer uses or works with <code class="docutils literal notranslate"><span class="pre">fedmsg</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="server-upgrade-instructions">
+<h3>Server upgrade instructions<a class="headerlink" href="#server-upgrade-instructions" title="Permalink to this headline">¶</a></h3>
+<p>The Bodhi server must be upgraded from Bodhi 3.13.0 or newer to 4.0.0 (i.e., it is not supported to
+upgrade a server older than 3.13.0 directly to 4.0.0 as 4.0.0 has trimmed database migrations from
+the older releases.</p>
+<p>This release contains database migrations. To apply them, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+</pre></div>
+</div>
+</div>
+<div class="section" id="features">
+<h3>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Bodhi now provides a <code class="docutils literal notranslate"><span class="pre">RateLimiter</span></code> log filter and documents how to use it. Together with
+<code class="docutils literal notranslate"><span class="pre">pyramid_sawing</span></code> it is now possible to get rate limited e-mail tracebacks from the web server
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/969">#969</a>).</li>
+<li>All updates in a release are set to obsolete status when the release is archived (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2204">#2204</a>).</li>
+<li>Bodhi will now comment on updates when their test gating status changes (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2210">#2210</a>).</li>
+<li><code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code> now blocks composing retired releases (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2555">#2555</a>).</li>
+<li>A new <code class="docutils literal notranslate"><span class="pre">bodhi.messages</span></code> Python package has been added as a convenience for Python consumers
+who wish to subscribe to Bodhi’s messages (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2842">#2842</a>).</li>
+<li>Bodhi can now create zchunked <code class="docutils literal notranslate"><span class="pre">updateinfo.xml</span></code> files (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2904">#2904</a>).</li>
+<li>The server has a new <code class="docutils literal notranslate"><span class="pre">warm_cache_on_start</span></code> setting, defaulting to <code class="docutils literal notranslate"><span class="pre">True</span></code>. It is mostly
+useful when developing Bodhi and controls whether the Bodhi initialization should build caches or
+not (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2942">#2942</a>).</li>
+<li>The compose states are now documented (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2974">#2974</a>).</li>
+<li>Added a database index on <code class="docutils literal notranslate"><span class="pre">build.update_id</span></code>, which sped up some common queries
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3038">#3038</a>).</li>
+<li>Log messages are emitted when buildroot overrides are expired to explain why they were expired
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3060">#3060</a>).</li>
+<li>A missing database index was discovered on <code class="docutils literal notranslate"><span class="pre">comments.update_id</span></code>. Adding it improved performance
+of a common query by about 99.7% and as a result many Bodhi operations are much faster now,
+including update retrieval in the API, CLI, and web UI (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3062">#3062</a> and <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3201">#3201</a>).</li>
+<li>The CLI now allows users to add and remove builds from updates with <code class="docutils literal notranslate"><span class="pre">--addbuilds</span></code> and
+<code class="docutils literal notranslate"><span class="pre">--removebuilds</span></code> flags (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3125">#3125</a>).</li>
+<li>Users can now use markdown to easily reference GCC and Sourceware tickets (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3129">#3129</a>).</li>
+<li>A new log message is emitted when an update is blocked due to test gating (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3143">#3143</a>).</li>
+<li>The CLI can now download debuginfo with the new <code class="docutils literal notranslate"><span class="pre">--debuginfo</span></code> flag (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3148">#3148</a>).</li>
+</ul>
+</div>
+<div class="section" id="bug-fixes">
+<h3>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Since the <code class="docutils literal notranslate"><span class="pre">active_releases</span></code> query parameter was dropped, an issue causing strange pagination
+results is no longer present (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2316">#2316</a>).</li>
+<li>Waiver details are now displayed in the web UI (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2365">#2365</a>).</li>
+<li>The JavaScript will no longer crash when run in Fedora’s staging environment (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2523">#2523</a>).</li>
+<li>Fixed a crash in Bodhi’s error handler (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2588">#2588</a>).</li>
+<li>Fixed a crash on the HTML rendering of <code class="docutils literal notranslate"><span class="pre">/composes/</span></code> when composes were in a particular state
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2826">#2826</a>).</li>
+<li>Correctly handle <code class="docutils literal notranslate"><span class="pre">ConnectionResetError</span></code> in the Composer (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2850">#2850</a>).</li>
+<li>The CLI’s composes info subcommand is now documented in its man page (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2927">#2927</a>).</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">mail.templates_basepath</span></code> setting is now documented (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2931">#2931</a>).</li>
+<li>Fixed pipeline results showing with heading ‘undefined’ (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2969">#2969</a>).</li>
+<li>Compare enum values instead of descriptions (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3012">#3012</a> and <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3119">#3119</a>).</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">bodhi-approve-testing</span></code> script is a lot less chatty (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3021">#3021</a>).</li>
+<li>Bodhi’s API can now serialize internal server errors as JSON so that the clients can properly
+display error messages (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3035">#3035</a>).</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">--composed-by-bodhi</span></code> flag is now documented in the <code class="docutils literal notranslate"><span class="pre">bodhi</span></code> man page (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3085">#3085</a>).</li>
+<li>A variety of spelling and grammatical errors were fixed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3131">#3131</a>).</li>
+<li>Bodhi’s markdown now uses TLS for links to pear in its markdown (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3173">#3173</a>).</li>
+<li>Stop using an API that <code class="docutils literal notranslate"><span class="pre">dnf</span></code> removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3198">#3198</a>).</li>
+</ul>
+</div>
+<div class="section" id="development-improvements">
+<h3>Development improvements<a class="headerlink" href="#development-improvements" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Removed flash_log, since it didn’t make sense (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1165">#1165</a>).</li>
+<li>Removed some useless assert statements (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1200">#1200</a>, <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2848">#2848</a>, and <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2888">#2888</a>).</li>
+<li>An unused enum value was removed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1999">#1999</a>).</li>
+<li>The integration tests now run against all supported Fedora releases (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2824">#2824</a>).</li>
+<li>Bodhi’s release process is now documented (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2918">#2918</a>).</li>
+<li><code class="docutils literal notranslate"><span class="pre">met_testing_requirements()</span></code> got a much needed rename and refactor (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3158">#3158</a>).</li>
+<li>The Vagrant box now uses the same number of CPUs as the host  (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3197">#3197</a>).</li>
+<li>Numerous docblock corrections and improvements.</li>
+<li>Introduced type annotation to a few modules and added CI enforcement on them with <code class="docutils literal notranslate"><span class="pre">mypy</span></code>.</li>
+<li>Numerous improvements have been made to Bodhi’s CI tests, including expanded test coverage.</li>
+<li>The Vagrant environment now uses unsafe IO for a small speed boost.</li>
+<li>The integration tests run more efficiently now.</li>
+</ul>
+</div>
+<div class="section" id="contributors">
+<h3>Contributors<a class="headerlink" href="#contributors" title="Permalink to this headline">¶</a></h3>
+<p>The following developers contributed to Bodhi 4.0.0:</p>
+<ul class="simple">
+<li>Adam Williamson</li>
+<li>Anatoli Babenia</li>
+<li>Aurélien Bompard</li>
+<li>Clement Verna</li>
+<li>Jeremy Cline</li>
+<li>Jonathan Dieter</li>
+<li>Josh Soref</li>
+<li>Mattia Verga</li>
+<li>Miro Hrončok</li>
+<li>Nils Philippsen</li>
+<li>Owen W. Taylor</li>
+<li>Patrick Uiterwijk</li>
+<li>Sebastian Wojciechowski</li>
+<li>Troy Dawson</li>
+<li>Randy Barlow</li>
+</ul>
+</div>
+</div>
+<div class="section" id="older-releases">
+<h2>Older releases<a class="headerlink" href="#older-releases" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="3.x_release_notes.html">3.x release notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-13-3">v3.13.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-13-2">v3.13.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-13-1">v3.13.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-13-0">v3.13.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-12-0">v3.12.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-11-3">v3.11.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-11-2">v3.11.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-11-1">v3.11.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-11-0">v3.11.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-10-1">v3.10.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-10-0">v3.10.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-9-0">v3.9.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-8-1">v3.8.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-8-0">v3.8.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-7-0">v3.7.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-6-1">v3.6.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-6-0">v3.6.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-5-2">v3.5.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-5-1">v3.5.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-5-0">v3.5.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-4-0">v3.4.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-3-0">v3.3.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-2-0">v3.2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#v3-1-0">v3.1.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#id79">3.0.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3.x_release_notes.html#older-releases">Older releases</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="2.x_release_notes.html">2.x release notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id1">2.12.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id4">2.12.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id8">2.12.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id14">2.11.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id23">2.10.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id26">2.10.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id53">2.9.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id55">2.9.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id77">2.8.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id83">2.8.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id108">2.7.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id120">2.6.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id126">2.6.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id133">2.6.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id157">2.5.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id170">2.4.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id192">2.3.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id195">2.3.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id203">2.3.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id205">2.3.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id216">2.2.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id219">2.2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id221">2.2.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id224">2.2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.x_release_notes.html#id228">2.2.0</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="man_pages/index.html">Man pages</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="man_pages/initialize_bodhi_db.html" title="previous chapter">initialize_bodhi_db</a></li>
+      <li>Next: <a href="3.x_release_notes.html" title="next chapter">3.x release notes</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2019, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="../_sources/user/release_notes.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
