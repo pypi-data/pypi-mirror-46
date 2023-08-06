@@ -1,0 +1,33 @@
+# https://aka.ms/yaml
+jobs:
+- job: WinTest
+  pool:
+    vmImage: vs2017-win2016
+  strategy:
+    matrix:
+      Python36:
+        python.version: '3.6'
+      Python37:
+        python.version: '3.7'
+    maxParallel: 3
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+      architecture: 'x64'
+
+  - script: |
+      python -m pip install --upgrade pip setuptools wheel
+      pip install -r requirements.txt
+    displayName: Install prerequisites
+
+  - script: |
+      python -m pip install flake8
+      flake8 --extend-ignore=E701,E501 xbbg
+    displayName: Run Lint Tests
+
+  - script: |
+      pip install pytest pytest-cov coverage codecov
+      pytest xbbg --doctest-module --cov -v
+    displayName: Run Doctests and Coverages
