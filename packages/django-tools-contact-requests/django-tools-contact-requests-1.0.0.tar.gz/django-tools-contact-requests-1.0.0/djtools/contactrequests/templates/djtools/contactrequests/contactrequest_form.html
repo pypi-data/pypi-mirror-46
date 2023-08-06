@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if contact_information %}
+        <div class="contact_info">
+            {% for phone in contact_information.get_phone_number %}
+                <a href="tel:{{ phone|cut:" " }}" title="{{ phone }}">{{ phone }}</a>{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+            <a href="mailto:{{ contact_information.email }}" title="{{ contact_information.email }}">{{ contact_information.email }}</a>
+            <span>{{ contact_information.address | linebreaks }}</span>
+        </div>
+    {% endif %}
+
+
+    <form method="POST" action="{% url 'contact' %}">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">{% trans "Send" %}</button>
+    </form>
+{% endblock content %}
