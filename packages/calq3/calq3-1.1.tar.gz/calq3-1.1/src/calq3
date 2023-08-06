@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# calculate the Q3, given the secondary structure of the target sequence and
+# the predicted secodnary structure. Note that
+# 1. the sequence should be in FASTA format
+# 2. the length of the real sec and predicted sec should be the same
+# 2009-05-26, Nanjiang Shu
+
+import sys
+import os
+
+def PrintHelp():
+    print("Usage: ./calQ3.py [options] file_predSecStruct file_realSecStruct"          )
+    print("Options:"                                                                   )
+    print("  -h|--help: print this help message and exit"                              )
+    print("  -o       : output the comparison file, with the filename: $id.cmpsec"     )
+    print("           : and in the format of-- No Sec1 Sec2"                           )
+    print(                                                                             )
+    print("Created 2009-05-26, Last modified 2009-05-26, Nanjiang Shu"                 )
+
+def ReadSecStruc(secFile):#{{{
+    fpin = open(secFile, 'r')
+    line = fpin.readline()
+    secSeq=""
+    while line:
+        if line[0] == ">":
+            line= fpin.readline()
+        line=line.rstrip('\n')
+        secSeq = secSeq + line
+        line=fpin.readline()
+    fpin.close()
+    return secSeq#}}}
+
+
+numArgv=len(sys.argv)
+if numArgv < 3: 
+    PrintHelp()
+    sys.exit()
+
+isOutputCompare=False
+i = 1
+secPredictedFile=""
+secRealFile=""
+while i < numArgv:
+    if sys.argv[i] == "-h" or sys.argv[i] == "--help":
+        PrintHelp()
+        sys.exit()
+    elif sys.argv[i] == "-o":
+        isOutputCompare = True
+        i = i + 1
+    else:
+        secPredictedFile =  sys.argv[i]  ;
+        secRealFile =  sys.argv[i+1]  ;
+        i = i+2
+
+secPred=ReadSecStruc(secPredictedFile)
+secReal=ReadSecStruc(secRealFile)
+
+lenPred=len(secPred)
+lenReal=len(secReal)
+
+#print "secPred=",secPred
+#print "secReal=",secReal
+basename = os.path.basename(secRealFile)
+rootname = os.path.splitext(basename)[0]
+secCompareFile=rootname + '.cmpsec'
+
+if lenPred != lenReal :
+    print("Error! The length of the predicted sequence != the length of the real sequence. Exit...")
+    sys.exit()
+
+if isOutputCompare == True:
+    fpcmp=open(secCompareFile,'w')
+
+i = 0
+cntIDT=0
+cntValidRes=0
+while i < lenPred:
+    if isOutputCompare == True:
+        fpcmp.write("%d %s %s\n" % (i+1, secPred[i],secReal[i]))
+    if secPred[i] != '-' and secReal[i] != '-':
+        cntValidRes = cntValidRes+1
+        if secPred[i] == secReal[i]:
+            cntIDT = cntIDT +1
+    i=i+1
+
+print("%s Q3 = %d / %d = %f %%" %(secPredictedFile, cntIDT, cntValidRes, float(cntIDT)/cntValidRes*100))
+if isOutputCompare == True:
+    fpcmp.close()
+
+
