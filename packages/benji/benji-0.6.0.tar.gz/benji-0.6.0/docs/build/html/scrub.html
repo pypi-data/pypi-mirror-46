@@ -1,0 +1,532 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Scrub &mdash; Benji Backup 0.6.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script type="text/javascript" src="_static/asciinema/asciinema-player.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/asciinema/asciinema-player.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Restore" href="restore.html" />
+    <link rel="prev" title="Backup" href="backup.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Benji Backup
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#ubuntu-16-04">Ubuntu 16.04</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#rhel-centos-7">RHEL/CentOS 7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#fedora-27-and-up">Fedora 27 and up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#common-to-all-distributions">Common to All Distributions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#some-vocabulary">Some Vocabulary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#backup">Backup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#deep-scrub-and-scrub">Deep Scrub and Scrub</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#restore">Restore</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#version-removal-and-cleanup">Version Removal and Cleanup</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#configuration-file-location">Configuration File Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#top-level-configuration-directives">Top-level configuration directives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#list-of-i-o-configurations">List of I/O Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#list-of-transform-configurations">List of Transform Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#list-of-storage-configurations">List of Storage Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#i-o-modules">I/O Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#i-o-module-file">I/O Module file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#i-o-module-rbd">I/O Module rbd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#i-o-module-iscsi">I/O Module iscsi</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#transform-modules">Transform Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#transform-module-zstd">Transform Module zstd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#transform-module-aes-256-gcm">Transform Module aes_256_gcm</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#storage-modules">Storage Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#hmac">HMAC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#read-cache">Read Cache</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#storage-module-file">Storage Module file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#storage-module-s3">Storage Module s3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#storage-module-b2">Storage Module b2</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#nbd">NBD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#multiple-instance-installations">Multiple Instance Installations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backup.html">Backup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#simple-backup">Simple Backup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#versions">Versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#differential-backup">Differential Backup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#specifying-a-block-size">Specifying a block size</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#labeling-versions">Labeling <em>Versions</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#the-hints-file">The Hints File</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Scrub</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#reasons-for-scrubbing">Reasons for Scrubbing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scrubbing-methods">Scrubbing Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#consistency-and-checksum">Consistency and Checksum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-the-backup-source">Using the Backup Source</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#consistency-only">Consistency Only</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-scrubbing">Batch scrubbing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scrubbing-failures">Scrubbing Failures</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="restore.html">Restore</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="restore.html#full-restore">Full Restore</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="restore.html#restoring-without-a-database">Restoring without a database</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="restore.html#nbd-server">NBD Server</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="restore.html#read-only-mount">Read-Only Mount</a></li>
+<li class="toctree-l3"><a class="reference internal" href="restore.html#read-write-mount">Read-Write Mount</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="restore.html#restoring-invalid-versions">Restoring Invalid <em>Versions</em></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="enforce.html">Retention Policy Enforcement</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enforce.html#policy-specification">Policy Specification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cleanup.html">Cleanup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cleanup.html#removing-old-versions">Removing old versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cleanup.html#id1">Cleanup</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="administration.html">Administration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="administration.html#securing-version-metadata">Securing Version Metadata</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="administration.html#backups-and-exports">Backups and Exports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="administration.html#database-high-availability">Database High-Availability</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="administration.html#securing-block-data-on-storages">Securing Block Data on Storages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="administration.html#monitoring">Monitoring</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="administration.html#general-advise">General Advise</a></li>
+<li class="toctree-l3"><a class="reference internal" href="administration.html#machine-output">Machine output</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="container.html">Containerized Benji</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="container.html#images">Images</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="container.html#benji">benji</a></li>
+<li class="toctree-l3"><a class="reference internal" href="container.html#benji-k8s">benji-k8s</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="container.html#helm-charts">Helm Charts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="container.html#id1">benji-k8s</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="filter_expressions.html">Filter Expressions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datalayout.html">Data Layout</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="datalayout.html#database-backend">Database Backend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datalayout.html#block-storages">Block Storages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backy2.html">For Backy² Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="support.html#issue-tracker">Issue Tracker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="support.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="support.html#security">Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="licenses.html">Licenses</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Benji Backup</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Scrub</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/scrub.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="scrub">
+<span id="scrubbing"></span><h1>Scrub<a class="headerlink" href="#scrub" title="Permalink to this headline">¶</a></h1>
+<p>Scrubbing backups is needed to ensure data consistency over time.</p>
+<div class="section" id="reasons-for-scrubbing">
+<h2>Reasons for Scrubbing<a class="headerlink" href="#reasons-for-scrubbing" title="Permalink to this headline">¶</a></h2>
+<p>Benji divides the data you backup into blocks. These blocks are referenced
+by the metadata stored in the database backend. When restoring images, these
+blocks are read and restored to form the original image. As Benji also does
+deduplication, an invalid block can potentially affect multiple versions and
+so image backups.</p>
+<p>Invalid blocks can occur for the following reasons (probably incomplete):</p>
+<ul class="simple">
+<li><p>Bit rot / data degradation (<a class="reference external" href="https://en.wikipedia.org/wiki/Data_degradation">https://en.wikipedia.org/wiki/Data_degradation</a>)</p></li>
+<li><p>Software failure when writing the block for the first time</p></li>
+<li><p>OS errors and bugs</p></li>
+<li><p>Human error: Deleting or modifying blocks by accident</p></li>
+<li><p>Software errors in Benji and other used tools</p></li>
+</ul>
+</div>
+<div class="section" id="scrubbing-methods">
+<h2>Scrubbing Methods<a class="headerlink" href="#scrubbing-methods" title="Permalink to this headline">¶</a></h2>
+<p>Benji implements three different scrubbing methods. Each of these methods
+accepts the <code class="docutils literal notranslate"><span class="pre">--block-percentage</span></code> (short form <code class="docutils literal notranslate"><span class="pre">-p</span></code>) option. With it you
+can limit the scrubbing to a randomly selected percentage of the blocks.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>When using the <code class="docutils literal notranslate"><span class="pre">--block-percentage</span></code> option with a value of
+less than 100 percent with any of the deep scrubbing commands, an invalid
+<em>version</em> won’t be marked as valid again, when it has been marked as
+invalid in the past. Only a full successful deep-scrub will do that.</p>
+</div>
+<div class="section" id="consistency-and-checksum">
+<h3>Consistency and Checksum<a class="headerlink" href="#consistency-and-checksum" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ benji deep-scrub --help
+usage: benji deep-scrub [-h] [-s SOURCE] [-p BLOCK_PERCENTAGE] version_uid
+
+positional arguments:
+  version_uid           Version UID
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SOURCE, --source SOURCE
+                        Additionally compare version against source URL
+                        (default: None)
+  -p BLOCK_PERCENTAGE, --block-percentage BLOCK_PERCENTAGE
+                        Check only a certain percentage of blocks (default:
+                        100)
+</pre></div>
+</div>
+<p>For each block in a version Benji reads the block’s metadata (UID and
+checksum) from the database backend, reads the actual block by its UID
+from the storage, calculates its checksum and compares it to the
+originally recorded checksum. If the checksums are not the same the
+block is marked as invalid and won’t be used for deduplication anymore.
+All other versions which reference this block are also marked as invalid
+as is the scrubbed version itself.</p>
+</div>
+<div class="section" id="using-the-backup-source">
+<h3>Using the Backup Source<a class="headerlink" href="#using-the-backup-source" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>benji deep-scrub --source &lt;snapshot&gt; &lt;version_uid&gt;
+</pre></div>
+</div>
+<p>In addition to the consistency and checksum checks Benji can also compare
+the backup data to the original backup source by specifying the <code class="docutils literal notranslate"><span class="pre">--source</span></code>
+option. The comparison is done byte by byte. Although this is an additional
+safeguard against data corruption it requires that the backup source is still
+present and it produces additional load on the backup source.</p>
+</div>
+<div class="section" id="consistency-only">
+<h3>Consistency Only<a class="headerlink" href="#consistency-only" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ benji scrub --help
+usage: benji scrub [-h] [-p BLOCK_PERCENTAGE] version_uid
+
+positional arguments:
+  version_uid           Version UID
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p BLOCK_PERCENTAGE, --block-percentage BLOCK_PERCENTAGE
+                        Check only a certain percentage of blocks (default:
+                        100)
+</pre></div>
+</div>
+<p>With this command Benji only checks the metadata consistency between the
+metadata saved in the database and the metadata accompanying each block
+on the storage. It also checks if the block exists and has the right length
+as reported by the storage provider. The actual data is <strong>not</strong> checked in
+this case.</p>
+<p>This mode of operation can be a useful in addition to deep-scrubs if
+you pay for data downloads from the storage provider or your bandwidth
+is limited. It is not a replacement for deep-scrubs but you can reduce
+their frequency.</p>
+</div>
+</div>
+<div class="section" id="batch-scrubbing">
+<h2>Batch scrubbing<a class="headerlink" href="#batch-scrubbing" title="Permalink to this headline">¶</a></h2>
+<p>Benji also supports two commands to facilitate batch scrubbing of versions:
+<code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">batch-scrub</span></code> and <code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">batch-deep-scrub</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ benji batch-scrub --help
+usage: benji batch-scrub [-h] [-p BLOCK_PERCENTAGE] [-P VERSION_PERCENTAGE]
+                         [-g GROUP_LABEL]
+                         [filter_expression]
+
+positional arguments:
+  filter_expression     Version filter expression (default: None)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p BLOCK_PERCENTAGE, --block-percentage BLOCK_PERCENTAGE
+                        Check only a certain percentage of blocks (default:
+                        100)
+  -P VERSION_PERCENTAGE, --version-percentage VERSION_PERCENTAGE
+                        Check only a certain percentage of versions (default:
+                        100)
+  -g GROUP_LABEL, --group_label GROUP_LABEL
+                        Label to find related versions (default: None)
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ benji batch-deep-scrub --help
+usage: benji batch-deep-scrub [-h] [-p BLOCK_PERCENTAGE]
+                              [-P VERSION_PERCENTAGE] [-g GROUP_LABEL]
+                              [filter_expression]
+
+positional arguments:
+  filter_expression     Version filter expression (default: None)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p BLOCK_PERCENTAGE, --block-percentage BLOCK_PERCENTAGE
+                        Check only a certain percentage of blocks (default:
+                        100)
+  -P VERSION_PERCENTAGE, --version-percentage VERSION_PERCENTAGE
+                        Check only a certain percentage of versions (default:
+                        100)
+  -g GROUP_LABEL, --group_label GROUP_LABEL
+                        Label to find related versions (default: None)
+</pre></div>
+</div>
+<p>Both can take a list of <em>version</em> names. All <em>versions</em> matching these
+names will be scrubbed. If you don’t specify any names all <em>versions</em>
+will be checked.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">--tag</span></code> (short form <code class="docutils literal notranslate"><span class="pre">-t</span></code>) is given too, the above  selection is
+limited to  <em>versions</em> also matching the given tag.  If  multiple <code class="docutils literal notranslate"><span class="pre">--tag</span></code>
+options are given, then they constitute an OR  operation.</p>
+<p>By default all matching <em>versions</em> will be scrubbed. But you can also
+randomly select a certain sample of these <em>versions</em> with <code class="docutils literal notranslate"><span class="pre">--version-percentage</span></code>
+(short form``-P``). A <em>version’s</em> size isn’t taken into account when selecting the
+sample, every <em>version</em> is equally eligible.</p>
+<p>The batch scrubbing commands also accepts the <code class="docutils literal notranslate"><span class="pre">--block-percentage</span></code> (short
+form <code class="docutils literal notranslate"><span class="pre">-p</span></code>) option.</p>
+<p><code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">batch-deep-scrub</span></code> doesn’t support the <code class="docutils literal notranslate"><span class="pre">--source</span></code> option like
+<code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">deep-scrub</span></code>.</p>
+<p>This is a good use cause for tags: You could mark your <em>versions</em> with a list of
+different tags denoting the importance of the backed up data. Then you could scrub
+each class of <em>versions</em> differently:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 14% of the versions are deep scrubbed for data of high importance</span>
+$ benji batch-deep-scrub --version-percentage <span class="m">14</span> <span class="s1">&#39;labels[&quot;priority&quot;] == &quot;high&quot;&#39;</span>
+
+<span class="c1"># 7% of the versions are deep scrubbed for data of medium importance</span>
+$ benji batch-deep-scrub --version-percentage <span class="m">7</span> <span class="s1">&#39;labels[&quot;priority&quot;] == &quot;medium&quot;&#39;</span>
+
+<span class="c1"># 3% of the versions are deep scrubbed for data of low importance</span>
+$ benji batch-deep-scrub --version-percentage <span class="m">3</span> <span class="s1">&#39;labels[&quot;priority&quot;] == &quot;low&quot;&#39;</span>
+
+<span class="c1"># 3% of the versions are scrubbed when they contain reproducible scratch data or don&#39;t have a priority label</span>
+$ benji batch-scrub --version-percentage <span class="m">3</span> <span class="s1">&#39;labels[&quot;priority&quot;] == &quot;scratch&quot; or not labels[&quot;priority&quot;]&#39;</span>
+</pre></div>
+</div>
+<p>If you’d call this schedule every day, you’d scrub the important data completely
+about every seven days (statistically), data of medium importance completely every
+fourteen days and low priority data completely every month. Scratch data would also
+be scrubbed completely every month, but only metadata consistency and block
+existence is checked.</p>
+</div>
+<div class="section" id="scrubbing-failures">
+<h2>Scrubbing Failures<a class="headerlink" href="#scrubbing-failures" title="Permalink to this headline">¶</a></h2>
+<p>If scrubbing finds invalid blocks, these blocks are marked as <em>invalid</em>
+in the metadata store. However, such blocks <strong>will persist</strong> and not be deleted.</p>
+<p>Also, the versions affected by such invalid blocks are marked <em>invalid</em>.
+Such versions cannot be the base (i.e. <code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">backup</span> <span class="pre">-f</span></code>, see
+<a class="reference internal" href="backup.html#differential-backup"><span class="std std-ref">Differential Backup</span></a>) for differential backups anymore, Benji will throw
+an error if you try.</p>
+<p>However, invalid versions <strong>can still be restored</strong>. So a single block will not
+break the restore process. Instead, you’ll get a clear log output that there
+is invalid data restored.</p>
+<p>You can find invalid versions by looking at the output of <code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">ls</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ benji  ls
+    INFO: $ benji ls
++---------------------+-------------+------+---------------+----------+------------+-------+-----------+------+
+<span class="p">|</span>         date        <span class="p">|</span>     uid     <span class="p">|</span> name <span class="p">|</span> snapshot_name <span class="p">|</span>     size <span class="p">|</span> block_size <span class="p">|</span> valid <span class="p">|</span> protected <span class="p">|</span> tags <span class="p">|</span>
++---------------------+-------------+------+---------------+----------+------------+-------+-----------+------+
+<span class="p">|</span> <span class="m">2018</span>-06-07T12:51:19 <span class="p">|</span> V0000000001 <span class="p">|</span> <span class="nb">test</span> <span class="p">|</span>               <span class="p">|</span> <span class="m">41943040</span> <span class="p">|</span>    <span class="m">4194304</span> <span class="p">|</span> False <span class="p">|</span>   False   <span class="p">|</span>      <span class="p">|</span>
++---------------------+-------------+------+---------------+----------+------------+-------+-----------+------+
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Multiple versions can be affected by a single block as Benji does
+deduplication and one block can belong to multiple versions, even to
+different images.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="restore.html" class="btn btn-neutral float-right" title="Restore" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="backup.html" class="btn btn-neutral float-left" title="Backup" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019, Lars Fenneberg, Daniel Kraft
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+  
+ 
+
+
+</body>
+</html>

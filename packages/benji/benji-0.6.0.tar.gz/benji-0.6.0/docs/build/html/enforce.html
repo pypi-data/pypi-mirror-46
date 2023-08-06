@@ -1,0 +1,422 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Retention Policy Enforcement &mdash; Benji Backup 0.6.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script type="text/javascript" src="_static/asciinema/asciinema-player.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/asciinema/asciinema-player.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Cleanup" href="cleanup.html" />
+    <link rel="prev" title="Restore" href="restore.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Benji Backup
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#ubuntu-16-04">Ubuntu 16.04</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#rhel-centos-7">RHEL/CentOS 7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#fedora-27-and-up">Fedora 27 and up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#common-to-all-distributions">Common to All Distributions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#some-vocabulary">Some Vocabulary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#backup">Backup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#deep-scrub-and-scrub">Deep Scrub and Scrub</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#restore">Restore</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#version-removal-and-cleanup">Version Removal and Cleanup</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#configuration-file-location">Configuration File Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#top-level-configuration-directives">Top-level configuration directives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#list-of-i-o-configurations">List of I/O Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#list-of-transform-configurations">List of Transform Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#list-of-storage-configurations">List of Storage Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#i-o-modules">I/O Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#i-o-module-file">I/O Module file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#i-o-module-rbd">I/O Module rbd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#i-o-module-iscsi">I/O Module iscsi</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#transform-modules">Transform Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#transform-module-zstd">Transform Module zstd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#transform-module-aes-256-gcm">Transform Module aes_256_gcm</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#storage-modules">Storage Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#hmac">HMAC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#read-cache">Read Cache</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#storage-module-file">Storage Module file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#storage-module-s3">Storage Module s3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#storage-module-b2">Storage Module b2</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#nbd">NBD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#multiple-instance-installations">Multiple Instance Installations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backup.html">Backup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#simple-backup">Simple Backup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#versions">Versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#differential-backup">Differential Backup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#specifying-a-block-size">Specifying a block size</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#labeling-versions">Labeling <em>Versions</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#the-hints-file">The Hints File</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scrub.html">Scrub</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="scrub.html#reasons-for-scrubbing">Reasons for Scrubbing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scrub.html#scrubbing-methods">Scrubbing Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scrub.html#consistency-and-checksum">Consistency and Checksum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="scrub.html#using-the-backup-source">Using the Backup Source</a></li>
+<li class="toctree-l3"><a class="reference internal" href="scrub.html#consistency-only">Consistency Only</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="scrub.html#batch-scrubbing">Batch scrubbing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scrub.html#scrubbing-failures">Scrubbing Failures</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="restore.html">Restore</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="restore.html#full-restore">Full Restore</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="restore.html#restoring-without-a-database">Restoring without a database</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="restore.html#nbd-server">NBD Server</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="restore.html#read-only-mount">Read-Only Mount</a></li>
+<li class="toctree-l3"><a class="reference internal" href="restore.html#read-write-mount">Read-Write Mount</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="restore.html#restoring-invalid-versions">Restoring Invalid <em>Versions</em></a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Retention Policy Enforcement</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#policy-specification">Policy Specification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cleanup.html">Cleanup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cleanup.html#removing-old-versions">Removing old versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cleanup.html#id1">Cleanup</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="administration.html">Administration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="administration.html#securing-version-metadata">Securing Version Metadata</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="administration.html#backups-and-exports">Backups and Exports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="administration.html#database-high-availability">Database High-Availability</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="administration.html#securing-block-data-on-storages">Securing Block Data on Storages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="administration.html#monitoring">Monitoring</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="administration.html#general-advise">General Advise</a></li>
+<li class="toctree-l3"><a class="reference internal" href="administration.html#machine-output">Machine output</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="container.html">Containerized Benji</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="container.html#images">Images</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="container.html#benji">benji</a></li>
+<li class="toctree-l3"><a class="reference internal" href="container.html#benji-k8s">benji-k8s</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="container.html#helm-charts">Helm Charts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="container.html#id1">benji-k8s</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="filter_expressions.html">Filter Expressions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datalayout.html">Data Layout</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="datalayout.html#database-backend">Database Backend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datalayout.html#block-storages">Block Storages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backy2.html">For Backy² Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="support.html#issue-tracker">Issue Tracker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="support.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="support.html#security">Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="licenses.html">Licenses</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Benji Backup</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Retention Policy Enforcement</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/enforce.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="retention-policy-enforcement">
+<h1>Retention Policy Enforcement<a class="headerlink" href="#retention-policy-enforcement" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ benji enforce --help
+usage: benji enforce [-h] [--dry-run] [-k] [-g GROUP_LABEL]
+                     rules_spec [filter_expression]
+
+positional arguments:
+  rules_spec            Retention rules specification
+  filter_expression     Version filter expression
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --dry-run             Only show which versions would be removed
+  -k, --keep-metadata-backup
+                        Keep version metadata backup
+  -g GROUP_LABEL, --group_label GROUP_LABEL
+                        Label to find related versions to remove
+</pre></div>
+</div>
+<p>Benji supports a simple but flexible mechanism for retention policy enforcement. Enforcement is done per <em>version</em> name,
+i.e. a specific policy is applied to all <em>versions</em> with the same name. Enforcement is not automatic and has to be
+initiated with <code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">enforce</span></code>.</p>
+<p>This Benji command is just for policy enforcement (i.e. thinning out <em>versions</em> by removal over time). You have to adjust
+your schedule to match your policy. For example, if you want to keep hourly backups for the last 72 hours (hours72)
+you have to create a new <em>version</em> at least every hour.</p>
+<p>Filter expressions (see section <a class="reference internal" href="filter_expressions.html#filter-expressions"><span class="std std-ref">Filter Expressions</span></a>) are used to select the <em>versions</em> the specified policy
+is applied to.</p>
+<p><code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">enforce</span></code> supports machine readable output (see section <a class="reference internal" href="administration.html#machine-output"><span class="std std-ref">Machine output</span></a>). All removed versions are listed
+and could be aggregated into a report for example.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>Enforcement will remove any <em>version</em> which doesn’t match the policy. To exclude versions from
+enforcement protect them with <code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">protect</span></code>.</p>
+</div>
+<div class="section" id="policy-specification">
+<h2>Policy Specification<a class="headerlink" href="#policy-specification" title="Permalink to this headline">¶</a></h2>
+<p>The enforcement policy is specified as a comma separated list of time categories:</p>
+<ul class="simple">
+<li><p>latest (always refers to the youngest versions, regardless of how old they are)</p></li>
+<li><p>hours</p></li>
+<li><p>days</p></li>
+<li><p>weeks</p></li>
+<li><p>months</p></li>
+<li><p>years.</p></li>
+</ul>
+<p>Each time interval is directly followed by a positive number, no whitespace is allowed. The categorization (except for
+latest) follows natural time boundaries, i.e. the groups of <em>versions</em> formed by the hours category each start at
+the full hour. The same goes for months where each group starts at the first of each month at 00:00 and for years
+where each group starts at January 1st, 00:00. Each group of the weeks category starts on Monday at 00h00.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>Times are based on the timezone which is set when <code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">enforce</span></code> is called. Ensure that each
+invocation of <code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">enforce</span></code> uses the same timezone. Otherwise some additional <em>versions</em> might get deleted
+because of the time shift.</p>
+</div>
+<p>Examples:</p>
+<ul class="simple">
+<li><p>latest3,hours48,days7,weeks4,months12,years3</p>
+<ul>
+<li><p>Keep the youngest three versions regardless of their age</p></li>
+<li><p>Then keep one version per hour for the last 48 hours</p></li>
+<li><p>Then keep one version per week for the last four weeks</p></li>
+<li><p>Then keep one version per month for the last twelve months</p></li>
+<li><p>Then keep one version per year for the last three years</p></li>
+</ul>
+</li>
+<li><p>years3,months12,latest2</p>
+<ul>
+<li><p>Keep the youngest two versions</p></li>
+<li><p>Then keep one version per month for the last twelve months</p></li>
+<li><p>Then keep one version per year for the last three years</p></li>
+</ul>
+</li>
+<li><p>hours72</p>
+<ul>
+<li><p>Keep one version per hour for the last 72 hours</p></li>
+</ul>
+</li>
+<li><p>latest10</p>
+<ul>
+<li><p>Keep the youngest ten versions</p></li>
+</ul>
+</li>
+</ul>
+<p>Even when you specify the time categories in a different order, they are always considered from youngest to oldest
+(see the second example).</p>
+<p>You can call <code class="docutils literal notranslate"><span class="pre">benji</span> <span class="pre">enforce</span></code> as many times a day as you want. If no version currently falls into a specified category
+the oldest version of the category below it is always kept, so that it has a chance to get old enough. So if in the
+third example there is one version which is older than 24 hours but younger than one year it will be kept till it is
+old enough even though it falls out of the first specified category.</p>
+<p>If there is overlap between two categories the younger category always takes precedence.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="cleanup.html" class="btn btn-neutral float-right" title="Cleanup" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="restore.html" class="btn btn-neutral float-left" title="Restore" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019, Lars Fenneberg, Daniel Kraft
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+  
+ 
+
+
+</body>
+</html>
