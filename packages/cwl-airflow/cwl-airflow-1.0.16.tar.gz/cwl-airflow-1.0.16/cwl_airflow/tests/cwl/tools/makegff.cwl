@@ -1,0 +1,55 @@
+cwlVersion: v1.0
+class: CommandLineTool
+
+
+requirements:
+- class: InlineJavascriptRequirement
+  expressionLib:
+  - var default_output_filename = function() {
+        if (inputs.output_filename == ""){
+          let ext = ".gff";
+          let root = inputs.islands_file.basename.split('.').slice(0,-1).join('.');
+          return (root == "")?inputs.islands_file.basename+ext:root+ext;
+        } else {
+          return inputs.output_filename;
+        }
+    };
+
+hints:
+- class: DockerRequirement
+  dockerPull: biowardrobe2/rose:v0.0.2
+
+
+inputs:
+
+  islands_file:
+    type: File
+    inputBinding:
+      position: 5
+    doc: |
+      Input tab-delimited file (output from iaintersect.cwl or macs2-callpeak-biowardrobe-only.cwl tool)
+
+  output_filename:
+    type: string?
+    inputBinding:
+      position: 6
+      valueFrom: $(default_output_filename())
+    default: ""
+
+  islands_control_file:
+    type: File?
+    inputBinding:
+      position: 7
+    doc: |
+      Control tab-delimited file (output from iaintersect.cwl or macs2-callpeak-biowardrobe-only.cwl tool)
+
+
+outputs:
+  gff_file:
+    type: File
+    outputBinding:
+      glob: $(default_output_filename())
+
+
+baseCommand: ['makegff']
+
