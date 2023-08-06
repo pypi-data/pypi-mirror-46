@@ -1,0 +1,114 @@
+Gitone: Combine multiple **git** version controls steps into **one**
+====================================================================
+
+|PyPI| |Updates|
+
+Introduction
+------------
+
+The ``gitone`` Python package takes some of the tedium out of `git <https://git-scm.com/>`__ version control by rolling multiple git shell commands into one shell command or Python function.
+
+Unlike git shell commands, ``gitone`` shell commands and Python functions can automatically generate commit messages if a commit message is not provided!
+
+You can use ``gitone`` in
+
+- your terminal (e.g. ``bash``, ``zsh``, ``fish``, etc.) or
+- your favorite Python environment (e.g. `PyCharm <https://www.jetbrains.com/pycharm/>`__ or `Visual Studio Code <https://code.visualstudio.com/docs/python/python-tutorial>`__).
+
+
+The ``gitone`` Python package consists of 8 shell commands and Python functions:
+
+- ``cam``, which stands for ``git commit -am``, will add and commit all changes made to tracked files.
+- ``camp``, which stands for ``git commit -am && git push``, will add and commit all changes made to tracked files and push the commit to the remote repository.
+- ``acm``, which stands for ``git add --all && git commit -m``, will add and commit all changes made to all files and push the changes to the remote repository.
+- ``acmp``, which stands for ``git add --all && git commit -m && git push``, will add and commit all changes made to all files and push the changes to the remote repository.
+
+In summary, ``cam`` and ``camp`` work on only tracked files (those that have previously been added to git's index),
+while ``acm`` and ``acmp`` work on all files by adding untracked files to git's index.
+
+There are also the ``--amend`` versions of the above:
+
+- ``amend``, which is short for ``git commit --amend -am``, will overwrite the previous commit by adding and committing all changes made to tracked files.
+- ``amendp``, which is short for ``git commit --amend -am && git push --force``, will overwrite the previous commit by adding and committing all changes made to tracked files and then force push the overwritten commit to the remote repository.
+- ``aamend``, which is short for ``git add --all && git commit --amend -m``, will overwrite the previous commit by adding and committing all changes made to all files.
+- ``aamendp``, which is short for ``git add --all && git commit --amend -m && git push --force``, will overwrite the previous commit by adding and committing all changes made to all files and then force push the overwritten commit to the remote repository.
+
+Similarly to the first four, ``amend`` and ``amendp`` work on only tracked files (those that have previously been added to git's index),
+while ``aamend`` and ``aamendp`` work on all files by adding untracked files to git's index.
+
+All ``gitone`` functions and commands rely on the `GitPython <https://gitpython.readthedocs.io/>`__ Python library.
+The command line interface relies on the `click <https://click.palletsprojects.com/>`__ Python library.
+
+Documentation and Code
+----------------------
+
+The documentation is hosted at https://marskar.github.io/gitone/.
+
+The code is hosted at https://github.com/marskar/gitone.
+
+Installation
+------------
+
+.. code-block:: shell
+
+    $ pip install gitone
+
+Usage
+-----
+
+Run any of the available shell commands or Python functions without arguments and a commit message will be automatically generated.
+
+.. code-block:: python
+
+    >>> camp()
+    >>> acmp()
+    >>> cam()
+    >>> acm()
+
+.. code-block:: shell
+
+    $ camp
+    $ acmp
+    $ cam
+    $ acm
+
+You can also pass a commit message to any of the functions or shell commands.
+
+.. code-block:: python
+
+    >>> camp(message="Made some changes.")
+    >>> acmp("Lemme try something.")
+    >>> cam("Not sure what changed.")
+    >>> acm("Should be OK now.")
+
+When using the shell commands. Do not wrap the commit message in quotes (``""``) or they will be included in the commit message.
+
+.. code-block:: shell
+
+    $ camp Made some changes.
+    $ acmp Lemme try something.
+    $ cam Not sure what changed.
+    $ acm Should be OK now.
+
+To overwrite the previous commit, you can use the amend functions.
+
+If you do not provide a commit message, the previous commit message will be reused.
+
+.. code-block:: python
+
+    >>> amend()
+    >>> amendp()
+    >>> aamend()
+    >>> aamendp()
+
+.. code-block:: shell
+
+    $ amend
+    $ amendp
+    $ aamend
+    $ aamendp
+
+.. |PyPI| image:: https://img.shields.io/pypi/v/gitone.svg
+   :target: https://pypi.python.org/pypi/gitone
+.. |Updates| image:: https://pyup.io/repos/github/marskar/gitone/shield.svg
+   :target: https://pyup.io/repos/github/marskar/gitone/
