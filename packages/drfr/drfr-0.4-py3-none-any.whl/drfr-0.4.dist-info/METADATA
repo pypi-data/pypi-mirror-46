@@ -1,0 +1,61 @@
+Metadata-Version: 2.1
+Name: drfr
+Version: 0.4
+Summary: A Small Package for Use of Research
+Home-page: UNKNOWN
+Author: Zhiang Liu
+Author-email: me262r@gmail.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+
+# Dimension Reduction Function Research (drfr) 
+This package provides a Reduction Model and Regression Model, which respectively 
+contains several choices for reduction and regression of data.
+
+# Discription of Each Model
+## Reduction Model
+contains "NPPE", "UMAP", "LLE", "Hessian", "Spectral", "TSNE", "Isomap", used 
+as keyword argument ```tag``` in function ```get_reduction()```.
+To make tag "UMAP" work properly, an install according to https://github.com/lmcinnes/umap
+is needed.
+
+## Regression Model
+contains "lasso", "ridge", "MARS",  used 
+as keyword argument ```tag``` in function ```cal_regression()```. As basis generator 
+either those in BasisGenerator or self made function can be used, where data X 
+should be the only positional argument.
+
+## Basis Generator
+contains several functions as basis generators, with form
+```python
+generate_basis_name(X, p=basis_degree)
+```
+
+# Usage
+```python
+from drfr import ReductionModel, BasisGenerator, RegressionModel
+from sklearn import datasets
+import matplotlib.pyplot as plt
+
+N = 5000
+k = 24
+X, color = datasets.samples_generator.make_swiss_roll(n_samples=N, noise=0.00001)
+basis_generator = None
+tag = "MARS"
+
+# compute embedded result
+red_model = ReductionModel.ReductionModel()
+y_nppe = red_model.get_reduction(X, tag="NPPE")
+
+# compute regression weights w given X and y, and compute basis(X)*y
+reg_model = RegressionModel.RegressionModel()
+y_reg = reg_model.cal_regression(X, y_nppe, tag=tag, basis_generator=BasisGenerator.generate_fourier)
+
+plt.scatter(y_reg[:, 0], y_reg[:, 1], c=color, cmap=plt.cm.Spectral)
+plt.title("NPPE embedded data regressed by " + tag + " Model")
+plt.show()
+```
+
