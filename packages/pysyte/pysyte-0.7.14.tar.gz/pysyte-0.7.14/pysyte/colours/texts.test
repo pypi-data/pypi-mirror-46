@@ -1,0 +1,27 @@
+The texts module
+================
+
+    >>> from pysyte.colours import texts
+    >>> assert 'colours in texts' in texts.__doc__
+
+Basic usage:
+    >>> hello = texts.colour_text('H', 'green').colour_text('ello ')
+
+Shorter way:
+    >>> world = texts.colour('W', 'red').text('orld')
+
+Both methods give a coloured tail
+    >>> hello
+    <ColouredTail '\x1b[32mH\x1b[2m\x1b[0m''ello '>
+    >>> world
+    <ColouredTail '\x1b[31mW\x1b[2m\x1b[0m''orld'>
+
+Adds in ANSI sequences (looks better on terminal than in a doctest)
+    >>> assert str(hello) == '\x1b[32mH\x1b[2m\x1b[0mello '
+    >>> assert str(world) == '\x1b[31mW\x1b[2m\x1b[0morld'
+
+Convenience method to highlight initials
+
+    >>> foo = texts.colour('H', 'red').colour('ello')
+    >>> assert foo == texts.colour_initial('Hello', 'red')
+
