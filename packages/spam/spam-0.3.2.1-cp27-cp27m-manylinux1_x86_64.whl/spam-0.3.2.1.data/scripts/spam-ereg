@@ -1,0 +1,596 @@
+#!/usr/bin/env python
+
+# imports
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import sys
+import subprocess
+from tkinter import *
+from tkinter import filedialog
+import numpy
+import spam.DIC.deformationFunction as transf
+import spam.DIC.correlateGM as cGM
+import spam.helpers.tsvio as save
+import spam.datasets
+import matplotlib
+import matplotlib.pyplot as plt
+import tifffile
+matplotlib.use("TkAgg")
+#
+
+# variables && window creation
+
+
+def loadComparison(place, image1, image2, level1, level2, axe, Phis, mode):
+    for child in place.winfo_children():
+        child.destroy()
+    imageDisplayed = transf.applyPhi(image1, Phi=Phis[1])
+    f = Figure()  # create a matplotlib figure
+    a = f.add_subplot(111)
+    if mode == 1:  # verify which comparison mode is asked
+        if axe == "Z":  # verify which axe is wanted
+            im = a.imshow(numpy.absolute(numpy.subtract(
+                imageDisplayed[level1, :, :], image2[level2, :, :])), cmap='coolwarm', vmin=vMin, vmax=vMax)
+        elif axe == "Y":
+            im = a.imshow(numpy.absolute(numpy.subtract(
+                imageDisplayed[:, level1, :], image2[:, level2, :])), cmap='coolwarm', vmin=vMin, vmax=vMax)
+        elif axe == "X":
+            im = a.imshow(numpy.absolute(numpy.subtract(
+                imageDisplayed[:, :, level1], image2[:, :, level2])), cmap='coolwarm', vmin=vMin, vmax=vMax)
+    elif mode == 0:
+        if axe == "Z":  # verify which axe is wanted
+            im = a.imshow(numpy.subtract(
+                imageDisplayed[level1, :, :], image2[level2, :, :]), cmap='coolwarm', vmin=vMin, vmax=vMax)
+        elif axe == "Y":
+            im = a.imshow(numpy.subtract(
+                imageDisplayed[:, level1, :], image2[:, level2, :]), cmap='coolwarm', vmin=vMin, vmax=vMax)
+        elif axe == "X":
+            im = a.imshow(numpy.subtract(
+                imageDisplayed[:, :, level1], image2[:, :, level2]), cmap='coolwarm', vmin=vMin, vmax=vMax)
+    elif mode == 2:
+        if axe == "Z":  # verify which axe is wanted
+            im = a.imshow(checkerBoardIndef(imageDisplayed[level1, :, :], image2[level2, :, :], 5, False, False), cmap='Greys_r', vmin=min(
+                imageDisplayed.min(), image2.min()), vmax=max(imageDisplayed.max(), image2.max()))
+        elif axe == "Y":
+            im = a.imshow(checkerBoardIndef(imageDisplayed[:, level1, :], image2[:, level2, :], 5, False, False), cmap='Greys_r', vmin=min(
+                imageDisplayed.min(), image2.min()), vmax=max(imageDisplayed.max(), image2.max()))
+        elif axe == "X":
+            im = a.imshow(checkerBoardIndef(imageDisplayed[:, :, level1], image2[:, :, level2], 5, False, False), cmap='Greys_r', vmin=min(
+                imageDisplayed.min(), image2.min()), vmax=max(imageDisplayed.max(), image2.max()))
+    f.colorbar(im, orientation='vertical')
+    # set this in a canvas that can be put in a tkinter frame
+    canvas = FigureCanvasTkAgg(f, place)
+    canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)  # put it
+    # toolbar = NavigationToolbar2Tk(canvas,place)
+    # toolbar.update()
+    # canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
+
+
+def loadImage(place, image1, image2, level1, level2, axe, Phis, index, mode, comparisonPlace):
+    if index == 1:  # change the phi display
+        for i in range(0, 4):
+            PhiValues[i].set(round(Phis[1][0][i], 3))
+        for i in range(0, 4):
+            PhiValues[i + 4].set(round(Phis[1][1][i], 3))
+        for i in range(0, 4):
+            PhiValues[i + 8].set(round(Phis[1][2][i], 3))
+        for i in range(0, 4):
+            PhiValues[i + 12].set(round(Phis[1][3][i], 3))
+    for child in place.winfo_children():
+        child.destroy()
+    imageDisplayed = transf.applyPhi(
+        image1, Phi=Phis[index])  # apply the phi to the image
+    f = Figure()  # create a matplotlib figure
+    a = f.add_subplot(111)
+    if axe == "Z":  # verify which axe is wanted
+        im = a.imshow(imageDisplayed[level1, :, :], cmap='Greys_r',
+                      vmin=imageDisplayed.min(), vmax=imageDisplayed.max())
+    elif axe == "Y":
+        im = a.imshow(imageDisplayed[:, level1, :], cmap='Greys_r',
+                      vmin=imageDisplayed.min(), vmax=imageDisplayed.max())
+    elif axe == "X":
+        im = a.imshow(imageDisplayed[:, :, level1], cmap='Greys_r',
+                      vmin=imageDisplayed.min(), vmax=imageDisplayed.max())
+    f.colorbar(im, orientation='vertical')
+    # set this in a canvas that can be put in a tkinter frame
+    canvas = FigureCanvasTkAgg(f, place)
+    canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)  # put it
+    # toolbar = NavigationToolbar2Tk(canvas,place)
+    # toolbar.update()
+    # canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
+    loadComparison(comparisonPlace, image1, image2,
+                   level1, level2, axe, Phis, mode)  # load the comparison
+
+
+def loadBoth(place1, image1, level1, place2, image2, level2, axe, Phis, mode, comparisonPlace):
+    loadImage(place2, image2, image1, level2, level1, axe, Phis,
+              0, mode, comparisonPlace)  # loading image 2
+    loadImage(place1, image1, image2, level1, level2, axe, Phis,
+              1, mode, comparisonPlace)  # loading image 1
+
+
+# check which value to increase and then increase the good one to load the new image
+def modifyPhi(place, image1, image2, level1, level2, axe, Phis, tArray, rArray, zoomVar, mod, value, iterations, mode, comparisonPlace):
+    if mod == "tZ":
+        tArray[0].set(tArray[0].get() + value)
+    elif mod == "tY":
+        tArray[1].set(tArray[1].get() + value)
+    elif mod == "tX":
+        tArray[2].set(tArray[2].get() + value)
+    elif mod == "rZ":
+        rArray[0].set(rArray[0].get() + value)
+    elif mod == "rY":
+        rArray[1].set(rArray[1].get() + value)
+    elif mod == "rX":
+        rArray[2].set(rArray[2].get() + value)
+    elif mod == "zoom":
+        zoomVar.set(round(zoomVar.get() * value, 3))
+    transformation = {'t': [tArray[0].get(), tArray[1].get(), tArray[2].get()], 'r': [rArray[0].get(
+    ), rArray[1].get(), rArray[2].get()], 'z': [zoomVar.get(), zoomVar.get(), zoomVar.get()]}
+    Phis[1] = transf.computePhi(transformation)
+    loadImage(place, image1, image2, level1, level2,
+              axe, Phis, 1, mode, comparisonPlace)
+    iterations.set(iterations.get() + 1)
+
+
+def reset(place, image1, image2, level1, level2, axe, Phis, tArray, rArray, zoomVar, iterations, mode, comparisonPlace):
+    # change all entry to there original value (0 or 1) , change the phi then load the first image
+    iterations.set(0)
+    for i in tArray:
+        i.set(0)
+    for i in rArray:
+        i.set(0)
+    zoomVar.set(1)
+    transformation = {'t': [tArray[0].get(), tArray[1].get(), tArray[2].get()], 'r': [rArray[0].get(
+    ), rArray[1].get(), rArray[2].get()], 'z': [zoomVar.get(), zoomVar.get(), zoomVar.get()]}
+    Phis[1] = transf.computePhi(transformation)
+    loadImage(place, image1, image2, level1, level2,
+              axe, Phis, 1, mode, comparisonPlace)
+
+
+def saveFile(name, image, Phis, label, iter):  # save a tifffile using a spam function
+    if name.get() != "":
+        fileName = name.get() + ".tsv"
+        save.writeRegistrationTSV(fileName, (numpy.array(image1.shape) - 1) / 2.0, {
+                                  'PhiCentre': Phis[1], "returnStatus": 2, "iterationNumber": iter.get(), "error": 100, "deltaPhiNorm": 0.1})
+        label.set("success")
+    else:
+        label.set("please enter a name")
+
+
+def slide(place1, place2, image1, image2, level1, level2, axe, Phis, index, difference, slave, mode, comparisonPlace):
+    if not slave:  # check if it should change the display for 1 or 2 image.s , if only 1 then check which one and load what it has to load
+        if index == 1:
+            difference.set(level1.get() - level2.get())
+        elif index == 0:
+            difference.set(level2.get() - level1.get())
+        loadImage(place1, image1, image2, level1.get(), level2.get(),
+                  axe, Phis, index, mode, comparisonPlace)
+    else:
+        level2.set(level1.get())
+        difference.set(0)
+        loadBoth(place1, image1, level1.get(), place2, image2,
+                 level1.get(), axe, Phis, mode, comparisonPlace)
+
+
+# to be deleted when the official checkerBoard() will be updated
+def checkerBoardIndef(imF, imG, n=5, inv=False, rescale=True):
+    if inv:
+        c = -1.0
+    else:
+        c = 1.0
+    imFG = imF
+    smallSize = min(imF.shape)
+    nPixels = int(smallSize / n)
+    if n % 2 == 1:
+        i = n
+        j = 0
+        while i > 0:
+            for k in range(i):
+                sp = [nPixels * (k + j), nPixels * (k)]
+                for x in range(nPixels):
+                    for y in range(nPixels):
+                        imFG[sp[0] + x, sp[1] + y] = imG[sp[0] + x, sp[1] + y]
+                        imFG[sp[1] + y, sp[0] + x] = imG[sp[1] + y, sp[0] + x]
+            i -= 2
+            j += 2
+    return imFG
+
+
+def validate(place, image1, image2, level1, level2, axe, Phis, tArray, rArray, zoomVar, iterations, mode, comparisonPlace):
+    transformation = {'t': [tArray[0].get(), tArray[1].get(), tArray[2].get()], 'r': [rArray[0].get(
+    ), rArray[1].get(), rArray[2].get()], 'z': [zoomVar.get(), zoomVar.get(), zoomVar.get()]}  # change get all the transformations to applies
+    Phis[1] = transf.computePhi(transformation)  # change the phi
+    loadImage(place, image1, image2, level1, level2,
+              axe, Phis, 1, mode, comparisonPlace)  # then load the image with the new phi
+    iterations.set(iterations.get() + 1)
+
+
+def viewerActualImage(image, Phis):
+    image = transf.applyPhi(image, Phi=Phis[1])
+    tifffile.imsave('temp.tif', image)  # save with tifffile
+    # then load the temp file in viewer.py
+    subprocess.Popen(["python", "viewer.py", "temp.tif"])
+
+
+def isIntOrFloat(str):  # controler function to check if entry are filled with floats
+    try:
+        float(str)
+    except:
+        return False
+    return True
+
+
+
+# variables and main script
+window = Tk()
+window.title("Spam Eye Registration")
+RWidth=window.winfo_screenwidth()
+RHeight=window.winfo_screenheight()
+window.geometry("%dx%d+0+0" % (RWidth, RHeight))
+try:  # if there is 2 img as argv[1]-[2] then load them
+    nameFile1 = sys.argv[1]
+    nameFile2 = sys.argv[2]
+    image1 = tifffile.imread(nameFile1)
+    image2 = tifffile.imread(nameFile2)
+except:  # in the other case load files browser to select them
+    for i in sys.argv:
+        print(i)
+    print("Possible usage : [python/python3] UIV2.py im1 im2")
+    nameFile1 = filedialog.askopenfilename(initialdir="~", title="select image 1", filetypes=(
+        ("tif", "*.tif"), ("tiff", "*.tiff"), ("All Files", "*.*")))
+    nameFile2 = filedialog.askopenfilename(initialdir="~", title="select image 2", filetypes=(
+        ("tif", "*.tif"), ("tiff", "*.tiff"), ("All Files", "*.*")))
+    image1 = tifffile.imread(nameFile1)
+    image2 = tifffile.imread(nameFile2)
+
+Phis = [numpy.eye(4, 4), numpy.eye(4, 4)]
+levelImage1 = IntVar()
+levelImage1.set(1)
+levelImage2 = IntVar()
+levelImage2.set(1)
+compareMod = IntVar()
+compareMod.set(2)
+selectedAxe = StringVar()
+selectedAxe.set('Z')
+iterations = IntVar()
+iterations.set(0)
+tArray = []
+for i in range(0, 3):
+    var = DoubleVar()
+    var.set(0.0)
+    tArray.append(var)
+
+rArray = []
+for i in range(0, 3):
+    var = DoubleVar()
+    var.set(0.0)
+    rArray.append(var)
+
+vMin = -image1.max() / 2
+vMax = image1.max() / 2
+
+zoomVar = DoubleVar()
+zoomVar.set(1)
+# lastTransforamtion=
+PhiValues = []
+for i in range(0, 16):
+    var = DoubleVar()
+    PhiValues.append(var)
+
+saveName = StringVar()
+result = StringVar()
+difference = StringVar()
+difference.set((levelImage1.get() - levelImage2.get()))
+#
+slave = BooleanVar()
+slave.set(False)
+
+#
+# frames creation
+
+imageFrame1 = LabelFrame(window, width=RWidth/3, height=RHeight/2, text=nameFile1)
+imageFrame1.grid(column=0, row=0)
+imageFrame1.grid_propagate(0)
+imageFrame2 = LabelFrame(window, width=RWidth/3, height=RHeight/2, text=nameFile2)
+imageFrame2.grid(column=1, row=0)
+imageFrame2.grid_propagate(0)
+comparisonFrame = LabelFrame(
+    window, width=RWidth/3, height=RHeight/2, text="comparison")
+comparisonFrame.grid(column=2, row=0)
+comparisonFrame.grid_propagate(0)
+controlerFrame = LabelFrame(window, width=RWidth*(2/3), height=RHeight/2, text="controler")
+controlerFrame.grid(column=0, row=2, columnspan=2)
+controlerFrame.grid_propagate(0)
+comparisonSelectorFrame = LabelFrame(
+    window, width=RWidth/3, height=RHeight/2, text="comparison selector")
+comparisonSelectorFrame.grid(column=2, row=2)
+comparisonSelectorFrame.grid_propagate(0)
+#
+
+# loading images
+loadBoth(imageFrame1, image1, levelImage1.get(), imageFrame2, image2,
+         levelImage2.get(), selectedAxe.get(), Phis, compareMod.get(), comparisonFrame)
+#
+
+# creation of the controler frame content
+# frames
+viewFrame = LabelFrame(controlerFrame, width=RWidth/3 - 10, height=RHeight/2 - 10, text="view")
+viewFrame.grid(column=1, row=0)
+viewFrame.grid_propagate(0)
+editFrame = LabelFrame(controlerFrame, width=RWidth/3 - 10, height=RHeight/2 - 10, text="edit")
+editFrame.grid(column=0, row=0)
+editFrame.grid_propagate(0)
+#
+
+# editFrame
+
+labelAxeZ = Label(editFrame, text="Z")
+labelAxeZ.grid(row=0, column=1)
+labelAxeY = Label(editFrame, text="Y")
+labelAxeY.grid(row=0, column=2)
+labelAxeX = Label(editFrame, text="X")
+labelAxeX.grid(row=0, column=3)
+
+validatecmd = (window.register(isIntOrFloat))
+
+labelTranslation = Label(editFrame, text="translation")
+labelTranslation.grid(row=3, column=0)
+
+plus5ZTButton = Button(editFrame, text="+5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tZ", 5, iterations, compareMod.get(), comparisonFrame))
+plus5ZTButton.grid(row=1, column=1)
+plus1ZTButton = Button(editFrame, text="+1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tZ", 1, iterations, compareMod.get(), comparisonFrame))
+plus1ZTButton.grid(row=2, column=1)
+labelTranslationZ = Entry(
+    editFrame, textvariable=tArray[0], width=5, validate='all', validatecommand=(validatecmd, '%P'))
+labelTranslationZ.grid(row=3, column=1)
+minus1ZTButton = Button(editFrame, text="-1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tZ", -1, iterations, compareMod.get(), comparisonFrame))
+minus1ZTButton.grid(row=4, column=1)
+minus5ZTButton = Button(editFrame, text="-5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tZ", -5, iterations, compareMod.get(), comparisonFrame))
+minus5ZTButton.grid(row=5, column=1)
+
+plus5YTButton = Button(editFrame, text="+5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tY", 5, iterations, compareMod.get(), comparisonFrame))
+plus5YTButton.grid(row=1, column=2)
+plus1YTButton = Button(editFrame, text="+1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tY", 1, iterations, compareMod.get(), comparisonFrame))
+plus1YTButton.grid(row=2, column=2)
+labelTranslationY = Entry(
+    editFrame, textvariable=tArray[1], width=5, validate='all', validatecommand=(validatecmd, '%P'))
+labelTranslationY.grid(row=3, column=2)
+minus1YTButton = Button(editFrame, text="-1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tY", -1, iterations, compareMod.get(), comparisonFrame))
+minus1YTButton.grid(row=4, column=2)
+minus5YTButton = Button(editFrame, text="-5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tY", -5, iterations, compareMod.get(), comparisonFrame))
+minus5YTButton.grid(row=5, column=2)
+
+plus5XTButton = Button(editFrame, text="+5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tX", 5, iterations, compareMod.get(), comparisonFrame))
+plus5XTButton.grid(row=1, column=3)
+plus1XTButton = Button(editFrame, text="+1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tX", 1, iterations, compareMod.get(), comparisonFrame))
+plus1XTButton.grid(row=2, column=3)
+labelTranslationX = Entry(
+    editFrame, textvariable=tArray[2], width=5, validate='all', validatecommand=(validatecmd, '%P'))
+labelTranslationX.grid(row=3, column=3)
+minus1XTButton = Button(editFrame, text="-1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tX", -1, iterations, compareMod.get(), comparisonFrame))
+minus1XTButton.grid(row=4, column=3)
+minus5XTButton = Button(editFrame, text="-5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "tX", -5, iterations, compareMod.get(), comparisonFrame))
+minus5XTButton.grid(row=5, column=3)
+
+blankLabel = Label(editFrame, text="")
+blankLabel.grid(row=6, column=0)
+
+labelRotation = Label(editFrame, text="rotation")
+labelRotation.grid(row=9, column=0)
+
+plus5ZRButton = Button(editFrame, text="+5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rZ", 5, iterations, compareMod.get(), comparisonFrame))
+plus5ZRButton.grid(row=7, column=1)
+plus1ZRButton = Button(editFrame, text="+1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rZ", 1, iterations, compareMod.get(), comparisonFrame))
+plus1ZRButton.grid(row=8, column=1)
+labelTranslationZ = Entry(
+    editFrame, textvariable=rArray[0], width=5, validate='all', validatecommand=(validatecmd, '%P'))
+labelTranslationZ.grid(row=9, column=1)
+minus1ZRButton = Button(editFrame, text="-1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rZ", -1, iterations, compareMod.get(), comparisonFrame))
+minus1ZRButton.grid(row=10, column=1)
+minus5ZRButton = Button(editFrame, text="-5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rZ", -5, iterations, compareMod.get(), comparisonFrame))
+minus5ZRButton.grid(row=11, column=1)
+
+plus5YRButton = Button(editFrame, text="+5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rY", 5, iterations, compareMod.get(), comparisonFrame))
+plus5YRButton.grid(row=7, column=2)
+plus1YRButton = Button(editFrame, text="+1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rY", 1, iterations, compareMod.get(), comparisonFrame))
+plus1YRButton.grid(row=8, column=2)
+labelTranslationY = Entry(
+    editFrame, textvariable=rArray[1], width=5, validate='all', validatecommand=(validatecmd, '%P'))
+labelTranslationY.grid(row=9, column=2)
+minus1YRButton = Button(editFrame, text="-1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rY", -1, iterations, compareMod.get(), comparisonFrame))
+minus1YRButton.grid(row=10, column=2)
+minus5YRButton = Button(editFrame, text="-5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rY", -5, iterations, compareMod.get(), comparisonFrame))
+minus5YRButton.grid(row=11, column=2)
+
+plus5XRButton = Button(editFrame, text="+5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rX", 5, iterations, compareMod.get(), comparisonFrame))
+plus5XRButton.grid(row=7, column=3)
+plus1XRButton = Button(editFrame, text="+1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                       levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rX", 1, iterations, compareMod.get(), comparisonFrame))
+plus1XRButton.grid(row=8, column=3)
+labelTranslationX = Entry(
+    editFrame, textvariable=rArray[2], width=5, validate='all', validatecommand=(validatecmd, '%P'))
+labelTranslationX.grid(row=9, column=3)
+minus1XRButton = Button(editFrame, text="-1", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rX", -1, iterations, compareMod.get(), comparisonFrame))
+minus1XRButton.grid(row=10, column=3)
+minus5XRButton = Button(editFrame, text="-5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(),
+                                                                        levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "rX", -5, iterations, compareMod.get(), comparisonFrame))
+minus5XRButton.grid(row=11, column=3)
+
+blankLabel = Label(editFrame, text="")
+blankLabel.grid(row=12, column=0)
+
+labelZoom = Label(editFrame, text="Zoom")
+labelZoom.grid(row=13, column=0)
+zoom05Button = Button(editFrame, text="0.5", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(
+), levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "zoom", 0.5, iterations, compareMod.get(), comparisonFrame))
+zoom05Button.grid(row=13, column=1)
+zoom08Button = Button(editFrame, text="0.8", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(
+), levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "zoom", 0.8, iterations, compareMod.get(), comparisonFrame))
+zoom08Button.grid(row=13, column=2)
+labelZoom = Entry(editFrame, textvariable=zoomVar, width=5,
+                  validate='all', validatecommand=(validatecmd, '%P'))
+labelZoom.grid(row=13, column=3)
+zoom125Button = Button(editFrame, text="1.25", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(
+), levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "zoom", 1.25, iterations, compareMod.get(), comparisonFrame))
+zoom125Button.grid(row=13, column=4)
+zoom2Button = Button(editFrame, text="2", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(
+), levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "zoom", 2, iterations, compareMod.get(), comparisonFrame))
+zoom2Button.grid(row=13, column=5)
+
+resetButton = Button(editFrame, text="reset", command=lambda: reset(imageFrame1, image1, image2, levelImage1.get(
+), levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, iterations, compareMod.get(), comparisonFrame))
+resetButton.grid(row=14, column=0, columnspan=1)
+validateButton = Button(editFrame, text="validate", command=lambda: validate(imageFrame1, image1, image2, levelImage1.get(
+), levelImage2.get(), selectedAxe.get(), Phis, tArray, rArray, zoomVar, iterations, compareMod.get(), comparisonFrame))
+validateButton.grid(row=14, column=2, columnspan=1)
+
+nbIterLabel = Label(editFrame, text='number of iterations:')
+nbIterLabel.grid(row=15, column=0, columnspan=3)
+iterLabel = Label(editFrame, textvariable=iterations)
+iterLabel.grid(row=15, column=3)
+# display phi
+phiLabel = Label(editFrame, width=5, text="Phi=")
+phiLabel.grid(row=4, column=4)
+va0Label = Label(editFrame, width=5, textvariable=PhiValues[0])
+va0Label.grid(row=1, column=5)
+va1Label = Label(editFrame, textvariable=PhiValues[1])
+va1Label.grid(row=1, column=7)
+va2Label = Label(editFrame, width=5, textvariable=PhiValues[2])
+va2Label.grid(row=1, column=9)
+va3Label = Label(editFrame, width=5, textvariable=PhiValues[3])
+va3Label.grid(row=1, column=11)
+va4Label = Label(editFrame, width=5, textvariable=PhiValues[4])
+va4Label.grid(row=3, column=5)
+va5Label = Label(editFrame, width=5, textvariable=PhiValues[5])
+va5Label.grid(row=3, column=7)
+va6Label = Label(editFrame, width=5, textvariable=PhiValues[6])
+va6Label.grid(row=3, column=9)
+va7Label = Label(editFrame, width=5, textvariable=PhiValues[7])
+va7Label.grid(row=3, column=11)
+va8Label = Label(editFrame, width=5, textvariable=PhiValues[8])
+va8Label.grid(row=5, column=5)
+va9Label = Label(editFrame, width=5, textvariable=PhiValues[9])
+va9Label.grid(row=5, column=7)
+va10Label = Label(editFrame, width=5, textvariable=PhiValues[10])
+va10Label.grid(row=5, column=9)
+va11Label = Label(editFrame, width=5, textvariable=PhiValues[11])
+va11Label.grid(row=5, column=11)
+va12Label = Label(editFrame, width=5, textvariable=PhiValues[12])
+va12Label.grid(row=7, column=5)
+va13Label = Label(editFrame, width=5, textvariable=PhiValues[13])
+va13Label.grid(row=7, column=7)
+va14Label = Label(editFrame, width=5, textvariable=PhiValues[14])
+va14Label.grid(row=7, column=9)
+va15Label = Label(editFrame, width=5, textvariable=PhiValues[15])
+va15Label.grid(row=7, column=11)
+
+nameLabel = Label(editFrame, text="name your .tsv file")
+nameLabel.grid(row=2, column=12, columnspan=2)
+nameEntry = Entry(editFrame, textvariable=saveName, width=20)
+nameEntry.grid(row=3, column=12, columnspan=2)
+
+saveButton = Button(editFrame, text="save this Phi", command=lambda: saveFile(
+    saveName, image1, Phis, result, iterations))  # need to add the command parameter
+saveButton.grid(row=4, column=12, columnspan=2)
+
+resultLabel = Label(editFrame, textvariable=result)
+resultLabel.grid(row=5, column=12, columnspan=2)
+
+#
+
+#
+
+# viewFrame
+selectAxeLabel = Label(viewFrame, text="select which axe you want to see:")
+selectAxeLabel.grid(row=0, column=0, columnspan=3)
+radioAxeX = Radiobutton(viewFrame, text="X", variable=selectedAxe, value="X", indicatoron=0, command=lambda: loadBoth(
+    imageFrame1, image1, levelImage1.get(), imageFrame2, image2, levelImage2.get(), selectedAxe.get(), Phis, compareMod.get(), comparisonFrame))
+radioAxeX.grid(row=0, column=5, columnspan=3)
+radioAxeY = Radiobutton(viewFrame, text="Y", variable=selectedAxe, value="Y", indicatoron=0, command=lambda: loadBoth(
+    imageFrame1, image1, levelImage1.get(), imageFrame2, image2, levelImage2.get(), selectedAxe.get(), Phis, compareMod.get(), comparisonFrame))
+radioAxeY.grid(row=0, column=4, columnspan=3)
+radioAxeZ = Radiobutton(viewFrame, text="Z", variable=selectedAxe, value="Z", indicatoron=0, command=lambda: loadBoth(
+    imageFrame1, image1, levelImage1.get(), imageFrame2, image2, levelImage2.get(), selectedAxe.get(), Phis, compareMod.get(), comparisonFrame))
+radioAxeZ.grid(row=0, column=3, columnspan=3)
+
+blankLabel = Label(viewFrame, text="")
+blankLabel.grid(row=1, column=0)
+
+levelBarImage1 = Scale(viewFrame, orient='horizontal', from_=0, to=max(image1.shape[0], image1.shape[1], image1.shape[2]) - 1, variable=levelImage1,
+                       resolution=1, tickinterval=max(image1.shape[0], image1.shape[1], image1.shape[2]) / 10, length=400,
+                       label='slice image 1', command=lambda event: slide(imageFrame1, imageFrame2, image1, image2, levelImage1, levelImage2, selectedAxe.get(), Phis, 1, difference, slave.get(), compareMod.get(), comparisonFrame))
+levelBarImage1.grid(column=1, row=2, columnspan=10)
+
+levelBarImage2 = Scale(viewFrame, orient='horizontal', from_=0, to=max(image2.shape[0], image2.shape[1], image2.shape[2]) - 1, variable=levelImage2,
+                       resolution=1, tickinterval=max(image2.shape[0], image2.shape[1], image2.shape[2]) / 10, length=400,
+                       label='slice image 2', command=lambda event: slide(imageFrame2, imageFrame1, image2, image1, levelImage2, levelImage1, selectedAxe.get(), Phis, 0, difference, slave.get(), compareMod.get(), comparisonFrame))
+levelBarImage2.grid(column=1, row=4, columnspan=10)
+
+differenceTextLabel = Label(viewFrame, text="delta:")
+differenceTextLabel.grid(row=3, column=12)
+differenceLabel = Label(viewFrame, textvariable=difference)
+differenceLabel.grid(row=3, column=13)
+axeLabel = Label(viewFrame, textvariable=selectedAxe)
+axeLabel.grid(row=3, column=14)
+rescaleButton = Button(viewFrame, text="rescale", command=lambda: modifyPhi(imageFrame1, image1, image2, levelImage1.get(), levelImage2.get(
+), selectedAxe.get(), Phis, tArray, rArray, zoomVar, "t" + selectedAxe.get(), -int(difference.get()), iterations, compareMod.get(), comparisonFrame))
+rescaleButton.grid(row=3, column=15)
+
+
+slaveCheck = Checkbutton(viewFrame, text='slave slide', var=slave, command=lambda: slide(imageFrame1, imageFrame2, image1,
+                                                                                         image2, levelImage1, levelImage2, selectedAxe.get(), Phis, 1, difference, slave.get(), compareMod.get(), comparisonFrame))
+slaveCheck.grid(row=3, column=1, columnspan=2)
+
+
+viewerImage1Button = Button(
+    viewFrame, text="viewer Image 1", command=lambda: viewerActualImage(image1, Phis))
+viewerImage1Button.grid(column=1, row=6, columnspan=2)
+viewerImage2Button = Button(viewFrame, text="viewer Image 2", command=lambda: subprocess.Popen(
+    ["python", "viewer.py", nameFile2]))
+viewerImage2Button.grid(column=3, row=6, columnspan=2)
+
+
+
+#
+#
+# comparisonSelectorFrame
+
+selectAxeLabel = Label(comparisonSelectorFrame,
+                       text="select which type of comparison you want to see:")
+selectAxeLabel.grid(row=0, column=0, columnspan=5)
+radioCompare0 = Radiobutton(comparisonSelectorFrame, text="im1-im2", variable=compareMod, value=0, indicatoron=0, command=lambda: loadComparison(
+    comparisonFrame, image1, image2, levelImage1.get(), levelImage2.get(), selectedAxe.get(), Phis, compareMod.get()))
+radioCompare0.grid(row=1, column=0)
+radioCompare1 = Radiobutton(comparisonSelectorFrame, text="|im1-im2|", variable=compareMod, value=1, indicatoron=0, command=lambda: loadComparison(
+    comparisonFrame, image1, image2, levelImage1.get(), levelImage2.get(), selectedAxe.get(), Phis, compareMod.get()))
+radioCompare1.grid(row=1, column=1)
+radioCompare2 = Radiobutton(comparisonSelectorFrame, text="checker-board", variable=compareMod, value=2, indicatoron=0, command=lambda: loadComparison(
+    comparisonFrame, image1, image2, levelImage1.get(), levelImage2.get(), selectedAxe.get(), Phis, compareMod.get()))
+radioCompare2.grid(row=1, column=2)
+
+
+# define window as the main mainloop
+window.mainloop()
