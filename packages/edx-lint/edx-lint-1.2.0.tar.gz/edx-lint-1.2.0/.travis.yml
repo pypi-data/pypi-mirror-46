@@ -1,0 +1,28 @@
+language: python
+
+matrix:
+ include:
+  - python: "2.7"
+    env: DISTRIBUTIONS="sdist bdist_wheel --universal"
+  - python: "3.6"
+  - python: "3.7"
+    dist: latest  # required for Python >= 3.7 (travis-ci/travis-ci#9069)
+  - python: "2.7"
+    env: TOXARG="-e pylint"
+
+install:
+    - pip install --upgrade pip setuptools
+    - pip install tox-travis
+
+script:
+    - tox $TOXARG
+
+deploy:
+  provider: pypi
+  user: edx
+  password:
+    secure: xxKuWj3AGXUumPMLbjjq5x3sNLH0KfftQJX7nrE0OCKkN3m5/MM/WOMXR17/F6Yw60dEQ3LyQK0RoFmhDbUh1kmOyk/IGxCyKuLZC3jRZcprpv3DKutjo4PTJxNAtntCmAiJmNDoMoIE40pcut96Klew9y1LNruIo6uRJM0NRvA=
+  distributions: $DISTRIBUTIONS
+  on:
+    tags: true
+    condition: $DISTRIBUTIONS != ""
