@@ -1,0 +1,88 @@
+Metadata-Version: 2.1
+Name: modeller
+Version: 0.1.0
+Summary: create efficent models starting from json schema
+Home-page: https://github.com/rpc-botnets/instagram-botnet
+Author: Tommaso De Rossi
+Author-email: daer.tommy@gmail.com
+License: Apache Software License 2.0
+Description: 
+        
+        ## Usage
+        
+        You can use inheritance to create your model:
+        ```
+        class User(modeller.Model):
+            id = ''
+            _schema = {
+                'type': 'object',
+                'properties': {
+                    'name': { 'type': 'string' },
+                    'id': { 'type': 'integer' },
+                    'age': { 'type': 'integer' },
+                },
+                'required': [
+                    'name',
+                    'surname',
+                ],
+                # 'additionalProperties': False,
+            }
+        
+        # model will be validated after every instance
+        me = User(id=01, name='Tommy', surname='Der')
+        
+        # you can also add additional properties
+        me.state = 'Italy'
+        me._validate()
+        
+        print(me._json())
+        
+        print(me._yaml())
+        
+        print(me.surname)
+        ```
+        
+        With the schema in `types/schema.yaml`
+        ```yaml
+        $schema: http://json-schema.org/schema#
+        properties:
+          name:
+            type: string
+          surname:
+            type: string
+          age:
+            type: integer
+        required:
+          - name
+          - surname
+          - age
+        ```
+        
+        you can load a model with automatic validation, easy attribute access with dots and no exceptions while trying to access a property defined in the schema.
+        
+        ```python
+        import yaml
+        import modeler
+        
+        schema = yaml.load(open('types/schema.yaml').read())
+        
+        Model = modeler.make_model(schema=schema,)
+        
+        Model(name='Tommaso', surname='De Rossi', age=19)
+        ```
+        
+        
+        ## Details
+        
+        Model validate itself as soon as instantiated, if you want to change this behavior overwrite `_on_init` method.
+        Model will return None if you try to access a property present in the json schema `.properties` but not in the object.
+        Model will throw if you try to access a property not present in the object and not in the json schema `.properties`.
+        
+Keywords: model,schema,structure,struct,abstarct
+Platform: UNKNOWN
+Classifier: Intended Audience :: Information Technology
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Description-Content-Type: text/markdown
