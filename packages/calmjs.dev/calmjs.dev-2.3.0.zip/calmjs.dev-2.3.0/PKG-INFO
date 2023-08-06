@@ -1,0 +1,639 @@
+Metadata-Version: 1.1
+Name: calmjs.dev
+Version: 2.3.0
+Summary: Package for aiding the development of JavaScript code to be provided as part of Python packages through integration with Node.js development tools into a Python environment via the Calmjs framework.
+Home-page: https://github.com/calmjs/calmjs.dev
+Author: Tommy Yu
+Author-email: tommy.yu@auckland.ac.nz
+License: gpl
+Description-Content-Type: UNKNOWN
+Description: calmjs.dev
+        ==========
+        
+        Package for aiding the development of JavaScript code to be provided as
+        part of Python packages through integration with `Node.js`_ development
+        tools into a Python environment via the `Calmjs framework`_.
+        
+        .. image:: https://travis-ci.org/calmjs/calmjs.dev.svg?branch=2.3.0
+            :target: https://travis-ci.org/calmjs/calmjs.dev
+        .. image:: https://ci.appveyor.com/api/projects/status/0mxtiaf2j98w5fy6/branch/2.3.0?svg=true
+            :target: https://ci.appveyor.com/project/metatoaster/calmjs-dev/branch/2.3.0
+        .. image:: https://coveralls.io/repos/github/calmjs/calmjs.dev/badge.svg?branch=2.3.0
+            :target: https://coveralls.io/github/calmjs/calmjs.dev?branch=2.3.0
+        
+        
+        Introduction
+        ------------
+        
+        Python packages can contain arbitrary resource files, which can include
+        JavaScript sources.  This situation is commonly found in packages that
+        provide frontend functionalities that enhance user experience that
+        require interactions with a related backend Python code running on the
+        server provided by the given package.  In order to facilitate the
+        testing of those JavaScript code from those Python packages, commonly
+        `Node.js`_ packages and frameworks are often used to achieve this.
+        
+        Typically, for the management of this dependency, this often require two
+        or more separate package management systems that are not properly aware
+        of each other, resulting in often cumbersome linkage or needless
+        duplication of packages installed on a given system.  Moreover, the
+        configurations files for the Node.js/JavaScript package dependencies,
+        along with the building of artifacts and testing of the JavaScript
+        provided by those Python packages are very specific to the given project
+        and generally not portable.  If multiple such packages are required for
+        a downstream Python project, the scripts and definition files for
+        building of artifacts and testing generally have to be manually
+        modified, which is often a very aggravating and error-prone process.
+        
+        The Calmjs framework, however, provides the means for Python packages to
+        declare the JavaScript modules they are to export, and this package,
+        |calmjs.dev|, provides the means to consume those information such that
+        the JavaScript tests declared within those Python packages can be
+        executed without having to manually construct and verify the paths to
+        the source and tests files, no matter where they are within the
+        environment, provided they are properly declared through the Calmjs
+        framework.  The tests can then run either against the JavaScript sources
+        provided by the Python package through the artifact generation
+        framework, or against prebuilt artifacts that contain those
+        functionalities.  Naturally, the support for the artifact generation
+        framework requires integration with the Calmjs framework.  Currently,
+        generation of AMD artifacts is supported using the |calmjs.rjs|_, and
+        the generation of |webpack|_ artifacts supported through the
+        |calmjs.webpack|_ package.
+        
+        .. |calmjs| replace:: ``calmjs``
+        .. |calmjs.dev| replace:: ``calmjs.dev``
+        .. |calmjs.rjs| replace:: ``calmjs.rjs``
+        .. |calmjs.webpack| replace:: ``calmjs.webpack``
+        .. |npm| replace:: ``npm``
+        .. |setuptools| replace:: ``setuptools``
+        .. |webpack| replace:: ``webpack``
+        .. _Calmjs framework: https://pypi.org/project/calmjs/
+        .. _calmjs: https://pypi.org/project/calmjs/
+        .. _calmjs.rjs: https://pypi.org/project/calmjs.rjs/
+        .. _calmjs.webpack: https://pypi.org/project/calmjs.webpack/
+        .. _Node.js: https://nodejs.org/
+        .. _setuptools: https://pypi.org/project/setuptools/
+        .. _webpack: https://webpack.js.org/
+        
+        
+        Features
+        --------
+        
+        - Provides a set of commonly used development tools that are commonly
+          used for testing JavaScript code.  In brief, these include:
+        
+          |karma|_
+              Test runner for running tests included with packages against the
+              JavaScript code contained there.
+          |mocha|_
+              A JavaScript test framework for writing unit tests for node.js or
+              the browser.
+          |phantomjs|_
+              A headless webkit with JavaScript API capable of interfacing with
+              karma; this enables the running of integration JavaScript tests.
+          |sinon|_
+              A set of spies, stubs and mocks for JavaScript, for working with
+              unit testing frameworks.
+        
+          Plus other integration packages that get them to work with each other,
+          namely the various ``karma-*`` packages for integration with |karma|.
+          For full details on the environment that will be installed through the
+          |calmjs| framework, the command ``calmjs npm calmjs.dev`` can be
+          invoked to view the ``package.json`` once this package is installed
+          into a Python environment.  For installation, please refer to the
+          following section.
+        
+        - Through the use of the |calmjs| module registry system, Python
+          packages can declare JavaScript sources that can be passed through
+          specific toolchains that build them into deployable artifacts.  The
+          |calmjs.dev| package provide a common framework for the generation of
+          configuration files for the execution of tests through the karma test
+          runner.
+        
+          The usage of this is typically through the |calmjs| runtime system.
+        
+        .. |karma| replace:: ``karma``
+        .. |mocha| replace:: ``mocha``
+        .. |phantomjs| replace:: ``phantomjs``
+        .. |sinon| replace:: ``sinon``
+        .. _karma: https://www.npmjs.com/package/karma
+        .. _mocha: https://www.npmjs.com/package/mocha
+        .. _phantomjs: https://www.npmjs.com/package/phantomjs-prebuilt
+        .. _sinon: https://www.npmjs.com/package/sinon
+        
+        
+        Installation
+        ------------
+        
+        As the goal of |calmjs.dev| is to integrate Node.js development tools
+        into a Python environment, both Node.js and |npm| are required to be
+        available within the target installation environment; if they are not
+        installed please follow the installation steps for `Node.js`_
+        appropriate for the target operating system/environment/platform.
+        
+        Naturally, since this is achieved through |calmjs|, it will need to be
+        available in the target installation environment; however, this is
+        achieved simply by installing |calmjs.dev| through ``pip`` from PyPI.
+        
+        .. code:: console
+        
+            $ pip install calmjs.dev
+        
+        Alternative installation methods (for developers, advanced users)
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        Development is still ongoing with |calmjs.dev|, for the latest features
+        and bug fixes, the development version may be desirable.  However, in
+        order for the source installation to function correctly, the |calmjs|
+        package *must* be available in the current environment for all the
+        package metadata be correctly generated.  With recent versions of
+        ``pip`` and ``setuptools`` that correctly support the ``setup_requires``
+        keyword, the following command should ensure that |calmjs| be available
+        before ``pip`` attempts to set up this package.  The latest development
+        version of this package may be installed using:
+        
+        .. code:: console
+        
+            $ pip install git+https://github.com/calmjs/calmjs.dev.git#egg=calmjs.dev
+        
+        Or alternatively, clone the git repository manually and run the command
+        manually, e.g.:
+        
+        .. code:: console
+        
+            $ git clone https://github.com/calmjs/calmjs.dev.git
+            $ cd calmjs.dev
+            $ pip install -e .
+        
+        Failing to have |calmjs| be available before the source installation of
+        |calmjs.dev| will result in the critical Node.js dependencies not being
+        defined correctly for this package.  This may be corrected by
+        regenerating them using the following at the root of this source based
+        installation:
+        
+        .. code:: console
+        
+            $ python setup.py egg_info
+        
+        If no error message that indicate the failure to usage of certain
+        keywords, run the tests (documented in the next section) to be sure
+        that the package is functioning correctly.
+        
+        Installation of Node.js external dependencies
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        As this package integrates a number of Node.js packages to achieve the
+        intended functionality of integration with that environment, Node.js
+        packages required by this package can be installed into the current
+        working directory through the |calmjs| executable with the included
+        |npm| command:
+        
+        .. code:: console
+        
+            $ calmjs npm --install calmjs.dev
+        
+        Testing the installation
+        ~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        Finally, to verify for the successful installation of |calmjs.dev|, the
+        included tests may be executed through this command:
+        
+        .. code:: console
+        
+            $ python -m unittest calmjs.dev.tests.make_suite
+        
+        However, if the steps to install external Node.js dependencies to the
+        current directory was followed, the current directory may be specified
+        as the ``CALMJS_TEST_ENV`` environment variable.  Under POSIX compatible
+        shells this may be executed instead from within that directory:
+        
+        .. code:: console
+        
+            $ CALMJS_TEST_ENV=. python -m unittest calmjs.dev.tests.make_suite
+        
+        Do note a number of failures during execution of Karma may appear; this
+        is normal as these are tests that involve the simulation of failures to
+        ensure proper error handling on real test failures.
+        
+        Usage
+        -----
+        
+        This package provides features that may be used as part of the |calmjs|
+        runtime, be used in conjunction with toolchains that already provide
+        integration with the underlying toolchain for this package (which also
+        implies that toolchain developers are provided the ability build these
+        integration), and finally, a way for package developers to make use of
+        these features to quickly set up their package for testing of their
+        JavaScript sources in conjunction with these toolchains.
+        
+        The default tool is meant to provide a |calmjs| runtime that is injected
+        before a |calmjs| toolchain runtime that is responsible for the
+        generation of deployable artifacts, such as AMD bundles (through
+        RequireJS) or webpack bundles (through webpack).  Typically, this
+        package is used in conjunction with the respective integration packages
+        (e.g. |calmjs.rjs| and |calmjs.webpack|).  Those specific packages will
+        have additional instructions on how they make use of this package, such
+        as the instructions on how to create the entry points to support the
+        testing of artifacts using the ``calmjs artifact karma`` command that
+        is provided by this package.
+        
+        With RequireJS
+        ~~~~~~~~~~~~~~
+        
+        For instance, a developer might execute the ``r.js`` tool through
+        |calmjs.rjs| for creation of an AMD bundle from their Python project
+        using a command such as:
+        
+        .. code:: console
+        
+            $ calmjs rjs example.package
+        
+        The above command would package all the JavaScript code provided by the
+        Python package ``example.package`` into an AMD bundle artifact through
+        ``r.js``.  As the ``example.package`` may also provide tests for its
+        JavaScript code (naturally written in JavaScript), it may be executed
+        through the karma test runner provided by the selected package.  The
+        command is as simple as adding ``karma`` before the toolchain runtime,
+        like:
+        
+        .. code:: console
+        
+            $ calmjs karma rjs example.package
+        
+        This would apply a test advice to the ``rjs`` toolchain runtime and
+        invoke it.  Normally, before the bundling is done, the tests will be
+        executed against the transpiled sources in the build directory.  Note
+        that the test advice is also implemented by |calmjs.rjs| to ensure that
+        this testing workflow is properly integrated.
+        
+        With webpack
+        ~~~~~~~~~~~~
+        
+        Likewise for |calmjs.webpack|, where its support for |webpack| is also
+        provided through a similar mechanism such that the following command
+        will execute the tests for the package through the typical |webpack|
+        method of |karma| invocation:
+        
+        .. code:: console
+        
+            $ calmjs karma webpack example.package
+        
+        Skip artifact building
+        ~~~~~~~~~~~~~~~~~~~~~~
+        
+        If the generation of the artifact or bundle file after testing concludes
+        (whether success or failure) is not desired, the ``-T`` or the
+        ``--only-test`` flag may be applied to the ``karma`` command like so:
+        
+        .. code:: console
+        
+            $ calmjs karma -T webpack example.package
+            $ calmjs karma --only-test rjs example.package
+        
+        Easily test the generated bundle artifact using existing tests
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        To run tests against pre-generated artifact files, |calmjs.dev| provides
+        a surrogate toolchain runtime specific for the ``karma`` command that
+        may be used to achieve this purpose.  For example, given an artifact
+        file (e.g. ``bundle.js``), it is possible to test whether it correctly
+        included JavaScript code generated/provided by ``example.package`` using
+        tests provided by the same package with the following command:
+        
+        .. code:: console
+        
+            $ calmjs karma run \
+                --artifact=bundle.js \
+                --test-with-package=example.package
+        
+        However, for more complicated toolchains and packages this will probably
+        not work, as the generation of these artifacts typically involve extra
+        optional advices that have been added.  To address that, one may apply
+        the ``--toolchain-package`` flag which serves a similar purpose as the
+        ``--optional-advice`` flag for certain toolchains.  For |calmjs.rjs|,
+        this is necessary.  The full command may be like so:
+        
+        .. code:: console
+        
+            $ calmjs karma run \
+                --artifact=bundle.js \
+                --test-with-package=example.package \
+                --toolchain-package=calmjs.rjs
+        
+        Likewise for |webpack|; if the selected artifact file is generated
+        through ``calmjs webpack``, it may be tested using the following:
+        
+        .. code:: console
+        
+            $ calmjs karma run \
+                --artifact=bundle.js \
+                --test-with-package=example.package \
+                --toolchain-package=calmjs.webpack
+        
+        As with all |calmjs| tools, more help can be acquired by appending
+        ``-h`` or ``--help`` to each of the runtime commands, i.e. ``calmjs
+        karma -h`` or ``calmjs karma run -h``.  Replacing the ``-h`` flag with
+        ``-V`` will report the version information for the underlying packages
+        associated with the respective runtime used.
+        
+        More on testing in conjunction with artifacts
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        The ``--artifact`` flag can also be specified directly on the ``karma``
+        runner; this has the consequence of enabling the testing of limited or
+        explicitly mapped JavaScript sources exported by specific Python
+        modules.  What this means is that instead of building and testing all
+        the dependency modules along with a given module, all those dependencies
+        can be applied to the test environment as a separate, complete artifact.
+        This has the effect of removing the dependency sources from the build
+        directory such that coverage report no longer shows up, with the bonus
+        of also testing the artifact whether or not the it is compatible with
+        the sources being tested.  An example with the ``nunja.stock`` package
+        which requires ``nunja``:
+        
+        .. code:: console
+        
+            $ calmjs rjs nunja
+            $ calmjs karma --coverage --artifact=nunja.js --cover-test \
+                rjs nunja.stock --sourcepath-method=explicit
+        
+        The first command produces the artifact file ``nunja.js``, which is then
+        immediately used by the subsequent command which explicitly filters out
+        all other sources not specified.  Otherwise, the standard way is that
+        the dependencies will also be included into the test and the resulting
+        artifact file.  The ``--cover-test`` flag denotes that the test coverage
+        reporting should be extended to the tests provided.  Similarly, enabling
+        the ``--cover-artifact`` flag will extend coverage reporting to the
+        artifacts included for the test run.
+        
+        Testing of prebuilt artifacts defined for packages
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        Package level artifacts defined and generated through the tools that
+        make use of the ``calmjs.artifacts`` registry system may be tested using
+        the ``calmjs artifact karma`` tool if the artifact entry in the
+        ``calmjs.artifacts`` registry also has a corresponding entry in the
+        ``calmjs.artifacts.tests`` registry.  Typically, the module that the
+        entry point references for the artifact entry will be documented by the
+        toolchain package that supplied the builder entry.  If the artifacts
+        in the package to be tested are created and the package has well-defined
+        entries suitable for testing purpose, the following command may be
+        executed to test the defined and generated artifacts:
+        
+        .. code:: console
+        
+            $ calmjs artifact karma example.package
+        
+        There are cases where the test execution may require sourcing tests from
+        other packages; this use case is especially valid for dependent packages
+        where their developer want to ensure that the changes they may have made
+        to their dependencies through the extensions they developed and provided
+        by their packages have no negative impact to existing functionality.
+        This functionality is implemented by the ``--test-with-package`` flag,
+        which may be used to specify which package the artifact should source
+        the tests from.
+        
+        .. code:: console
+        
+            $ calmjs artifact karma example.package \
+                --test-with-package example.dependent
+        
+        The above command will use karma to execute tests provided by the
+        ``example.dependent`` package against the artifacts defined for
+        ``example.package``.  If the artifacts were correctly built, with no
+        new code breaking existing functionality that was provided by the
+        ``example.dependent`` package, all tests should pass.
+        
+        Note that ``--test-with-package`` flag overrides the list of source
+        packages that will provide the tests to be tested against the artifact.
+        
+        If additional artifacts are required before the inclusion of the package
+        artifact into the test runner (e.g. testing for possible conflicts that
+        artifacts may introduce to the package artifact), they may be specified
+        using the ``--artifact`` flag; specified artifacts will be prepended to
+        the list of artifacts provided by the builder for the test execution.
+        
+        
+        Troubleshooting
+        ---------------
+        
+        The following may be some issues that may be encountered with standard
+        or typical usage of |calmjs.dev|.
+        
+        Error: No provider for "framework:mocha"! (Resolving: framework:mocha)
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        The most likely cause of this error is that the |npm| dependencies
+        specified for this package is not available for the current Node.js
+        environment.  Please ensure that is installed before trying again.  One
+        method is to prepend |calmjs.dev| to the ``calmjs npm`` install command,
+        e.g:
+        
+        .. code:: console
+        
+            $ calmjs npm --install calmjs.dev ...
+        
+        Alternatively, package developers can have extras that requires this
+        package, and instruct downstream users interested in the development of
+        that package to install and use the package with that extras flag
+        enabled.  For instance, ``nunja`` has the support for that:
+        
+        .. code:: console
+        
+            $ calmjs npm --install nunja[dev]
+        
+        ERROR [plugin]: "karma-..." plugin: ...
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        A message specific to some plugin may result in the test runner not
+        being able to execute any test.  This is typically caused by certain
+        versions of karma test runner not being able to cleanly deal with
+        misbehaving plugins that is available in the ``node_modules`` directory.
+        If the plugin shown inside the quote (starting with ``karma-``) is
+        unnecessary for the execution of tests, it should be removed and the
+        test command should be executed again.
+        
+        UserWarning: Unknown distribution option: 'package_json'
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        Installation using the development method will show the above message if
+        |calmjs| was not already installed into the current environment.  Please
+        either reinstall, or regenerate the metadata by running:
+        
+        .. code:: console
+        
+            $ python setup.py egg_info
+        
+        In the root of the |calmjs.dev| source directory to ensure correct
+        behavior of this package.
+        
+        
+        Contribute
+        ----------
+        
+        - Issue Tracker: https://github.com/calmjs/calmjs.dev/issues
+        - Source Code: https://github.com/calmjs/calmjs.dev
+        
+        
+        Legal
+        -----
+        
+        The Calmjs project is copyright (c) 2016 Auckland Bioengineering
+        Institute, University of Auckland.  |calmjs.dev| is licensed under the
+        terms of the GPLv2 or later.
+        
+        Changelog
+        =========
+        
+        2.3.0 (2019-05-28)
+        ------------------
+        
+        - Provide the ``-T`` or ``--test-only`` flag to the ``karma`` runtime to
+          allow toolchain execution be terminated after the tests are executed
+          regardless of outcome.  This would generally allow the test to run
+          without forcing the toolchain to build the artifact.  [
+          `#11 <https://github.com/calmjs/calmjs.dev/issues/11>`_
+          ]
+        
+        2.2.2 (2018-08-17)
+        ------------------
+        
+        - Configuration writers that write out karma configuration scripts that
+          import other Node.js modules that are present within the environment
+          that the karma binary reside in should no longer encounter a ``Error:
+          Cannot find module`` message.  [
+          `#10 <https://github.com/calmjs/calmjs.dev/issues/10>`_
+          ]
+        - Permit the use of other karma_conf dict/mapping types in the spec.  [
+          `#9 <https://github.com/calmjs/calmjs.dev/issues/9>`_
+          ]
+        
+        2.2.1 (2018-08-01)
+        ------------------
+        
+        - Allow the karma configuration writer to be specified in the spec, such
+          that it may be overridden by framework integration packages.  [
+          `#8 <https://github.com/calmjs/calmjs.dev/issues/8>`_
+          ]
+        
+        2.2.0 (2018-07-24)
+        ------------------
+        
+        - Support the correct resolution of test child module registries, which
+          was introduced in ``calmjs-3.3.0``.  [
+          `#6 <https://github.com/calmjs/calmjs.dev/issues/6>`_
+          ]
+        - Ensure that a missing karma binary is also correctly dealt with by the
+          same set of exception and flags.  [
+          `#7 <https://github.com/calmjs/calmjs.dev/issues/7>`_
+          ]
+        
+        2.1.0 (2018-05-28)
+        ------------------
+        
+        - Ensure the exit code indicates failure if the artifact test entry
+          point references an import that cannot be resolved (failure to set up
+          the test must result in a failure). [
+          `#3 <https://github.com/calmjs/calmjs.dev/issues/3>`_
+          ]
+        - Make use of the corrected semantics provided by calmjs-3.1.0 for the
+          deferred export location verification, which also silences the
+          calmjs-4.0.0 deprecation warning. [
+          `#5 <https://github.com/calmjs/calmjs.dev/issues/5>`_
+          ]
+        
+        2.0.0 (2018-01-10)
+        ------------------
+        
+        - Migration to the calmjs-3.0.0 API.
+        - Bumped a number of dependencies on Node.js packages.
+        - The paths that are covered by the test coverage report are now
+          recorded in the Spec as part of the test execution workflow through
+          the KarmaDriver.
+        - Provide framework and command for testing of predefined artifacts
+          generated for packages defined through the ``calmjs.artifacts``
+          registry; ``calmjs.artifacts.tests`` registry was created such that
+          toolchain packages may declare the test compliment builder functions
+          to facilitate testing for their dependent packages.
+        - Implemented ``--cover-report-type`` flag to support the specification
+          of multiple coverage report types to be generated, and ensured that
+          the defined report types actually work (a karma/istanbul bug was
+          found and a workaround was implemented).
+        - A number of internal code refactor, i.e. a number of internal API
+          changes have happened.
+        - Deprecated ``--coverage-type`` flag, as it is inconsistently named and
+          that features provided by ``--cover-report-type`` superseded this.
+        - Deprecated ``--test-package`` flag in favor of ``--test-with-package``
+          for more clarity about the intention of that flag.
+        
+        1.1.0 (2017-08-10)
+        ------------------
+        
+        - Tests are now automatically wrapped by a default template when served
+          by karma to better limit the scope of the variables defined within
+          each file.  This can be disabled using ``--no-wrap-tests`` flag on the
+          ``karma`` runtime.
+        
+        1.0.3 (2017-05-22)
+        ------------------
+        
+        - Move the ``--artifact`` and ``--cover-artifact`` flag up to the main
+          ``karma`` runtime to permit wider and more flexible usage for all
+          runners.
+        - Correctly report the path of missing specified artifacts in the logs.
+        
+        1.0.2 (2017-01-27)
+        ------------------
+        
+        - Provide test prefix key and constant.
+        
+        1.0.1 (2016-11-30)
+        ------------------
+        
+        - Correct the inability to launch standard graphical browsers directly
+          via the runner under Windows.
+        
+        1.0.0 (2016-11-18)
+        ------------------
+        
+        - Initial release of the development support for the calmjs framework.
+        - Include karma test runner integration as a calmjs runtime that can
+          accept calmjs toolchain runtimes to facilitate testing.
+        - Generation of test coverage reports of JavaScript sources executed.
+        - Leverage the toolchain advice system for adding the test runner and
+          also permit the modification of test configurations by toolchain
+          implementations that require specific instructions for a successful
+          execution of tests.
+        - Permit integration with other packages for testing artifacts generated
+          by other systems.
+        
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Environment :: Plugins
+Classifier: Framework :: Setuptools Plugin
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: POSIX :: BSD
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: JavaScript
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Topic :: Software Development :: Testing
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: Topic :: System :: Software Distribution
+Classifier: Topic :: Utilities
