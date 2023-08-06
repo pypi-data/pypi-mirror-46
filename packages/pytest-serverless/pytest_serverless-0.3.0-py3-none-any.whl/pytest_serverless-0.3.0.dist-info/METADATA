@@ -1,0 +1,62 @@
+Metadata-Version: 2.1
+Name: pytest-serverless
+Version: 0.3.0
+Summary: Automatically mocks resources from serverless.yml file.
+Home-page: https://github.com/whisller/pytest-serverless
+License: UNKNOWN
+Author: Daniel Ancuta
+Author-email: whisller@gmail.com
+Requires-Python: >=3.6,<4.0
+Classifier: Development Status :: 3 - Alpha
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Requires-Dist: boto3 (>=1.9,<2.0)
+Requires-Dist: moto (>=1.3,<2.0)
+Requires-Dist: pytest (>=4.5,<5.0)
+Requires-Dist: python-box (>=3.4,<4.0)
+Requires-Dist: pyyaml (>=5.1,<6.0)
+Project-URL: Repository, https://github.com/whisller/pytest-serverless
+Description-Content-Type: text/markdown
+
+# pytest-serverless
+Mock local resources for serverless framework.
+
+## Installation
+```sh
+pip install pytest-serverless
+```
+
+## What problem it tries to solve?
+When building your project with [serverless](https://serverless.com/) most likely you will create
+[resources](https://serverless.com/framework/docs/providers/aws/guide/resources/) like dynamodb tables, sqs queues, sns topics.
+
+During writing tests you will have to mock those in [moto](https://github.com/spulec/moto). 
+
+This pytest plugin tries to automate this process by reading `serverless.yml` file and create
+mocks of resources for you.
+
+## Usage
+Mark your test with `@pytest.mark.usefixtures("serverless")`, and rest will be done by plugin.
+```python
+import boto3
+import pytest
+
+
+@pytest.mark.usefixtures("serverless")
+def test():
+    table = boto3.resource("dynamodb").Table("my-microservice.my-table")
+    count_of_items = len(table.scan()["Items"])
+    assert count_of_items == 0
+```
+
+## Supported resources
+### AWS::DynamoDB::Table
+
+## Issues?
+Plugin is in early stage of development, so you might find some bugs or missing functionality.
+
+If possible create pull request (with tests) that fixes particular problem.
+
