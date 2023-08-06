@@ -1,0 +1,20 @@
+{% load cms_tags static sekizai_tags i18n %}
+
+{% addtoblock 'css' %}
+    <link rel="stylesheet" href="{% static 'djangocms_device_mockups/css/device-mockups.min.css' %}">
+{% endaddtoblock %}
+
+<div class="device-wrapper {% if instance.additional_classes %}{{ instance.get_additional_classes }}{% endif %}"
+        id="device-mockup-{{ instance.get_id_name }}"
+        {{ instance.attributes_str }}>
+
+    <div class="device" data-device="{{ instance.device }}" data-orientation="{{ instance.orientation }}" data-color="{{ instance.colour }}">
+        <div class="screen">
+            <!-- PUT CONTENTS HERE -->
+            {% for plugin in instance.child_plugin_instances %}{% render_plugin plugin %}{% endfor %}
+        </div>
+{#        <div class="button">#}
+{#            <!-- You can hook the "home button" to some JavaScript events or just remove it -->#}
+{#        </div>#}
+    </div>
+</div>
