@@ -1,0 +1,131 @@
+#!python
+# Copyright (c) 2017 Qumulo, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+
+'''
+A simple CLI wrapper around REST API endpoints.
+
+Think of it like CURL but with a tiny bit more knowledge of the Qumulo
+word: in particular, the ability to store credentials so you can use logged-in
+endpoints easily.
+
+Advantages of this are:
+
+  - As a developer, while prototyping a new feature, you can hit the API
+    manually even before creating the REST wrappers and qq subcommand.
+
+  - As a customer experimenting with the REST API directly, this is another way
+    to explore, outside of IODocs.
+
+  - The existence of qqurl means that you don't *necessarily* have to make
+    a qq subcommand for every feature of an API; you can choose to focus on
+    the interesting ones, knowing that qqurl exists to fill gaps.
+'''
+
+
+import argparse
+import os
+import sys
+import StringIO
+
+# pylint: disable=relative-import
+import qumulo.commands.login
+import qumulo.lib.auth
+import qumulo.lib.request
+
+# TODO ideas:
+# - tab completion for URLs
+# - tab completion for methods
+
+def main_options(parser):
+    parser.add_argument("method_or_url", nargs="*", default=[])
+    parser.add_argument("--chunked", action="store_true",
+        default=qumulo.lib.request.DEFAULT_CHUNKED,
+        help="Force chunked transfer encoding for requests")
+    parser.add_argument("--chunk-size", type=int,
+        default=qumulo.lib.request.DEFAULT_CHUNK_SIZE_BYTES,
+        help=("Set chunk size in bytes for chunked "
+              "transfer encoding (default: %d)" %
+              qumulo.lib.request.DEFAULT_CHUNK_SIZE_BYTES))
+    parser.add_argument("--credentials-store",
+        default=qumulo.lib.auth.credential_store_filename(),
+        help="Write credentials to a custom path")
+    parser.add_argument("--host", default="localhost")
+    parser.add_argument("--no-credentials", action="store_true",
+        default=False, help=argparse.SUPPRESS)
+    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("-v", "--verbose", action="count", default=0)
+    parser.add_argument("--timeout", type=int, default=None,
+        help="Time (in seconds) to wait for response")
+
+    parser.add_argument("-u", "--username", default=None)
+    parser.add_argument("-p", "--password", default=None)
+
+def qqurl_main(args):
+    method = None
+    url = None
+    if args.method_or_url:
+        if len(args.method_or_url) != 2:
+            sys.stderr.write(
+                "Basic Usage: "
+                "qqurl [<method> <url>] [-u <username> [-p <password>]]\n")
+            exit(1)
+        method = args.method_or_url[0]
+        url = args.method_or_url[1]
+    if not (method and url) and not (args.username):
+        raise Exception("Supply method & url or else log in with --username")
+
+    conninfo = qumulo.lib.request.Connection(
+        args.host, args.port, chunked=args.chunked,
+        chunk_size=args.chunk_size, timeout=args.timeout)
+
+    credentials = qumulo.lib.auth.get_credentials(args.credentials_store)
+
+    if args.username:
+        username = args.username
+        if args.password is None:
+            password = qumulo.lib.opts.read_password(prompt='Password: ')
+        else:
+            password = args.password
+
+        login_resp, _ = qumulo.rest.auth.login(
+            conninfo, credentials,
+            username, password)
+        qumulo.lib.auth.set_credentials(login_resp, args.credentials_store)
+        credentials = qumulo.lib.auth.get_credentials(args.credentials_store)
+
+    if method:
+        if method not in ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']:
+            raise Exception("Unimplemented method {}".format(method))
+
+        if method in ['PATCH', 'POST', 'PUT']:
+            print >>sys.stderr, "Please enter the content to {}:".format(method)
+            body = sys.stdin.read()
+            result = qumulo.lib.request.rest_request(
+                conninfo, credentials,
+                method, url,
+                body_file=StringIO.StringIO(body))
+        else:
+            result = qumulo.lib.request.rest_request(
+                conninfo, credentials,
+                method, url)
+        print result
+
+def main():
+    parzer = argparse.ArgumentParser(description="Qumulo Simple REST Wrapper",
+        add_help=True, prog=os.path.basename(sys.argv[0]))
+    main_options(parzer)
+    argz = parzer.parse_args(sys.argv[1:])
+    qqurl_main(argz)
+
+if __name__ == '__main__':
+    sys.exit(main())
