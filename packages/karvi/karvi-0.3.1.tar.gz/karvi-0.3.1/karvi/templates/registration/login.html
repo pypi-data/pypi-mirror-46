@@ -1,0 +1,55 @@
+{% extends 'karvi/base/__2col.html' %}
+{% load karvi_style %}
+{% load karvi_alerts %}
+
+{% block alerts %}
+  {{ block.super }}
+  {% if form.errors %}
+    {% karvi_alert "Your username and password didn't match. Please try again." "is-danger" %}
+  {% endif %}
+
+  {% if next %}
+    {% if user.is_authenticated %}
+      {% karvi_alert "Your account doesn't have access to this page. To proceed, please login with an account that has access." %}
+    {% else %}
+      {% karvi_alert "Please login to see this page." "is-info" %}
+    {% endif %}
+  {% endif %}
+{% endblock alerts %}
+
+{% block section %}
+  <h1 class="title is-1">Iniciar Sesion</h1>
+  <form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}"/>
+    <div class="field">
+      <label class="label" for="{{ form.username.auto_id }}">{{ form.username.label }}</label>
+      <div class="control">
+        {{ form.username|form_styling }}
+      </div>
+    </div>
+    <div class="field">
+      <label class="label" for="{{ form.password.auto_id }}">{{ form.password.label }}</label>
+      <div class="control">
+        {{ form.password|form_styling }}
+      </div>
+    </div>
+    <div class="field is-grouped is-grouped-right">
+      <div class="control">
+        <input class="button is-primary" type="submit" value="Acceder"/>
+        <a class="button is-text" href="{% url 'password_reset' %}">Olvide mi contraseña</a>
+      </div>
+    </div>
+  </form>
+{% endblock section %}
+
+{% block aside %}
+  <div class="menu">
+    <p class="menu-label">Usuarios</p>
+    <ul class="menu-list">
+      <li><a class="is-active" href="{% url 'login' %}">Acceder</a></li>
+      <li><a href="{% url 'signup' %}">Registrarse</a></li>
+      <li><a href="{% url 'password_reset' %}">Recuperar Contraseña</a></li>
+    </ul>
+  </div>
+{% endblock aside %}
