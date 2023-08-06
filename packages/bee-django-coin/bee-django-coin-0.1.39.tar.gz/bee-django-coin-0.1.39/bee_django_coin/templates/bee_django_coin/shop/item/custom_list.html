@@ -1,0 +1,116 @@
+{% extends "bee_django_coin/custom_base.html" %}
+{% load bee_django_coin_filter %}
+{% block styles %}
+    <style>
+        .item_div_1 {
+            border: 1px solid #ededed;
+            padding: 0 10px;
+            margin: 2px 0;
+        }
+
+        .item_div_2 {
+            border: 1px solid #FC481E;
+            padding: 0 10px;
+            margin: 2px 0;
+        }
+
+        .img_div {
+            margin: 0 -10px;
+        }
+
+        .img_div img {
+            height: 222px;
+        }
+
+        @media (max-width: 767px) {
+            .img_div img {
+                height: 160px;
+            }
+        }
+
+        .type_div {
+            background-color: #FC481E;
+        {#            border: 1px solid #9d9d9d;#} border-radius: 4px;
+            margin-right: 5px;
+            font-size: 12px;
+            padding: 3px;
+            height: 16px;
+            color: #FFFFFF;
+        }
+
+        .name_div {
+            height: 42px;
+            line-height: 22px;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .coin_div {
+            color: #FC481E;
+            font-size: 18px;
+            font-weight: 900;
+            margin: 10px 0;
+        }
+
+        .item_list_div a:hover {
+            text-decoration: none;
+        }
+
+        {#    .item_list_div div{#}
+        {#        height: 222px;#}
+        {#    }#}
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="text-center"><h3>
+        商城
+    </h3>
+    </div>
+
+    <div style="margin: 10px 0;">
+        我的{{ context_coin_name }}: {{ user|get_coin }}
+        <a href="{% url 'bee_django_coin:order_custom_user_list' user.id %}">我的订单</a>
+        <a href="{% url 'bee_django_coin:custom_user_rank_list' %}">{{ context_coin_name }}排行榜</a></div>
+    <div class="row item_list_div">
+        {% for item in item_list %}
+            <div class="col-sm-3 col-xs-6">
+                {% if item.url %}
+                    <a href="{{ item.url }}" target="_blank">
+                {% else %}
+                    <a href="{% url 'bee_django_coin:item_custom_detail' item.id %}">
+                {% endif %}
+                <div class="item_div_1" onMouseOut="this.className='item_div_1'"
+                     onMouseOver="this.className='item_div_2'">
+
+                    <div class="img_div">
+                        <img src="{{ item.get_pic_url }}" alt="{{ item.name }}" width="100%" class="img-responsive">
+                    </div>
+
+                    <div class="name_div"><span class="type_div">{{ item.get_item_type }}</span>{{ item.name }}
+                    </div>
+
+                    <div class="coin_div">{{ item.coin }}{{ context_coin_name }} </div>
+
+                </div>
+                </a>
+            </div>
+        {% endfor %}
+
+    </div>
+    {% include 'bee_django_coin/paginator.html' %}
+{% endblock %}
+{% block scripts %}
+    <script>
+        function click_del(_this) {
+            if (!confirm('确认要执行这个操作？')) {
+                return false;
+            }
+            var url = $(_this).attr('data-confirm');
+            $.post(url).done(function (data) {
+                alert('删除成功!');
+                location.reload();
+            });
+        }
+    </script>
+{% endblock %}

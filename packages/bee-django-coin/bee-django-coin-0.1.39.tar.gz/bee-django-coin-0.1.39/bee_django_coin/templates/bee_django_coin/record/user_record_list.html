@@ -1,0 +1,41 @@
+{% extends "bee_django_coin/base.html" %}
+{% load bee_django_coin_filter %}
+{% block styles %}
+    <style>
+
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="text-center"><h3>{{ name }}的{{ context_coin_name }}记录</h3></div>
+    {% if perms.bee_django_coin.add_usercoinrecord %}
+        <div style="margin: 10px 0;" class="text-right"><a
+                href="{% url 'bee_django_coin:coin_record_add' user_id=user.id %}"
+                class="btn btn-default">【发放/扣除】{{ context_coin_name }}</a>
+        </div>
+        {{ context_coin_name }}共计：{{ sum_coin }}
+    {% endif %}
+
+    <table class="table table-hover">
+        <thead>
+        <th>{{ context_coin_name }}</th>
+        <th>原因</th>
+        <th>操作</th>
+        <th>日期</th>
+        </thead>
+        {% for record in record_list %}
+            <tr>
+                <td>{% if record.coin > 0 %}+{% endif %}{{ record.coin }}</td>
+                <td>{{ record.reason|default:"" }}</td>
+                <td>{{ record.created_by|get_created_by_user_name }}</td>
+                <td>{{ record.created_at|local_datetime|date:"Y-m-d H:i:s" }}</td>
+            </tr>
+
+        {% endfor %}
+    </table>
+    {% include 'bee_django_coin/paginator.html' %}
+{% endblock %}
+{% block scripts %}
+    <script>
+
+    </script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "bee_django_coin/base.html" %}
+{% load bee_django_coin_filter %}
+{% block content %}
+    <div class="text-center"><h3>
+        {{ user }}的订单列表
+    </h3>
+    </div>
+    <div>共{{ paginator.count }}个</div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>商品名称</th>
+            <th>数量</th>
+            <th>价格共计</th>
+            <th>下单时间</th>
+            <th>状态</th>
+            <th></th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for order in order_list %}
+            <tr>
+                <td>{{ order.item_name }}</td>
+                <td>{{ order.item_count }}</td>
+                <td>{{ order.item_coin }}{{ context_coin_name }}</td>
+                <td>{{ order.created_at }}</td>
+                <td>{{ order.get_status }}</td>
+                <td>
+
+                    {#                        <a href="{% url 'bee_django_coin:order_update_status' order.id %}  " class="btn btn-warning">消费</a>#}
+
+                    <a href="{% url 'bee_django_coin:order_detail' order.id %}  ">详情</a>
+                    {% if order.status == 2 %}
+                        <a href="#" order_id='{{ order.id }}'
+                           data-confirm="{% url "bee_django_coin:order_update_status" %}"
+                           onclick="click_update_status(this,3)" class="btn btn-danger">消费</a>
+                    {% endif %}
+                </td>
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'bee_django_coin/paginator.html' %}
+{% endblock %}
+{% block scripts %}
+    <script>
+        function click_update_status(_this, status) {
+            if (!confirm('确认要执行这个操作？')) {
+                return false;
+            }
+            var url = $(_this).attr('data-confirm');
+            var order_id = $(_this).attr('order_id');
+            $.post(url, {
+                'order_id': order_id,
+                'status': status
+            }, function (res) {
+
+                alert(res["message"]);
+                if (res["error"] == 0) {
+                    location.reload();
+                }
+            });
+            return true;
+        }
+    </script>
+{% endblock %}

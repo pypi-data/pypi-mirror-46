@@ -1,0 +1,57 @@
+{% extends "bee_django_coin/base.html" %}
+{% load static %}
+{% load bootstrap3 %}
+{% block content %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% bootstrap_form form %}
+
+        <div id="editor"></div>
+        <div id="edit_info" style="display:none;">{{ item.info|default:''|safe }}</div>
+        {% bootstrap_button '提交' %}
+    </form>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        var editor;
+        $(document).ready(function () {
+            var E = window.wangEditor;
+            var editor = new E('#editor');
+            var $info = $('#id_info');
+            $info.attr("style","display:none;");
+            editor.customConfig.onchange = function (html) {
+                // 监控变化，同步更新到 textarea
+                $info.val(html);
+            };
+            editor.customConfig.menus = [
+                'head',  // 标题
+                'bold',  // 粗体
+                'fontSize',  // 字号
+                'fontName',  // 字体
+                'italic',  // 斜体
+                'underline',  // 下划线
+                'strikeThrough',  // 删除线
+                'foreColor',  // 文字颜色
+                'backColor',  // 背景颜色
+                'link',  // 插入链接
+                'list',  // 列表
+                'justify',  // 对齐方式
+                'quote',  // 引用
+                'emoticon',  // 表情
+                'table',  // 表格
+                'code',  // 插入代码
+                'undo',  // 撤销
+                'redo'  // 重复
+            ];
+            editor.create();
+            // 初始化 textarea 的值
+            var info = $("#edit_info").html();
+            editor.txt.html(info);
+            $info.val(info);
+
+        });
+    </script>
+{% endblock %}

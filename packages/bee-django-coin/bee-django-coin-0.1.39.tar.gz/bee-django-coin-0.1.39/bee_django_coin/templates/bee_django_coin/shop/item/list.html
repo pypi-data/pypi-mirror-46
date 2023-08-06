@@ -1,0 +1,72 @@
+{% extends "bee_django_coin/base.html" %}
+{% load bee_django_coin_filter %}
+{% block content %}
+    <div class="text-center"><h3>
+        商品列表
+    </h3>
+    </div>
+    {% if perms.bee_django_coin.add_item %}
+        <div class="text-right">
+            <a class="btn btn-default" href="{% url 'bee_django_coin:item_add' %}">添加商品</a>
+        </div>
+    {% endif %}
+    <div>共{{ paginator.count }}个</div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th></th>
+            <th>名称</th>
+            <th>价格</th>
+            <th>类型</th>
+            <th>显示状态</th>
+            <th></th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in item_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+
+                <td>{{ item.name }}</td>
+                <td>{{ item.coin }}</td>
+                <td>{{ item.get_item_type }}</td>
+                <td>
+                    {{ item.get_status }}
+                </td>
+                <td>
+                    {% if item.url %}
+                        <a href="{{ item.url }}" target="_blank">链接</a>
+                    {% else %}
+                        <a href="{% url 'bee_django_coin:item_detail' item.id %}  ">详情</a>
+                    {% endif %}
+                    {% if perms.bee_django_coin.change_item %}
+                        <a href="{% url 'bee_django_coin:item_update' item.id %}  ">修改</a>
+                    {% endif %}
+                {% if perms.bee_django_coin.delete_item %}
+                    <a href="#" id="delete_{{ item.id }}"
+                       data-confirm="{% url "bee_django_coin:item_delete" item.id %}"
+                       onclick="click_del(this)">删除</a>
+                {% endif %}
+                </td>
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'bee_django_coin/paginator.html' %}
+{% endblock %}
+{% block scripts %}
+    <script>
+        function click_del(_this) {
+            if (!confirm('确认要执行这个操作？')) {
+                return false;
+            }
+            var url = $(_this).attr('data-confirm');
+            $.post(url).done(function (data) {
+                alert('删除成功!');
+                location.reload();
+            });
+        }
+    </script>
+{% endblock %}

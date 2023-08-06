@@ -1,0 +1,45 @@
+{% extends "bee_django_coin/custom_base.html" %}
+{% load bee_django_coin_filter %}
+{% block content %}
+    {% include 'bee_django_coin/shop/order/_custom_user_nav.html' %}
+    <div class="text-center"><h3>
+        {{ user }}的订单列表
+    </h3>
+    </div>
+    <div>共{{ paginator.count }}个</div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>商品名称</th>
+            <th>数量</th>
+            <th>价格共计</th>
+            <th>下单时间</th>
+            <th>状态</th>
+            <th></th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for order in order_list %}
+            <tr>
+                <td>{{ order.item_name }}</td>
+                <td>{{ order.item_count }}</td>
+                <td>{{ order.item_coin }}{{ context_coin_name }}</td>
+                <td>{{ order.created_at }}</td>
+                <td>{{ order.get_status }}</td>
+                <td>
+
+                    {#                        <a href="{% url 'bee_django_coin:order_update_status' order.id %}  " class="btn btn-warning">消费</a>#}
+
+                    <a href="{% url 'bee_django_coin:order_custom_user_detail' order.id %}  ">详情</a>
+                </td>
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'bee_django_coin/paginator.html' %}
+{% endblock %}
+{% block scripts %}
+
+{% endblock %}

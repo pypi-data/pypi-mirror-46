@@ -1,0 +1,54 @@
+{% extends "bee_django_coin/base.html" %}
+{% load bee_django_coin_filter %}
+{% block content %}
+    <div class="col-md-12">
+        <h4>商品详情</h4>
+        {% if perms.bee_django_coin.change_item %}
+            <a href="{% url 'bee_django_coin:item_update'  item.id %}">修改商品</a>
+        {% endif %}
+
+        <table class="table">
+            <tr>
+                <td class="col-xs-3">名称</td>
+                <td>{{ item.name }}</td>
+            </tr>
+            <tr>
+                <td>价格</td>
+                <td>{{ item.coin }}</td>
+            </tr>
+            <tr>
+                <td>类型</td>
+                <td>{{ item.get_item_type }}</td>
+            </tr>
+            <tr>
+                <td>状态</td>
+                <td>{{ item.get_status }}</td>
+            </tr>
+
+            <tr>
+                <td>配图</td>
+                <td>
+                    <img src="{{ item.get_pic_url }}" class="img-thumbnail img-responsive" style="height:200px;"/>
+                </td>
+            </tr>
+            <tr>
+                <td>详情</td>
+                <td>
+                    {{ item.info|safe|linebreaks|default:"" }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+
+
+
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+        })
+    </script>
+{% endblock %}
