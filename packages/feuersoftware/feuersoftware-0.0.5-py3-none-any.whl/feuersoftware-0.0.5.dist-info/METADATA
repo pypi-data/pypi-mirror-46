@@ -1,0 +1,52 @@
+Metadata-Version: 2.1
+Name: feuersoftware
+Version: 0.0.5
+Summary: A Feuersoftware public API implementation
+Home-page: https://github.com/bouni/feuersoftware
+Author: Bouni
+Author-email: bouni@owee.de
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+
+# feuersoftware
+
+feuersoftware is a library that allow you to interact with the [Feuersoftware Connect Public API](http://dokumentation.feuersoftware.com/pages/viewpage.action?pageId=2490428).
+
+## Example
+```
+from feuersoftware import PublicAPI
+
+TOKEN = ""
+
+with open("token.txt") as f:
+    TOKEN = f.read().strip()
+
+api = PublicAPI(token=TOKEN)
+
+# Einsatz auslösen
+api.operation(
+    start="2018-08.30T08:00:00", 
+    keyword="Brand", 
+    address="Musterweg 4, 12345 Entenhausen", 
+    position="47.616239,9.3392483", 
+    facts="Küchenbrand", 
+    ric="10B", 
+    properties=[{"key":"Fettbrand":"value":"Nein"},{"Noch Personen im Gebäude","Ja"}],
+    updateStrategy="none"
+    )
+api.send()
+
+# Fahzeug Status setzen
+api.vehicle_status(
+    radioid="12345678", 
+    status=2, 
+    position="47.616239,9.3392483"):
+api.send()
+```
+
+
+
