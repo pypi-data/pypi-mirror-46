@@ -1,0 +1,27 @@
+## Introduction 
+*mask-predictor* is a wrapper of BERT which can predict masked word of a sentence.
+
+Example:
+
+Given : I like to eat * as my dinner.
+
+Result: [Chicken, Fish, Curry, Steak, ...]
+
+
+## How to run this
+All you need to do is:
+1. Run `pip install mask-predictor`
+2. Download `main.py` and `input.json`
+3. Run `main.py`
+
+The main.py is a simple example showing how to use the *mask-predictor* package.
+The `main.py` will read the `input.json`, and will produce a output file named `result.json`.
+
+**Note that the 1st time of running will download the [spacy model file](https://spacy.io/models/en). Please re-run the code after it has successfully downloaded. The model file sized 7xxMB and expected to take fews minutes. Please keep your computer awake while downloading, otherwise it might fails.**
+
+## Other files
+The `mask_predictor` folder contains the source code of *mask-predictor* package, which you don't need if you install it via pip.
+
+Others files is used for packaging the code to PyPI, which you don't need.
+
+All you need is only `main.py` and `input.json`
