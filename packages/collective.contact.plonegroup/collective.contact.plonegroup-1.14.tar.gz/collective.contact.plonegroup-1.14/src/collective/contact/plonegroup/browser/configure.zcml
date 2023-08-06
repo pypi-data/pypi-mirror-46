@@ -1,0 +1,73 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="collective.contact.plonegroup">
+
+    <include package="Products.CMFCore" />
+
+    <!-- Publish static files -->
+    <browser:resourceDirectory
+        name="collective.contact.plonegroup"
+        directory="static" />
+
+    <browser:page
+        name="contact-plonegroup-settings"
+        for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+        permission="plone.app.controlpanel.Site"
+        class=".settings.SettingsView" />
+
+    <utility
+        name="collective.contact.plonegroup.organization_services"
+        factory=".settings.OwnOrganizationServicesVocabulary" />
+
+    <utility
+        name="collective.contact.plonegroup.selected_organization_services"
+        factory=".settings.SelectedOrganizationsElephantVocabulary" />
+
+    <!-- z3c.table -->
+    <browser:page
+        for="collective.contact.plonegroup.interfaces.IPloneGroupContact"
+        name="suborganizations"
+        class=".tables.SubOrganizationsTableView"
+        permission="zope2.View"
+        template="templates/suborganizations.pt"
+        layer="collective.contact.plonegroup.interfaces.ICollectiveContactPlonegroupLayer" />
+
+    <!-- Make original suborganizations view still available for IPloneGroupContact
+         using another name, we need it when it is displayed in a tooltip -->
+    <configure package="collective.contact.core.browser">
+        <browser:page
+            for="collective.contact.plonegroup.interfaces.IPloneGroupContact"
+            name="original-suborganizations"
+            class=".organization.SubOrganizations"
+            permission="zope2.View"
+            template="templates/suborganizations.pt"
+            layer="collective.contact.plonegroup.interfaces.ICollectiveContactPlonegroupLayer" />
+    </configure>
+
+    <adapter
+        name="Title"
+        for="zope.interface.Interface
+             zope.publisher.interfaces.browser.IBrowserRequest
+             .tables.SubOrganizationsTable"
+        provides="z3c.table.interfaces.IColumn"
+        factory=".tables.OrgaPrettyLinkWithAdditionalInfosColumn" />
+
+    <adapter
+        name="SelectedInPlonegroupColumn"
+        for="zope.interface.Interface
+             zope.interface.Interface
+             .tables.SubOrganizationsTable"
+        provides="z3c.table.interfaces.IColumn"
+        factory=".tables.SelectedInPlonegroupColumn" />
+
+    <adapter
+        name="ActionsColumn"
+        for="zope.interface.Interface
+             zope.interface.Interface
+             .tables.SubOrganizationsTable"
+        provides="z3c.table.interfaces.IColumn"
+        factory=".tables.PlonegroupActionsColumn" />
+
+</configure>
