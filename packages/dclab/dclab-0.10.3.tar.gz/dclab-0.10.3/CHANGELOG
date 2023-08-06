@@ -1,0 +1,249 @@
+0.10.3
+ - fix: add numpy build dependency (setup_requires)
+0.10.2
+ - fix: HDF5-export did not re-enumerate "index" feature
+0.10.1
+ - fix: support nan-valued events when computing quantile levels
+   in submodule `kde_contours`
+0.10.0
+ - BREAKING CHANGE: Change np.meshgrid indexing in
+   `RTDCBase.get_kde_contour` from "xy" to "ij"
+ - feat: new submodule `kde_contours` for computing kernel density
+   contour lines at specific data percentiles (#60)
+ - fix: range for contour KDE computation did not always contain end
+   value (`RTDCBase.get_kde_contour`)
+ - fix: `positions` keyword argument in `RTDCBase.get_kde_scatter`
+   was not correctly scaled in the logarithmic case
+ - ref: cleanup and document PolygonFilter.point_in_poly
+ - ref: move skimage code to separate submodule "external"
+ - ref: drop dependency on statsmodels and move relevant code
+   to submodule "external"
+0.9.1
+ - fix: all-zero features were treated as non-existent due to relic
+   from pre-0.3.3 era
+ - fix: correct extraction of start time from tdms format
+   (1h offset from local time and measurement duration offset)
+ - fix: correct extraction of module composition from tdms format
+   (replace "+" with ",")
+ - enh: add configuration key mapping for tdms format to simplify
+   conversion to hdf5 format (see ``fmt_tdms.naming``)
+ - enh: do not add laser info for unused lasers for tdms format
+ - enh: dclab-verify-dataset checks for image attribute dtype
+ - enh: include original software version when exporting to rtdc format
+0.9.0
+ - feat: add new feature: gravitational force, temperature,
+   and ambient temperature
+ - ref: remove unused `has_key` function in
+   `rtdc_dataset.config.CaseInsensitiveDict`
+ - setup: require numpy>=1.10.0 because of `equal_nan` argument in `allclose`
+0.8.0
+ - fix: usage of "xor" (^) instead of "or" (|) in statistics
+ - feat: support `remove_invalid=False` in downsampling.downsample_rand (#27)
+ - feat: add keyword arguments `xscale` and `yscale` to improve data
+   visualization in `RTDCBase.get_downsampled_scatter`,
+   `RTDCBase.get_kde_contour`, and `RTDCBase.get_kde_scatter` (#55) 
+ - enh: make downsampling code more transparent
+ - BREAKING CHANGE: low-level downsampling methods refactored
+   - downsampling.downsample_grid: removed keyword argument
+     `remove_invalid`, because setting it to `False` makes no sense
+     in this context
+   - downsampling.downsample_rand: changed default value of `remove_invalid`
+     to `False`, because this is more objective
+   - rename keyword argument `retidx` to `ret_idx`
+   - these changes do not affect any other higher level functionalities
+     in `dclab.rtdc_dataset` or in Shape-Out
+0.7.0
+ - feat: add new ancillary feature: principal inertia ratio (#46)
+ - feat: add new ancillary feature: absolute tilt (#53)
+ - feat: add computation of viscosity for water (#52)
+0.6.3
+ - fix: channel width not correctly identified for old tdms files
+0.6.2
+ - ci: automate release to PyPI with appveyor and travis-ci
+0.6.0
+ - fix: image export as .avi did not have option to use unfiltered data
+ - fix: avoid a few unicode gotchas
+ - feat: use Doane's formula for kernel density estimator defaults (#42)
+ - docs: usage examples, advanced scripting, and code reference update (#49)
+0.5.2
+ - Migrate from os.path to pathlib (#50)
+ - fmt_hdf5: Add run index to title
+0.5.1
+ - Setup: add dependencies for statsmodels
+ - Tests: filter known warnings
+ - fmt_hdf5: import unknown keys such that "dclab-verify-dataset"
+   can complain about them
+0.5.0
+ - BREAKING CHANGES:
+   - definitions.feature_names now contains non-scalar
+     features (inlcuding "image", "contour", "mask", and "trace"). To
+     test for scalar features, use definitions.scalar_feature_names.
+   - features bright_* are computed from mask instead of from contour
+ - Bugfixes:
+   - write correct event count in exported hdf5 data files
+   - improve implementation of video file handling in fmt_tdms
+ - add new non-scalar feature "mask" (#48)
+ - removed configuration key [online_contour]: "bin margin" (#47)
+ - minor improvements for the tdms file format
+0.4.0
+ - Bugfix: CLI "dclab-tdms2rtdc" did not work for single tdms files (#45)
+ - update configuration keys:
+   - added new keys for [fluorescence]
+   - added [setup]: "identifier"
+   - removed [imaging]: "exposure time", "flash current"
+   - removed [setup]: "temperature", "viscosity"
+ - renamed feature "ncells" to "nevents"
+0.3.3
+ - ref: do not import missing features as zeros in fmt_tdms 
+ - CLI:
+   - add tdms-to-rtdc converter "dclab-tdms2rtdc" (#36)
+   - improve "dclab-verify-dataset" user experience
+ - Bugfixes:
+   - "limit events" filtering must be integer not boolean (#41)
+   - Support opening tdms files with capitalized "userDef" column names
+   - OSError when trying to open files from repository root
+0.3.2
+ - CLI: add rudimentary dataset checker "dclab-verify-dataset" (#37)
+ - Add logic to compute parent/root/child event indices of RTDC_Hierarchy
+   - Hierarchy children now support contour, image, and traces
+   - Hierarchy children now support and remember manual filters (#22)
+ - Update emodulus look-up table with larger values for deformation
+ - Implement pixel size correction for emodulus computation
+ - Allow to add pixelation error to isoelastics (`add_px_err=True`) (#28)
+ - Bugfixes:
+   - Pixel size not read from tdms-based measurements
+   - Young's modulus computation wrong due to faulty FEM simulations (#39)
+0.3.1
+ - Remove all-zero dummy columns from dict format
+ - Implement hdf5-based RT-DC data reader (#32)
+ - Implement hdf5-based RT-DC data writer (#33)
+ - Bugfixes:
+   - Automatically fix inverted box filters 
+   - RTDC_TDMS trace data contained empty arrays when no trace
+     data was present (trace key should not have been accessible) 
+   - Not possible to get isoelastics for circularity
+0.3.0
+ - New fluorescence crosstalk correction feature recipe (#35)
+ - New ancillary features "fl1_max_ctc", "fl2_max_ctc", "fl3_max_ctc" (#35)
+ - Add priority for multiple ancillary features with same name
+ - Bugfixes:
+   - Configuration key values were not hashed for ancillary features
+ - Code cleanup:
+   - Refactoring: Put ancillary columns into a new folder module
+   - Refactoring: Use the term "feature" consistently
+   - Unify trace handling in dclab (#30)
+   - Add functions to convert input config data
+0.2.9
+ - Bugfixes:
+   - Regression when loading configuration strings containing quotes
+   - Parameters missing when loading ShapeIn 2.0.1 tdms data
+0.2.8
+ - Refactor configuration class to support new format (#26)
+0.2.7
+ - New submodule and classes for managing isoelastics
+ - New ancillary columns "inert_ratio_raw" and "inert_ratio_cvx"
+ - Bugfixes:
+   - Typo when finding contour data files (tdms file format)
+ - Rrefactoring:
+   - "features" submodule with basic methods for ancillary columns
+0.2.6
+ - Return event images as gray scale (#17) 
+ - Bugfixes:
+   - Shrink ancillary column size if it exceeds dataset size
+   - Generate random RTDCBase.identifier (do not use RTDCBase.hash)
+     to fix problem with identical identifiers for hierarchy children
+   - Correctly determine contour data files (tdms file format)
+   - Allow contour data indices larger than uint8
+0.2.5
+ - Add ancillary columns "bright_avg" and "bright_sd" (#18, #19)
+ - Standardize attributes of RTDCBase subclasses (#12)
+ - Refactoring:
+   - New column names and removal of redundant column identifiers (#16)
+   - Minor improvements towards PEP8 (e.g. #15)
+   - New class for handling filters (#13)
+ - Bugfixes:
+   - Hierarchy child computed all ancillary columns of parent upon
+     checking availability of a column
+0.2.4
+ - Replace OpenCV with imageio
+ - Add (ancilliary) computation of volume (#11)
+ - Add convenience methods for `Configuration`
+ - Refactoring (#8):
+   - Separate classes for .tdms, dict-based, and hierarchy datasets
+   - Introduce "_events" attribute for stored data
+   - Data columns (including image, trace, contour) are accessed via
+     keys instead of attributes.
+   - Make space for new hdf5-based file format
+   - Introduce ancilliary columns that are computed on-the-fly
+     (new "_ancilliaries" attribute and "ancilliary_columns.py")
+0.2.3
+ - Add look-up table for elastic modulus (#7)
+ - Add filtering option "remove invalid events" to remove nan/inf
+ - Support nan and inf in data analysis
+ - Improve downsampling performance
+ - Refactor downsampling methods (#6)
+0.2.2
+ - Add new histogram-based kernel density estimator (#2)
+ - Refactoring:
+   - Configuration fully handled by RTDC_DataSet module (#5)
+   - Simplify video export function (#4)
+   - Removed "Plotting" configuration key
+   - Removed .cfg configuration files
+0.2.1
+ - Support npTDMS 0.9.0
+ - Add AVI-Export function
+ - Add lazy submodule for event trace data and rename `RTDC_DataSet.traces`
+   to `RTDC_DataSet.trace`
+ - Add "Event index" column
+0.2.0
+ - Compute sensible default configuration parameters for
+   KDE estimation and contour plotting
+ - Speed-up handling of contour text files
+ - Add support for "User Defined" column in tdms files
+0.1.9
+ - Implement hierarchical instantiation of RTDC_DataSet
+ - Bugfix: Prevent instances of PolygonFilter that have same id
+ - Load InertiaRatio and InertiaRatioRaw from tdms files
+0.1.8
+ - Allow to instantiate RTDC_DataSet without a tdms file
+ - Add statistics submodule
+ - Bugfixes:
+   - Faulty hashing strategy in `RTDC_DataSet.GetDownSampledScatter`
+ - Code cleanup (renamed methods, cleaned structure)
+ - Corrections/additions in definitions (fRT-DC)
+0.1.7
+ - Added channel: distance between to first fl. peaks
+ - Added fluorescence channels: peak position, peak area, number of peaks
+ - Allow to disable KDE computation
+ - Add filter array for manual (user-defined) filtering
+ - Add config parameters for log axis scaling
+ - Add channels: bounding box x- and y-size
+ - Bugfixes:
+   - cached.py did not handle `None`
+   - Limiting number of events caused integer/bool error
+0.1.6
+ - Added `RTDC_DataSet.ExportTSV` for data export
+ - Bugfixes:
+   - Correct determination of video file in RTDCDataSet
+   - Fix multivariate KDE computation
+   - Contour accuracy for Defo overridden by that of Circ
+0.1.5
+ - Fix regressions with filtering.
+   https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut/issues/43 
+ - Ignore empty columns in .tdms files (#1)
+ - Moved RTDC_DataSet and PolygonFilter classes to separate files
+ - Introduce more transparent caching - improves speed in some cases
+0.1.4
+ - Added support for 3-channel fluorescence data (FL-1..3 max/width)
+0.1.3
+ - Fixed minor polygon filter problems.
+ - Fix a couple of Shape-Out-related issues:
+   - https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut/issues/17 
+   - https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut/issues/20
+   - https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut/issues/37
+   - https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut/issues/38
+0.1.2
+ - Add support for limiting amount of data points analyzed
+   with the configuration keyword "Limit Events"
+ - Comments refer to "events" instead of "points" from now on
+
