@@ -1,0 +1,50 @@
+import pigpio
+
+'''
+
+Python class to handle SN74HC164 & SN54HC164 shift registers.
+
+'''
+class ShiftRegister():
+    def __init__(self, pi, A_pin, B_pin, CLR_pin, CLK_pin):
+        self.pi = pi
+        self.a = A_pin
+        self.b = B_pin
+        self.clr = CLR_pin
+        self.clk = CLK_pin
+        pi.set_mode(A, pigpio.OUTPUT) #A
+        pi.set_mode(B, pigpio.OUTPUT) #B
+        pi.set_mode(CLR, pigpio.OUTPUT) #!CLR
+        pi.set_mode(CLK, pigpio.OUTPUT) #CLK
+        pi.write(CLR, 1)
+        pi.write(B,1)
+        self.state = 0
+    
+    def clear():
+        ''' pulse CLR pin low to reset register'''
+        self.pi.write(self.CLR, 0)
+        self.pi.write(self.CLR, 1) 
+    
+    def update(byte):
+        ''' change entire register to passed in value '''
+        self.clear()
+        for i in range(8):
+            self.pi.write(self.a, (byte >> i) & 1)
+            self.pi.write(self.clk, 1)
+            self.pi.write(self.a, 0)
+            self.pi.write(self.clk, 0)
+        self.state = byte
+    
+    def toggle_bit(pos):
+        ''' Toggle bit at position pos of byte state, return new state for future use'''
+        newState = self.state ^ (1 << pos)
+        self.update(newState)
+
+    def write(pos, val):
+        ''' write bit val to position pos of state '''
+        if type(val) is int:
+            if val == 1:
+                newState = self.state | (1 << pos)
+            elif val == 0:
+                newState = self.state & ~(1 << pos)
+        self.update(newState)
