@@ -1,0 +1,480 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>tecplot.export.time_animation &#8212; PyTecplot 0.14.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/sidebar.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="shortcut icon" type="image/gif" href="../../../_static/favicon.gif" />
+    
+    <script type="text/javascript" src="../../../_static/copybutton.js"></script>
+    
+     
+
+  </head><body>  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+    <li><img src="../../../_static/favicon.gif" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.tecplot.com/docs/pytecplot/">PyTecplot</a> &#187;</li>
+    
+    <a href="../../../index.html">PyTecplot-0.14</a> &#187;
+    
+
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+    <li class="right">
+        
+
+    <div class="inline-search" style="display: none" role="search">
+        <form class="inline-search" action="../../../search.html" method="get">
+          <input placeholder="Quick search" type="text" name="q" />
+          <input type="submit" value="Go" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+    </div>
+    <script type="text/javascript">$('.inline-search').show(0);</script>
+         |
+    </li>
+
+      </ul>
+    </div>    
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for tecplot.export.time_animation</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">..tecutil</span> <span class="kn">import</span> <span class="n">_tecutil</span><span class="p">,</span> <span class="n">sv</span>
+<span class="kn">from</span> <span class="nn">..constant</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..exception</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">tecutil</span>
+
+<span class="kn">from</span> <span class="nn">.animation</span> <span class="kn">import</span> <span class="n">animation</span>
+<span class="kn">from</span> <span class="nn">.export_setup</span> <span class="kn">import</span> <span class="n">ExportSetup</span>
+<span class="kn">from</span> <span class="nn">.print_setup</span> <span class="kn">import</span> <span class="n">PrintSetup</span>
+
+
+<span class="nd">@tecutil.lock</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">save_time_animation</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">timestep_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">animation_speed</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                        <span class="n">region</span><span class="o">=</span><span class="n">ExportRegion</span><span class="o">.</span><span class="n">AllFrames</span><span class="p">,</span> <span class="n">supersample</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                        <span class="n">compression</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">image_type</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">multiple_color_tables</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">format_options</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">ani</span> <span class="o">=</span> <span class="n">animation</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+                    <span class="n">animation_speed</span><span class="o">=</span><span class="n">animation_speed</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                    <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">,</span>
+                    <span class="n">image_type</span><span class="o">=</span><span class="n">image_type</span><span class="p">,</span>
+                    <span class="n">multiple_color_tables</span><span class="o">=</span><span class="n">multiple_color_tables</span><span class="p">,</span>
+                    <span class="n">format_options</span><span class="o">=</span><span class="n">format_options</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="n">format</span><span class="p">)</span>
+    <span class="n">ani</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tecutil</span><span class="o">.</span><span class="n">ArgList</span><span class="p">()</span> <span class="k">as</span> <span class="n">arglist</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">start_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">arglist</span><span class="p">[</span><span class="n">sv</span><span class="o">.</span><span class="n">STARTTIME</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">start_time</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">end_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">arglist</span><span class="p">[</span><span class="n">sv</span><span class="o">.</span><span class="n">ENDTIME</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">end_time</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">timestep_step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">arglist</span><span class="p">[</span><span class="n">sv</span><span class="o">.</span><span class="n">SKIP</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">timestep_step</span><span class="p">)</span>
+        <span class="n">arglist</span><span class="p">[</span><span class="n">sv</span><span class="o">.</span><span class="n">CREATEMOVIEFILE</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_tecutil</span><span class="o">.</span><span class="n">AnimateTimeX</span><span class="p">(</span><span class="n">arglist</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">TecplotSystemError</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="save_time_animation_avi"><a class="viewcode-back" href="../../../api/tecplot.exporting.html#tecplot.export.save_time_animation_avi">[docs]</a><span class="k">def</span> <span class="nf">save_time_animation_avi</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">timestep_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">animation_speed</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">ExportRegion</span><span class="o">.</span><span class="n">AllFrames</span><span class="p">,</span> <span class="n">supersample</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                            <span class="n">compression</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">multiple_color_tables</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Export transient data time-series AVI animation to a file.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        filename (`str`): The resulting video file name or path, relative to</span>
+<span class="sd">            Python&#39;s current working directory.</span>
+<span class="sd">        start_time (`float`, optional): The beginning solution time of the</span>
+<span class="sd">            animation. This defaults to the earliest solution time in the</span>
+<span class="sd">            dataset.</span>
+<span class="sd">        end_time (`float`, optional): The ending solution time of the</span>
+<span class="sd">            animation. This defaults to the latest solution time in the</span>
+<span class="sd">            dataset.</span>
+<span class="sd">        timestep_step (`int`, optional): The number of timesteps to increments</span>
+<span class="sd">            for each frame of the animation. (default: 1)</span>
+<span class="sd">        width (`int`, optional): The width of the video in pixels. (default:</span>
+<span class="sd">            800)</span>
+<span class="sd">        animation_speed (`int`, optional): The frame-rate of the video in</span>
+<span class="sd">            frames per second. (default: 10)</span>
+<span class="sd">        region (`Frame` or `ExportRegion`, optional): The rectangular area to</span>
+<span class="sd">            be exported. This can be a specific `Frame` object or one of</span>
+<span class="sd">            `ExportRegion.CurrentFrame`, `ExportRegion.AllFrames` (default) or</span>
+<span class="sd">            `ExportRegion.WorkArea`.</span>
+<span class="sd">        supersample (`int`, optional): Controls the amount of anti-aliasing</span>
+<span class="sd">            used in each frame. Valid values are 1-16. A value of **1**</span>
+<span class="sd">            indicates that no antialiasing will be used. Antialiasing smooths</span>
+<span class="sd">            jagged edges on text, lines, and edges of the video output by the</span>
+<span class="sd">            process of supersampling. *Some graphics cards* can cause Tecplot</span>
+<span class="sd">            360 to crash when larger anti-aliasing values are used. If this</span>
+<span class="sd">            occurs on your machine, try updating your graphics driver or using</span>
+<span class="sd">            a lower anti-aliasing value. (default: **3**)</span>
+<span class="sd">        compression (`AVICompression`, optional): The compression scheme to use</span>
+<span class="sd">            when creating the video stream. Options are:</span>
+<span class="sd">            `AVICompression.ColorPreserving` (default on Windows),</span>
+<span class="sd">            `AVICompression.LinePreserving` or</span>
+<span class="sd">            `AVICompression.LosslessUncompressed` (default on Linux and MacOS).</span>
+<span class="sd">        multiple_color_tables (`bool`, optional): Create a color table for each</span>
+<span class="sd">            frame of the animation. If `False` (default), the whole animation</span>
+<span class="sd">            will be scanned in an attempt to create a single table of 256</span>
+<span class="sd">            colors.</span>
+
+<span class="sd">    Example usage, see the example under `save_time_animation_mpeg4` for a</span>
+<span class="sd">    complete working example::</span>
+
+<span class="sd">        &gt;&gt;&gt; tp.export.save_time_animation_avi(&#39;output.avi&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">save_time_animation</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span>
+                               <span class="n">end_time</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span> <span class="n">timestep_step</span><span class="o">=</span><span class="n">timestep_step</span><span class="p">,</span>
+                               <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">animation_speed</span><span class="o">=</span><span class="n">animation_speed</span><span class="p">,</span>
+                               <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span> <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
+                               <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">,</span>
+                               <span class="n">multiple_color_tables</span><span class="o">=</span><span class="n">multiple_color_tables</span><span class="p">,</span>
+                               <span class="n">format</span><span class="o">=</span><span class="n">ExportFormat</span><span class="o">.</span><span class="n">AVI</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="save_time_animation_flash"><a class="viewcode-back" href="../../../api/tecplot.exporting.html#tecplot.export.save_time_animation_flash">[docs]</a><span class="k">def</span> <span class="nf">save_time_animation_flash</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">timestep_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">animation_speed</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                              <span class="n">region</span><span class="o">=</span><span class="n">ExportRegion</span><span class="o">.</span><span class="n">AllFrames</span><span class="p">,</span> <span class="n">supersample</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                              <span class="n">compression</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">image_type</span><span class="o">=</span><span class="n">FlashImageType</span><span class="o">.</span><span class="n">Lossless</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Export transient data time-series Flash animation to a file.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        filename (`str`): The resulting video file name or path, relative to</span>
+<span class="sd">            Python&#39;s current working directory.</span>
+<span class="sd">        start_time (`float`, optional): The beginning solution time of the</span>
+<span class="sd">            animation. This defaults to the earliest solution time in the</span>
+<span class="sd">            dataset.</span>
+<span class="sd">        end_time (`float`, optional): The ending solution time of the</span>
+<span class="sd">            animation. This defaults to the latest solution time in the</span>
+<span class="sd">            dataset.</span>
+<span class="sd">        timestep_step (`int`, optional): The number of timesteps to increments</span>
+<span class="sd">            for each frame of the animation. (default: 1)</span>
+<span class="sd">        width (`int`, optional): The width of the video in pixels. (default:</span>
+<span class="sd">            800)</span>
+<span class="sd">        animation_speed (`int`, optional): The frame-rate of the video in</span>
+<span class="sd">            frames per second. (default: 10)</span>
+<span class="sd">        region (`Frame` or `ExportRegion`, optional): The rectangular area to</span>
+<span class="sd">            be exported. This can be a specific `Frame` object or one of</span>
+<span class="sd">            `ExportRegion.CurrentFrame`, `ExportRegion.AllFrames` (default) or</span>
+<span class="sd">            `ExportRegion.WorkArea`.</span>
+<span class="sd">        supersample (`int`, optional): Controls the amount of anti-aliasing</span>
+<span class="sd">            used in each frame. Valid values are 1-16. A value of **1**</span>
+<span class="sd">            indicates that no antialiasing will be used. Antialiasing smooths</span>
+<span class="sd">            jagged edges on text, lines, and edges of the video output by the</span>
+<span class="sd">            process of supersampling. *Some graphics cards* can cause Tecplot</span>
+<span class="sd">            360 to crash when larger anti-aliasing values are used. If this</span>
+<span class="sd">            occurs on your machine, try updating your graphics driver or using</span>
+<span class="sd">            a lower anti-aliasing value. (default: **3**)</span>
+<span class="sd">        compression (`FlashCompressionType`, optional): The compression scheme</span>
+<span class="sd">            to use when creating the video stream. Options are:</span>
+<span class="sd">            `FlashCompressionType.BestSpeed` (default) and</span>
+<span class="sd">            `FlashCompressionType.SmallestSize`.</span>
+<span class="sd">        image_type (`FlashImageType`, optional): The type of images to generate</span>
+<span class="sd">            for each frame of the animation. Options are:</span>
+<span class="sd">            `FlashImageType.Color256`, `FlashImageType.JPEG` and</span>
+<span class="sd">            `FlashImageType.Lossless` (default).</span>
+
+<span class="sd">    Example usage, see the example under `save_time_animation_mpeg4` for a</span>
+<span class="sd">    complete working example::</span>
+
+<span class="sd">        &gt;&gt;&gt; tp.export.save_time_animation_flash(&#39;output.flv&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">save_time_animation</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span>
+                        <span class="n">end_time</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span> <span class="n">timestep_step</span><span class="o">=</span><span class="n">timestep_step</span><span class="p">,</span>
+                        <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">animation_speed</span><span class="o">=</span><span class="n">animation_speed</span><span class="p">,</span>
+                        <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span> <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
+                        <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">,</span> <span class="n">image_type</span><span class="o">=</span><span class="n">image_type</span><span class="p">,</span>
+                        <span class="n">format</span><span class="o">=</span><span class="n">ExportFormat</span><span class="o">.</span><span class="n">Flash</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="save_time_animation_mpeg4"><a class="viewcode-back" href="../../../api/tecplot.exporting.html#tecplot.export.save_time_animation_mpeg4">[docs]</a><span class="k">def</span> <span class="nf">save_time_animation_mpeg4</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">timestep_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">animation_speed</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                              <span class="n">region</span><span class="o">=</span><span class="n">ExportRegion</span><span class="o">.</span><span class="n">AllFrames</span><span class="p">,</span> <span class="n">supersample</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                              <span class="n">format_options</span><span class="o">=</span><span class="bp">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Export transient data time-series MPEG-4 animation to a file.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        filename (`str`): The resulting video file name or path, relative to</span>
+<span class="sd">            Python&#39;s current working directory.</span>
+<span class="sd">        start_time (`float`, optional): The beginning solution time of the</span>
+<span class="sd">            animation. This defaults to the earliest solution time in the</span>
+<span class="sd">            dataset.</span>
+<span class="sd">        end_time (`float`, optional): The ending solution time of the</span>
+<span class="sd">            animation. This defaults to the latest solution time in the</span>
+<span class="sd">            dataset.</span>
+<span class="sd">        timestep_step (`int`, optional): The number of timesteps to increments</span>
+<span class="sd">            for each frame of the animation. (default: 1)</span>
+<span class="sd">        width (`int`, optional): The width of the video in pixels. (default:</span>
+<span class="sd">            800)</span>
+<span class="sd">        animation_speed (`int`, optional): The frame-rate of the video in</span>
+<span class="sd">            frames per second. (default: 10)</span>
+<span class="sd">        region (`Frame` or `ExportRegion`, optional): The rectangular area to</span>
+<span class="sd">            be exported. This can be a specific `Frame` object or one of</span>
+<span class="sd">            `ExportRegion.CurrentFrame`, `ExportRegion.AllFrames` (default) or</span>
+<span class="sd">            `ExportRegion.WorkArea`.</span>
+<span class="sd">        supersample (`int`, optional): Controls the amount of anti-aliasing</span>
+<span class="sd">            used in each frame. Valid values are 1-16. A value of **1**</span>
+<span class="sd">            indicates that no antialiasing will be used. Antialiasing smooths</span>
+<span class="sd">            jagged edges on text, lines, and edges of the video output by the</span>
+<span class="sd">            process of supersampling. *Some graphics cards* can cause Tecplot</span>
+<span class="sd">            360 to crash when larger anti-aliasing values are used. If this</span>
+<span class="sd">            occurs on your machine, try updating your graphics driver or using</span>
+<span class="sd">            a lower anti-aliasing value. (default: **3**)</span>
+<span class="sd">        format_options (`str`, optional): A string of options passed directly</span>
+<span class="sd">            to the underlying application `FFmpeg &lt;https://www.ffmpeg.org/&gt;`_.</span>
+<span class="sd">            By default, this will be &quot;-c:v libx264 -profile:v high -crf 20</span>
+<span class="sd">            -pix_fmt yuv420p&quot;.</span>
+
+<span class="sd">    Example usage:</span>
+
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">        :emphasize-lines: 19-21</span>
+
+<span class="sd">        import os</span>
+
+<span class="sd">        import tecplot as tp</span>
+<span class="sd">        from tecplot.constant import *</span>
+
+<span class="sd">        examples = tp.session.tecplot_examples_directory()</span>
+<span class="sd">        datafile = os.path.join(examples, &#39;SimpleData&#39;, &#39;VortexShedding.plt&#39;)</span>
+<span class="sd">        dataset = tp.data.load_tecplot(datafile)</span>
+
+<span class="sd">        plot = tp.active_frame().plot(PlotType.Cartesian2D)</span>
+<span class="sd">        plot.activate()</span>
+<span class="sd">        plot.show_contour = True</span>
+
+<span class="sd">        plot.axes.x_axis.min = -0.002</span>
+<span class="sd">        plot.axes.x_axis.max = 0.012</span>
+<span class="sd">        plot.axes.y_axis.min = -0.006</span>
+<span class="sd">        plot.axes.y_axis.max = 0.006</span>
+
+<span class="sd">        tp.export.save_time_animation_mpeg4(&#39;vortex_shedding.mp4&#39;,</span>
+<span class="sd">                                            start_time=0, end_time=0.0006,</span>
+<span class="sd">                                            width=400, supersample=3)</span>
+
+<span class="sd">    .. raw:: html</span>
+
+<span class="sd">        &lt;video controls&gt;</span>
+<span class="sd">            &lt;source src=&quot;../_static/videos/vortex_shedding.m4v&quot; type=&quot;video/mp4&quot;&gt;</span>
+<span class="sd">            I&#39;m sorry; your browser doesn&#39;t support HTML5 MPEG4/H.264 video.</span>
+<span class="sd">        &lt;/video&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">save_time_animation</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span>
+                        <span class="n">end_time</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span> <span class="n">timestep_step</span><span class="o">=</span><span class="n">timestep_step</span><span class="p">,</span>
+                        <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">animation_speed</span><span class="o">=</span><span class="n">animation_speed</span><span class="p">,</span>
+                        <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span> <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
+                        <span class="n">format_options</span><span class="o">=</span><span class="n">format_options</span><span class="p">,</span>
+                        <span class="n">format</span><span class="o">=</span><span class="n">ExportFormat</span><span class="o">.</span><span class="n">MPEG4</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="save_time_animation_raster_metafile"><a class="viewcode-back" href="../../../api/tecplot.exporting.html#tecplot.export.save_time_animation_raster_metafile">[docs]</a><span class="k">def</span> <span class="nf">save_time_animation_raster_metafile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                        <span class="n">end_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">timestep_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">animation_speed</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                                        <span class="n">region</span><span class="o">=</span><span class="n">ExportRegion</span><span class="o">.</span><span class="n">AllFrames</span><span class="p">,</span>
+                                        <span class="n">supersample</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                        <span class="n">multiple_color_tables</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Export transient data time-series Raster Metafile animation to a file.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        filename (`str`): The resulting video file name or path, relative to</span>
+<span class="sd">            Python&#39;s current working directory.</span>
+<span class="sd">        start_time (`float`, optional): The beginning solution time of the</span>
+<span class="sd">            animation. This defaults to the earliest solution time in the</span>
+<span class="sd">            dataset.</span>
+<span class="sd">        end_time (`float`, optional): The ending solution time of the</span>
+<span class="sd">            animation. This defaults to the latest solution time in the</span>
+<span class="sd">            dataset.</span>
+<span class="sd">        timestep_step (`int`, optional): The number of timesteps to increments</span>
+<span class="sd">            for each frame of the animation. (default: 1)</span>
+<span class="sd">        width (`int`, optional): The width of the video in pixels. (default:</span>
+<span class="sd">            800)</span>
+<span class="sd">        animation_speed (`int`, optional): The frame-rate of the video in</span>
+<span class="sd">            frames per second. (default: 10)</span>
+<span class="sd">        region (`Frame` or `ExportRegion`, optional): The rectangular area to</span>
+<span class="sd">            be exported. This can be a specific `Frame` object or one of</span>
+<span class="sd">            `ExportRegion.CurrentFrame`, `ExportRegion.AllFrames` (default) or</span>
+<span class="sd">            `ExportRegion.WorkArea`.</span>
+<span class="sd">        supersample (`int`, optional): Controls the amount of anti-aliasing</span>
+<span class="sd">            used in each frame. Valid values are 1-16. A value of **1**</span>
+<span class="sd">            indicates that no antialiasing will be used. Antialiasing smooths</span>
+<span class="sd">            jagged edges on text, lines, and edges of the video output by the</span>
+<span class="sd">            process of supersampling. *Some graphics cards* can cause Tecplot</span>
+<span class="sd">            360 to crash when larger anti-aliasing values are used. If this</span>
+<span class="sd">            occurs on your machine, try updating your graphics driver or using</span>
+<span class="sd">            a lower anti-aliasing value. (default: **3**)</span>
+<span class="sd">        multiple_color_tables (`bool`, optional): Create a color table for each</span>
+<span class="sd">            frame of the animation. If `False` (default), the whole animation</span>
+<span class="sd">            will be scanned in an attempt to create a single table of 256</span>
+<span class="sd">            colors.</span>
+
+<span class="sd">    Example usage, see the example under `save_time_animation_mpeg4` for a</span>
+<span class="sd">    complete working example::</span>
+
+<span class="sd">        &gt;&gt;&gt; tp.export.save_time_animation_raster_metafile(&#39;output.rm&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">save_time_animation</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span>
+                        <span class="n">end_time</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span> <span class="n">timestep_step</span><span class="o">=</span><span class="n">timestep_step</span><span class="p">,</span>
+                        <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">animation_speed</span><span class="o">=</span><span class="n">animation_speed</span><span class="p">,</span>
+                        <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span> <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
+                        <span class="n">multiple_color_tables</span><span class="o">=</span><span class="n">multiple_color_tables</span><span class="p">,</span>
+                        <span class="n">format</span><span class="o">=</span><span class="n">ExportFormat</span><span class="o">.</span><span class="n">RasterMetafile</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="save_time_animation_wmv"><a class="viewcode-back" href="../../../api/tecplot.exporting.html#tecplot.export.save_time_animation_wmv">[docs]</a><span class="k">def</span> <span class="nf">save_time_animation_wmv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">timestep_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">animation_speed</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">ExportRegion</span><span class="o">.</span><span class="n">AllFrames</span><span class="p">,</span> <span class="n">supersample</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                            <span class="n">format_options</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Export transient data time-series Windows Media Video (WMV) to a file.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        filename (`str`): The resulting video file name or path, relative to</span>
+<span class="sd">            Python&#39;s current working directory.</span>
+<span class="sd">        start_time (`float`, optional): The beginning solution time of the</span>
+<span class="sd">            animation. This defaults to the earliest solution time in the</span>
+<span class="sd">            dataset.</span>
+<span class="sd">        end_time (`float`, optional): The ending solution time of the</span>
+<span class="sd">            animation. This defaults to the latest solution time in the</span>
+<span class="sd">            dataset.</span>
+<span class="sd">        timestep_step (`int`, optional): The number of timesteps to increments</span>
+<span class="sd">            for each frame of the animation. (default: 1)</span>
+<span class="sd">        width (`int`, optional): The width of the video in pixels. (default:</span>
+<span class="sd">            800)</span>
+<span class="sd">        animation_speed (`int`, optional): The frame-rate of the video in</span>
+<span class="sd">            frames per second. (default: 10)</span>
+<span class="sd">        region (`Frame` or `ExportRegion`, optional): The rectangular area to</span>
+<span class="sd">            be exported. This can be a specific `Frame` object or one of</span>
+<span class="sd">            `ExportRegion.CurrentFrame`, `ExportRegion.AllFrames` (default) or</span>
+<span class="sd">            `ExportRegion.WorkArea`.</span>
+<span class="sd">        supersample (`int`, optional): Controls the amount of anti-aliasing</span>
+<span class="sd">            used in each frame. Valid values are 1-16. A value of **1**</span>
+<span class="sd">            indicates that no antialiasing will be used. Antialiasing smooths</span>
+<span class="sd">            jagged edges on text, lines, and edges of the video output by the</span>
+<span class="sd">            process of supersampling. *Some graphics cards* can cause Tecplot</span>
+<span class="sd">            360 to crash when larger anti-aliasing values are used. If this</span>
+<span class="sd">            occurs on your machine, try updating your graphics driver or using</span>
+<span class="sd">            a lower anti-aliasing value. (default: **3**)</span>
+<span class="sd">        format_options (`str`, optional): A string of options passed directly</span>
+<span class="sd">            to the underlying application `FFmpeg &lt;https://www.ffmpeg.org/&gt;`_.</span>
+<span class="sd">            By default, this will be &quot;-qscale 4&quot;.</span>
+
+<span class="sd">    Example usage, see the example under `save_time_animation_mpeg4` for a</span>
+<span class="sd">    complete working example::</span>
+
+<span class="sd">        &gt;&gt;&gt; tp.export.save_time_animation_wmv(&#39;output.wmv&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">save_time_animation</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span>
+                        <span class="n">end_time</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span> <span class="n">timestep_step</span><span class="o">=</span><span class="n">timestep_step</span><span class="p">,</span>
+                        <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">animation_speed</span><span class="o">=</span><span class="n">animation_speed</span><span class="p">,</span>
+                        <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span> <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
+                        <span class="n">format_options</span><span class="o">=</span><span class="n">format_options</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="n">ExportFormat</span><span class="o">.</span><span class="n">WMV</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/powered_by_tecplot.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+<h3><a href="../../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference.html">Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+    <li><img src="../../../_static/favicon.gif" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.tecplot.com/docs/pytecplot/">PyTecplot</a> &#187;</li>
+    
+    <a href="../../../index.html">PyTecplot-0.14</a> &#187;
+    
+
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+    <li class="right">
+        
+
+    <div class="inline-search" style="display: none" role="search">
+        <form class="inline-search" action="../../../search.html" method="get">
+          <input placeholder="Quick search" type="text" name="q" />
+          <input type="submit" value="Go" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+    </div>
+    <script type="text/javascript">$('.inline-search').show(0);</script>
+         |
+    </li>
+
+      </ul>
+    </div>  
+    <div class="footer">
+    &copy; Copyright 2019, Tecplot, Inc.
+    Last updated on May 14, 2019.
+    
+    <br />
+
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.8.4.
+    </div>
+
+  </body>
+</html>
