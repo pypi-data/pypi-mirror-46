@@ -1,0 +1,64 @@
+# dhttp
+
+**dhttp**, which is pretty short for _decorable HTTP_, is a
+simple, yet dynamic, HTTP server written for Python 3.  
+It is inspired by Node.js's Express library.
+
+"Decorable" is a reference to how extensively decorators are
+used throughout this project. They are very useful, and
+are one of the nicest syntaxes for a callback system like
+this.
+
+## Example code
+
+    import dhttp
+    import random
+
+    app = dhttp.DHTTPServer(int(sys.argv[1]) if len(sys.argv) > 1 else 8005)
+
+    app.alias('/index', '/')
+    app.alias('/index.htm', '/')
+    app.alias('/index.html', '/')
+
+    test_index = """<!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8" />
+            <title>My first DHTTP server</title>
+        </head>
+
+        <body>
+            <p><h2>Congratulations!</h2></p>
+            <hr>
+            <p><b>dhttp {version}</b> is now running on your machine.</p>
+            <p>How about <i>{party}</i> to comemorate? :)</p>
+        </body>
+    </html>"""
+
+    party_stuff = [
+        'a bottle of wine', 'a bottle of champagne', 'a big party',
+        'THE party, just', 'THE party', 'lots of cats', 'partyception',
+        'balloons and cakes', 'a big-endian cake', 'lots of confetti',
+        'the Confetti-o-Tron 2000', 'HTTP juice', 'Spicy Bytes',
+        'antimatter', 'cats writing code', 'a smile breaking the 4th wall'
+    ]
+
+    @app.get('/')
+    def serve_index(req, res):
+        res.end(test_index.format(
+            party = random.choice(party_stuff),
+            version = DHTTP_VERSION
+        ))
+
+    @app.on_log
+    def print_log(log):
+        if log.request.get_header('X-Forwarded-For') is not None:
+            log.ip = log.request.get_header('X-Forwarded-For')
+            print(log, '  (forwarded)')
+
+        else:
+            print(log)
+
+    @app.serve_forever
+    def on_serve():
+        print(f"   == Listening on port: {app.port} ==")
