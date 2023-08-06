@@ -1,0 +1,221 @@
+- job:
+    name: ara-tox-py3
+    parent: tox
+    nodeset: ubuntu-bionic
+    vars:
+      tox_envlist: py3
+
+- job:
+    name: ara-tox-linters
+    parent: tox
+    nodeset: ubuntu-bionic
+    vars:
+      tox_envlist: linters
+
+- job:
+    name: ansible-role-ara-tests-base
+    parent: base
+    vars:
+      ara_tests_cleanup: false
+      integration_ansible_name: "{{ ansible_user_dir }}/src/github.com/ansible/ansible"
+      integration_ansible_version: null
+    pre-run: tests/role-integration-pre.yaml
+    run: playbooks/ara_tests.yaml
+    post-run: tests/ara_tests_post.yaml
+
+- job:
+    name: ansible-role-ara-tests-fedora-devel
+    parent: ansible-role-ara-tests-base
+    nodeset: fedora-latest
+    required-projects:
+      - name: github.com/ansible/ansible
+        override-checkout: devel
+
+- job:
+    name: ansible-role-ara-tests-fedora-2.7
+    parent: ansible-role-ara-tests-base
+    nodeset: fedora-latest
+    required-projects:
+      - name: github.com/ansible/ansible
+        override-checkout: stable-2.7
+
+- job:
+    name: ansible-role-ara-tests-ubuntu-2.6
+    parent: ansible-role-ara-tests-base
+    nodeset: ubuntu-bionic
+    required-projects:
+      - name: github.com/ansible/ansible
+        override-checkout: stable-2.6
+
+- job:
+    name: ansible-role-ara-api-base
+    parent: base
+    files:
+      - ara/*
+      - playbooks/*
+      - roles/*
+      - tests/*
+      - .zuul.d/*
+      - setup.py
+      - setup.cfg
+      - requirements.txt
+      - test-requirements.txt
+    pre-run: tests/role-integration-pre.yaml
+    run: playbooks/ara_api.yaml
+    vars:
+      ara_tests_cleanup: false
+      ara_api_source: "{{ ansible_user_dir }}/src/opendev.org/recordsansible/ara"
+      ara_api_version: HEAD
+      ansible_python_interpreter: /usr/bin/python3
+
+- job:
+    name: ansible-role-ara-api-ubuntu
+    parent: ansible-role-ara-api-base
+    nodeset: ubuntu-bionic
+
+- job:
+    name: ansible-role-ara-api-fedora
+    parent: ansible-role-ara-api-base
+    nodeset: fedora-latest
+
+# TODO: the install-docker role assumes running on Ubuntu
+- job:
+    name: ansible-role-ara-api-ubuntu-postgresql
+    parent: ansible-role-ara-api-base
+    nodeset: ubuntu-bionic
+    roles:
+      - zuul: zuul/zuul-jobs
+    pre-run: tests/install_docker.yaml
+    run: tests/with_postgresql.yaml
+    post-run: tests/ara_tests_post.yaml
+
+- job:
+    name: ansible-role-ara-web-base
+    parent: base
+    files:
+      # ara
+      - ara/*
+      - playbooks/*
+      - roles/*
+      - tests/*
+      - .zuul.d/*
+      - setup.py
+      - setup.cfg
+      - requirements.txt
+      - test-requirements.txt
+      # ara-web
+      - src/.*
+      - public/.*
+      - package.json
+      - package-lock.json
+    required-projects:
+      - recordsansible/ara-web
+    run: playbooks/ara_web.yaml
+    post-run: tests/role-ara-web-post.yaml
+    vars:
+      ara_web_source: "{{ ansible_user_dir }}/src/opendev.org/recordsansible/ara-web"
+      ara_web_api_server: "https://api.demo.recordsansible.org"
+      ansible_python_interpreter: /usr/bin/python3
+
+- job:
+    name: ansible-role-ara-web-ubuntu
+    parent: ansible-role-ara-web-base
+    nodeset: ubuntu-bionic
+
+- job:
+    name: ansible-role-ara-web-fedora
+    parent: ansible-role-ara-web-base
+    nodeset: fedora-latest
+
+- secret:
+    name: ara_git_mirror_credentials
+    data:
+      user: git
+      host: github.com
+      host_key: github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==
+      ssh_key: !encrypted/pkcs1-oaep
+        - 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
+
+- job:
+    name: ara-upload-git-mirror
+    parent: upload-git-mirror
+    description: Mirrors recordsansible/ara to ansible-community/ara
+    allowed-projects: recordsansible/ara
+    vars:
+      git_mirror_repository: ansible-community/ara
+    secrets:
+      - name: git_mirror_credentials
+        secret: ara_git_mirror_credentials
+        pass-to-parent: true
+
+- project:
+    vars:
+      rtd_webhook_id: '49230'
+    templates:
+      - docs-on-readthedocs
+    check:
+      jobs:
+        - ansible-role-ara-tests-fedora-2.7
+        - ansible-role-ara-tests-fedora-devel:
+            voting: false
+        - ansible-role-ara-tests-ubuntu-2.6
+        - ansible-role-ara-api-ubuntu
+        - ansible-role-ara-api-fedora
+        - ansible-role-ara-api-ubuntu-postgresql
+        - ansible-role-ara-web-ubuntu
+        - ansible-role-ara-web-fedora
+        - ara-tox-linters
+        - ara-tox-py3
+    gate:
+      jobs:
+        - ansible-role-ara-tests-fedora-2.7
+        - ansible-role-ara-tests-ubuntu-2.6
+        - ansible-role-ara-api-ubuntu
+        - ansible-role-ara-api-fedora
+        - ansible-role-ara-api-ubuntu-postgresql
+        - ansible-role-ara-web-ubuntu
+        - ansible-role-ara-web-fedora
+        - ara-tox-linters
+        - ara-tox-py3
+    post:
+      jobs:
+        - ara-upload-git-mirror
