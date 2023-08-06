@@ -1,0 +1,85 @@
+#!python
+
+# https://stackoverflow.com/questions/37558271/python-sklearn-deprecation-warning
+def warn(*args, **kwargs):
+    pass
+import warnings
+warnings.warn = warn
+
+# https://stackoverflow.com/questions/47068709/your-cpu-supports-instructions-that-this-tensorflow-binary-was-not-compiled-to-u
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+import sys
+import collections
+import logging as log
+
+log.basicConfig(format = '[%(asctime)s] (%(levelname)s) %(message)s', level = log.INFO)
+
+from ergo.core.action import Action
+
+from ergo.actions.info import action_info
+from ergo.actions.create import action_create
+from ergo.actions.optimize import action_optimize_dataset
+from ergo.actions.train import action_train
+from ergo.actions.clean import action_clean
+from ergo.actions.view import action_view
+from ergo.actions.compare import action_compare
+from ergo.actions.relevance import action_relevance
+from ergo.actions.serve import action_serve
+from ergo.actions.to_fdeep import action_to_fdeep
+from ergo.actions.to_tf import action_to_tf
+
+def get_pad(l):
+    pad = 0
+    for name in l:
+        if len(name) > pad:
+            pad = len(name)
+    return pad
+
+def action_help(argc=0, argv=None):
+    print("usage: ergo <action> [args] / ergo <action> -h (to get action specific help)")
+
+    global ACTIONS 
+    pad = get_pad(ACTIONS)
+    print("\n  actions:\n")
+    for name in ACTIONS:
+        print( ("\t%" + str(pad) + "s : %s") % ( name, ACTIONS[name].description ) )
+
+    quit()
+
+ACTIONS = collections.OrderedDict([
+    ("help", Action("help", "Print the usage menu.", action_help)),
+    ("info", Action("info", "Print library versions and hardware info.", action_info)),
+    ("create", Action("create", "Create a new ergo project.", action_create)),
+    ("optimize-dataset", Action("optimize-dataset", "Remove duplicates from the dataset and only allow them within a given reuse ratio.", action_optimize_dataset)),
+    ("train", Action("train", "Start the training phase of a model.", action_train)),
+    ("clean", Action("clean", "Clean a project from temporary datasets and optionally reset it to its initial state.", action_clean)),
+    ("view", Action("view", "View the model struture and training statistics.", action_view)),
+    ("cmp", Action("cmp", "Compare the performances of two models against a given dataset.", action_compare)),
+    ("relevance", Action("relevance", "Compute the relevance of each feature of the dataset by differential evaluation.", action_relevance)),
+    ("serve", Action("serve", "Load a model and expose an API that can be used to run its inference.", action_serve)),
+    ("to-fdeep", Action("to-fdeep", "Convert the model inside an ergo project to the frugally-deep library format.", action_to_fdeep)),
+    ("to-tf", Action("to-tf", "Convert the model inside an ergo project to TensorFlow format.", action_to_tf)),
+])
+
+def main():
+    argc   = len(sys.argv)
+    action = sys.argv[1] if argc >= 2 else None 
+
+    if action is None:
+        action_help()
+
+    elif action not in ACTIONS:
+        log.error("unknown action %s" % action)
+        action_help()
+
+    else:
+        try:
+            ACTIONS[action].cb(argc - 2, sys.argv[2:])
+        except Exception as e:
+            log.critical("%s", e)
+            log.exception("\n\n")
+
+if __name__ == '__main__':
+    main()
