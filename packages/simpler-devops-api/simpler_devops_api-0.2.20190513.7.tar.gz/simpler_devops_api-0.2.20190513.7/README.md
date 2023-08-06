@@ -1,0 +1,29 @@
+# Introduction 
+A Simpler Way of Interacting with Azure Devops through Python
+
+# Getting Started
+This is a work in progress so functions are implemented as they are needed. 
+
+Initially support is providede for getting information on projects, repositories, branches and for getting and setting branch policies.
+
+Authentication information is provided via two methods -
+
+##1 - via environment variables
+
+DEVOPS_PAT : PAT for azure devops organisation that has the appropriate permissions for the org you are looking to talk to 
+DEVOPS_URL : The organisation URL for the organisation that you are looking to talk to. 
+
+##2 - via configuration file. 
+
+If the environment variables are not set then the package will look for ```.devops.ini``` in your home directory, or ```devops.ini``` in the default user data directory (see appdirs for where this is likely to be on your OS)
+
+### Config file format
+
+Example config file
+
+```
+[DEFAULT]
+DEVOPS_PAT = your_long_pat_token
+DEVOPS_URL = https://dev.azure.com/organisation
+```
+
