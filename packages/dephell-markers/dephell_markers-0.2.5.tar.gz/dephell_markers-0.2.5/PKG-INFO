@@ -1,0 +1,83 @@
+Metadata-Version: 2.1
+Name: dephell_markers
+Version: 0.2.5
+Summary: Work with environment markers (PEP-496)
+Project-URL: Repository, https://github.com/dephell/dephell_markers
+Author: Gram
+Author-email: master_fess@mail.ru
+License: MIT
+Requires-Python: >=3.5
+Keywords: dephell,markers,packaging,versioning
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: System :: Installation/Setup
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Operating System :: MacOS
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: Unix
+
+
+Dephell Markers
+===============
+
+
+.. image:: https://travis-ci.org/dephell/dephell_markers.svg?branch=master
+   :target: https://travis-ci.org/dephell/dephell_markers
+   :alt: travis
+
+
+.. image:: https://ci.appveyor.com/api/projects/status/github/dephell/dephell_markers?svg=true
+   :target: https://ci.appveyor.com/project/orsinium/dephell-markers
+   :alt: appveyor
+
+
+.. image:: https://img.shields.io/pypi/l/dephell-markers.svg
+   :target: https://github.com/dephell/dephell_markers/blob/master/LICENSE
+   :alt: MIT License
+
+
+Work with environment markers (PEP-496).
+
+Installation
+------------
+
+Install from `PyPI <https://pypi.org/project/dephell-markers/>`_\ :
+
+.. code-block:: bash
+
+   python3 -m pip install --user dephell_markers
+
+Usage
+-----
+
+.. code-block:: python
+
+   from dephell_markers import Markers
+
+   m = Markers('os_name == "posix" and python_version >= "2.7"')
+
+   m.get_version(name='python_version')
+   # '>=2.7'
+
+   m.get_string(name='os_name')
+   # 'posix'
+
+   Markers('python_version >= "2.4" or python_version <= "2.7"').get_version(name='python_version')
+   '<=2.7 || >=2.4'
+
+   Markers('python_version >= "2.4" or python_version <= "2.7"').python_version
+   # RangeSpecifier(<=2.7 || >=2.4)
+
+
+   # Nothing better than lie:
+   Markers('python_version == "2.4" or os_name == "linux"').get_version(name='python_version')
+   # None
